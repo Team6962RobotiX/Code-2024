@@ -32,11 +32,8 @@ public final class Constants {
 
 
   // Channels
-  public static final int CAN_LEFT_DRIVE_1 = 10; // 10 for Main Chassis, 1 For Test Chassis
-  public static final int CAN_LEFT_DRIVE_2 = 28; // 28 for Main Chassis, 2 For Test Chassis
-  public static final int CAN_RIGHT_DRIVE_1 = 7; // 7 for Main Chassis, 3 For Test Chassis
-  public static final int CAN_RIGHT_DRIVE_2 = 27; // 27 for Main Chassis, 4 For Test Chassis
-
+  public static final int CAN_SPARK = 17;
+  
   public static final int USB_DRIVE_JOYSTICK = 0;
   public static final int USB_UTILITY_JOYSTICK = 1;
 

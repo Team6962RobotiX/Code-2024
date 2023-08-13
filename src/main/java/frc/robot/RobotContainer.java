@@ -49,7 +49,7 @@ public class RobotContainer {
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
-    // drive.setDefaultCommand(new JoystickDrive(drive, () -> driveJoystick));
+    drive.setDefaultCommand(new JoystickSwerve(drive, () -> driveJoystick));
     // if (Constants.ENABLE_ARM) {
     //   arm.setDefaultCommand(new JoystickArm(arm, () -> utilityJoystick));
     // }
@@ -63,49 +63,9 @@ public class RobotContainer {
   }
 
   public Command getAutonomousCommand() {
-    // // Create a voltage constraint to ensure we don't accelerate too fast
-    // var autoVoltageConstraint = new DifferentialDriveVoltageConstraint(new SimpleMotorFeedforward(Constants.DRIVE_KS, Constants.DRIVE_KV, Constants.DRIVE_KA), Constants.DRIVE_KINEMATICS, 10);
-
-    // // Create config for trajectory
-    // TrajectoryConfig config = new TrajectoryConfig(Constants.AUTONOMOUS_MAX_SPEED, Constants.AUTONOMOUS_MAX_ACCELERATION)
-    //     // Add kinematics to ensure max speed is actually obeyed
-    //     .setKinematics(Constants.DRIVE_KINEMATICS)
-    //     // Apply the voltage constraint
-    //     .addConstraint(autoVoltageConstraint);
-
-    // // An example trajectory to follow.  All units in meters.
-    // Trajectory exampleTrajectory = TrajectoryGenerator.generateTrajectory(
-
-    //     // Start at the origin facing the +X direction
-    //     new Pose2d(0, 0, new Rotation2d(0)),
-
-    //     // Pass through these two interior waypoints, making an 's' curve path
-    //     List.of(new Translation2d(1, 1), new Translation2d(2, -1)),
-
-    //     // End 3 meters straight ahead of where we started, facing forward
-    //     new Pose2d(3, 0, new Rotation2d(0)),
-
-    //     // Pass config
-    //     config);
-
-    // RamseteCommand ramseteCommand = new RamseteCommand(exampleTrajectory, drive::getPose, new RamseteController(Constants.AUTONOMOUS_RAMSETE_B, Constants.AUTONOMOUS_RAMSETE_ZETA), new SimpleMotorFeedforward(Constants.DRIVE_KS, Constants.DRIVE_KV, Constants.DRIVE_KA), Constants.DRIVE_KINEMATICS, drive::getWheelSpeeds, new PIDController(Constants.DRIVE_KP, 0, 0), new PIDController(Constants.DRIVE_KP, 0, 0),
-
-    //     // RamseteCommand passes volts to the callback
-    //     drive::tankDriveVolts, drive);
-
-    // // Reset odometry to the starting pose of the trajectory.
-    // drive.resetOdometry(exampleTrajectory.getInitialPose());
-
-    // // Run path following command, then stop at the end.
-    // return ramseteCommand.andThen(() -> drive.tankDriveVolts(0, 0));
     return null;
   }
 
   public void disabledPeriodic() {
   }
-
-  // ExtendArm
-  // LiftArm
-  // AutoBalance
-  // ClawGrab
 }

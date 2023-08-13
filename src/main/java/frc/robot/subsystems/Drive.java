@@ -26,24 +26,13 @@ import com.revrobotics.RelativeEncoder;
 import frc.robot.commands.*;
 import frc.robot.Constants;
 
+import com.ctre.phoenix.sensors.CANCoder;
+
 public class Drive extends SubsystemBase {
 
-  private CANSparkMax leftBank1 = new CANSparkMax(Constants.CAN_LEFT_DRIVE_1, CANSparkMax.MotorType.kBrushless);
-  private CANSparkMax leftBank2 = new CANSparkMax(Constants.CAN_LEFT_DRIVE_2, CANSparkMax.MotorType.kBrushless);
-  private CANSparkMax rightBank1 = new CANSparkMax(Constants.CAN_RIGHT_DRIVE_1, CANSparkMax.MotorType.kBrushless);
-  private CANSparkMax rightBank2 = new CANSparkMax(Constants.CAN_RIGHT_DRIVE_2, CANSparkMax.MotorType.kBrushless);
-
-  private MotorControllerGroup rightBank = new MotorControllerGroup(rightBank1, rightBank2);
-  private MotorControllerGroup leftBank = new MotorControllerGroup(leftBank1, leftBank2);
-
-  private DifferentialDrive drive = new DifferentialDrive(leftBank, rightBank);
-
-  private RelativeEncoder leftBankEncoder = leftBank2.getEncoder();
-  private RelativeEncoder rightBankEncoder = rightBank1.getEncoder();
-
-  private DifferentialDriveOdometry odometry;
-  private Field2d field = new Field2d();
-
+  private CANSparkMax spark = new CANSparkMax(Constants.CAN_SPARK, CANSparkMax.MotorType.kBrushless);
+  CANCoder cancoder = new CANCoder(0);
+  
   private IMU IMU;
 
   public Drive(IMU IMU) {
@@ -64,15 +53,16 @@ public class Drive extends SubsystemBase {
     // This method will be called once per scheduler run during simulation
   }
 
+
+  public void runSpark(double speed) {
+    spark.set(speed);
+  }
+
   public void setIdleMode(CANSparkMax.IdleMode idleMode) {
-    leftBank1.setIdleMode(idleMode);
-    leftBank2.setIdleMode(idleMode);
-    rightBank1.setIdleMode(idleMode);
-    rightBank2.setIdleMode(idleMode);
+    spark.setIdleMode(idleMode);
   }
 
   public void resetEncoders() {
-    leftBankEncoder.setPosition(0);
-    rightBankEncoder.setPosition(0);
+    
   }
 }
