@@ -24,6 +24,9 @@ public final class Constants {
 
   // Drive Config
 
+  // Robot Dimensions
+  public static final double WIDTH = 24.75;
+  public static final double LENGTH = 25.5;
 
   // Joystick Dead-zones
   public static final double TWIST_DEADZONE = 0.3; // Joystick deadzone for turning
