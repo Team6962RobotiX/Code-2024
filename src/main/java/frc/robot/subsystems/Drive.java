@@ -30,14 +30,18 @@ import com.ctre.phoenix.sensors.CANCoder;
 
 public class Drive extends SubsystemBase {
 
-  private CANSparkMax spark = new CANSparkMax(Constants.CAN_SPARK, CANSparkMax.MotorType.kBrushless);
-  CANCoder cancoder = new CANCoder(0);
-  
+  private CANSparkMax[] driveMotors;
+  private CANSparkMax[] steerMotors;
+  private CANCoder[] canCoders;
+ 
+
   private IMU IMU;
 
-  public Drive(IMU IMU) {
+  public Drive(IMU IMU, CANSparkMax[] driveMotors, CANSparkMax[] steerMotors, CANCoder[] canCoders) {
     this.IMU = IMU;
-
+    this.driveMotors = driveMotors;
+    this.steerMotors = steerMotors;
+    this.canCoders = canCoders;
   }
 
   @Override
@@ -55,11 +59,11 @@ public class Drive extends SubsystemBase {
 
 
   public void runSpark(double speed) {
-    spark.set(speed);
+    //spark.set(speed);
   }
 
   public void setIdleMode(CANSparkMax.IdleMode idleMode) {
-    spark.setIdleMode(idleMode);
+    //spark.setIdleMode(idleMode);
   }
 
   public void resetEncoders() {
