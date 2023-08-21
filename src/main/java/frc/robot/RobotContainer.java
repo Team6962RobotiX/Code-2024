@@ -7,7 +7,7 @@ package frc.robot;
 import frc.robot.Constants;
 import frc.robot.commands.*;
 import frc.robot.subsystems.*;
-
+import frc.robot.subsystems.Swerve.SwerveDrive;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.RamseteCommand;
@@ -43,38 +43,18 @@ public class RobotContainer {
   private final Joystick driveJoystick = new Joystick(Constants.USB_DRIVE_JOYSTICK);
   private final Joystick utilityJoystick = new Joystick(Constants.USB_UTILITY_JOYSTICK);
 
-  private final IMU IMU = new IMU();
-  private final Drive drive = new Drive(IMU);
+  private final SwerveDrive drive = new SwerveDrive();
   private final Limelight limelight = new Limelight(Constants.LIMELIGHT_NAME);
-
-
-  
-
-  /*SwerveModuleState frontLeftOptimized = SwerveModuleState.optimize(frontLeft,
-   new Rotation2d(m_turningEncoder.getDistance()));
-
-  SwerveModuleState frontRightOptimized = SwerveModuleState.optimize(frontRight,
-   new Rotation2d(m_turningEncoder.getDistance()));
-
-  SwerveModuleState backLeftOptimized = SwerveModuleState.optimize(backLeft,
-   new Rotation2d(m_turningEncoder.getDistance()));
-
-  SwerveModuleState backRightOptimized = SwerveModuleState.optimize(backRight,
-   new Rotation2d(m_turningEncoder.getDistance()));*/
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
     drive.setDefaultCommand(new JoystickSwerve(drive, () -> driveJoystick));
-    // if (Constants.ENABLE_ARM) {
-    //   arm.setDefaultCommand(new JoystickArm(arm, () -> utilityJoystick));
-    // }
 
     // Configure the trigger bindings
     configureBindings();
   }
 
   private void configureBindings() {
-    // MAIN DRIVER
   }
 
   public Command getAutonomousCommand() {

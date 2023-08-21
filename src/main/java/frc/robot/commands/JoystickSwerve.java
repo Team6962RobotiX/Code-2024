@@ -5,6 +5,7 @@
 package frc.robot.commands;
 
 import frc.robot.subsystems.*;
+import frc.robot.subsystems.Swerve.SwerveDrive;
 import frc.robot.Constants;
 import frc.robot.Robot;
 import frc.robot.RobotContainer;
@@ -23,41 +24,14 @@ import edu.wpi.first.math.geometry.Translation2d;
 
 /** An example command that uses an example subsystem. */
 
-
 public class JoystickSwerve extends CommandBase {
-  private final Drive drive;
+  private final SwerveDrive drive;
   private final Supplier<Joystick> joystickSupplier;
 
-  ChassisSpeeds speeds;
-  Translation2d m_frontLeftLocation = new Translation2d(12.375, 12.75);
-  Translation2d m_frontRightLocation = new Translation2d(12.375, -12.75);
-  Translation2d m_backLeftLocation = new Translation2d(-12.375, 12.75);
-  Translation2d m_backRightLocation = new Translation2d(-12.375, -12.75);
-  
-
-  SwerveDriveKinematics m_kinematics = new SwerveDriveKinematics(
-    m_frontLeftLocation, m_frontRightLocation, m_backLeftLocation, m_backRightLocation
-  );
-
-  // Convert to module states
-  SwerveModuleState[] moduleStates = m_kinematics.toSwerveModuleStates(speeds);
-
-  // Front left module state
-  SwerveModuleState frontLeft = moduleStates[0];
-
-  // Front right module state
-  SwerveModuleState frontRight = moduleStates[1];
-
-  // Back left module state
-  SwerveModuleState backLeft = moduleStates[2];
-
-  // Back right module state
-  SwerveModuleState backRight = moduleStates[3];
-
-  public JoystickSwerve(Drive drive, Supplier<Joystick> joystickSupplier) {
+  public JoystickSwerve(SwerveDrive drive, Supplier<Joystick> joystickSupplier) {
     this.drive = drive;
     this.joystickSupplier = joystickSupplier;
-    
+
     // Use addRequirements() here to declare subsystem dependencies.
     addRequirements(drive);
   }
@@ -71,15 +45,7 @@ public class JoystickSwerve extends CommandBase {
   @Override
   public void execute() {
     Joystick joystick = joystickSupplier.get();
-    this.speeds = new ChassisSpeeds(joystick.getY(), joystick.getX(), joystick.getTwist());
-    double speed = joystick.getRawAxis(1) / 1.0;
-
-    if (joystick.getTrigger()) {
-      drive.runSpark(speed);
-    } else {
-      drive.runSpark(0.0);
-    }
-
+    drive.fieldOrientedDrive(joystick.getY(), joystick.getX(), joystick.getTwist());
   }
 
   // Called once the command ends or is interrupted.
