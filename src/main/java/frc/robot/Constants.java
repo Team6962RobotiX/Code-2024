@@ -4,6 +4,8 @@
 
 package frc.robot;
 
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.DifferentialDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
@@ -23,21 +25,18 @@ public final class Constants {
   public static final boolean ENABLE_LIMELIGHT = false;
 
   // SWERVE DRIVE
-  public static final double MAX_DRIVE_VELOCITY = 0.1; // TODO, measured in meters/second
+  public static final Pose2d STARTING_POSE = new Pose2d(0.0, 0.0, Rotation2d.fromDegrees(0));
+
+  public static final double MAX_DRIVE_VELOCITY = 4.4196 * 0.1; // measured in meters/second (top speed of 4.4196 m/s)
 
   public static final double SWERVE_MODULE_SPACING_X = 0.6477; // measured in meters
   public static final double SWERVE_MODULE_SPACING_Y = 0.62865; // measured in meters
 
-  public static final double SWERVE_GEAR_RATIO = 1.0; // TODO
-  public static final double SWERVE_WHEEL_DIAMETER = 1.0; // TODO
+  public static final double SWERVE_GEAR_RATIO = 6.75; // 1:6.75
+  public static final double SWERVE_WHEEL_DIAMETER = 0.4572; // meters
 
-  public static final double SWERVE_STEER_KP = 1.0; // TODO
-  public static final double SWERVE_STEER_KI = 0.0; // TODO
-  public static final double SWERVE_STEER_KD = 0.0; // TODO
-
-  public static final double SWERVE_DRIVE_KP = 1.0; // TODO
-  public static final double SWERVE_DRIVE_KI = 0.0; // TODO
-  public static final double SWERVE_DRIVE_KD = 0.0; // TODO
+  public static final double[] SWERVE_DRIVE_PID = { 1.0, 0.0, 0.0 }; // TODO
+  public static final double[] SWERVE_STEER_PID = { 1.0, 0.0, 0.0 }; // TODO
 
   public static final double STARTING_ANGLE_OFFSET = 0.0;
 
@@ -66,5 +65,11 @@ public final class Constants {
       return d;
     }
     return (x - a) / (b - a) * (d - c) + c;
+  }
+
+  public static double angleDist(double alpha, double beta) {
+    double phi = Math.abs(beta - alpha) % 360.0; // This is either the distance or 360 - distance
+    double distance = phi > 180.0 ? 360.0 - phi : phi;
+    return distance;
   }
 }

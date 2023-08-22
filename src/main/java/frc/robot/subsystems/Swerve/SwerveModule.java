@@ -53,16 +53,19 @@ public class SwerveModule {
     this.driveEncoder = driveMotor.getEncoder();
     this.steerMotor = steerMotor;
     this.steerEncoder = steerEncoder;
-    steerEncoder.configAbsoluteSensorRange(AbsoluteSensorRange.Signed_PlusMinus180);
 
-    steerController = new PIDController(Constants.SWERVE_STEER_KP, Constants.SWERVE_STEER_KI,
-        Constants.SWERVE_STEER_KD);
-    driveController = new PIDController(Constants.SWERVE_DRIVE_KP, Constants.SWERVE_DRIVE_KI,
-        Constants.SWERVE_DRIVE_KD);
+    steerEncoder.configAbsoluteSensorRange(AbsoluteSensorRange.Unsigned_0_to_360);
+
+    driveController = new PIDController(Constants.SWERVE_DRIVE_PID[0], Constants.SWERVE_DRIVE_PID[1],
+        Constants.SWERVE_DRIVE_PID[2]);
+
+    steerController = new PIDController(Constants.SWERVE_STEER_PID[0], Constants.SWERVE_STEER_PID[1],
+        Constants.SWERVE_STEER_PID[2]);
+
     steerController.enableContinuousInput(0, 360);
   }
 
-  public void setState(SwerveModuleState state) {
+  public void setTargetState(SwerveModuleState state) {
     state = SwerveModuleState.optimize(state, Rotation2d.fromDegrees(getAngle()));
 
     targetState = state;
@@ -70,21 +73,33 @@ public class SwerveModule {
     double targetDriveSpeed = state.speedMetersPerSecond / (Constants.SWERVE_WHEEL_DIAMETER * Math.PI);
     double targetSteerAngle = state.angle.getDegrees();
 
-    double drivePower = driveController.calculate(getSpeed(), targetDriveSpeed);
-    double steerPower = steerController.calculate(getAngle(), targetSteerAngle);
+    // Flip wheel direction for less turning time
+    if (Constants.angleDist(targetSteerAngle, getAngle()) > Constants.angleDist((targetSteerAngle + 180) % 360,
+        getAngle())) {
+      targetDriveSpeed = -targetDriveSpeed;
+      targetSteerAngle = (targetSteerAngle + 180) % 360;
+    }
+
+    setSpeed(targetDriveSpeed);
+    setAngle(targetSteerAngle);
+  }
+
+  public void drive() {
+    double drivePower = driveController.calculate(getSpeed());
+    double steerPower = steerController.calculate(getAngle());
 
     driveMotor.set(drivePower);
     steerMotor.set(steerPower);
   }
 
-  public void disableModule() {
-    driveMotor.set(0);
-    steerMotor.set(0);
+  public void setAngle(double setpoint) {
+    // steerController.reset();
+    steerController.setSetpoint(setpoint);
   }
 
-  public void setAngle(double setpoint) {
-    steerController.reset();
-    steerController.setSetpoint(setpoint);
+  public void setSpeed(double setpoint) {
+    // driveController.reset();
+    driveController.setSetpoint(setpoint);
   }
 
   public double getAngle() {
@@ -98,6 +113,12 @@ public class SwerveModule {
 
   public SwerveModuleState getState() {
     return new SwerveModuleState(getSpeed(), Rotation2d.fromDegrees(getAngle()));
+  }
+
+  public SwerveModulePosition getPosition() {
+    return new SwerveModulePosition(
+        getSpeed(),
+        Rotation2d.fromDegrees(getAngle()));
   }
 
   public SwerveModuleState getTargetState() {

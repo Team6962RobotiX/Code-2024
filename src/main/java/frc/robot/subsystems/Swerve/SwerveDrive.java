@@ -17,6 +17,7 @@ import edu.wpi.first.math.kinematics.DifferentialDriveWheelSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics.*;
+import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
@@ -50,6 +51,8 @@ public class SwerveDrive extends SubsystemBase {
 
   private AHRS gyro = new AHRS(SPI.Port.kMXP);
 
+  private SwerveDriveOdometry odometry;
+
   public SwerveDrive() {
     gyro.reset();
     gyro.setAngleAdjustment(Constants.STARTING_ANGLE_OFFSET);
@@ -60,11 +63,21 @@ public class SwerveDrive extends SubsystemBase {
           new CANSparkMax(Constants.STEER_CAN_IDS[i], MotorType.kBrushless),
           new CANCoder(Constants.CANCODER_CAN_IDS[i]));
     }
+
+    odometry = new SwerveDriveOdometry(
+        kinematics, gyro.getRotation2d(),
+        new SwerveModulePosition[] {
+            swerveModules[0].getPosition(),
+            swerveModules[1].getPosition(),
+            swerveModules[2].getPosition(),
+            swerveModules[3].getPosition()
+        }, Constants.STARTING_POSE);
   }
 
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
+    driveModules();
   }
 
   @Override
@@ -79,34 +92,33 @@ public class SwerveDrive extends SubsystemBase {
   public void fieldOrientedDrive(double forward, double strafe, double rotation) {
     ChassisSpeeds speeds = ChassisSpeeds.fromFieldRelativeSpeeds(forward, strafe, rotation,
         Rotation2d.fromDegrees(getHeading()));
-    driveModules(speeds);
+    setModuleStates(speeds);
   }
 
   public void robotOrientedDrive(double forward, double strafe, double rotation) {
     ChassisSpeeds speeds = new ChassisSpeeds(forward, strafe, rotation);
-    driveModules(speeds);
+    setModuleStates(speeds);
   }
 
-  private void driveModules(ChassisSpeeds speeds) {
+  private void setModuleStates(ChassisSpeeds speeds) {
     SwerveModuleState moduleStates[] = kinematics.toSwerveModuleStates(speeds);
     SwerveDriveKinematics.desaturateWheelSpeeds(moduleStates, Constants.MAX_DRIVE_VELOCITY);
     for (int i = 0; i < 4; i++) {
-      swerveModules[i].setState(moduleStates[i]);
+      swerveModules[i].setTargetState(moduleStates[i]);
+    }
+  }
+
+  private void driveModules() {
+    for (int i = 0; i < 4; i++) {
+      swerveModules[i].drive();
     }
   }
 
   public void groundModules() {
     // This will create a "X" pattern with the modules which will make the robot very difficult to rotate or move
-    swerveModules[0].setState(new SwerveModuleState(0, Rotation2d.fromDegrees(-45)));
-    swerveModules[1].setState(new SwerveModuleState(0, Rotation2d.fromDegrees(-45)));
-    swerveModules[2].setState(new SwerveModuleState(0, Rotation2d.fromDegrees(45)));
-    swerveModules[3].setState(new SwerveModuleState(0, Rotation2d.fromDegrees(45)));
+    swerveModules[0].setTargetState(new SwerveModuleState(0, Rotation2d.fromDegrees(-45)));
+    swerveModules[1].setTargetState(new SwerveModuleState(0, Rotation2d.fromDegrees(-45)));
+    swerveModules[2].setTargetState(new SwerveModuleState(0, Rotation2d.fromDegrees(45)));
+    swerveModules[3].setTargetState(new SwerveModuleState(0, Rotation2d.fromDegrees(45)));
   }
-
-  public void disableModules() {
-    for (int i = 0; i < 4; i++) {
-      swerveModules[i].disableModule();
-    }
-  }
-
 }
