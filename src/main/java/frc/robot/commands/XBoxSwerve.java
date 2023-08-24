@@ -27,13 +27,13 @@ import edu.wpi.first.math.geometry.Translation2d;
 
 /** An example command that uses an example subsystem. */
 
-public class JoystickSwerve extends CommandBase {
+public class XBoxSwerve extends CommandBase {
   private final SwerveDrive drive;
-  private final Supplier<Joystick> joystickSupplier;
+  private final Supplier<XboxController> xboxSupplier;
 
-  public JoystickSwerve(SwerveDrive drive, Supplier<Joystick> joystickSupplier) {
+  public XBoxSwerve(SwerveDrive drive, Supplier<XboxController> xboxSupplier) {
     this.drive = drive;
-    this.joystickSupplier = joystickSupplier;
+    this.xboxSupplier = xboxSupplier;
 
     // Use addRequirements() here to declare subsystem dependencies.
     addRequirements(drive);
@@ -47,8 +47,8 @@ public class JoystickSwerve extends CommandBase {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    Joystick joystick = joystickSupplier.get();
-    drive.fieldOrientedDrive(joystick.getY(), joystick.getX(), joystick.getTwist());
+    XboxController controller = xboxSupplier.get();
+    // drive.fieldOrientedDrive(joystick.getY(), joystick.getX(), joystick.getTwist());
   }
 
   // Called once the command ends or is interrupted.

@@ -9,6 +9,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.DifferentialDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
+import frc.robot.subsystems.Swerve.SwerveModule;
 
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide numerical or boolean
@@ -27,7 +28,8 @@ public final class Constants {
   // SWERVE DRIVE
   public static final Pose2d STARTING_POSE = new Pose2d(0.0, 0.0, Rotation2d.fromDegrees(0));
 
-  public static final double MAX_DRIVE_VELOCITY = 4.4196 * 0.1; // measured in meters/second (top speed of 4.4196 m/s)
+  public static final double DRIVE_MOTOR_MAX_RPM = 5676; // DO NOT CHANGE
+  public static final double MAX_DRIVE_VELOCITY = SwerveModule.MotorRPMtoMetersPerSecond(DRIVE_MOTOR_MAX_RPM) * 0.1; // measured in meters/second (top speed of 20.1299853 m/s ?)
 
   public static final double SWERVE_MODULE_SPACING_X = 0.6477; // measured in meters
   public static final double SWERVE_MODULE_SPACING_Y = 0.62865; // measured in meters
@@ -35,7 +37,6 @@ public final class Constants {
   public static final double SWERVE_GEAR_RATIO = 6.75; // 1:6.75
   public static final double SWERVE_WHEEL_DIAMETER = 0.4572; // meters
 
-  public static final double[] SWERVE_DRIVE_PID = { 1.0, 0.0, 0.0 }; // TODO
   public static final double[] SWERVE_STEER_PID = { 1.0, 0.0, 0.0 }; // TODO
 
   public static final double STARTING_ANGLE_OFFSET = 0.0;

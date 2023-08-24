@@ -44,9 +44,10 @@ public class SwerveModule {
   private CANCoder steerEncoder;
 
   public PIDController steerController;
-  public PIDController driveController;
 
   private SwerveModuleState targetState;
+
+  private double targetDriveSpeed = 0.0;
 
   SwerveModule(CANSparkMax driveMotor, CANSparkMax steerMotor, CANCoder steerEncoder) {
     this.driveMotor = driveMotor;
@@ -55,9 +56,6 @@ public class SwerveModule {
     this.steerEncoder = steerEncoder;
 
     steerEncoder.configAbsoluteSensorRange(AbsoluteSensorRange.Unsigned_0_to_360);
-
-    driveController = new PIDController(Constants.SWERVE_DRIVE_PID[0], Constants.SWERVE_DRIVE_PID[1],
-        Constants.SWERVE_DRIVE_PID[2]);
 
     steerController = new PIDController(Constants.SWERVE_STEER_PID[0], Constants.SWERVE_STEER_PID[1],
         Constants.SWERVE_STEER_PID[2]);
@@ -70,36 +68,31 @@ public class SwerveModule {
 
     targetState = state;
 
-    double targetDriveSpeed = state.speedMetersPerSecond / (Constants.SWERVE_WHEEL_DIAMETER * Math.PI);
+    double targetDriveSpeed = state.speedMetersPerSecond;
     double targetSteerAngle = state.angle.getDegrees();
 
-    // Flip wheel direction for less turning time
-    if (Constants.angleDist(targetSteerAngle, getAngle()) > Constants.angleDist((targetSteerAngle + 180) % 360,
-        getAngle())) {
-      targetDriveSpeed = -targetDriveSpeed;
-      targetSteerAngle = (targetSteerAngle + 180) % 360;
-    }
-
-    setSpeed(targetDriveSpeed);
-    setAngle(targetSteerAngle);
+    setTargetSpeed(targetDriveSpeed);
+    setTargetAngle(targetSteerAngle);
   }
 
   public void drive() {
-    double drivePower = driveController.calculate(getSpeed());
+    double drivePower = targetDriveSpeed / MotorRPMtoMetersPerSecond(Constants.DRIVE_MOTOR_MAX_RPM);
     double steerPower = steerController.calculate(getAngle());
 
     driveMotor.set(drivePower);
     steerMotor.set(steerPower);
+
+    targetDriveSpeed = 0.0;
   }
 
-  public void setAngle(double setpoint) {
+  public void setTargetAngle(double angle) {
     // steerController.reset();
-    steerController.setSetpoint(setpoint);
+    steerController.setSetpoint(angle);
   }
 
-  public void setSpeed(double setpoint) {
+  public void setTargetSpeed(double speed) {
     // driveController.reset();
-    driveController.setSetpoint(setpoint);
+    targetDriveSpeed = speed;
   }
 
   public double getAngle() {
@@ -107,7 +100,19 @@ public class SwerveModule {
   }
 
   public double getSpeed() {
-    return driveEncoder.getVelocity() / 60 / Constants.SWERVE_GEAR_RATIO
+    return MotorRPMtoMetersPerSecond(getMotorRPM());
+  }
+
+  public double getMotorRPM() {
+    return driveEncoder.getVelocity();
+  }
+
+  public double getWheelRPM() {
+    return driveEncoder.getVelocity() / Constants.SWERVE_GEAR_RATIO;
+  }
+
+  public static double MotorRPMtoMetersPerSecond(double RPM) {
+    return RPM / 60 / Constants.SWERVE_GEAR_RATIO
         * Constants.SWERVE_WHEEL_DIAMETER * Math.PI;
   }
 
