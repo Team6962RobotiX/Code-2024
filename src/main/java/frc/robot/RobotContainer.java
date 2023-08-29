@@ -41,7 +41,6 @@ public class RobotContainer {
   // The robot's subsystems and commands are defined here...
 
   private final Joystick driveJoystick = new Joystick(Constants.USB_DRIVE_JOYSTICK);
-  private final Joystick utilityJoystick = new Joystick(Constants.USB_UTILITY_JOYSTICK);
 
   private final SwerveDrive drive = new SwerveDrive();
   private final Limelight limelight = new Limelight(Constants.LIMELIGHT_NAME);

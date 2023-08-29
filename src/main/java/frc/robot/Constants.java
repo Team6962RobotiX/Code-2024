@@ -9,7 +9,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.DifferentialDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
-import frc.robot.subsystems.Swerve.SwerveModule;
+import frc.robot.subsystems.Drivetrain.SwerveModule;
 
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide numerical or boolean
@@ -25,21 +25,30 @@ public final class Constants {
   public static final boolean ENABLE_DRIVE = true;
   public static final boolean ENABLE_LIMELIGHT = false;
 
+  // DASHBOARD NAMING
+  public static final String DASHBOARD_TAB_NAME = "Dashboard";
+
+  // DRIVETRAIN
+  public static final Pose2d STARTING_POSE = new Pose2d(0.0, 0.0, Rotation2d.fromDegrees(0.0));
+  public static final double STARTING_ANGLE_OFFSET = 0.0;
+
+  public static final double DRIVETRAIN_TRACKWIDTH_METERS = 0.6477; // left-to-right distance between the drivetrain wheels
+  public static final double DRIVETRAIN_WHEELBASE_METERS = 0.62865; // front-to-back distance between the drivetrain wheels
+
   // SWERVE DRIVE
-  public static final Pose2d STARTING_POSE = new Pose2d(0.0, 0.0, Rotation2d.fromDegrees(0));
+  public static final double SWERVE_FULL_POWER_NEO_RPM = 5676.0; // DO NOT CHANGE
+  public static final double SWERVE_MAX_DRIVE_VELOCITY = 5.0; // measured in meters/second (top speed of 20.1299853 m/s ?)
+  public static final double SWERVE_MAX_ANGULAR_VELOCITY = SWERVE_MAX_DRIVE_VELOCITY
+      / Math.hypot(Constants.DRIVETRAIN_TRACKWIDTH_METERS / 2.0,
+          Constants.DRIVETRAIN_WHEELBASE_METERS / 2.0); // measured in radians/second
 
-  public static final double DRIVE_MOTOR_MAX_RPM = 5676; // DO NOT CHANGE
-  public static final double MAX_DRIVE_VELOCITY = SwerveModule.MotorRPMtoMetersPerSecond(DRIVE_MOTOR_MAX_RPM) * 0.1; // measured in meters/second (top speed of 20.1299853 m/s ?)
+  public static final double SWERVE_GEAR_REDUCTION = 1.0 / 6.75;
+  public static final double SWERVE_WHEEL_DIAMETER = 0.4572; // measured in meters
 
-  public static final double SWERVE_MODULE_SPACING_X = 0.6477; // measured in meters
-  public static final double SWERVE_MODULE_SPACING_Y = 0.62865; // measured in meters
-
-  public static final double SWERVE_GEAR_RATIO = 6.75; // 1:6.75
-  public static final double SWERVE_WHEEL_DIAMETER = 0.4572; // meters
+  public static final int SWERVE_TOTAL_AMP_LIMIT = 300; // Default 480 Amps
+  public static final double SWERVE_POWER_RAMP_RATE = 0.1; // Max change in motor power to reduce power spikes
 
   public static final double[] SWERVE_STEER_PID = { 1.0, 0.0, 0.0 }; // TODO
-
-  public static final double STARTING_ANGLE_OFFSET = 0.0;
 
   // JOYSTICK DEAD-ZONES
   public static final double TWIST_DEADZONE = 0.3; // Joystick deadzone for turning
@@ -48,9 +57,10 @@ public final class Constants {
 
   // CHANNELS
   // In order of: front left, front right, back left, back right, where the battery is in the back
-  public static final int[] STEER_CAN_IDS = { 0, 0, 0, 0 }; // TODO
-  public static final int[] DRIVE_CAN_IDS = { 0, 0, 0, 0 }; // TODO
-  public static final int[] CANCODER_CAN_IDS = { 0, 0, 0, 0 }; // TODO
+  public static final String[] SWERVE_MODULE_NAMES = { "FL", "FR", "BL", "BR" };
+  public static final int[] CAN_SWERVE_DRIVE = { 10, 20, 30, 40 }; // TODO
+  public static final int[] CAN_SWERVE_STEER = { 11, 21, 31, 41 }; // TODO
+  public static final int[] CAN_SWERVE_STEER_ENCODER = { 12, 22, 32, 42 }; // TODO
 
   public static final int USB_DRIVE_JOYSTICK = 0;
   public static final int USB_UTILITY_JOYSTICK = 1;

@@ -2,7 +2,7 @@
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
 
-package frc.robot.subsystems.Swerve;
+package frc.robot.subsystems.Drivetrain;
 
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -42,25 +42,26 @@ public class SwerveModule {
   private RelativeEncoder driveEncoder;
   private CANSparkMax steerMotor;
   private CANCoder steerEncoder;
-
-  public PIDController steerController;
-
+  public PIDController steerController = new PIDController(0.0, 0.0, 0.0);
   private SwerveModuleState targetState;
-
   private double targetDriveSpeed = 0.0;
+  private String name;
 
-  SwerveModule(CANSparkMax driveMotor, CANSparkMax steerMotor, CANCoder steerEncoder) {
+  SwerveModule(CANSparkMax driveMotor, CANSparkMax steerMotor, CANCoder steerEncoder, String name) {
     this.driveMotor = driveMotor;
     this.driveEncoder = driveMotor.getEncoder();
     this.steerMotor = steerMotor;
     this.steerEncoder = steerEncoder;
+    this.name = name;
+
+    driveMotor.setSmartCurrentLimit(Constants.SWERVE_TOTAL_AMP_LIMIT / 8);
+    driveMotor.setOpenLoopRampRate(Constants.SWERVE_POWER_RAMP_RATE);
 
     steerEncoder.configAbsoluteSensorRange(AbsoluteSensorRange.Unsigned_0_to_360);
 
-    steerController = new PIDController(Constants.SWERVE_STEER_PID[0], Constants.SWERVE_STEER_PID[1],
-        Constants.SWERVE_STEER_PID[2]);
+    setPID(Constants.SWERVE_STEER_PID);
 
-    steerController.enableContinuousInput(0, 360);
+    steerController.enableContinuousInput(0.0, 360.0);
   }
 
   public void setTargetState(SwerveModuleState state) {
@@ -76,7 +77,7 @@ public class SwerveModule {
   }
 
   public void drive() {
-    double drivePower = targetDriveSpeed / MotorRPMtoMetersPerSecond(Constants.DRIVE_MOTOR_MAX_RPM);
+    double drivePower = driveSpeedToMotorPower(targetDriveSpeed);
     double steerPower = steerController.calculate(getAngle());
 
     driveMotor.set(drivePower);
@@ -91,38 +92,47 @@ public class SwerveModule {
   }
 
   public void setTargetSpeed(double speed) {
-    // driveController.reset();
     targetDriveSpeed = speed;
+  }
+
+  public void setPID(double[] PID) {
+    steerController.setPID(PID[0], PID[1], PID[2]);
   }
 
   public double getAngle() {
     return steerEncoder.getAbsolutePosition();
   }
 
-  public double getSpeed() {
-    return MotorRPMtoMetersPerSecond(getMotorRPM());
+  public double getDriveDirection() {
+    if (targetDriveSpeed < 0) {
+      return (steerEncoder.getAbsolutePosition() + 180) % 360;
+    }
+    return steerEncoder.getAbsolutePosition();
+  }
+
+  public double getDriveSpeed() {
+    return motorRPMtoDriveSpeed(getMotorRPM());
   }
 
   public double getMotorRPM() {
     return driveEncoder.getVelocity();
   }
 
-  public double getWheelRPM() {
-    return driveEncoder.getVelocity() / Constants.SWERVE_GEAR_RATIO;
+  public static double motorRPMtoDriveSpeed(double RPM) {
+    return (RPM * Constants.SWERVE_GEAR_REDUCTION) / 60.0 * Constants.SWERVE_WHEEL_DIAMETER * Math.PI;
   }
 
-  public static double MotorRPMtoMetersPerSecond(double RPM) {
-    return RPM / 60 / Constants.SWERVE_GEAR_RATIO
-        * Constants.SWERVE_WHEEL_DIAMETER * Math.PI;
+  public static double driveSpeedToMotorPower(double speed) {
+    return speed / motorRPMtoDriveSpeed(Constants.SWERVE_FULL_POWER_NEO_RPM);
   }
 
   public SwerveModuleState getState() {
-    return new SwerveModuleState(getSpeed(), Rotation2d.fromDegrees(getAngle()));
+    return new SwerveModuleState(getDriveSpeed(), Rotation2d.fromDegrees(getAngle()));
   }
 
   public SwerveModulePosition getPosition() {
     return new SwerveModulePosition(
-        getSpeed(),
+        getDriveSpeed(),
         Rotation2d.fromDegrees(getAngle()));
   }
 
@@ -130,4 +140,15 @@ public class SwerveModule {
     return targetState;
   }
 
+  public String getName() {
+    return name;
+  }
+
+  public double getVoltage() {
+    return driveMotor.getBusVoltage() + steerMotor.getBusVoltage();
+  }
+
+  public double getCurrent() {
+    return driveMotor.getOutputCurrent() + steerMotor.getOutputCurrent();
+  }
 }
