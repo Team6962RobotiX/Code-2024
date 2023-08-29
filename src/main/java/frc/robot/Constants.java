@@ -71,19 +71,18 @@ public final class Constants {
         AUTO_MAX_ANGULAR_VELOCITY,
         AUTO_MAX_ANGULAR_ACCELERATION);
 
+    // CHANNELS
+    // In order of: front left, front right, back left, back right, where the battery is in the back
+    public static final String[] MODULE_NAMES = { "FL", "FR", "BL", "BR" };
+    public static final int[] CAN_DRIVE = { 10, 20, 30, 40 }; // TODO
+    public static final int[] CAN_STEER = { 11, 21, 31, 41 }; // TODO
+    public static final int[] CAN_STEER_ENCODER = { 12, 22, 32, 42 }; // TODO
   }
 
   // JOYSTICK DEAD-ZONES
   public static final double TWIST_DEADZONE = 0.3; // Joystick deadzone for turning
   public static final double STRAIGHT_DEADZONE = 0.1; // Joystick deadzone for turning
   public static final double THROTTLE_DEADZONE = 0.1; // Joystick deadzone for arm lifting
-
-  // CHANNELS
-  // In order of: front left, front right, back left, back right, where the battery is in the back
-  public static final String[] SWERVE_MODULE_NAMES = { "FL", "FR", "BL", "BR" };
-  public static final int[] CAN_SWERVE_DRIVE = { 10, 20, 30, 40 }; // TODO
-  public static final int[] CAN_SWERVE_STEER = { 11, 21, 31, 41 }; // TODO
-  public static final int[] CAN_SWERVE_STEER_ENCODER = { 12, 22, 32, 42 }; // TODO
 
   public static final int USB_DRIVE_JOYSTICK = 0;
   public static final int USB_UTILITY_JOYSTICK = 1;

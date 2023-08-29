@@ -60,10 +60,10 @@ public class SwerveDrive extends SubsystemBase {
   public SwerveDrive() {
     for (int i = 0; i < 4; i++) {
       swerveModules[i] = new SwerveModule(
-          new CANSparkMax(Constants.CAN_SWERVE_DRIVE[i], MotorType.kBrushless),
-          new CANSparkMax(Constants.CAN_SWERVE_STEER[i], MotorType.kBrushless),
-          new CANCoder(Constants.CAN_SWERVE_STEER_ENCODER[i]),
-          Constants.SWERVE_MODULE_NAMES[i]);
+          new CANSparkMax(DriveConstants.CAN_DRIVE[i], MotorType.kBrushless),
+          new CANSparkMax(DriveConstants.CAN_STEER[i], MotorType.kBrushless),
+          new CANCoder(DriveConstants.CAN_STEER_ENCODER[i]),
+          DriveConstants.MODULE_NAMES[i]);
     }
 
     new Thread(() -> {
