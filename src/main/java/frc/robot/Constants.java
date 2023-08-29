@@ -9,6 +9,8 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.DifferentialDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import frc.robot.subsystems.Drivetrain.SwerveDrive;
 import frc.robot.subsystems.Drivetrain.SwerveModule;
 
 /**
@@ -28,27 +30,48 @@ public final class Constants {
   // DASHBOARD NAMING
   public static final String DASHBOARD_TAB_NAME = "Dashboard";
 
-  // DRIVETRAIN
-  public static final Pose2d STARTING_POSE = new Pose2d(0.0, 0.0, Rotation2d.fromDegrees(0.0));
-  public static final double STARTING_ANGLE_OFFSET = 0.0;
+  public static final class DriveConstants {
 
-  public static final double DRIVETRAIN_TRACKWIDTH_METERS = 0.6477; // left-to-right distance between the drivetrain wheels
-  public static final double DRIVETRAIN_WHEELBASE_METERS = 0.62865; // front-to-back distance between the drivetrain wheels
+    // DRIVETRAIN
+    public static final Pose2d STARTING_POSE = new Pose2d(0.0, 0.0, Rotation2d.fromDegrees(0.0));
+    public static final double STARTING_ANGLE_OFFSET = 0.0;
 
-  // SWERVE DRIVE
-  public static final double SWERVE_FULL_POWER_NEO_RPM = 5676.0; // DO NOT CHANGE
-  public static final double SWERVE_MAX_DRIVE_VELOCITY = 5.0; // measured in meters/second (top speed of 20.1299853 m/s ?)
-  public static final double SWERVE_MAX_ANGULAR_VELOCITY = SWERVE_MAX_DRIVE_VELOCITY
-      / Math.hypot(Constants.DRIVETRAIN_TRACKWIDTH_METERS / 2.0,
-          Constants.DRIVETRAIN_WHEELBASE_METERS / 2.0); // measured in radians/second
+    public static final double TRACKWIDTH_METERS = 0.6477; // left-to-right distance between the drivetrain wheels
+    public static final double WHEELBASE_METERS = 0.62865; // front-to-back distance between the drivetrain wheels
 
-  public static final double SWERVE_GEAR_REDUCTION = 1.0 / 6.75;
-  public static final double SWERVE_WHEEL_DIAMETER = 0.4572; // measured in meters
+    // PHYSICAL
+    public static final double GEAR_REDUCTION = 1.0 / 6.75;
+    public static final double WHEEL_DIAMETER = 0.4572; // measured in meters
+    public static final double PHYSICAL_MAX_NEO_RPM = 5676.0; // DO NOT CHANGE
 
-  public static final int SWERVE_TOTAL_AMP_LIMIT = 300; // Default 480 Amps
-  public static final double SWERVE_POWER_RAMP_RATE = 0.1; // Max change in motor power to reduce power spikes
+    public static final double RPM_TO_VELOCITY_CONVERSION_FACTOR = DriveConstants.GEAR_REDUCTION / 60.0 * DriveConstants.WHEEL_DIAMETER * Math.PI;
+    public static final double PHYSICAL_MAX_VELOCITY = PHYSICAL_MAX_NEO_RPM * RPM_TO_VELOCITY_CONVERSION_FACTOR;
+    public static final double VELOCITY_DEADZONE = 0.05; // speed at which we stop moving all together
 
-  public static final double[] SWERVE_STEER_PID = { 1.0, 0.0, 0.0 }; // TODO
+    // ELECTRONICS
+    public static final int TOTAL_CURRENT_LIMIT = 300; // Default 480 Amps
+    public static final double POWER_RAMP_RATE = 0.1; // Max change in motor power to reduce power spikes
+
+    // PID
+    public static final double[] STEER_PID = { 1.0, 0.0, 0.0 }; // TODO
+
+    // TELEOPERATED
+    public static final double TELEOP_MAX_VELOCITY = 5.0; // measured in meters/sec (top speed of 20.1299853 m/s ?)
+    public static final double TELEOP_MAX_ANGULAR_VELOCITY = SwerveDrive.maxAngularVelocity(TELEOP_MAX_VELOCITY);;
+
+    // AUTONOMOUS
+    public static final double AUTO_MAX_VELOCITY = TELEOP_MAX_VELOCITY / 4; // measured in meters/sec
+    public static final double AUTO_MAX_ACCELERATION = 2.0; // measured in meters/sec^2
+    public static final double AUTO_MAX_ANGULAR_VELOCITY = SwerveDrive.maxAngularVelocity(AUTO_MAX_VELOCITY); // measured in radians/sec
+    public static final double AUTO_MAX_ANGULAR_ACCELERATION = 2.0; // measured in rad/sec^2
+    public static final double[] AUTO_X_PID = { 1.0, 0.0, 0.0 };
+    public static final double[] AUTO_Y_PID = { 1.0, 0.0, 0.0 };
+    public static final double[] AUTO_ANGLE_PID = { 1.0, 0.0, 0.0 };
+    public static final TrapezoidProfile.Constraints AUTO_ANGLE_CONSTRAINTS = new TrapezoidProfile.Constraints(
+        AUTO_MAX_ANGULAR_VELOCITY,
+        AUTO_MAX_ANGULAR_ACCELERATION);
+
+  }
 
   // JOYSTICK DEAD-ZONES
   public static final double TWIST_DEADZONE = 0.3; // Joystick deadzone for turning

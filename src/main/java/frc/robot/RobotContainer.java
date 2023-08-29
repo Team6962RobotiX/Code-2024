@@ -5,17 +5,23 @@
 package frc.robot;
 
 import frc.robot.Constants;
+import frc.robot.Constants.*;
 import frc.robot.commands.*;
 import frc.robot.subsystems.*;
-import frc.robot.subsystems.Swerve.SwerveDrive;
+import frc.robot.subsystems.Drivetrain.*;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.ProfiledPIDCommand;
 import edu.wpi.first.wpilibj2.command.RamseteCommand;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import edu.wpi.first.wpilibj2.command.SwerveControllerCommand;
 
 import java.util.List;
 
 import edu.wpi.first.hal.ConstantsJNI;
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.controller.RamseteController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -57,7 +63,44 @@ public class RobotContainer {
   }
 
   public Command getAutonomousCommand() {
-    return null;
+    TrajectoryConfig TrajectoryConfig = new TrajectoryConfig(DriveConstants.AUTO_MAX_VELOCITY, DriveConstants.AUTO_MAX_ACCELERATION)
+        .setKinematics(drive.getKinematics());
+
+    Trajectory trajectory = TrajectoryGenerator.generateTrajectory(
+        new Pose2d(0, 0, new Rotation2d(0)), // Start Position
+        List.of( // Intermediary Positions
+            new Translation2d(1, 0),
+            new Translation2d(1, -1)),
+        new Pose2d(2, -1, Rotation2d.fromDegrees(180)), // End Position
+        TrajectoryConfig);
+
+    PIDController xController = new PIDController(
+        DriveConstants.AUTO_X_PID[1],
+        DriveConstants.AUTO_X_PID[2],
+        DriveConstants.AUTO_X_PID[0]);
+    PIDController yController = new PIDController(
+        DriveConstants.AUTO_Y_PID[1],
+        DriveConstants.AUTO_Y_PID[2],
+        DriveConstants.AUTO_Y_PID[0]);
+    ProfiledPIDController angleController = new ProfiledPIDController(
+        DriveConstants.AUTO_ANGLE_PID[1],
+        DriveConstants.AUTO_ANGLE_PID[2],
+        DriveConstants.AUTO_ANGLE_PID[0],
+        DriveConstants.AUTO_ANGLE_CONSTRAINTS);
+    angleController.enableContinuousInput(0, 360);
+
+    SwerveControllerCommand swerveControllerCommand = new SwerveControllerCommand(
+        trajectory,
+        drive::getPose,
+        SwerveDrive.getKinematics(),
+        xController,
+        yController,
+        angleController,
+        drive::setModuleStates,
+        drive);
+
+    return new SequentialCommandGroup(
+        new InstantCommand(() -> drive.resetOdometry(trajectory.getInitialPose())), swerveControllerCommand, new InstantCommand(() -> drive.stopModules()));
   }
 
   public void disabledPeriodic() {
