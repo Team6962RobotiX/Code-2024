@@ -53,7 +53,7 @@ public final class Constants {
       -------------------------------------
     */
 
-    public static final double MOTOR_POWER_LIMIT = 0.1; // Absolute maximum percent motor power (0.5 = 50%)
+    public static final double MOTOR_POWER_LIMIT = 0.05; // Absolute maximum percent motor power (0.5 = 50%)
 
     public static final double CONTROLLER_DEADZONE = 0.1; // If joystick values are less than this (0.1 = 10%) than we just read 0
     public static final double VELOCITY_DEADZONE = 0.05; // speed at which we stop moving all together
@@ -77,7 +77,7 @@ public final class Constants {
     public static final double WHEEL_DIAMETER = 0.4572; // measured in meters
     public static final double MOTOR_RPM_VELOCITY_RATIO = GEAR_REDUCTION / 60.0 * WHEEL_DIAMETER * Math.PI;
 
-    public static final double FULL_POWER_VELOCITY = 20; // [TODO] VERY IMPORTANT DO NOT CHANGE
+    public static final double FULL_POWER_VELOCITY = 21; // [TODO] VERY IMPORTANT DO NOT CHANGE
     public static final double FULL_POWER_ANGULAR_VELOCITY = SwerveDrive.maxAngularVelocity(FULL_POWER_VELOCITY);
 
     public static final double MAX_VELOCITY = MOTOR_POWER_LIMIT * FULL_POWER_VELOCITY;

@@ -60,7 +60,7 @@ public class SwerveModule {
     this.driveMotor.setOpenLoopRampRate(SwerveDriveConfig.MOTOR_POWER_RAMP_RATE);
     this.steerMotor.setOpenLoopRampRate(SwerveDriveConfig.MOTOR_POWER_RAMP_RATE);
 
-    this.steerEncoder.configAbsoluteSensorRange(AbsoluteSensorRange.Unsigned_0_to_360);
+    // this.steerEncoder.configAbsoluteSensorRange(AbsoluteSensorRange.Unsigned_0_to_360);
     this.driveEncoder.setVelocityConversionFactor(SwerveDriveConfig.MOTOR_RPM_VELOCITY_RATIO);
 
     setPID(SwerveDriveConfig.MODULE_STEER_PID);
@@ -80,7 +80,8 @@ public class SwerveModule {
     }
     double targetAngle = state.angle.getDegrees();
 
-    System.out.println(targetVelocity);
+    // System.out.println("target angle " + name + ": " + targetAngle);
+    System.out.println("current angle " + name + ": " + getAngle());
 
     setTargetVelocity(targetVelocity);
     setTargetAngle(targetAngle);
@@ -119,9 +120,9 @@ public class SwerveModule {
   // Get the direction of the steering wheel (0 - 360)
   public double getDriveDirection() {
     if (driveMotor.get() < 0) {
-      return (steerEncoder.getAbsolutePosition() + 180) % 360;
+      return (getAngle() + 180) % 360;
     }
-    return steerEncoder.getAbsolutePosition();
+    return getAngle();
   }
 
   // Get velocity in m/s
@@ -170,5 +171,13 @@ public class SwerveModule {
   public void stop() {
     steerMotor.set(0.0);
     driveMotor.set(0.0);
+  }
+
+  public CANSparkMax getDriveMotor() {
+    return driveMotor;
+  }
+
+  public CANSparkMax getSteerMotor() {
+    return steerMotor;
   }
 }

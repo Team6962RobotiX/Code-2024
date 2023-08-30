@@ -141,6 +141,10 @@ public class SwerveDrive extends SubsystemBase {
     };
   }
 
+  public SwerveModule[] getModules() {
+    return swerveModules;
+  }
+
   // Run all modules motors, must be called periodically
   public void driveModules() {
     for (SwerveModule module : swerveModules) {

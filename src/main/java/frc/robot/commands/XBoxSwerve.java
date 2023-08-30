@@ -23,6 +23,9 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import com.ctre.phoenix.sensors.CANCoder;
+import com.revrobotics.CANSparkMax;
+import com.revrobotics.RelativeEncoder;
+import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -37,13 +40,12 @@ public class XBoxSwerve extends CommandBase {
       SwerveDriveConfig.TELEOP_ROTATE_PID[0],
       SwerveDriveConfig.TELEOP_ROTATE_PID[1],
       SwerveDriveConfig.TELEOP_ROTATE_PID[2]);
-
+  
   public XBoxSwerve(SwerveDrive drive, Supplier<XboxController> xboxSupplier) {
     this.drive = drive;
     this.xboxSupplier = xboxSupplier;
 
     rotatePID.enableContinuousInput(0, 360);
-
     // Use addRequirements() here to declare subsystem dependencies.
     addRequirements(drive);
   }
@@ -67,6 +69,15 @@ public class XBoxSwerve extends CommandBase {
     rotatePID.setP(SwerveDriveConfig.TELEOP_ROTATE_PID[0] * rotateSpeed);
     double angularVelocity = rotatePID.calculate(drive.getHeading(), targetAngle) * SwerveDriveConfig.FULL_POWER_ANGULAR_VELOCITY;
 
+    // drive.getModules()[0].getDriveMotor().set(1.0);
+
+    // if (controller.getAButton()) {
+    //   drive.getModules()[0].getDriveMotor().set(1.0);
+    //   System.out.println(drive.getModules()[0].getDriveVelocity());
+    // } else {
+    //   drive.getModules()[0].getDriveMotor().set(0.0);
+    // }
+
     if (controller.getBButton() || !controller.isConnected()) {
       drive.stopModules();
       return;
@@ -77,7 +88,11 @@ public class XBoxSwerve extends CommandBase {
       return;
     }
 
-    drive.fieldOrientedDrive(yVelocity, xVelocity, angularVelocity);
+    if (controller.getAButton()) {
+      drive.fieldOrientedDrive(1, 0.0, 0.0);
+    }
+
+    // drive.fieldOrientedDrive(yVelocity, xVelocity, 0.0);
   }
 
   public double getControllerAxis(int id) {

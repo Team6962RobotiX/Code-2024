@@ -51,6 +51,7 @@ public class RobotContainer {
 
   private final SwerveDrive drive = new SwerveDrive();
   private final Limelight limelight = new Limelight(LimelightConfig.NAME);
+  private final Dashboard dashboard = new Dashboard(drive);
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
