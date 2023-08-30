@@ -23,86 +23,87 @@ import frc.robot.subsystems.Drivetrain.SwerveModule;
  */
 public final class Constants {
 
-  // ENABLED SUBSYSTEMS
-  public static final boolean ENABLE_DRIVE = true;
-  public static final boolean ENABLE_LIMELIGHT = false;
+  // ENABLED SYSTEMS
+  public static final class EnabledSystems {
+    public static final boolean ENABLE_DRIVE = true;
+    public static final boolean ENABLE_LIMELIGHT = false;
+  }
 
-  // DASHBOARD NAMING
-  public static final String DASHBOARD_TAB_NAME = "Dashboard";
+  // DEVICES
+  public static final class Devices {
+    public static final int USB_XBOX_CONTROLLER = 0;
+  }
 
-  public static final class DriveConstants {
+  // DASHBOARD (ShuffleBoard)
+  public static final class DashboardConfig {
+    public static final String TAB_NAME = "Dashboard";
+  }
 
-    // DRIVETRAIN
+  // LIMELIGHT
+  public static final class LimelightConfig {
+    public static final String NAME = "limelight";
+  }
+
+  // SWERVE DRIVE
+  public static final class SwerveDriveConfig {
+
+    /**
+     * =============================
+     * | SIMPLE, FEEL FREE TO EDIT |
+     * =============================
+     */
+
+    public static final double MOTOR_POWER_LIMIT = 0.1; // Absolute maximum percent power (0.5 = 50%)
+    public static final double CONTROLLER_DEADZONE = 0.1; // If joystick values are less than this (0.1 = 10%) than we just read 0
+    public static final double VELOCITY_DEADZONE = 0.05; // speed at which we stop moving all together
+    public static final int TOTAL_CURRENT_LIMIT = 300; // Absolute max is around 480 Amps (also drive motors have double the current allocation than steer motors)
+    public static final double MOTOR_POWER_RAMP_RATE = 0.1; // Maximum change in motor power between ticks to reduce power spikes
+
+    /**
+     * ============================================================
+     * | ADVANCED, DO NOT EDIT UNLESS YOU KNOW WHAT YOU'RE DOING! |
+     * ============================================================
+     */
+
+    // PHYSICAL
     public static final Pose2d STARTING_POSE = new Pose2d(0.0, 0.0, Rotation2d.fromDegrees(0.0));
     public static final double STARTING_ANGLE_OFFSET = 0.0;
 
     public static final double TRACKWIDTH_METERS = 0.6477; // left-to-right distance between the drivetrain wheels
     public static final double WHEELBASE_METERS = 0.62865; // front-to-back distance between the drivetrain wheels
 
-    // PHYSICAL
     public static final double GEAR_REDUCTION = 1.0 / 6.75;
     public static final double WHEEL_DIAMETER = 0.4572; // measured in meters
-    public static final double PHYSICAL_MAX_NEO_RPM = 5676.0; // DO NOT CHANGE
+    public static final double RPM_TO_VELOCITY_CONVERSION_FACTOR = GEAR_REDUCTION / 60.0 * WHEEL_DIAMETER * Math.PI;
 
-    public static final double RPM_TO_VELOCITY_CONVERSION_FACTOR = DriveConstants.GEAR_REDUCTION / 60.0 * DriveConstants.WHEEL_DIAMETER * Math.PI;
-    public static final double PHYSICAL_MAX_VELOCITY = PHYSICAL_MAX_NEO_RPM * RPM_TO_VELOCITY_CONVERSION_FACTOR;
-    public static final double VELOCITY_DEADZONE = 0.05; // speed at which we stop moving all together
+    public static final double FULL_POWER_NEO_RPM = 5676.0; // VERY IMPORTANT DO NOT CHANGE
+    public static final double FULL_POWER_VELOCITY = FULL_POWER_NEO_RPM * RPM_TO_VELOCITY_CONVERSION_FACTOR;
+    public static final double FULL_POWER_ANGULAR_VELOCITY = SwerveDrive.maxAngularVelocity(FULL_POWER_VELOCITY);
 
-    // ELECTRONICS
-    public static final int TOTAL_CURRENT_LIMIT = 300; // Default 480 Amps
-    public static final double POWER_RAMP_RATE = 0.1; // Max change in motor power to reduce power spikes
+    public static final double MAX_VELOCITY = MOTOR_POWER_LIMIT * FULL_POWER_VELOCITY;
+    public static final double MAX_ANGULAR_VELOCITY = SwerveDrive.maxAngularVelocity(MAX_VELOCITY);
 
     // PID
-    public static final double[] STEER_PID = { 1.0, 0.0, 0.0 }; // TODO
-
-    // TELEOPERATED
-    public static final double TELEOP_MAX_VELOCITY = 5.0; // measured in meters/sec (top speed of 20.1299853 m/s ?)
-    public static final double TELEOP_MAX_ANGULAR_VELOCITY = SwerveDrive.maxAngularVelocity(TELEOP_MAX_VELOCITY);;
+    public static final double[] MODULE_STEER_PID = { 1.0 / 360.0, 0.0, 0.0 }; // TODO
+    public static final double[] TELEOP_ROTATE_PID = { 1.0 / 360.0, 0.0, 0.0 }; // TODO
+    public static final double[] AUTO_ROTATE_PID = { 1.0, 0.0, 0.0 };
+    public static final double[] AUTO_X_PID = { 1.0, 0.0, 0.0 }; // TODO
+    public static final double[] AUTO_Y_PID = { 1.0, 0.0, 0.0 }; // TODO
 
     // AUTONOMOUS
-    public static final double AUTO_MAX_VELOCITY = TELEOP_MAX_VELOCITY / 4; // measured in meters/sec
-    public static final double AUTO_MAX_ACCELERATION = 2.0; // measured in meters/sec^2
+    public static final double AUTO_MAX_VELOCITY = MAX_VELOCITY / 4; // measured in meters/sec
+    public static final double AUTO_MAX_ACCELERATION = 9.80 / 4; // measured in meters/sec^2
     public static final double AUTO_MAX_ANGULAR_VELOCITY = SwerveDrive.maxAngularVelocity(AUTO_MAX_VELOCITY); // measured in radians/sec
-    public static final double AUTO_MAX_ANGULAR_ACCELERATION = 2.0; // measured in rad/sec^2
-    public static final double[] AUTO_X_PID = { 1.0, 0.0, 0.0 };
-    public static final double[] AUTO_Y_PID = { 1.0, 0.0, 0.0 };
-    public static final double[] AUTO_ANGLE_PID = { 1.0, 0.0, 0.0 };
+    public static final double AUTO_MAX_ANGULAR_ACCELERATION = SwerveDrive.maxAngularVelocity(AUTO_MAX_ACCELERATION); // measured in rad/sec^2
     public static final TrapezoidProfile.Constraints AUTO_ANGLE_CONSTRAINTS = new TrapezoidProfile.Constraints(
         AUTO_MAX_ANGULAR_VELOCITY,
         AUTO_MAX_ANGULAR_ACCELERATION);
 
-    // CHANNELS
+    // MODULES
     // In order of: front left, front right, back left, back right, where the battery is in the back
     public static final String[] MODULE_NAMES = { "FL", "FR", "BL", "BR" };
     public static final int[] CAN_DRIVE = { 10, 20, 30, 40 }; // TODO
-    public static final int[] CAN_STEER = { 11, 21, 31, 41 }; // TODO
+    public static final int[] CAN_STEER = { 11, 21, 31, 41 }; // TODOn 
     public static final int[] CAN_STEER_ENCODER = { 12, 22, 32, 42 }; // TODO
-  }
-
-  // JOYSTICK DEAD-ZONES
-  public static final double TWIST_DEADZONE = 0.3; // Joystick deadzone for turning
-  public static final double STRAIGHT_DEADZONE = 0.1; // Joystick deadzone for turning
-  public static final double THROTTLE_DEADZONE = 0.1; // Joystick deadzone for arm lifting
-
-  public static final int USB_DRIVE_JOYSTICK = 0;
-  public static final int USB_UTILITY_JOYSTICK = 1;
-
-  // LIMELIGHT CONFIG
-  public static final String LIMELIGHT_NAME = "limelight";
-
-  public static double mapNumber(double x, double a, double b, double c, double d) {
-    if (x < a) {
-      return c;
-    }
-    if (x > b) {
-      return d;
-    }
-    return (x - a) / (b - a) * (d - c) + c;
-  }
-
-  public static double angleDist(double alpha, double beta) {
-    double phi = Math.abs(beta - alpha) % 360.0; // This is either the distance or 360 - distance
-    double distance = phi > 180.0 ? 360.0 - phi : phi;
-    return distance;
   }
 }

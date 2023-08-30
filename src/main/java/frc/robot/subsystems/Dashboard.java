@@ -22,11 +22,12 @@ import frc.robot.commands.*;
 import frc.robot.subsystems.*;
 import frc.robot.subsystems.Drivetrain.*;
 import frc.robot.Constants;
-import frc.robot.Constants.DriveConstants;
+import frc.robot.Constants.*;
+import frc.robot.Constants.SwerveDriveConfig;
 
 public class Dashboard extends SubsystemBase {
   private SwerveDrive swerveDrive;
-  private ShuffleboardTab dashboardTab = Shuffleboard.getTab(Constants.DASHBOARD_TAB_NAME);
+  private ShuffleboardTab dashboardTab = Shuffleboard.getTab(DashboardConfig.TAB_NAME);
   private ShuffleboardLayout swerveData = dashboardTab.getLayout("Swerve", BuiltInLayouts.kList).withSize(2, 5);
   private AHRS gyro = new AHRS(SPI.Port.kMXP);
   private final Field2d field = new Field2d();
@@ -40,15 +41,15 @@ public class Dashboard extends SubsystemBase {
   public void periodic() {
     // This method will be called once per scheduler run
     double[] PIDValues = {
-        swerveData.add("SwervekP", DriveConstants.STEER_PID[0])
+        swerveData.add("SwervekP", SwerveDriveConfig.MODULE_STEER_PID[0])
             .getEntry()
-            .getDouble(DriveConstants.STEER_PID[0]),
-        swerveData.add("SwervekI", DriveConstants.STEER_PID[1])
+            .getDouble(SwerveDriveConfig.MODULE_STEER_PID[0]),
+        swerveData.add("SwervekI", SwerveDriveConfig.MODULE_STEER_PID[1])
             .getEntry()
-            .getDouble(DriveConstants.STEER_PID[1]),
-        swerveData.add("SwervekD", DriveConstants.STEER_PID[2])
+            .getDouble(SwerveDriveConfig.MODULE_STEER_PID[1]),
+        swerveData.add("SwervekD", SwerveDriveConfig.MODULE_STEER_PID[2])
             .getEntry()
-            .getDouble(DriveConstants.STEER_PID[2])
+            .getDouble(SwerveDriveConfig.MODULE_STEER_PID[2])
     };
 
     swerveDrive.setPID(PIDValues);
@@ -63,7 +64,7 @@ public class Dashboard extends SubsystemBase {
 
     swerveData.add("Current", 0)
         .withWidget(BuiltInWidgets.kDial)
-        .withProperties(Map.of("min", 0, "max", DriveConstants.TOTAL_CURRENT_LIMIT))
+        .withProperties(Map.of("min", 0, "max", SwerveDriveConfig.TOTAL_CURRENT_LIMIT))
         .getEntry()
         .setDouble(swerveDrive.getCurrent());
 
@@ -81,13 +82,13 @@ public class Dashboard extends SubsystemBase {
 
       moduleData.add("Drive Speed", 0)
           .withWidget(BuiltInWidgets.kDial)
-          .withProperties(Map.of("min", 0, "max", DriveConstants.TELEOP_MAX_VELOCITY))
+          .withProperties(Map.of("min", 0, "max", SwerveDriveConfig.MAX_VELOCITY))
           .getEntry()
           .setDouble(module.getDriveVelocity());
 
       moduleData.add("Current", 0)
           .withWidget(BuiltInWidgets.kDial)
-          .withProperties(Map.of("min", 0, "max", DriveConstants.TOTAL_CURRENT_LIMIT / 4))
+          .withProperties(Map.of("min", 0, "max", SwerveDriveConfig.TOTAL_CURRENT_LIMIT / 4))
           .getEntry()
           .setDouble(module.getCurrent());
 

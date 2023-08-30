@@ -32,6 +32,7 @@ import edu.wpi.first.math.trajectory.TrajectoryConfig;
 import edu.wpi.first.math.trajectory.TrajectoryGenerator;
 import edu.wpi.first.math.trajectory.constraint.DifferentialDriveVoltageConstraint;
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.POVButton;
@@ -46,14 +47,14 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 public class RobotContainer {
   // The robot's subsystems and commands are defined here...
 
-  private final Joystick driveJoystick = new Joystick(Constants.USB_DRIVE_JOYSTICK);
+  private final XboxController controller = new XboxController(Devices.USB_XBOX_CONTROLLER);
 
   private final SwerveDrive drive = new SwerveDrive();
-  private final Limelight limelight = new Limelight(Constants.LIMELIGHT_NAME);
+  private final Limelight limelight = new Limelight(LimelightConfig.NAME);
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
-    drive.setDefaultCommand(new JoystickSwerve(drive, () -> driveJoystick));
+    drive.setDefaultCommand(new XBoxSwerve(drive, () -> controller));
 
     // Configure the trigger bindings
     configureBindings();
@@ -63,7 +64,7 @@ public class RobotContainer {
   }
 
   public Command getAutonomousCommand() {
-    TrajectoryConfig TrajectoryConfig = new TrajectoryConfig(DriveConstants.AUTO_MAX_VELOCITY, DriveConstants.AUTO_MAX_ACCELERATION)
+    TrajectoryConfig TrajectoryConfig = new TrajectoryConfig(SwerveDriveConfig.AUTO_MAX_VELOCITY, SwerveDriveConfig.AUTO_MAX_ACCELERATION)
         .setKinematics(drive.getKinematics());
 
     Trajectory trajectory = TrajectoryGenerator.generateTrajectory(
@@ -75,18 +76,18 @@ public class RobotContainer {
         TrajectoryConfig);
 
     PIDController xController = new PIDController(
-        DriveConstants.AUTO_X_PID[1],
-        DriveConstants.AUTO_X_PID[2],
-        DriveConstants.AUTO_X_PID[0]);
+        SwerveDriveConfig.AUTO_X_PID[1],
+        SwerveDriveConfig.AUTO_X_PID[2],
+        SwerveDriveConfig.AUTO_X_PID[0]);
     PIDController yController = new PIDController(
-        DriveConstants.AUTO_Y_PID[1],
-        DriveConstants.AUTO_Y_PID[2],
-        DriveConstants.AUTO_Y_PID[0]);
+        SwerveDriveConfig.AUTO_Y_PID[1],
+        SwerveDriveConfig.AUTO_Y_PID[2],
+        SwerveDriveConfig.AUTO_Y_PID[0]);
     ProfiledPIDController angleController = new ProfiledPIDController(
-        DriveConstants.AUTO_ANGLE_PID[1],
-        DriveConstants.AUTO_ANGLE_PID[2],
-        DriveConstants.AUTO_ANGLE_PID[0],
-        DriveConstants.AUTO_ANGLE_CONSTRAINTS);
+        SwerveDriveConfig.AUTO_ROTATE_PID[1],
+        SwerveDriveConfig.AUTO_ROTATE_PID[2],
+        SwerveDriveConfig.AUTO_ROTATE_PID[0],
+        SwerveDriveConfig.AUTO_ANGLE_CONSTRAINTS);
     angleController.enableContinuousInput(0, 360);
 
     SwerveControllerCommand swerveControllerCommand = new SwerveControllerCommand(
@@ -99,8 +100,10 @@ public class RobotContainer {
         drive::setModuleStates,
         drive);
 
-    return new SequentialCommandGroup(
-        new InstantCommand(() -> drive.resetOdometry(trajectory.getInitialPose())), swerveControllerCommand, new InstantCommand(() -> drive.stopModules()));
+    return null;
+
+    // return new SequentialCommandGroup(
+    //     new InstantCommand(() -> drive.resetOdometry(trajectory.getInitialPose())), swerveControllerCommand, new InstantCommand(() -> drive.stopModules()));
   }
 
   public void disabledPeriodic() {

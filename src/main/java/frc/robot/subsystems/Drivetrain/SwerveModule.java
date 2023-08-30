@@ -33,7 +33,7 @@ import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import frc.robot.commands.*;
 import frc.robot.subsystems.*;
 import frc.robot.Constants;
-import frc.robot.Constants.DriveConstants;
+import frc.robot.Constants.SwerveDriveConfig;
 
 import com.ctre.phoenix.sensors.AbsoluteSensorRange;
 import com.ctre.phoenix.sensors.CANCoder;
@@ -55,13 +55,15 @@ public class SwerveModule {
     this.steerEncoder = steerEncoder;
     this.name = name;
 
-    this.driveMotor.setSmartCurrentLimit(DriveConstants.TOTAL_CURRENT_LIMIT / 8);
-    this.driveMotor.setOpenLoopRampRate(DriveConstants.POWER_RAMP_RATE);
+    this.driveMotor.setSmartCurrentLimit(SwerveDriveConfig.TOTAL_CURRENT_LIMIT / 4 * (2 / 3));
+    this.steerMotor.setSmartCurrentLimit(SwerveDriveConfig.TOTAL_CURRENT_LIMIT / 4 * (1 / 3));
+    this.driveMotor.setOpenLoopRampRate(SwerveDriveConfig.MOTOR_POWER_RAMP_RATE);
+    this.steerMotor.setOpenLoopRampRate(SwerveDriveConfig.MOTOR_POWER_RAMP_RATE);
 
     this.steerEncoder.configAbsoluteSensorRange(AbsoluteSensorRange.Unsigned_0_to_360);
-    this.driveEncoder.setVelocityConversionFactor(DriveConstants.RPM_TO_VELOCITY_CONVERSION_FACTOR);
+    this.driveEncoder.setVelocityConversionFactor(SwerveDriveConfig.RPM_TO_VELOCITY_CONVERSION_FACTOR);
 
-    setPID(DriveConstants.STEER_PID);
+    setPID(SwerveDriveConfig.MODULE_STEER_PID);
 
     this.steerController.enableContinuousInput(0.0, 360.0);
   }
@@ -73,10 +75,12 @@ public class SwerveModule {
     targetState = state;
 
     double targetVelocity = state.speedMetersPerSecond;
-    if (targetVelocity < DriveConstants.VELOCITY_DEADZONE) {
+    if (Math.abs(targetVelocity) < SwerveDriveConfig.VELOCITY_DEADZONE) {
       targetVelocity = 0.0;
     }
     double targetAngle = state.angle.getDegrees();
+
+    System.out.println(targetVelocity);
 
     setTargetVelocity(targetVelocity);
     setTargetAngle(targetAngle);
@@ -87,8 +91,8 @@ public class SwerveModule {
     double drivePower = driveVelocityToMotorPower(targetDriveVelocity);
     double steerPower = steerController.calculate(getAngle());
 
-    driveMotor.set(drivePower);
-    steerMotor.set(steerPower);
+    driveMotor.set(Math.min(drivePower, SwerveDriveConfig.MOTOR_POWER_LIMIT));
+    steerMotor.set(Math.min(steerPower, SwerveDriveConfig.MOTOR_POWER_LIMIT));
 
     targetDriveVelocity = 0.0;
   }
@@ -127,7 +131,7 @@ public class SwerveModule {
 
   // Convert velocity in m/s to motor power from 0 - 1
   public static double driveVelocityToMotorPower(double velocity) {
-    return velocity / DriveConstants.PHYSICAL_MAX_VELOCITY;
+    return velocity / SwerveDriveConfig.FULL_POWER_VELOCITY;
   }
 
   // Get current angle and velocity (SwerveModuleState) 

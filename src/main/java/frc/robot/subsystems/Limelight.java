@@ -13,6 +13,7 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.commands.*;
 import frc.robot.Constants;
 import frc.robot.LimelightHelpers;
+import frc.robot.Constants.EnabledSystems;
 import frc.robot.LimelightHelpers.LimelightResults;
 
 import java.lang.Math;
@@ -23,7 +24,7 @@ public class Limelight extends SubsystemBase {
   private ShuffleboardTab dashboard = Shuffleboard.getTab("Dashboard");
 
   public Limelight(String name) {
-    if (!Constants.ENABLE_LIMELIGHT) {
+    if (!EnabledSystems.ENABLE_LIMELIGHT) {
       System.out.println("Vision Disabled");
       return;
     }
@@ -33,7 +34,7 @@ public class Limelight extends SubsystemBase {
 
   @Override
   public void periodic() {
-    if (!Constants.ENABLE_LIMELIGHT) {
+    if (!EnabledSystems.ENABLE_LIMELIGHT) {
       // System.out.println("Vision Disabled");
       return;
     }

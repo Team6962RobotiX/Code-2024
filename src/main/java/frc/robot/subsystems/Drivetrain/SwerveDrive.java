@@ -30,6 +30,7 @@ import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.SPI;
+import edu.wpi.first.wpilibj.XboxController;
 
 import java.util.Map;
 import java.util.function.Supplier;
@@ -40,7 +41,7 @@ import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 import frc.robot.commands.*;
 import frc.robot.Constants;
-import frc.robot.Constants.DriveConstants;
+import frc.robot.Constants.SwerveDriveConfig;
 import frc.robot.subsystems.*;
 
 import com.ctre.phoenix.sensors.CANCoder;
@@ -51,20 +52,22 @@ public class SwerveDrive extends SubsystemBase {
   private SwerveModule[] swerveModules = new SwerveModule[4];
   private AHRS gyro = new AHRS(SPI.Port.kMXP);
   private SwerveDriveKinematics kinematics = getKinematics();
-  private SwerveDriveOdometry odometer = new SwerveDriveOdometry(
-      kinematics,
-      getRotation2d(),
-      getModulePositions(),
-      DriveConstants.STARTING_POSE);
+  private SwerveDriveOdometry odometer;
 
   public SwerveDrive() {
     for (int i = 0; i < 4; i++) {
       swerveModules[i] = new SwerveModule(
-          new CANSparkMax(DriveConstants.CAN_DRIVE[i], MotorType.kBrushless),
-          new CANSparkMax(DriveConstants.CAN_STEER[i], MotorType.kBrushless),
-          new CANCoder(DriveConstants.CAN_STEER_ENCODER[i]),
-          DriveConstants.MODULE_NAMES[i]);
+          new CANSparkMax(SwerveDriveConfig.CAN_DRIVE[i], MotorType.kBrushless),
+          new CANSparkMax(SwerveDriveConfig.CAN_STEER[i], MotorType.kBrushless),
+          new CANCoder(SwerveDriveConfig.CAN_STEER_ENCODER[i]),
+          SwerveDriveConfig.MODULE_NAMES[i]);
     }
+
+    odometer = new SwerveDriveOdometry(
+        kinematics,
+        getRotation2d(),
+        getModulePositions(),
+        SwerveDriveConfig.STARTING_POSE);
 
     new Thread(() -> {
       try {
@@ -89,6 +92,9 @@ public class SwerveDrive extends SubsystemBase {
 
   // Get gyro Rotation2d heading
   public Rotation2d getRotation2d() {
+    // XboxController controller = new XboxController(Constants.USB_XBOX_CONTROLLER);
+    // double targetAngle = ((Math.atan2(controller.getRawAxis(3), controller.getRawAxis(2)) / Math.PI * 180) + 360 + 90) % 360;
+    // return Rotation2d.fromDegrees(targetAngle);
     return gyro.getRotation2d();
   }
 
@@ -100,13 +106,12 @@ public class SwerveDrive extends SubsystemBase {
   // Reset gyro heading
   public void zeroHeading() {
     gyro.reset();
-    gyro.setAngleAdjustment(DriveConstants.STARTING_ANGLE_OFFSET);
+    gyro.setAngleAdjustment(SwerveDriveConfig.STARTING_ANGLE_OFFSET);
   }
 
   // Drive the robot relative to the field
   public void fieldOrientedDrive(double forward, double strafe, double rotation) { // m/s and rad/s
-    ChassisSpeeds speeds = ChassisSpeeds.fromFieldRelativeSpeeds(forward, strafe, rotation,
-        getRotation2d());
+    ChassisSpeeds speeds = ChassisSpeeds.fromFieldRelativeSpeeds(forward, strafe, rotation, getRotation2d());
     SwerveModuleState moduleStates[] = kinematics.toSwerveModuleStates(speeds);
     setModuleStates(moduleStates);
   }
@@ -120,7 +125,7 @@ public class SwerveDrive extends SubsystemBase {
 
   // Set all modules target speed and directions
   public void setModuleStates(SwerveModuleState[] moduleStates) {
-    SwerveDriveKinematics.desaturateWheelSpeeds(moduleStates, DriveConstants.TELEOP_MAX_VELOCITY);
+    SwerveDriveKinematics.desaturateWheelSpeeds(moduleStates, SwerveDriveConfig.MAX_VELOCITY);
     for (int i = 0; i < 4; i++) {
       swerveModules[i].setTargetState(moduleStates[i]);
     }
@@ -192,17 +197,17 @@ public class SwerveDrive extends SubsystemBase {
 
   public static SwerveDriveKinematics getKinematics() {
     return new SwerveDriveKinematics(
-        new Translation2d(DriveConstants.TRACKWIDTH_METERS / 2.0, -DriveConstants.WHEELBASE_METERS / 2.0),
-        new Translation2d(DriveConstants.TRACKWIDTH_METERS / 2.0, DriveConstants.WHEELBASE_METERS / 2.0),
-        new Translation2d(-DriveConstants.TRACKWIDTH_METERS / 2.0, DriveConstants.WHEELBASE_METERS / 2.0),
-        new Translation2d(-DriveConstants.TRACKWIDTH_METERS / 2.0, -DriveConstants.WHEELBASE_METERS / 2.0));
+        new Translation2d(SwerveDriveConfig.TRACKWIDTH_METERS / 2.0, -SwerveDriveConfig.WHEELBASE_METERS / 2.0),
+        new Translation2d(SwerveDriveConfig.TRACKWIDTH_METERS / 2.0, SwerveDriveConfig.WHEELBASE_METERS / 2.0),
+        new Translation2d(-SwerveDriveConfig.TRACKWIDTH_METERS / 2.0, SwerveDriveConfig.WHEELBASE_METERS / 2.0),
+        new Translation2d(-SwerveDriveConfig.TRACKWIDTH_METERS / 2.0, -SwerveDriveConfig.WHEELBASE_METERS / 2.0));
   }
 
   // Calculate max angular velocity from max module drive velocity
   public static double maxAngularVelocity(double maxDriveVelocity) {
     return maxDriveVelocity / Math.hypot( // measured in radians/second
-        DriveConstants.TRACKWIDTH_METERS / 2.0,
-        DriveConstants.WHEELBASE_METERS / 2.0);
+        SwerveDriveConfig.TRACKWIDTH_METERS / 2.0,
+        SwerveDriveConfig.WHEELBASE_METERS / 2.0);
   }
 
   // Stop motors on all modules
