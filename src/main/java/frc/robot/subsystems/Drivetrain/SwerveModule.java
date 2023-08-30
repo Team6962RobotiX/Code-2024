@@ -37,6 +37,8 @@ import frc.robot.Constants.SwerveDriveConfig;
 
 import com.ctre.phoenix.sensors.AbsoluteSensorRange;
 import com.ctre.phoenix.sensors.CANCoder;
+import com.ctre.phoenix.sensors.CANCoderConfiguration;
+import com.ctre.phoenix.sensors.SensorTimeBase;
 
 public class SwerveModule {
   private CANSparkMax driveMotor;
@@ -55,12 +57,20 @@ public class SwerveModule {
     this.steerEncoder = steerEncoder;
     this.name = name;
 
+    this.driveMotor.restoreFactoryDefaults();
+    this.steerMotor.restoreFactoryDefaults();
+
     this.driveMotor.setSmartCurrentLimit(SwerveDriveConfig.TOTAL_CURRENT_LIMIT / 4 * (2 / 3));
     this.steerMotor.setSmartCurrentLimit(SwerveDriveConfig.TOTAL_CURRENT_LIMIT / 4 * (1 / 3));
     this.driveMotor.setOpenLoopRampRate(SwerveDriveConfig.MOTOR_POWER_RAMP_RATE);
     this.steerMotor.setOpenLoopRampRate(SwerveDriveConfig.MOTOR_POWER_RAMP_RATE);
 
-    // this.steerEncoder.configAbsoluteSensorRange(AbsoluteSensorRange.Unsigned_0_to_360);
+    CANCoderConfiguration CANCoderConfig = new CANCoderConfiguration();
+    CANCoderConfig.sensorCoefficient = 360 / 4096.0;
+    CANCoderConfig.unitString = "degrees";
+    CANCoderConfig.sensorTimeBase = SensorTimeBase.PerSecond;
+    steerEncoder.configAllSettings(CANCoderConfig);
+
     this.driveEncoder.setVelocityConversionFactor(SwerveDriveConfig.MOTOR_RPM_VELOCITY_RATIO);
 
     setPID(SwerveDriveConfig.MODULE_STEER_PID);
