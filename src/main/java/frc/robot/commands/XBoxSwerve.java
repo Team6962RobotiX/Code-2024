@@ -67,6 +67,16 @@ public class XBoxSwerve extends CommandBase {
     rotatePID.setP(SwerveDriveConfig.TELEOP_ROTATE_PID[0] * rotateSpeed);
     double angularVelocity = rotatePID.calculate(drive.getHeading(), targetAngle) * SwerveDriveConfig.FULL_POWER_ANGULAR_VELOCITY;
 
+    if (controller.getBButton() || !controller.isConnected()) {
+      drive.stopModules();
+      return;
+    }
+
+    if (controller.getXButton()) {
+      drive.groundModules();
+      return;
+    }
+
     drive.fieldOrientedDrive(yVelocity, xVelocity, angularVelocity);
   }
 

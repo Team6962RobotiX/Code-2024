@@ -61,7 +61,7 @@ public class SwerveModule {
     this.steerMotor.setOpenLoopRampRate(SwerveDriveConfig.MOTOR_POWER_RAMP_RATE);
 
     this.steerEncoder.configAbsoluteSensorRange(AbsoluteSensorRange.Unsigned_0_to_360);
-    this.driveEncoder.setVelocityConversionFactor(SwerveDriveConfig.RPM_TO_VELOCITY_CONVERSION_FACTOR);
+    this.driveEncoder.setVelocityConversionFactor(SwerveDriveConfig.MOTOR_RPM_VELOCITY_RATIO);
 
     setPID(SwerveDriveConfig.MODULE_STEER_PID);
 
