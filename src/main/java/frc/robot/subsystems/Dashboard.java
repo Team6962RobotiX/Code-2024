@@ -8,9 +8,12 @@ import java.util.Map;
 
 import com.kauailabs.navx.frc.AHRS;
 
+import edu.wpi.first.networktables.GenericEntry;
+import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.shuffleboard.BuiltInLayouts;
 import edu.wpi.first.wpilibj.shuffleboard.BuiltInWidgets;
+import edu.wpi.first.wpilibj.shuffleboard.ComplexWidget;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardLayout;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
@@ -23,7 +26,6 @@ import frc.robot.subsystems.*;
 import frc.robot.subsystems.Drivetrain.*;
 import frc.robot.Constants;
 import frc.robot.Constants.*;
-import frc.robot.Constants.SwerveDriveConfig;
 
 public class Dashboard extends SubsystemBase {
   private SwerveDrive swerveDrive;
@@ -32,72 +34,70 @@ public class Dashboard extends SubsystemBase {
   private AHRS gyro = new AHRS(SPI.Port.kMXP);
   private final Field2d field = new Field2d();
 
+  private GenericEntry kP = swerveData.add("SwervekP", SwerveDriveConfig.MODULE_STEER_PID[0]).getEntry();
+  private GenericEntry kI = swerveData.add("SwervekI", SwerveDriveConfig.MODULE_STEER_PID[1]).getEntry();
+  private GenericEntry kD = swerveData.add("SwervekD", SwerveDriveConfig.MODULE_STEER_PID[2]).getEntry();
+
+  private ComplexWidget gyroEntry = swerveData.add(gyro).withProperties(Map.of("name", "Robot Heading"));
+
+  private GenericEntry totalVoltage = swerveData.add("Voltage", 0)
+      .withWidget(BuiltInWidgets.kDial)
+      .withProperties(Map.of("min", 0, "max", 24 * 8))
+      .getEntry();
+
+  private GenericEntry totalCurrent = swerveData.add("Current", 0)
+      .withWidget(BuiltInWidgets.kDial)
+      .withProperties(Map.of("min", 0, "max", SwerveDriveConfig.TOTAL_CURRENT_LIMIT))
+      .getEntry();
+
   /** Creates a new ExampleSubsystem. */
   public Dashboard(SwerveDrive swerveDrive) {
     this.swerveDrive = swerveDrive;
+    swerveData.add("field", field);
   }
 
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
     double[] PIDValues = {
-        swerveData.add("SwervekP", SwerveDriveConfig.MODULE_STEER_PID[0])
-            .getEntry()
-            .getDouble(SwerveDriveConfig.MODULE_STEER_PID[0]),
-        swerveData.add("SwervekI", SwerveDriveConfig.MODULE_STEER_PID[1])
-            .getEntry()
-            .getDouble(SwerveDriveConfig.MODULE_STEER_PID[1]),
-        swerveData.add("SwervekD", SwerveDriveConfig.MODULE_STEER_PID[2])
-            .getEntry()
-            .getDouble(SwerveDriveConfig.MODULE_STEER_PID[2])
+        kP.getDouble(SwerveDriveConfig.MODULE_STEER_PID[0]),
+        kI.getDouble(SwerveDriveConfig.MODULE_STEER_PID[1]),
+        kD.getDouble(SwerveDriveConfig.MODULE_STEER_PID[2])
     };
 
     swerveDrive.setPID(PIDValues);
-
-    swerveData.add(gyro).withProperties(Map.of("name", "Robot Heading"));
-
-    swerveData.add("Voltage", 0)
-        .withWidget(BuiltInWidgets.kDial)
-        .withProperties(Map.of("min", 0, "max", 24 * 8))
-        .getEntry()
-        .setDouble(swerveDrive.getVoltage());
-
-    swerveData.add("Current", 0)
-        .withWidget(BuiltInWidgets.kDial)
-        .withProperties(Map.of("min", 0, "max", SwerveDriveConfig.TOTAL_CURRENT_LIMIT))
-        .getEntry()
-        .setDouble(swerveDrive.getCurrent());
+    totalVoltage.setDouble(swerveDrive.getVoltage());
+    totalCurrent.setDouble(swerveDrive.getCurrent());
 
     field.setRobotPose(swerveDrive.getPose());
-    swerveData.add("field", field);
+    
+    // for (SwerveModule module : swerveDrive.getSwerveModules()) {
+    //   ShuffleboardLayout moduleData = dashboardTab.getLayout(module.getName() + " Module", BuiltInLayouts.kList)
+    //       .withSize(2, 5);
 
-    for (SwerveModule module : swerveDrive.getSwerveModules()) {
-      ShuffleboardLayout moduleData = dashboardTab.getLayout(module.getName() + " Module", BuiltInLayouts.kList)
-          .withSize(2, 5);
+    //   moduleData.add("Angle", 0)
+    //       .withWidget(BuiltInWidgets.kGyro)
+    //       .getEntry()
+    //       .setDouble(module.getAngle());
 
-      moduleData.add("Angle", 0)
-          .withWidget(BuiltInWidgets.kGyro)
-          .getEntry()
-          .setDouble(module.getAngle());
+    //   moduleData.add("Drive Speed", 0)
+    //       .withWidget(BuiltInWidgets.kDial)
+    //       .withProperties(Map.of("min", 0, "max", SwerveDriveConfig.MAX_VELOCITY))
+    //       .getEntry()
+    //       .setDouble(module.getDriveVelocity());
 
-      moduleData.add("Drive Speed", 0)
-          .withWidget(BuiltInWidgets.kDial)
-          .withProperties(Map.of("min", 0, "max", SwerveDriveConfig.MAX_VELOCITY))
-          .getEntry()
-          .setDouble(module.getDriveVelocity());
+    //   moduleData.add("Current", 0)
+    //       .withWidget(BuiltInWidgets.kDial)
+    //       .withProperties(Map.of("min", 0, "max", SwerveDriveConfig.TOTAL_CURRENT_LIMIT / 4))
+    //       .getEntry()
+    //       .setDouble(module.getCurrent());
 
-      moduleData.add("Current", 0)
-          .withWidget(BuiltInWidgets.kDial)
-          .withProperties(Map.of("min", 0, "max", SwerveDriveConfig.TOTAL_CURRENT_LIMIT / 4))
-          .getEntry()
-          .setDouble(module.getCurrent());
-
-      moduleData.add("Voltage", 0)
-          .withWidget(BuiltInWidgets.kDial)
-          .withProperties(Map.of("min", 0, "max", 24 * 2))
-          .getEntry()
-          .setDouble(module.getVoltage());
-    }
+    //   moduleData.add("Voltage", 0)
+    //       .withWidget(BuiltInWidgets.kDial)
+    //       .withProperties(Map.of("min", 0, "max", 24 * 2))
+    //       .getEntry()
+    //       .setDouble(module.getVoltage());
+    // }
   }
 
   @Override
