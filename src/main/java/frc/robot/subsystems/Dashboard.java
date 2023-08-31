@@ -34,21 +34,13 @@ public class Dashboard extends SubsystemBase {
   private AHRS gyro = new AHRS(SPI.Port.kMXP);
   private final Field2d field = new Field2d();
 
-  private GenericEntry SwervekP = swerveData.add("SwervekP", SwerveDriveConfig.MODULE_STEER_PID[0]).getEntry();
-  private GenericEntry SwervekI = swerveData.add("SwervekI", SwerveDriveConfig.MODULE_STEER_PID[1]).getEntry();
-  private GenericEntry SwervekD = swerveData.add("SwervekD", SwerveDriveConfig.MODULE_STEER_PID[2]).getEntry();
+  private GenericEntry SwervekP;
+  private GenericEntry SwervekI;
+  private GenericEntry SwervekD;
 
-  private ComplexWidget gyroEntry = swerveData.add(gyro).withProperties(Map.of("name", "Robot Heading"));
-
-  private GenericEntry totalVoltage = swerveData.add("Voltage", 0)
-      .withWidget(BuiltInWidgets.kDial)
-      .withProperties(Map.of("min", 0, "max", 24 * 8))
-      .getEntry();
-
-  private GenericEntry totalCurrent = swerveData.add("Current", 0)
-      .withWidget(BuiltInWidgets.kDial)
-      .withProperties(Map.of("min", 0, "max", SwerveDriveConfig.TOTAL_CURRENT_LIMIT))
-      .getEntry();
+  private ComplexWidget gyroEntry;
+  private GenericEntry totalVoltage;
+  private GenericEntry totalCurrent;
 
   private ShuffleboardLayout[] moduleDataLists = new ShuffleboardLayout[4];
   private GenericEntry[] moduleAngles = new GenericEntry[4];
@@ -59,6 +51,23 @@ public class Dashboard extends SubsystemBase {
   /** Creates a new ExampleSubsystem. */
   public Dashboard(SwerveDrive swerveDrive) {
     this.swerveDrive = swerveDrive;
+    
+    SwervekP = swerveData.add("SwervekP", SwerveDriveConfig.MODULE_STEER_PID[0]).getEntry();
+    SwervekI = swerveData.add("SwervekI", SwerveDriveConfig.MODULE_STEER_PID[1]).getEntry();
+    SwervekD = swerveData.add("SwervekD", SwerveDriveConfig.MODULE_STEER_PID[2]).getEntry();
+
+    gyroEntry = swerveData.add(gyro).withProperties(Map.of("name", "Robot Heading"));
+
+    totalVoltage = swerveData.add("Voltage", 0)
+        .withWidget(BuiltInWidgets.kDial)
+        .withProperties(Map.of("min", 0, "max", 24 * 8))
+        .getEntry();
+
+    totalCurrent = swerveData.add("Current", 0)
+        .withWidget(BuiltInWidgets.kDial)
+        .withProperties(Map.of("min", 0, "max", SwerveDriveConfig.TOTAL_CURRENT_LIMIT))
+        .getEntry();
+
     swerveData.add("field", field);
 
     SwerveModule[] modules = swerveDrive.getSwerveModules();

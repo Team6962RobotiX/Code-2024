@@ -101,7 +101,7 @@ public class SwerveDrive extends SubsystemBase {
     // XboxController controller = new XboxController(Constants.USB_XBOX_CONTROLLER);
     // double targetAngle = ((Math.atan2(controller.getRawAxis(3), controller.getRawAxis(2)) / Math.PI * 180) + 360 + 90) % 360;
     // return Rotation2d.fromDegrees(targetAngle);
-    return gyro.getRotation2d();
+    return Rotation2d.fromDegrees(((gyro.getRotation2d().getDegrees() + 180) % 360) - 180);
   }
 
   // Get gyro degree heading

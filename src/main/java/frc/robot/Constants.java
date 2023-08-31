@@ -58,7 +58,7 @@ public final class Constants {
     public static final double DRIVE_MOTOR_POWER_LIMIT = 0.3; // Absolute maximum percent motor power (0.5 = 50%)
     public static final double STEER_MOTOR_POWER_LIMIT = 0.5; // Absolute maximum percent motor power (0.5 = 50%)
     
-    public static final double CONTROLLER_DEADZONE = 0.1; // If joystick values are less than this (0.1 = 10%) than we just read 0
+    public static final double CONTROLLER_DEADZONE = 0.2; // If joystick values are less than this (0.1 = 10%) than we just read 0
     public static final double VELOCITY_DEADZONE = 0.05; // speed at which we stop moving all together
 
     public static final int TOTAL_CURRENT_LIMIT = 300; // [TODO] Default is around 640 Amps (also drive motors have double the current allocation than steer motors)
