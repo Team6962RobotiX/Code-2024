@@ -34,9 +34,9 @@ public class Dashboard extends SubsystemBase {
   private AHRS gyro = new AHRS(SPI.Port.kMXP);
   private final Field2d field = new Field2d();
 
-  private GenericEntry kP = swerveData.add("SwervekP", SwerveDriveConfig.MODULE_STEER_PID[0]).getEntry();
-  private GenericEntry kI = swerveData.add("SwervekI", SwerveDriveConfig.MODULE_STEER_PID[1]).getEntry();
-  private GenericEntry kD = swerveData.add("SwervekD", SwerveDriveConfig.MODULE_STEER_PID[2]).getEntry();
+  private GenericEntry SwervekP = swerveData.add("SwervekP", SwerveDriveConfig.MODULE_STEER_PID[0]).getEntry();
+  private GenericEntry SwervekI = swerveData.add("SwervekI", SwerveDriveConfig.MODULE_STEER_PID[1]).getEntry();
+  private GenericEntry SwervekD = swerveData.add("SwervekD", SwerveDriveConfig.MODULE_STEER_PID[2]).getEntry();
 
   private ComplexWidget gyroEntry = swerveData.add(gyro).withProperties(Map.of("name", "Robot Heading"));
 
@@ -65,18 +65,22 @@ public class Dashboard extends SubsystemBase {
 
     for (int i = 0; i < 4; i++) {
       moduleDataLists[i] = dashboardTab.getLayout(modules[i].getName() + " Module", BuiltInLayouts.kList).withSize(2, 5);
-      moduleAngles[i] = moduleDataLists[i].add("Angle", 0)
+      moduleAngles[i] = moduleDataLists[i]
+          .add("Angle", 0)
           .withWidget(BuiltInWidgets.kGyro)
           .getEntry();
-      moduleSpeeds[i] = moduleDataLists[i].add("Drive Speed", 0)
+      moduleSpeeds[i] = moduleDataLists[i]
+          .add("Drive Speed", 0)
           .withWidget(BuiltInWidgets.kDial)
           .withProperties(Map.of("min", 0, "max", SwerveDriveConfig.MAX_VELOCITY))
           .getEntry();
-      moduleCurrents[i] = moduleDataLists[i].add("Current", 0)
+      moduleCurrents[i] = moduleDataLists[i]
+          .add("Current", 0)
           .withWidget(BuiltInWidgets.kDial)
           .withProperties(Map.of("min", 0, "max", SwerveDriveConfig.TOTAL_CURRENT_LIMIT / 4))
           .getEntry();
-      moduleVoltages[i] = moduleDataLists[i].add("Voltage", 0)
+      moduleVoltages[i] = moduleDataLists[i]
+          .add("Voltage", 0)
           .withWidget(BuiltInWidgets.kDial)
           .withProperties(Map.of("min", 0, "max", 24 * 2))
           .getEntry();
@@ -87,9 +91,9 @@ public class Dashboard extends SubsystemBase {
   public void periodic() {
     // This method will be called once per scheduler run
     double[] PIDValues = {
-        kP.getDouble(SwerveDriveConfig.MODULE_STEER_PID[0]),
-        kI.getDouble(SwerveDriveConfig.MODULE_STEER_PID[1]),
-        kD.getDouble(SwerveDriveConfig.MODULE_STEER_PID[2])
+        SwervekP.getDouble(SwerveDriveConfig.MODULE_STEER_PID[0]),
+        SwervekI.getDouble(SwerveDriveConfig.MODULE_STEER_PID[1]),
+        SwervekD.getDouble(SwerveDriveConfig.MODULE_STEER_PID[2])
     };
 
     swerveDrive.setPID(PIDValues);
