@@ -46,21 +46,12 @@ public class Testing extends SubsystemBase {
   CANCoder absoluteSteerEncoder;
 
   public Testing() {
-    int id = 0;
 
-    absoluteSteerEncoder = new CANCoder(CAN.SWERVE_STEER_CANCODER[id], "rio");
+    absoluteSteerEncoder = new CANCoder(42);
 
     CANCoderConfiguration CANCoderConfig = new CANCoderConfiguration();
-    CANCoderConfig.sensorCoefficient = 360.0 / 4096.0;
-    CANCoderConfig.unitString = "degrees";
-    CANCoderConfig.sensorTimeBase = SensorTimeBase.PerSecond;
-    CANCoderConfig.initializationStrategy = SensorInitializationStrategy.BootToAbsolutePosition;
-    CANCoderConfig.magnetOffsetDegrees = SwerveDriveConfig.STEER_ENCODER_OFFSETS[id];
-    CANCoderConfig.sensorDirection = false;
-
+    CANCoderConfig.magnetOffsetDegrees = SwerveDriveConfig.STEER_ENCODER_OFFSETS[3];
     absoluteSteerEncoder.configAllSettings(CANCoderConfig);
-    absoluteSteerEncoder.setStatusFramePeriod(CANCoderStatusFrame.SensorData, 10);
-    absoluteSteerEncoder.setStatusFramePeriod(CANCoderStatusFrame.VbatAndFaults, 10);
   }
 
   @Override

@@ -50,6 +50,8 @@ import com.ctre.phoenix.sensors.SensorTimeBase;
 
 public final class SelfCheck {
 
+  public static PowerDistribution PDP = new PowerDistribution(CAN.PDP, ModuleType.kRev);
+
   public static void checkMotorFaults(CANSparkMax[] motorsControllers) {
     for (CANSparkMax motorController : motorsControllers) {
       int faultFlags = motorController.getFaults();
@@ -87,7 +89,6 @@ public final class SelfCheck {
   }
 
   public static void checkPDPFaults() {
-    PowerDistribution PDP = new PowerDistribution(CAN.PDP, ModuleType.kRev);
     PowerDistributionFaults faults = PDP.getFaults();
 
     if (faults.Brownout) {
@@ -137,7 +138,7 @@ public final class SelfCheck {
       }
     }
     if (hasBreakerFault) {
-      warn(breakerFaultMessage);
+      // warn(breakerFaultMessage);
     }
   }
 

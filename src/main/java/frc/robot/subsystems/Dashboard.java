@@ -96,7 +96,7 @@ public class Dashboard extends SubsystemBase {
         SwervekD.getDouble(SwerveDriveConfig.MODULE_STEER_PID[2])
     };
 
-    swerveDrive.setPID(PIDValues);
+    // swerveDrive.setPID(PIDValues);
     totalVoltage.setDouble(swerveDrive.getVoltage());
     totalCurrent.setDouble(swerveDrive.getCurrent());
 

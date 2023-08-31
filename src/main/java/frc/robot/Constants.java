@@ -55,8 +55,9 @@ public final class Constants {
       -------------------------------------
     */
 
-    public static final double MOTOR_POWER_LIMIT = 0.05; // Absolute maximum percent motor power (0.5 = 50%)
-
+    public static final double DRIVE_MOTOR_POWER_LIMIT = 0.3; // Absolute maximum percent motor power (0.5 = 50%)
+    public static final double STEER_MOTOR_POWER_LIMIT = 0.5; // Absolute maximum percent motor power (0.5 = 50%)
+    
     public static final double CONTROLLER_DEADZONE = 0.1; // If joystick values are less than this (0.1 = 10%) than we just read 0
     public static final double VELOCITY_DEADZONE = 0.05; // speed at which we stop moving all together
 
@@ -79,17 +80,18 @@ public final class Constants {
     public static final double DRIVE_GEAR_REDUCTION = 1.0 / 6.75;
     public static final double WHEEL_DIAMETER = 0.4572; // measured in meters
     public static final double MOTOR_RPM_VELOCITY_RATIO = DRIVE_GEAR_REDUCTION / 60.0 * WHEEL_DIAMETER * Math.PI;
-    public static final double[] STEER_ENCODER_OFFSETS = { 0.0, 0.0, 0.0, 0.0 };
+    public static final double[] STEER_ENCODER_OFFSETS = { -124.805, -303.047, -101.602, -65.215 };
 
     public static final double FULL_POWER_VELOCITY = 21; // [TODO] VERY IMPORTANT DO NOT CHANGE
     public static final double FULL_POWER_ANGULAR_VELOCITY = SwerveDrive.maxAngularVelocity(FULL_POWER_VELOCITY);
 
-    public static final double MAX_VELOCITY = MOTOR_POWER_LIMIT * FULL_POWER_VELOCITY;
+    public static final double MAX_VELOCITY = DRIVE_MOTOR_POWER_LIMIT * FULL_POWER_VELOCITY;
     public static final double MAX_ANGULAR_VELOCITY = SwerveDrive.maxAngularVelocity(MAX_VELOCITY);
 
     // PID
-    public static final double[] MODULE_STEER_PID = { 1.0 / 360.0, 0.0, 0.0 }; // [TODO]
-    public static final double[] TELEOP_ROTATE_PID = { 1.0 / 360.0, 0.0, 0.0 }; // [TODO]
+    public static final double[] MODULE_STEER_PID = { 3.0 / 360.0, 0.0, 0.0 }; // [TODO]
+    public static final double MODULE_STEER_PID_TOLERANCE = 1.0;
+    public static final double[] TELEOP_ROTATE_PID = { 3.0 / 360.0, 0.0, 0.0 }; // [TODO]
     public static final double[] AUTO_ROTATE_PID = { 1.0, 0.0, 0.0 };
     public static final double[] AUTO_X_PID = { 1.0, 0.0, 0.0 }; // [TODO]
     public static final double[] AUTO_Y_PID = { 1.0, 0.0, 0.0 }; // [TODO]

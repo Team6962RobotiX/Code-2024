@@ -207,8 +207,8 @@ public class SwerveDrive extends SubsystemBase {
 
   public static SwerveDriveKinematics getKinematics() {
     return new SwerveDriveKinematics(
-        new Translation2d(SwerveDriveConfig.TRACKWIDTH_METERS / 2.0, -SwerveDriveConfig.WHEELBASE_METERS / 2.0),
         new Translation2d(SwerveDriveConfig.TRACKWIDTH_METERS / 2.0, SwerveDriveConfig.WHEELBASE_METERS / 2.0),
+        new Translation2d(SwerveDriveConfig.TRACKWIDTH_METERS / 2.0, -SwerveDriveConfig.WHEELBASE_METERS / 2.0),
         new Translation2d(-SwerveDriveConfig.TRACKWIDTH_METERS / 2.0, SwerveDriveConfig.WHEELBASE_METERS / 2.0),
         new Translation2d(-SwerveDriveConfig.TRACKWIDTH_METERS / 2.0, -SwerveDriveConfig.WHEELBASE_METERS / 2.0));
   }

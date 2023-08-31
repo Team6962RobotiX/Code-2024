@@ -52,12 +52,13 @@ public class SwerveModule {
   private SwerveModuleState targetState;
   private double targetDriveVelocity = 0.0;
   private String name;
-  private boolean isSteerCalibrated = false;
+  private int printCounter = 0;
+  // private boolean isSteerCalibrated = false;
 
   SwerveModule(int id) {
     driveMotor = new CANSparkMax(CAN.SWERVE_DRIVE[id], MotorType.kBrushless);
     steerMotor = new CANSparkMax(CAN.SWERVE_STEER[id], MotorType.kBrushless);
-    absoluteSteerEncoder = new CANCoder(CAN.SWERVE_STEER_CANCODER[id], "rio");
+    absoluteSteerEncoder = new CANCoder(CAN.SWERVE_STEER_CANCODER[id]);
     name = SwerveDriveConfig.MODULE_NAMES[id];
 
     relativeDriveEncoder = driveMotor.getEncoder();
@@ -71,30 +72,31 @@ public class SwerveModule {
     driveMotor.setOpenLoopRampRate(SwerveDriveConfig.MOTOR_POWER_RAMP_RATE);
     steerMotor.setOpenLoopRampRate(SwerveDriveConfig.MOTOR_POWER_RAMP_RATE);
 
-    CANCoderConfiguration CANCoderConfig = new CANCoderConfiguration();
-    CANCoderConfig.sensorCoefficient = 360.0 / 4096.0;
-    CANCoderConfig.unitString = "degrees";
-    CANCoderConfig.sensorTimeBase = SensorTimeBase.PerSecond;
-    CANCoderConfig.initializationStrategy = SensorInitializationStrategy.BootToAbsolutePosition;
-    CANCoderConfig.magnetOffsetDegrees = SwerveDriveConfig.STEER_ENCODER_OFFSETS[id];
-    CANCoderConfig.sensorDirection = false;
-
-    absoluteSteerEncoder.configAllSettings(CANCoderConfig);
-    absoluteSteerEncoder.setStatusFramePeriod(CANCoderStatusFrame.SensorData, 10);
-    absoluteSteerEncoder.setStatusFramePeriod(CANCoderStatusFrame.VbatAndFaults, 10);
-
     relativeDriveEncoder.setVelocityConversionFactor(SwerveDriveConfig.MOTOR_RPM_VELOCITY_RATIO);
     relativeSteerEncoder.setPositionConversionFactor(SwerveDriveConfig.STEER_GEAR_REDUCTION * 360);
 
-    steerController.enableContinuousInput(0.0, 360.0);
+    CANCoderConfiguration CANCoderConfig = new CANCoderConfiguration();
+    CANCoderConfig.magnetOffsetDegrees = SwerveDriveConfig.STEER_ENCODER_OFFSETS[id];
+    CANCoderConfig.absoluteSensorRange = AbsoluteSensorRange.Signed_PlusMinus180;
+    absoluteSteerEncoder.configAllSettings(CANCoderConfig);
+
+    steerController.setTolerance(SwerveDriveConfig.MODULE_STEER_PID_TOLERANCE);
+    steerController.enableContinuousInput(-180.0, 180.0);
     setPID(SwerveDriveConfig.MODULE_STEER_PID);
 
     SelfCheck.checkMotorFaults(new CANSparkMax[] { driveMotor, steerMotor });
-    calibrateSteerAngle();
+    // calibrateSteerAngle();
   }
 
   // Set target angle and velocity
   public void setTargetState(SwerveModuleState state) {
+    if (printCounter % 100 == 0) {
+      // System.out.println("current: " + state.angle.getDegrees());
+      // System.out.println("target: " + steerController.getSetpoint());
+    }
+
+    printCounter += 1;
+
     state = SwerveModuleState.optimize(state, Rotation2d.fromDegrees(getAngle()));
 
     targetState = state;
@@ -106,7 +108,7 @@ public class SwerveModule {
     double targetAngle = state.angle.getDegrees();
 
     // System.out.println("target angle " + name + ": " + targetAngle);
-    System.out.println("current angle " + name + ": " + getAngle());
+    // System.out.println("current angle " + name + ": " + getAngle());
 
     setTargetVelocity(targetVelocity);
     setTargetAngle(targetAngle);
@@ -115,18 +117,26 @@ public class SwerveModule {
   // Drive motors to approximate target angle and velocity
   public void drive() { // Must be called periodically
     double drivePower = driveVelocityToMotorPower(targetDriveVelocity);
-    double steerPower = steerController.calculate(getAngle());
+    double steerPower = -steerController.calculate(getAngle());
 
-    driveMotor.set(Math.min(drivePower, SwerveDriveConfig.MOTOR_POWER_LIMIT));
-    steerMotor.set(Math.min(steerPower, SwerveDriveConfig.MOTOR_POWER_LIMIT));
-
-    if (driveMotor.get() == 0 && steerMotor.get() == 0) {
-      if (!isSteerCalibrated) {
-        calibrateSteerAngle();
-      }
-    } else {
-      isSteerCalibrated = false;
+    if (Math.abs(drivePower) > SwerveDriveConfig.DRIVE_MOTOR_POWER_LIMIT) {
+      drivePower = SwerveDriveConfig.DRIVE_MOTOR_POWER_LIMIT * Math.signum(drivePower);
     }
+
+    if (Math.abs(steerPower) > SwerveDriveConfig.STEER_MOTOR_POWER_LIMIT) {
+      steerPower = SwerveDriveConfig.STEER_MOTOR_POWER_LIMIT * Math.signum(steerPower);
+    }
+
+    driveMotor.set(drivePower);
+    steerMotor.set(steerPower);
+
+    // if (driveMotor.get() == 0 && steerMotor.get() == 0) {
+    //   if (!isSteerCalibrated) {
+    //     calibrateSteerAngle();
+    //   }
+    // } else {
+    //   isSteerCalibrated = false;
+    // }
 
     targetDriveVelocity = 0.0;
   }
@@ -147,15 +157,16 @@ public class SwerveModule {
 
   // Get the direction of the steering wheel (0 - 180)
   public double getAngle() {
-    double angle = relativeSteerEncoder.getPosition();
-    relativeSteerEncoder.setPosition(angle % 360);
-    return angle;
+    // double angle = relativeSteerEncoder.getPosition();
+    // relativeSteerEncoder.setPosition(angle % 360);
+    // return angle;
+    return absoluteSteerEncoder.getAbsolutePosition();
   }
 
-  public void calibrateSteerAngle() {
-    relativeSteerEncoder.setPosition(absoluteSteerEncoder.getAbsolutePosition());
-    isSteerCalibrated = true;
-  }
+  // public void calibrateSteerAngle() {
+  //   relativeSteerEncoder.setPosition(absoluteSteerEncoder.getAbsolutePosition());
+  //   isSteerCalibrated = true;
+  // }
 
   // Get the direction of the steering wheel (0 - 360)
   public double getDriveDirection() {

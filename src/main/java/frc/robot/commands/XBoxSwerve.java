@@ -41,11 +41,13 @@ public class XBoxSwerve extends CommandBase {
       SwerveDriveConfig.TELEOP_ROTATE_PID[1],
       SwerveDriveConfig.TELEOP_ROTATE_PID[2]);
   
+  private int n = 0;
+  
   public XBoxSwerve(SwerveDrive drive, Supplier<XboxController> xboxSupplier) {
     this.drive = drive;
     this.xboxSupplier = xboxSupplier;
 
-    rotatePID.enableContinuousInput(0, 360);
+    rotatePID.enableContinuousInput(-180, 180);
     // Use addRequirements() here to declare subsystem dependencies.
     addRequirements(drive);
   }
@@ -61,14 +63,18 @@ public class XBoxSwerve extends CommandBase {
   public void execute() {
     XboxController controller = xboxSupplier.get();
 
-    double xVelocity = getControllerAxis(0) * SwerveDriveConfig.MAX_VELOCITY;
-    double yVelocity = getControllerAxis(1) * SwerveDriveConfig.MAX_VELOCITY;
-    double rotateSpeed = Math.hypot(getControllerAxis(2), getControllerAxis(3));
-    double targetAngle = ((Math.atan2(getControllerAxis(3), getControllerAxis(2)) / Math.PI * 180) + 360 + 90) % 360;
+    double xVelocity = -getControllerAxis(0) * SwerveDriveConfig.MAX_VELOCITY / 2.0;
+    double yVelocity = -getControllerAxis(1) * SwerveDriveConfig.MAX_VELOCITY / 2.0;
+    double rotateSpeed = Math.hypot(-getControllerAxis(4), -getControllerAxis(5));
+    double targetAngle = (((-Math.atan2(-getControllerAxis(5), -getControllerAxis(4)) / Math.PI * 180.0) + 180.0 + 90.0) % 360.0) - 180.0;
 
     rotatePID.setP(SwerveDriveConfig.TELEOP_ROTATE_PID[0] * rotateSpeed);
     double angularVelocity = rotatePID.calculate(drive.getHeading(), targetAngle) * SwerveDriveConfig.FULL_POWER_ANGULAR_VELOCITY;
 
+
+    if (Math.abs(angularVelocity) > SwerveDriveConfig.MAX_ANGULAR_VELOCITY / 2.0) {
+      angularVelocity = SwerveDriveConfig.MAX_ANGULAR_VELOCITY / 2.0 * Math.signum(angularVelocity);
+    }
     // drive.getModules()[0].getDriveMotor().set(1.0);
 
     // if (controller.getAButton()) {
@@ -88,11 +94,18 @@ public class XBoxSwerve extends CommandBase {
       return;
     }
 
-    if (controller.getAButton()) {
-      drive.fieldOrientedDrive(1, 0.0, 0.0);
+    if (controller.getYButton()) {
+      drive.zeroHeading();
+      return;
     }
 
-    // drive.fieldOrientedDrive(yVelocity, xVelocity, 0.0);
+
+    drive.fieldOrientedDrive(yVelocity, xVelocity, angularVelocity);
+    
+    n += 1;
+    if (n % 10 == 0) {
+      System.out.println(targetAngle);
+    }
   }
 
   public double getControllerAxis(int id) {
@@ -103,9 +116,9 @@ public class XBoxSwerve extends CommandBase {
       xValue = controller.getRawAxis(0);
       yValue = controller.getRawAxis(1);
     }
-    if (id == 2 || id == 3) { // Right Stick
-      xValue = controller.getRawAxis(2);
-      yValue = controller.getRawAxis(3);
+    if (id == 4 || id == 5) { // Right Stick
+      xValue = controller.getRawAxis(4);
+      yValue = controller.getRawAxis(5);
     }
     if (Math.hypot(xValue, yValue) < SwerveDriveConfig.CONTROLLER_DEADZONE) {
       return 0.0;
