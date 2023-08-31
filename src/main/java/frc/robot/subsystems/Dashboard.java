@@ -70,7 +70,7 @@ public class Dashboard extends SubsystemBase {
     totalCurrent.setDouble(swerveDrive.getCurrent());
 
     field.setRobotPose(swerveDrive.getPose());
-    
+
     // for (SwerveModule module : swerveDrive.getSwerveModules()) {
     //   ShuffleboardLayout moduleData = dashboardTab.getLayout(module.getName() + " Module", BuiltInLayouts.kList)
     //       .withSize(2, 5);

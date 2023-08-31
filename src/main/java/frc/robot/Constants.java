@@ -58,7 +58,7 @@ public final class Constants {
     public static final double CONTROLLER_DEADZONE = 0.1; // If joystick values are less than this (0.1 = 10%) than we just read 0
     public static final double VELOCITY_DEADZONE = 0.05; // speed at which we stop moving all together
 
-    public static final int TOTAL_CURRENT_LIMIT = 300; // [TODO] Absolute max is around 480 Amps (also drive motors have double the current allocation than steer motors)
+    public static final int TOTAL_CURRENT_LIMIT = 300; // [TODO] Default is around 640 Amps (also drive motors have double the current allocation than steer motors)
     public static final double MOTOR_POWER_RAMP_RATE = 0.1; // [TODO] Maximum change in motor power between ticks to reduce power spikes
 
     public static final Pose2d STARTING_POSE = new Pose2d(0.0, 0.0, Rotation2d.fromDegrees(0.0));
@@ -73,9 +73,11 @@ public final class Constants {
     public static final double TRACKWIDTH_METERS = 0.6477; // left-to-right distance between the drivetrain wheels
     public static final double WHEELBASE_METERS = 0.62865; // front-to-back distance between the drivetrain wheels
 
-    public static final double GEAR_REDUCTION = 1.0 / 6.75;
+    public static final double STEER_GEAR_REDUCTION = 7.0 / 150.0;
+    public static final double DRIVE_GEAR_REDUCTION = 1.0 / 6.75;
     public static final double WHEEL_DIAMETER = 0.4572; // measured in meters
-    public static final double MOTOR_RPM_VELOCITY_RATIO = GEAR_REDUCTION / 60.0 * WHEEL_DIAMETER * Math.PI;
+    public static final double MOTOR_RPM_VELOCITY_RATIO = DRIVE_GEAR_REDUCTION / 60.0 * WHEEL_DIAMETER * Math.PI;
+    public static final double[] STEER_ENCODER_OFFSETS = { 0.0, 0.0, 0.0, 0.0 };
 
     public static final double FULL_POWER_VELOCITY = 21; // [TODO] VERY IMPORTANT DO NOT CHANGE
     public static final double FULL_POWER_ANGULAR_VELOCITY = SwerveDrive.maxAngularVelocity(FULL_POWER_VELOCITY);
