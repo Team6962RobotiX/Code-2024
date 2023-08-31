@@ -34,9 +34,9 @@ public class Dashboard extends SubsystemBase {
   private AHRS gyro = new AHRS(SPI.Port.kMXP);
   private final Field2d field = new Field2d();
 
-  private GenericEntry SwervekP;
-  private GenericEntry SwervekI;
-  private GenericEntry SwervekD;
+  private GenericEntry swervekP;
+  private GenericEntry swervekI;
+  private GenericEntry swervekD;
 
   private ComplexWidget gyroEntry;
   private GenericEntry totalVoltage;
@@ -51,10 +51,15 @@ public class Dashboard extends SubsystemBase {
   /** Creates a new ExampleSubsystem. */
   public Dashboard(SwerveDrive swerveDrive) {
     this.swerveDrive = swerveDrive;
+    initialize();
+  }
+
+  public void initialize() {
+    swervekP = swerveData.add("SwervekP", SwerveDriveConfig.MODULE_STEER_PID[0]).getEntry();
+
+    swervekI = swerveData.add("SwervekI", SwerveDriveConfig.MODULE_STEER_PID[1]).getEntry();
     
-    SwervekP = swerveData.add("SwervekP", SwerveDriveConfig.MODULE_STEER_PID[0]).getEntry();
-    SwervekI = swerveData.add("SwervekI", SwerveDriveConfig.MODULE_STEER_PID[1]).getEntry();
-    SwervekD = swerveData.add("SwervekD", SwerveDriveConfig.MODULE_STEER_PID[2]).getEntry();
+    swervekD = swerveData.add("SwervekD", SwerveDriveConfig.MODULE_STEER_PID[2]).getEntry();
 
     gyroEntry = swerveData.add(gyro).withProperties(Map.of("name", "Robot Heading"));
 
@@ -100,9 +105,9 @@ public class Dashboard extends SubsystemBase {
   public void periodic() {
     // This method will be called once per scheduler run
     double[] PIDValues = {
-        SwervekP.getDouble(SwerveDriveConfig.MODULE_STEER_PID[0]),
-        SwervekI.getDouble(SwerveDriveConfig.MODULE_STEER_PID[1]),
-        SwervekD.getDouble(SwerveDriveConfig.MODULE_STEER_PID[2])
+        swervekP.getDouble(SwerveDriveConfig.MODULE_STEER_PID[0]),
+        swervekI.getDouble(SwerveDriveConfig.MODULE_STEER_PID[1]),
+        swervekD.getDouble(SwerveDriveConfig.MODULE_STEER_PID[2])
     };
 
     // swerveDrive.setPID(PIDValues);

@@ -35,6 +35,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 
 public class XBoxSwerve extends CommandBase {
   private final SwerveDrive drive;
+  private final Dashboard dashboard;
   private final Supplier<XboxController> xboxSupplier;
   private final PIDController rotatePID = new PIDController(
       SwerveDriveConfig.TELEOP_ROTATE_PID[0],
@@ -43,13 +44,14 @@ public class XBoxSwerve extends CommandBase {
   
   private int n = 0;
   
-  public XBoxSwerve(SwerveDrive drive, Supplier<XboxController> xboxSupplier) {
+  public XBoxSwerve(SwerveDrive drive, Dashboard dashboard, Supplier<XboxController> xboxSupplier) {
     this.drive = drive;
+    this.dashboard = dashboard;
     this.xboxSupplier = xboxSupplier;
 
     rotatePID.enableContinuousInput(-180, 180);
     // Use addRequirements() here to declare subsystem dependencies.
-    addRequirements(drive);
+    addRequirements(drive, dashboard);
   }
 
   // Called when the command is initially scheduled.
@@ -100,6 +102,9 @@ public class XBoxSwerve extends CommandBase {
       return;
     }
 
+    if (controller.getAButton()) {
+      dashboard.initialize();
+    }
 
     drive.fieldOrientedDrive(yVelocity, xVelocity, angularVelocity);
     

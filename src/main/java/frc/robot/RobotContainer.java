@@ -58,7 +58,7 @@ public class RobotContainer {
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
-    drive.setDefaultCommand(new XBoxSwerve(drive, () -> controller));
+    drive.setDefaultCommand(new XBoxSwerve(drive, dashboard, () -> controller));
 
     // Configure the trigger bindings
     configureBindings();
