@@ -19,6 +19,7 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics.*;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.motorcontrol.MotorControllerGroup;
@@ -50,11 +51,17 @@ import com.kauailabs.navx.frc.AHRS;
 public class SwerveDrive extends SubsystemBase {
 
   private SwerveModule[] swerveModules = new SwerveModule[4];
-  private AHRS gyro = new AHRS(SPI.Port.kMXP);
+  private AHRS gyro;
   private SwerveDriveKinematics kinematics = getKinematics();
   private SwerveDriveOdometry odometer;
 
   public SwerveDrive() {
+    try {
+      gyro = new AHRS(SPI.Port.kMXP);
+    } catch (RuntimeException ex) {
+      DriverStation.reportError("Error instantiating navX-MXP:  " + ex.getMessage(), true);
+    }
+
     for (int i = 0; i < 4; i++) {
       swerveModules[i] = new SwerveModule(i);
     }
@@ -79,6 +86,9 @@ public class SwerveDrive extends SubsystemBase {
     // This method will be called once per scheduler run
     driveModules();
     odometer.update(getRotation2d(), getModulePositions());
+
+    selfCheckModules();
+    SelfCheck.checkPDPFaults();
   }
 
   @Override
@@ -214,6 +224,12 @@ public class SwerveDrive extends SubsystemBase {
   public void stopModules() {
     for (SwerveModule module : swerveModules) {
       module.stop();
+    }
+  }
+
+  public void selfCheckModules() {
+    for (SwerveModule module : swerveModules) {
+      module.selfCheck();
     }
   }
 }

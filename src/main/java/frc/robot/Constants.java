@@ -27,6 +27,8 @@ public final class Constants {
   public static final class EnabledSystems {
     public static final boolean ENABLE_DRIVE = true;
     public static final boolean ENABLE_LIMELIGHT = false;
+    public static final boolean ENABLE_DASHBOARD = true;
+    public static final boolean ENABLE_TESTING = true; // Disables all other systems.
   }
 
   // DEVICES
@@ -104,8 +106,13 @@ public final class Constants {
     // MODULES
     // In order of: front left, front right, back left, back right, where the battery is in the back
     public static final String[] MODULE_NAMES = { "FL", "FR", "BL", "BR" };
-    public static final int[] CAN_DRIVE = { 10, 20, 30, 40 }; // TODO
-    public static final int[] CAN_STEER = { 11, 21, 31, 41 }; // TODO
-    public static final int[] CAN_STEER_ENCODER = { 12, 22, 32, 42 }; // TODO
+  }
+
+  public static final class CAN {
+    // In order of: front left, front right, back left, back right, where the battery is in the back
+    public static final int[] SWERVE_DRIVE = { 10, 20, 30, 40 };
+    public static final int[] SWERVE_STEER = { 11, 21, 31, 41 };
+    public static final int[] SWERVE_STEER_CANCODER = { 12, 22, 32, 42 };
+    public static final int PDP = 5;
   }
 }

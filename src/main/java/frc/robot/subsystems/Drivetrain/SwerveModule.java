@@ -33,7 +33,7 @@ import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import frc.robot.commands.*;
 import frc.robot.subsystems.*;
 import frc.robot.Constants;
-import frc.robot.Constants.SwerveDriveConfig;
+import frc.robot.Constants.*;
 
 import com.ctre.phoenix.sensors.AbsoluteSensorRange;
 import com.ctre.phoenix.sensors.CANCoder;
@@ -55,9 +55,9 @@ public class SwerveModule {
   private boolean isSteerCalibrated = false;
 
   SwerveModule(int id) {
-    driveMotor = new CANSparkMax(SwerveDriveConfig.CAN_DRIVE[id], MotorType.kBrushless);
-    steerMotor = new CANSparkMax(SwerveDriveConfig.CAN_STEER[id], MotorType.kBrushless);
-    absoluteSteerEncoder = new CANCoder(SwerveDriveConfig.CAN_STEER_ENCODER[id], "rio");
+    driveMotor = new CANSparkMax(CAN.SWERVE_DRIVE[id], MotorType.kBrushless);
+    steerMotor = new CANSparkMax(CAN.SWERVE_STEER[id], MotorType.kBrushless);
+    absoluteSteerEncoder = new CANCoder(CAN.SWERVE_STEER_CANCODER[id], "rio");
     name = SwerveDriveConfig.MODULE_NAMES[id];
 
     relativeDriveEncoder = driveMotor.getEncoder();
@@ -89,6 +89,7 @@ public class SwerveModule {
     steerController.enableContinuousInput(0.0, 360.0);
     setPID(SwerveDriveConfig.MODULE_STEER_PID);
 
+    SelfCheck.checkMotorFaults(new CANSparkMax[] { driveMotor, steerMotor });
     calibrateSteerAngle();
   }
 
@@ -218,5 +219,9 @@ public class SwerveModule {
 
   public CANSparkMax getSteerMotor() {
     return steerMotor;
+  }
+
+  public void selfCheck() {
+    SelfCheck.checkMotorFaults(new CANSparkMax[] { driveMotor, steerMotor });
   }
 }

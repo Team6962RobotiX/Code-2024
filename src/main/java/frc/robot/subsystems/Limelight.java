@@ -24,20 +24,12 @@ public class Limelight extends SubsystemBase {
   private ShuffleboardTab dashboard = Shuffleboard.getTab("Dashboard");
 
   public Limelight(String name) {
-    if (!EnabledSystems.ENABLE_LIMELIGHT) {
-      System.out.println("Vision Disabled");
-      return;
-    }
     this.name = name;
     dashboard.addCamera(name, name, "http://" + name + ".local:5800");
   }
 
   @Override
   public void periodic() {
-    if (!EnabledSystems.ENABLE_LIMELIGHT) {
-      // System.out.println("Vision Disabled");
-      return;
-    }
     limelightData = LimelightHelpers.getLatestResults(name);
   }
 
