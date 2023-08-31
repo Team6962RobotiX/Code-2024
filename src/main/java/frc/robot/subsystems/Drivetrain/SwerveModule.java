@@ -38,6 +38,7 @@ import frc.robot.Constants.SwerveDriveConfig;
 import com.ctre.phoenix.sensors.AbsoluteSensorRange;
 import com.ctre.phoenix.sensors.CANCoder;
 import com.ctre.phoenix.sensors.CANCoderConfiguration;
+import com.ctre.phoenix.sensors.CANCoderStatusFrame;
 import com.ctre.phoenix.sensors.SensorTimeBase;
 
 public class SwerveModule {
@@ -49,6 +50,7 @@ public class SwerveModule {
   private SwerveModuleState targetState;
   private double targetDriveVelocity = 0.0;
   private String name;
+  private double steerAngle;
 
   SwerveModule(CANSparkMax driveMotor, CANSparkMax steerMotor, CANCoder steerEncoder, String name) {
     this.driveMotor = driveMotor;
@@ -70,6 +72,7 @@ public class SwerveModule {
     CANCoderConfig.unitString = "degrees";
     CANCoderConfig.sensorTimeBase = SensorTimeBase.PerSecond;
     steerEncoder.configAllSettings(CANCoderConfig);
+    steerEncoder.setStatusFramePeriod(CANCoderStatusFrame.SensorData, 10);
 
     this.driveEncoder.setVelocityConversionFactor(SwerveDriveConfig.MOTOR_RPM_VELOCITY_RATIO);
 
@@ -99,6 +102,8 @@ public class SwerveModule {
 
   // Drive motors to approximate target angle and velocity
   public void drive() { // Must be called periodically
+    steerAngle = steerEncoder.getPosition();
+
     double drivePower = driveVelocityToMotorPower(targetDriveVelocity);
     double steerPower = steerController.calculate(getAngle());
 
@@ -124,7 +129,7 @@ public class SwerveModule {
 
   // Get the direction of the steering wheel (0 - 180)
   public double getAngle() {
-    return steerEncoder.getAbsolutePosition();
+    return steerAngle;
   }
 
   // Get the direction of the steering wheel (0 - 360)

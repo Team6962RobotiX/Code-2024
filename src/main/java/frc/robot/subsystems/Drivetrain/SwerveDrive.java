@@ -59,7 +59,7 @@ public class SwerveDrive extends SubsystemBase {
       swerveModules[i] = new SwerveModule(
           new CANSparkMax(SwerveDriveConfig.CAN_DRIVE[i], MotorType.kBrushless),
           new CANSparkMax(SwerveDriveConfig.CAN_STEER[i], MotorType.kBrushless),
-          new CANCoder(SwerveDriveConfig.CAN_STEER_ENCODER[i]),
+          new CANCoder(SwerveDriveConfig.CAN_STEER_ENCODER[i], "rio"),
           SwerveDriveConfig.MODULE_NAMES[i]);
     }
 
