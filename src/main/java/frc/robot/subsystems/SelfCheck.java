@@ -43,6 +43,7 @@ import frc.robot.Constants.*;
 import com.ctre.phoenix.sensors.AbsoluteSensorRange;
 import com.ctre.phoenix.sensors.CANCoder;
 import com.ctre.phoenix.sensors.CANCoderConfiguration;
+import com.ctre.phoenix.sensors.CANCoderFaults;
 import com.ctre.phoenix.sensors.CANCoderStatusFrame;
 import com.ctre.phoenix.sensors.SensorInitializationStrategy;
 import com.ctre.phoenix.sensors.SensorTimeBase;
@@ -60,23 +61,23 @@ public final class SelfCheck {
           if (hasFault) {
             switch (fault) {
             case kBrownout:
-              warn("Spark Max: " + motorController.getDeviceId() + " is having a brownout");
+              warn("Spark Max " + motorController.getDeviceId() + " is having a brownout");
               break;
 
             case kCanMismatch:
-              warn("Spark Max: " + motorController.getDeviceId() + " is having a CAN ID mismatch");
+              warn("Spark Max " + motorController.getDeviceId() + " is having a CAN ID mismatch");
               break;
 
             case kStall:
-              warn("Spark Max: " + motorController.getDeviceId() + " is having a stall");
+              warn("Spark Max " + motorController.getDeviceId() + " is having a stall");
               break;
 
             case kSupplyVoltage:
-              warn("Spark Max: " + motorController.getDeviceId() + " is having a supply voltage issue");
+              warn("Spark Max " + motorController.getDeviceId() + " is having a supply voltage issue");
               break;
 
             default:
-              warn("Spark Max: " + motorController.getDeviceId() + " is having a fault: " + fault.name());
+              warn("Spark Max " + motorController.getDeviceId() + " is having a fault: " + fault.name());
               break;
             }
           }
@@ -137,6 +138,23 @@ public final class SelfCheck {
     }
     if (hasBreakerFault) {
       warn(breakerFaultMessage);
+    }
+  }
+
+  public static void checkCANCoderFaults(CANCoder encoder) {
+    CANCoderFaults faults = new CANCoderFaults();
+    encoder.getFaults(faults);
+    if (faults.APIError) {
+      warn("CANCoder " + encoder.getDeviceID() + " is having API issues");
+    }
+    if (faults.HardwareFault) {
+      warn("CANCoder " + encoder.getDeviceID() + " is having Hardware issues");
+    }
+    if (faults.MagnetTooWeak) {
+      warn("CANCoder " + encoder.getDeviceID() + " has too weak of a Magnet");
+    }
+    if (faults.UnderVoltage) {
+      warn("CANCoder " + encoder.getDeviceID() + " is having under voltage issues");
     }
   }
 

@@ -59,7 +59,7 @@ public class SwerveDrive extends SubsystemBase {
     try {
       gyro = new AHRS(SPI.Port.kMXP);
     } catch (RuntimeException ex) {
-      DriverStation.reportError("Error instantiating navX-MXP:  " + ex.getMessage(), true);
+      SelfCheck.warn("Error instantiating navX-MXP:  " + ex.getMessage());
     }
 
     for (int i = 0; i < 4; i++) {

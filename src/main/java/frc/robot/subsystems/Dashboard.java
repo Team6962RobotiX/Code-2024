@@ -50,10 +50,37 @@ public class Dashboard extends SubsystemBase {
       .withProperties(Map.of("min", 0, "max", SwerveDriveConfig.TOTAL_CURRENT_LIMIT))
       .getEntry();
 
+  private ShuffleboardLayout[] moduleDataLists = new ShuffleboardLayout[4];
+  private GenericEntry[] moduleAngles = new GenericEntry[4];
+  private GenericEntry[] moduleSpeeds = new GenericEntry[4];
+  private GenericEntry[] moduleCurrents = new GenericEntry[4];
+  private GenericEntry[] moduleVoltages = new GenericEntry[4];
+
   /** Creates a new ExampleSubsystem. */
   public Dashboard(SwerveDrive swerveDrive) {
     this.swerveDrive = swerveDrive;
     swerveData.add("field", field);
+
+    SwerveModule[] modules = swerveDrive.getSwerveModules();
+
+    for (int i = 0; i < 4; i++) {
+      moduleDataLists[i] = dashboardTab.getLayout(modules[i].getName() + " Module", BuiltInLayouts.kList).withSize(2, 5);
+      moduleAngles[i] = moduleDataLists[i].add("Angle", 0)
+          .withWidget(BuiltInWidgets.kGyro)
+          .getEntry();
+      moduleSpeeds[i] = moduleDataLists[i].add("Drive Speed", 0)
+          .withWidget(BuiltInWidgets.kDial)
+          .withProperties(Map.of("min", 0, "max", SwerveDriveConfig.MAX_VELOCITY))
+          .getEntry();
+      moduleCurrents[i] = moduleDataLists[i].add("Current", 0)
+          .withWidget(BuiltInWidgets.kDial)
+          .withProperties(Map.of("min", 0, "max", SwerveDriveConfig.TOTAL_CURRENT_LIMIT / 4))
+          .getEntry();
+      moduleVoltages[i] = moduleDataLists[i].add("Voltage", 0)
+          .withWidget(BuiltInWidgets.kDial)
+          .withProperties(Map.of("min", 0, "max", 24 * 2))
+          .getEntry();
+    }
   }
 
   @Override
@@ -71,33 +98,16 @@ public class Dashboard extends SubsystemBase {
 
     field.setRobotPose(swerveDrive.getPose());
 
-    // for (SwerveModule module : swerveDrive.getSwerveModules()) {
-    //   ShuffleboardLayout moduleData = dashboardTab.getLayout(module.getName() + " Module", BuiltInLayouts.kList)
-    //       .withSize(2, 5);
+    SwerveModule[] modules = swerveDrive.getSwerveModules();
 
-    //   moduleData.add("Angle", 0)
-    //       .withWidget(BuiltInWidgets.kGyro)
-    //       .getEntry()
-    //       .setDouble(module.getAngle());
+    for (int i = 0; i < 4; i++) {
+      SwerveModule module = modules[i];
 
-    //   moduleData.add("Drive Speed", 0)
-    //       .withWidget(BuiltInWidgets.kDial)
-    //       .withProperties(Map.of("min", 0, "max", SwerveDriveConfig.MAX_VELOCITY))
-    //       .getEntry()
-    //       .setDouble(module.getDriveVelocity());
-
-    //   moduleData.add("Current", 0)
-    //       .withWidget(BuiltInWidgets.kDial)
-    //       .withProperties(Map.of("min", 0, "max", SwerveDriveConfig.TOTAL_CURRENT_LIMIT / 4))
-    //       .getEntry()
-    //       .setDouble(module.getCurrent());
-
-    //   moduleData.add("Voltage", 0)
-    //       .withWidget(BuiltInWidgets.kDial)
-    //       .withProperties(Map.of("min", 0, "max", 24 * 2))
-    //       .getEntry()
-    //       .setDouble(module.getVoltage());
-    // }
+      moduleAngles[i].setDouble(module.getAngle());
+      moduleSpeeds[i].setDouble(Math.abs(module.getDriveVelocity()));
+      moduleCurrents[i].setDouble(module.getCurrent());
+      moduleVoltages[i].setDouble(module.getVoltage());
+    }
   }
 
   @Override

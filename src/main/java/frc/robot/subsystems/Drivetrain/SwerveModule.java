@@ -223,5 +223,6 @@ public class SwerveModule {
 
   public void selfCheck() {
     SelfCheck.checkMotorFaults(new CANSparkMax[] { driveMotor, steerMotor });
+    SelfCheck.checkCANCoderFaults(absoluteSteerEncoder);
   }
 }
