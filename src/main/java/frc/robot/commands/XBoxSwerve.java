@@ -102,9 +102,9 @@ public class XBoxSwerve extends CommandBase {
       return;
     }
 
-    if (controller.getAButton()) {
-      dashboard.initialize();
-    }
+    // if (controller.getAButton()) {
+    //   dashboard.initialize();
+    // }
 
     drive.fieldOrientedDrive(yVelocity, xVelocity, angularVelocity);
     
