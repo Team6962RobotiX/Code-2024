@@ -131,6 +131,11 @@ public class XBoxSwerve extends CommandBase {
     //   dashboard.initialize();
     // }
 
+    if (controller.getLeftBumper()) {
+      drive.robotOrientedDrive(yVelocity, xVelocity, rightX * maxRotateVelocity);
+      return;
+    }
+
     drive.fieldOrientedDrive(yVelocity, xVelocity, rotateVelocity);
 
   }
