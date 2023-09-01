@@ -6,17 +6,20 @@ package frc.robot.commands;
 
 import frc.robot.subsystems.*;
 import frc.robot.subsystems.Drivetrain.SwerveDrive;
+import frc.robot.subsystems.Drivetrain.SwerveModule;
 import frc.robot.Constants;
 import frc.robot.Constants.*;
 import frc.robot.Robot;
 import frc.robot.RobotContainer;
 
+import java.util.Map;
 import java.util.function.Supplier;
 
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.XboxController;
-
+import edu.wpi.first.wpilibj.GenericHID.RumbleType;
+import edu.wpi.first.wpilibj.drive.DifferentialDrive.WheelSpeeds;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
@@ -42,6 +45,10 @@ public class XBoxSwerve extends CommandBase {
       SwerveDriveConfig.TELEOP_ROTATE_PID[1],
       SwerveDriveConfig.TELEOP_ROTATE_PID[2]);
 
+  double yVelocity = 0.0;
+  double xVelocity = 0.0;
+  double rotateVelocity = 0.0;
+
   public XBoxSwerve(SwerveDrive drive, Dashboard dashboard, Supplier<XboxController> xboxSupplier) {
     this.drive = drive;
     this.dashboard = dashboard;
@@ -63,18 +70,42 @@ public class XBoxSwerve extends CommandBase {
   public void execute() {
     XboxController controller = xboxSupplier.get();
 
-    double xVelocity = -getControllerAxis(0) * SwerveDriveConfig.FULL_POWER_VELOCITY * SwerveDriveConfig.TELEOP_DRIVE_SPEED;
-    double yVelocity = -getControllerAxis(1) * SwerveDriveConfig.FULL_POWER_VELOCITY * SwerveDriveConfig.TELEOP_DRIVE_SPEED;
-    double rotateSpeed = Math.hypot(-getControllerAxis(4), -getControllerAxis(5));
-    double targetAngle = (((-Math.atan2(-getControllerAxis(5), -getControllerAxis(4)) / Math.PI * 180.0) + 180.0 + 90.0) % 360.0) - 180.0;
+    double leftX = -controller.getLeftX();
+    double leftY = -controller.getLeftY();
+    double leftTrigger = controller.getLeftTriggerAxis();
+    double rightX = -controller.getRightX();
+    double rightY = -controller.getRightY();
 
-    double angularVelocity = rotatePID.calculate(drive.getHeading(), targetAngle) * SwerveDriveConfig.FULL_POWER_ANGULAR_VELOCITY;
+    // For when doing simulation mode
+    // double rightX = -controller.getRawAxis(2);
+    // double rightY = -controller.getRawAxis(3);
+    // double leftTrigger = (controller.getRawAxis(5) + 1.0) / 2.0;
 
-    if (Math.abs(angularVelocity) > SwerveDriveConfig.TELEOP_ROTATE_SPEED) {
-      angularVelocity = SwerveDriveConfig.TELEOP_ROTATE_SPEED * Math.signum(angularVelocity);
+    double maxDriveVelocity = SwerveModule.motorPowerToWheelVelocity(Constants.map(leftTrigger, 0.0, 1.0, SwerveDriveConfig.TELEOP_DRIVE_POWER, SwerveDriveConfig.TELEOP_DRIVE_BOOST_POWER));
+    double maxRotateVelocity = SwerveDrive.wheelVelocityToRotationalVelocity(SwerveModule.motorPowerToWheelVelocity(SwerveDriveConfig.TELEOP_ROTATE_POWER));
+
+    // Left Stick
+    double LStickMagnitude = Math.hypot(leftX, leftY);
+    if (LStickMagnitude > SwerveDriveConfig.JOYSTICK_DEADZONE) {
+      xVelocity = leftX * maxDriveVelocity;
+      yVelocity = leftY * maxDriveVelocity;
+    } else {
+      xVelocity = 0.0;
+      yVelocity = 0.0;
     }
 
-    angularVelocity *= rotateSpeed;
+    // Right Stick
+    double RStickMagnitude = Math.hypot(rightX, rightY);
+    double targetRotateAngle = (((-Math.atan2(rightY, rightX) / Math.PI * 180.0) + 180.0 + 90.0) % 360.0) - 180.0;
+    if (RStickMagnitude > SwerveDriveConfig.JOYSTICK_DEADZONE) {
+      rotateVelocity = rotatePID.calculate(drive.getHeading(), targetRotateAngle) * SwerveDrive.wheelVelocityToRotationalVelocity(SwerveDriveConfig.FULL_POWER_WHEEL_VELOCITY);
+      if (Math.abs(rotateVelocity) > maxRotateVelocity) {
+        rotateVelocity = maxRotateVelocity * Math.signum(rotateVelocity);
+      }
+      rotateVelocity *= RStickMagnitude;
+    } else {
+      rotateVelocity = 0.0;
+    }
 
     if (controller.getBButton() || !controller.isConnected()) {
       drive.stopModules();
@@ -88,32 +119,20 @@ public class XBoxSwerve extends CommandBase {
 
     if (controller.getYButton()) {
       drive.zeroHeading();
-      return;
+    }
+
+    double wheelPower = SwerveModule.wheelVelocityToMotorPower(Math.hypot(Math.hypot(xVelocity, yVelocity), drive.rotationalVelocityToWheelVelocity(rotateVelocity)));
+
+    if (wheelPower > SwerveDriveConfig.MOTOR_POWER_HARD_CAP) {
+      controller.setRumble(RumbleType.kBothRumble, 1);
     }
 
     // if (controller.getAButton()) {
     //   dashboard.initialize();
     // }
 
-    drive.fieldOrientedDrive(yVelocity, xVelocity, angularVelocity);
-  }
+    drive.fieldOrientedDrive(yVelocity, xVelocity, rotateVelocity);
 
-  public double getControllerAxis(int id) {
-    XboxController controller = xboxSupplier.get();
-    double xValue = controller.getRawAxis(id);
-    double yValue = 0;
-    if (id == 0 || id == 1) { // Left Stick
-      xValue = controller.getRawAxis(0);
-      yValue = controller.getRawAxis(1);
-    }
-    if (id == 4 || id == 5) { // Right Stick
-      xValue = controller.getRawAxis(4);
-      yValue = controller.getRawAxis(5);
-    }
-    if (Math.hypot(xValue, yValue) < SwerveDriveConfig.CONTROLLER_DEADZONE) {
-      return 0.0;
-    }
-    return controller.getRawAxis(id);
   }
 
   // Called once the command ends or is interrupted.

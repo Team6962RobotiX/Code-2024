@@ -105,15 +105,15 @@ public class SwerveModule {
 
   // Drive motors to approximate target angle and velocity
   public void drive() { // Must be called periodically
-    double drivePower = driveVelocityToMotorPower(targetDriveVelocity);
+    double drivePower = wheelVelocityToMotorPower(targetDriveVelocity);
     double steerPower = -steerController.calculate(getAngle());
 
-    if (Math.abs(drivePower) > SwerveDriveConfig.ABSOLUTE_MAX_MOTOR_POWER) {
-      drivePower = SwerveDriveConfig.ABSOLUTE_MAX_MOTOR_POWER * Math.signum(drivePower);
+    if (Math.abs(drivePower) > SwerveDriveConfig.MOTOR_POWER_HARD_CAP) {
+      drivePower = SwerveDriveConfig.MOTOR_POWER_HARD_CAP * Math.signum(drivePower);
     }
 
-    if (Math.abs(steerPower) > SwerveDriveConfig.ABSOLUTE_MAX_MOTOR_POWER) {
-      steerPower = SwerveDriveConfig.ABSOLUTE_MAX_MOTOR_POWER * Math.signum(steerPower);
+    if (Math.abs(steerPower) > SwerveDriveConfig.MOTOR_POWER_HARD_CAP) {
+      steerPower = SwerveDriveConfig.MOTOR_POWER_HARD_CAP * Math.signum(steerPower);
     }
 
     driveMotor.set(drivePower);
@@ -170,8 +170,13 @@ public class SwerveModule {
   }
 
   // Convert velocity in m/s to motor power from 0 - 1
-  public static double driveVelocityToMotorPower(double velocity) {
-    return velocity / SwerveDriveConfig.FULL_POWER_VELOCITY;
+  public static double wheelVelocityToMotorPower(double velocity) {
+    return velocity / SwerveDriveConfig.FULL_POWER_WHEEL_VELOCITY;
+  }
+
+  // Convert motor power from 0 - 1 to velocity in m/s
+  public static double motorPowerToWheelVelocity(double power) {
+    return power * SwerveDriveConfig.FULL_POWER_WHEEL_VELOCITY;
   }
 
   // Get current angle and velocity (SwerveModuleState) 

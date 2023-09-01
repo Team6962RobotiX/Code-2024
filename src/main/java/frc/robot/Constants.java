@@ -55,12 +55,13 @@ public final class Constants {
       -------------------------------------
     */
 
-    public static final double TELEOP_DRIVE_SPEED = 0.2; // Percent driving speed (0.2 = 20%)
-    public static final double TELEOP_ROTATE_SPEED = 0.5; // Percent rotating speed (0.5 = 50%)
+    public static final double TELEOP_DRIVE_POWER = 0.2; // Percent driving power (0.2 = 20%), left trigger bypasses this value
+    public static final double TELEOP_DRIVE_BOOST_POWER = 0.5; // Percent driving power when holding down the left trigger
+    public static final double TELEOP_ROTATE_POWER = 0.4; // Percent rotating power (0.4 = 40%)
 
-    public static final double ABSOLUTE_MAX_MOTOR_POWER = 0.5; // Maximum percent motor power (0.5 = 50%)
+    public static final double MOTOR_POWER_HARD_CAP = 0.5; // Only use for testing, otherwise set to 1.0
 
-    public static final double CONTROLLER_DEADZONE = 0.2; // If joystick values are less than this (0.1 = 10%) than we just read 0
+    public static final double JOYSTICK_DEADZONE = 0.1; // If joystick values are less than this (0.2 = 20%) than we just read 0
     public static final double VELOCITY_DEADZONE = 0.05; // speed at which we stop moving all together
 
     public static final int TOTAL_CURRENT_LIMIT = 300; // [TODO] Default is around 640 Amps (also drive motors have double the current allocation than steer motors)
@@ -68,6 +69,7 @@ public final class Constants {
 
     public static final Pose2d STARTING_POSE = new Pose2d(0.0, 0.0, Rotation2d.fromDegrees(0.0));
     public static final double STARTING_ANGLE_OFFSET = 0.0;
+
     /*
       -------------------------------------------------------------------
       | ADVANCED CONFIG, DO NOT EDIT UNLESS YOU KNOW WHAT YOU'RE DOING! |
@@ -77,18 +79,13 @@ public final class Constants {
     // PHYSICAL
     public static final double TRACKWIDTH_METERS = 0.6477; // left-to-right distance between the drivetrain wheels
     public static final double WHEELBASE_METERS = 0.62865; // front-to-back distance between the drivetrain wheels
-
+    public static final double WHEEL_DIAMETER = 0.4572; // measured in meters
     public static final double STEER_GEAR_REDUCTION = 7.0 / 150.0;
     public static final double DRIVE_GEAR_REDUCTION = 1.0 / 6.75;
-    public static final double WHEEL_DIAMETER = 0.4572; // measured in meters
-    public static final double MOTOR_RPM_VELOCITY_RATIO = DRIVE_GEAR_REDUCTION / 60.0 * WHEEL_DIAMETER * Math.PI;
     public static final double[] STEER_ENCODER_OFFSETS = { -124.805, -303.047, -101.602, -65.215 };
 
-    public static final double FULL_POWER_VELOCITY = 21; // [TODO] VERY IMPORTANT DO NOT CHANGE
-    public static final double FULL_POWER_ANGULAR_VELOCITY = SwerveDrive.maxAngularVelocity(FULL_POWER_VELOCITY);
-
-    public static final double MAX_VELOCITY = ABSOLUTE_MAX_MOTOR_POWER * FULL_POWER_VELOCITY;
-    public static final double MAX_ANGULAR_VELOCITY = SwerveDrive.maxAngularVelocity(MAX_VELOCITY);
+    public static final double MOTOR_RPM_VELOCITY_RATIO = DRIVE_GEAR_REDUCTION / 60.0 * WHEEL_DIAMETER * Math.PI;
+    public static final double FULL_POWER_WHEEL_VELOCITY = 21.0; // [TODO] VERY IMPORTANT DO NOT CHANGE
 
     // PID
     public static final double MODULE_STEER_PID_TOLERANCE = 1.0; // In degrees
@@ -100,13 +97,13 @@ public final class Constants {
     public static final double[] AUTO_Y_PID = { 1.0, 0.0, 0.0 }; // [TODO]
 
     // AUTONOMOUS
-    public static final double AUTO_MAX_VELOCITY = MAX_VELOCITY / 4; // [TODO] measured in meters/sec
+    public static final double AUTO_MAX_DRIVE_VELOCITY = SwerveModule.motorPowerToWheelVelocity(TELEOP_DRIVE_POWER) / 4; // [TODO] measured in meters/sec
     public static final double AUTO_MAX_ACCELERATION = 9.80 / 4; // [TODO] measured in meters/sec^2
-    public static final double AUTO_MAX_ANGULAR_VELOCITY = SwerveDrive.maxAngularVelocity(AUTO_MAX_VELOCITY); // measured in radians/sec
-    public static final double AUTO_MAX_ANGULAR_ACCELERATION = SwerveDrive.maxAngularVelocity(AUTO_MAX_ACCELERATION); // measured in rad/sec^2
+    public static final double AUTO_MAX_ROTATE_VELOCITY = SwerveDrive.wheelVelocityToRotationalVelocity(AUTO_MAX_DRIVE_VELOCITY); // measured in radians/sec
+    public static final double AUTO_MAX_ROTATE_ACCELERATION = SwerveDrive.wheelVelocityToRotationalVelocity(AUTO_MAX_ACCELERATION); // measured in rad/sec^2
     public static final TrapezoidProfile.Constraints AUTO_ANGLE_CONSTRAINTS = new TrapezoidProfile.Constraints(
-        AUTO_MAX_ANGULAR_VELOCITY,
-        AUTO_MAX_ANGULAR_ACCELERATION);
+        AUTO_MAX_ROTATE_VELOCITY,
+        AUTO_MAX_ROTATE_ACCELERATION);
 
     // MODULES
     // In order of: front left, front right, back left, back right, where the battery is in the back
@@ -119,5 +116,9 @@ public final class Constants {
     public static final int[] SWERVE_STEER = { 11, 21, 31, 41 };
     public static final int[] SWERVE_STEER_CANCODER = { 12, 22, 32, 42 };
     public static final int PDP = 5;
+  }
+
+  public static double map(double X, double A, double B, double C, double D) {
+    return (X - A) / (B - A) * (D - C) + C;
   }
 }

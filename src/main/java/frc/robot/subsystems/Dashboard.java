@@ -86,7 +86,7 @@ public class Dashboard extends SubsystemBase {
       moduleSpeeds[i] = moduleDataLists[i]
           .add("Drive Speed", 0)
           .withWidget(BuiltInWidgets.kDial)
-          .withProperties(Map.of("min", 0, "max", SwerveDriveConfig.MAX_VELOCITY))
+          .withProperties(Map.of("min", 0, "max", SwerveDriveConfig.MOTOR_POWER_HARD_CAP))
           .getEntry();
       moduleCurrents[i] = moduleDataLists[i]
           .add("Current", 0)

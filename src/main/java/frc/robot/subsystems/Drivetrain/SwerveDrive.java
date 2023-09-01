@@ -128,7 +128,7 @@ public class SwerveDrive extends SubsystemBase {
 
   // Set all modules target speed and directions
   public void setModuleStates(SwerveModuleState[] moduleStates) {
-    SwerveDriveKinematics.desaturateWheelSpeeds(moduleStates, SwerveDriveConfig.MAX_VELOCITY);
+    SwerveDriveKinematics.desaturateWheelSpeeds(moduleStates, SwerveModule.motorPowerToWheelVelocity(SwerveDriveConfig.MOTOR_POWER_HARD_CAP));
     for (int i = 0; i < 4; i++) {
       swerveModules[i].setTargetState(moduleStates[i]);
     }
@@ -155,7 +155,7 @@ public class SwerveDrive extends SubsystemBase {
     }
   }
 
-  // This will create an "X" pattern with the modules which makes the robot very hard to rotate or move
+  // This creates an "X" pattern with the wheels which makes the robot very hard to move
   public void groundModules() {
     swerveModules[0].setTargetState(new SwerveModuleState(0.0, Rotation2d.fromDegrees(-45.0)));
     swerveModules[1].setTargetState(new SwerveModuleState(0.0, Rotation2d.fromDegrees(-45.0)));
@@ -211,8 +211,15 @@ public class SwerveDrive extends SubsystemBase {
   }
 
   // Calculate max angular velocity from max module drive velocity
-  public static double maxAngularVelocity(double maxDriveVelocity) {
+  public static double wheelVelocityToRotationalVelocity(double maxDriveVelocity) {
     return maxDriveVelocity / Math.hypot( // measured in radians/second
+        SwerveDriveConfig.TRACKWIDTH_METERS / 2.0,
+        SwerveDriveConfig.WHEELBASE_METERS / 2.0);
+  }
+
+  // Calculate max module drive velocity from max angular velocity
+  public static double rotationalVelocityToWheelVelocity(double maxAngularVelocity) {
+    return maxAngularVelocity * Math.hypot(
         SwerveDriveConfig.TRACKWIDTH_METERS / 2.0,
         SwerveDriveConfig.WHEELBASE_METERS / 2.0);
   }
