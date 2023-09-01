@@ -48,19 +48,19 @@ public class Dashboard extends SubsystemBase {
   private GenericEntry[] moduleCurrents = new GenericEntry[4];
   private GenericEntry[] moduleVoltages = new GenericEntry[4];
 
+  private boolean initialized = false;
+
   /** Creates a new ExampleSubsystem. */
   public Dashboard(SwerveDrive swerveDrive) {
     this.swerveDrive = swerveDrive;
-    initialize();
   }
 
   public void initialize() {
+    initialized = true;
+
     swervekP = swerveData.add("SwervekP", SwerveDriveConfig.MODULE_STEER_PID[0]).getEntry();
-
     swervekI = swerveData.add("SwervekI", SwerveDriveConfig.MODULE_STEER_PID[1]).getEntry();
-    
     swervekD = swerveData.add("SwervekD", SwerveDriveConfig.MODULE_STEER_PID[2]).getEntry();
-
     gyroEntry = swerveData.add(gyro).withProperties(Map.of("name", "Robot Heading"));
 
     totalVoltage = swerveData.add("Voltage", 0)
@@ -103,6 +103,10 @@ public class Dashboard extends SubsystemBase {
 
   @Override
   public void periodic() {
+    if (!initialized) {
+      return;
+    }
+
     // This method will be called once per scheduler run
     double[] PIDValues = {
         swervekP.getDouble(SwerveDriveConfig.MODULE_STEER_PID[0]),

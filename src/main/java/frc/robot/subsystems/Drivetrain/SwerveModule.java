@@ -52,7 +52,6 @@ public class SwerveModule {
   private SwerveModuleState targetState;
   private double targetDriveVelocity = 0.0;
   private String name;
-  private int printCounter = 0;
   // private boolean isSteerCalibrated = false;
 
   SwerveModule(int id) {
@@ -90,13 +89,6 @@ public class SwerveModule {
 
   // Set target angle and velocity
   public void setTargetState(SwerveModuleState state) {
-    if (printCounter % 100 == 0) {
-      // System.out.println("current: " + state.angle.getDegrees());
-      // System.out.println("target: " + steerController.getSetpoint());
-    }
-
-    printCounter += 1;
-
     state = SwerveModuleState.optimize(state, Rotation2d.fromDegrees(getAngle()));
 
     targetState = state;
@@ -107,9 +99,6 @@ public class SwerveModule {
     }
     double targetAngle = state.angle.getDegrees();
 
-    // System.out.println("target angle " + name + ": " + targetAngle);
-    // System.out.println("current angle " + name + ": " + getAngle());
-
     setTargetVelocity(targetVelocity);
     setTargetAngle(targetAngle);
   }
@@ -119,12 +108,12 @@ public class SwerveModule {
     double drivePower = driveVelocityToMotorPower(targetDriveVelocity);
     double steerPower = -steerController.calculate(getAngle());
 
-    if (Math.abs(drivePower) > SwerveDriveConfig.DRIVE_MOTOR_POWER_LIMIT) {
-      drivePower = SwerveDriveConfig.DRIVE_MOTOR_POWER_LIMIT * Math.signum(drivePower);
+    if (Math.abs(drivePower) > SwerveDriveConfig.ABSOLUTE_MAX_MOTOR_POWER) {
+      drivePower = SwerveDriveConfig.ABSOLUTE_MAX_MOTOR_POWER * Math.signum(drivePower);
     }
 
-    if (Math.abs(steerPower) > SwerveDriveConfig.STEER_MOTOR_POWER_LIMIT) {
-      steerPower = SwerveDriveConfig.STEER_MOTOR_POWER_LIMIT * Math.signum(steerPower);
+    if (Math.abs(steerPower) > SwerveDriveConfig.ABSOLUTE_MAX_MOTOR_POWER) {
+      steerPower = SwerveDriveConfig.ABSOLUTE_MAX_MOTOR_POWER * Math.signum(steerPower);
     }
 
     driveMotor.set(drivePower);
@@ -142,7 +131,6 @@ public class SwerveModule {
   }
 
   public void setTargetAngle(double angle) {
-    // steerController.reset();
     steerController.setSetpoint(angle);
   }
 
