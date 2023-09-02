@@ -18,6 +18,7 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics.*;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.motorcontrol.MotorControllerGroup;
@@ -66,6 +67,8 @@ public class SwerveModule {
     driveMotor.restoreFactoryDefaults();
     steerMotor.restoreFactoryDefaults();
 
+    steerMotor.setInverted(true);
+
     driveMotor.setSmartCurrentLimit((int) (SwerveDriveConfig.TOTAL_CURRENT_LIMIT / 4.0 * (2.0 / 3.0)));
     steerMotor.setSmartCurrentLimit((int) (SwerveDriveConfig.TOTAL_CURRENT_LIMIT / 4.0 * (1.0 / 3.0)));
     driveMotor.setOpenLoopRampRate(SwerveDriveConfig.MOTOR_POWER_RAMP_RATE);
@@ -79,8 +82,9 @@ public class SwerveModule {
     CANCoderConfig.absoluteSensorRange = AbsoluteSensorRange.Signed_PlusMinus180;
     absoluteSteerEncoder.configAllSettings(CANCoderConfig);
 
-    steerController.setTolerance(SwerveDriveConfig.MODULE_STEER_PID_TOLERANCE);
-    steerController.enableContinuousInput(-180.0, 180.0);
+    steerController.setTolerance(Units.degreesToRadians(SwerveDriveConfig.MODULE_STEER_PID_TOLERANCE));
+    steerController.enableContinuousInput(Units.degreesToRadians(-180.0), Units.degreesToRadians(180.0));
+
     setPID(SwerveDriveConfig.MODULE_STEER_PID);
 
     SelfCheck.checkMotorFaults(new CANSparkMax[] { driveMotor, steerMotor });
@@ -106,10 +110,11 @@ public class SwerveModule {
   // Drive motors to approximate target angle and velocity
   public void drive() { // Must be called periodically
     double drivePower = wheelVelocityToMotorPower(targetDriveVelocity);
-    double steerPower = -steerController.calculate(getAngle());
+    double steerPower = wheelVelocityToMotorPower(steerController.calculate(Units.degreesToRadians(getAngle())));
 
     if (Math.abs(drivePower) > SwerveDriveConfig.MOTOR_POWER_HARD_CAP) {
       drivePower = SwerveDriveConfig.MOTOR_POWER_HARD_CAP * Math.signum(drivePower);
+      System.out.println("Swerve Drive motor power is being clamped, be careful!");
     }
 
     if (Math.abs(steerPower) > SwerveDriveConfig.MOTOR_POWER_HARD_CAP) {
@@ -131,7 +136,7 @@ public class SwerveModule {
   }
 
   public void setTargetAngle(double angle) {
-    steerController.setSetpoint(angle);
+    steerController.setSetpoint(Units.degreesToRadians(angle));
   }
 
   public void setTargetVelocity(double velocity) {

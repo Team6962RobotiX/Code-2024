@@ -25,6 +25,8 @@ import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.util.Units;
+
 import com.ctre.phoenix.sensors.CANCoder;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
@@ -54,7 +56,8 @@ public class XBoxSwerve extends CommandBase {
     this.dashboard = dashboard;
     this.xboxSupplier = xboxSupplier;
 
-    rotatePID.enableContinuousInput(-180, 180);
+    rotatePID.enableContinuousInput(Units.degreesToRadians(-180), Units.degreesToRadians(180));
+    rotatePID.setTolerance(Units.degreesToRadians(SwerveDriveConfig.TELEOP_ROTATE_PID_TOLERANCE));
     // Use addRequirements() here to declare subsystem dependencies.
     addRequirements(swerveDrive, dashboard);
   }
@@ -98,7 +101,9 @@ public class XBoxSwerve extends CommandBase {
     double RStickMagnitude = Math.hypot(rightX, rightY);
     double targetRotateAngle = (((-Math.atan2(rightY, rightX) / Math.PI * 180.0) + 180.0 + 90.0) % 360.0) - 180.0;
     if (RStickMagnitude > SwerveDriveConfig.JOYSTICK_DEADZONE) {
-      rotateVelocity = rotatePID.calculate(swerveDrive.getHeading(), targetRotateAngle) * SwerveDrive.wheelVelocityToRotationalVelocity(SwerveDriveConfig.FULL_POWER_WHEEL_VELOCITY);
+      rotateVelocity = rotatePID.calculate(
+          Units.degreesToRadians(swerveDrive.getHeading()),
+          Units.degreesToRadians(targetRotateAngle));
       if (Math.abs(rotateVelocity) > maxRotateVelocity) {
         rotateVelocity = maxRotateVelocity * Math.signum(rotateVelocity);
       }

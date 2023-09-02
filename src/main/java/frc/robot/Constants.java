@@ -91,11 +91,13 @@ public final class Constants {
     public static final double FULL_POWER_WHEEL_VELOCITY = 21.0; // [TODO] VERY IMPORTANT DO NOT CHANGE
 
     // PID
+    public static final double[] MODULE_STEER_PID = { 10.0, 0.0, 0.0 }; // [TODO]
     public static final double MODULE_STEER_PID_TOLERANCE = 1.0; // In degrees
-    public static final double[] MODULE_STEER_PID = { 3.0 / 360.0, 0.0, 0.0 }; // [TODO]
-    public static final double[] TELEOP_ROTATE_PID = { 3.0 / 360.0, 0.0, 0.0 }; // [TODO]
 
-    public static final double[] AUTO_ROTATE_PID = { 1.0, 0.0, 0.0 };
+    public static final double[] TELEOP_ROTATE_PID = { 10.0, 0.0, 0.0 }; // [TODO]
+    public static final double TELEOP_ROTATE_PID_TOLERANCE = 1.0; // In degrees
+
+    public static final double[] AUTO_ROTATE_PID = { 10.0, 0.0, 0.0 };
     public static final double[] AUTO_X_PID = { 1.0, 0.0, 0.0 }; // [TODO]
     public static final double[] AUTO_Y_PID = { 1.0, 0.0, 0.0 }; // [TODO]
 
