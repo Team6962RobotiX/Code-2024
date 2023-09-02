@@ -75,7 +75,7 @@ public class Dashboard extends SubsystemBase {
 
     swerveData.add("field", field);
 
-    SwerveModule[] modules = swerveDrive.getSwerveModules();
+    SwerveModule[] modules = swerveDrive.getModules();
 
     for (int i = 0; i < 4; i++) {
       moduleDataLists[i] = dashboardTab.getLayout(modules[i].getName() + " Module", BuiltInLayouts.kList).withSize(2, 5);
@@ -120,7 +120,7 @@ public class Dashboard extends SubsystemBase {
 
     field.setRobotPose(swerveDrive.getPose());
 
-    SwerveModule[] modules = swerveDrive.getSwerveModules();
+    SwerveModule[] modules = swerveDrive.getModules();
 
     for (int i = 0; i < 4; i++) {
       SwerveModule module = modules[i];

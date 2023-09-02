@@ -70,6 +70,9 @@ public final class Constants {
     public static final Pose2d STARTING_POSE = new Pose2d(0.0, 0.0, Rotation2d.fromDegrees(0.0));
     public static final double STARTING_ANGLE_OFFSET = 0.0;
 
+    public static final String MOTION_RECORDING_WRITE_FILE = "teleop-recording.csv";
+    public static final String MOTION_RECORDING_READ_FILE = "auton-routine.csv";
+
     /*
       -------------------------------------------------------------------
       | ADVANCED CONFIG, DO NOT EDIT UNLESS YOU KNOW WHAT YOU'RE DOING! |

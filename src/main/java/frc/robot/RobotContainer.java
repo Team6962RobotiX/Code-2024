@@ -54,7 +54,8 @@ public class RobotContainer {
   private final SwerveDrive drive = new SwerveDrive();
   // private final Limelight limelight = new Limelight(LimelightConfig.NAME);
   private final Dashboard dashboard = new Dashboard(drive);
-    // private final Testing tesing = new Testing();
+  private final MotionRecorder recorder = new MotionRecorder(drive);
+  // private final Testing tesing = new Testing();
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
@@ -65,44 +66,42 @@ public class RobotContainer {
   }
 
   private void configureBindings() {
+    new Trigger(controller::getAButton).onTrue(recorder.startRecording());
+    new Trigger(controller::getBButton).onTrue(recorder.stopRecording());
   }
 
   public Command getAutonomousCommand() {
-    // TrajectoryConfig TrajectoryConfig = new TrajectoryConfig(SwerveDriveConfig.AUTO_MAX_VELOCITY, SwerveDriveConfig.AUTO_MAX_ACCELERATION)
-    //     .setKinematics(drive.getKinematics());
+    TrajectoryConfig TrajectoryConfig = new TrajectoryConfig(SwerveDriveConfig.AUTO_MAX_DRIVE_VELOCITY, SwerveDriveConfig.AUTO_MAX_ACCELERATION)
+        .setKinematics(drive.getKinematics());
 
-    // Trajectory trajectory = TrajectoryGenerator.generateTrajectory(
-    //     new Pose2d(0, 0, new Rotation2d(0)), // Start Position
-    //     List.of( // Intermediary Positions
-    //         new Translation2d(1, 0),
-    //         new Translation2d(1, -1)),
-    //     new Pose2d(2, -1, Rotation2d.fromDegrees(180)), // End Position
-    //     TrajectoryConfig);
+    Trajectory trajectory = TrajectoryGenerator.generateTrajectory(
+        MotionRecorder.readData(),
+        TrajectoryConfig);
 
-    // PIDController xController = new PIDController(
-    //     SwerveDriveConfig.AUTO_X_PID[1],
-    //     SwerveDriveConfig.AUTO_X_PID[2],
-    //     SwerveDriveConfig.AUTO_X_PID[0]);
-    // PIDController yController = new PIDController(
-    //     SwerveDriveConfig.AUTO_Y_PID[1],
-    //     SwerveDriveConfig.AUTO_Y_PID[2],
-    //     SwerveDriveConfig.AUTO_Y_PID[0]);
-    // ProfiledPIDController angleController = new ProfiledPIDController(
-    //     SwerveDriveConfig.AUTO_ROTATE_PID[1],
-    //     SwerveDriveConfig.AUTO_ROTATE_PID[2],
-    //     SwerveDriveConfig.AUTO_ROTATE_PID[0],
-    //     SwerveDriveConfig.AUTO_ANGLE_CONSTRAINTS);
-    // angleController.enableContinuousInput(0, 360);
+    PIDController xController = new PIDController(
+        SwerveDriveConfig.AUTO_X_PID[1],
+        SwerveDriveConfig.AUTO_X_PID[2],
+        SwerveDriveConfig.AUTO_X_PID[0]);
+    PIDController yController = new PIDController(
+        SwerveDriveConfig.AUTO_Y_PID[1],
+        SwerveDriveConfig.AUTO_Y_PID[2],
+        SwerveDriveConfig.AUTO_Y_PID[0]);
+    ProfiledPIDController angleController = new ProfiledPIDController(
+        SwerveDriveConfig.AUTO_ROTATE_PID[1],
+        SwerveDriveConfig.AUTO_ROTATE_PID[2],
+        SwerveDriveConfig.AUTO_ROTATE_PID[0],
+        SwerveDriveConfig.AUTO_ANGLE_CONSTRAINTS);
+    angleController.enableContinuousInput(0, 360);
 
-    // SwerveControllerCommand swerveControllerCommand = new SwerveControllerCommand(
-    //     trajectory,
-    //     drive::getPose,
-    //     SwerveDrive.getKinematics(),
-    //     xController,
-    //     yController,
-    //     angleController,
-    //     drive::setModuleStates,
-    //     drive);
+    SwerveControllerCommand swerveControllerCommand = new SwerveControllerCommand(
+        trajectory,
+        drive::getPose,
+        SwerveDrive.getKinematics(),
+        xController,
+        yController,
+        angleController,
+        drive::setModuleStates,
+        drive);
 
     return null;
 

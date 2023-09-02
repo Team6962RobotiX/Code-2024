@@ -170,10 +170,6 @@ public class SwerveDrive extends SubsystemBase {
     }
   }
 
-  public SwerveModule[] getSwerveModules() {
-    return swerveModules;
-  }
-
   // Get total voltage through all modules
   public double getVoltage() {
     double totalVoltage = 0.0;

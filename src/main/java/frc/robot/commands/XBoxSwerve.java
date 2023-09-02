@@ -37,7 +37,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 /** An example command that uses an example subsystem. */
 
 public class XBoxSwerve extends CommandBase {
-  private final SwerveDrive drive;
+  private final SwerveDrive swerveDrive;
   private final Dashboard dashboard;
   private final Supplier<XboxController> xboxSupplier;
   private final PIDController rotatePID = new PIDController(
@@ -45,18 +45,18 @@ public class XBoxSwerve extends CommandBase {
       SwerveDriveConfig.TELEOP_ROTATE_PID[1],
       SwerveDriveConfig.TELEOP_ROTATE_PID[2]);
 
-  double yVelocity = 0.0;
-  double xVelocity = 0.0;
-  double rotateVelocity = 0.0;
+  private double yVelocity = 0.0;
+  private double xVelocity = 0.0;
+  private double rotateVelocity = 0.0;
 
-  public XBoxSwerve(SwerveDrive drive, Dashboard dashboard, Supplier<XboxController> xboxSupplier) {
-    this.drive = drive;
+  public XBoxSwerve(SwerveDrive swerveDrive, Dashboard dashboard, Supplier<XboxController> xboxSupplier) {
+    this.swerveDrive = swerveDrive;
     this.dashboard = dashboard;
     this.xboxSupplier = xboxSupplier;
 
     rotatePID.enableContinuousInput(-180, 180);
     // Use addRequirements() here to declare subsystem dependencies.
-    addRequirements(drive, dashboard);
+    addRequirements(swerveDrive, dashboard);
   }
 
   // Called when the command is initially scheduled.
@@ -98,7 +98,7 @@ public class XBoxSwerve extends CommandBase {
     double RStickMagnitude = Math.hypot(rightX, rightY);
     double targetRotateAngle = (((-Math.atan2(rightY, rightX) / Math.PI * 180.0) + 180.0 + 90.0) % 360.0) - 180.0;
     if (RStickMagnitude > SwerveDriveConfig.JOYSTICK_DEADZONE) {
-      rotateVelocity = rotatePID.calculate(drive.getHeading(), targetRotateAngle) * SwerveDrive.wheelVelocityToRotationalVelocity(SwerveDriveConfig.FULL_POWER_WHEEL_VELOCITY);
+      rotateVelocity = rotatePID.calculate(swerveDrive.getHeading(), targetRotateAngle) * SwerveDrive.wheelVelocityToRotationalVelocity(SwerveDriveConfig.FULL_POWER_WHEEL_VELOCITY);
       if (Math.abs(rotateVelocity) > maxRotateVelocity) {
         rotateVelocity = maxRotateVelocity * Math.signum(rotateVelocity);
       }
@@ -107,21 +107,21 @@ public class XBoxSwerve extends CommandBase {
       rotateVelocity = 0.0;
     }
 
-    if (controller.getBButton() || !controller.isConnected()) {
-      drive.stopModules();
+    if (!controller.isConnected()) {
+      swerveDrive.stopModules();
       return;
     }
 
     if (controller.getXButton()) {
-      drive.groundModules();
+      swerveDrive.groundModules();
       return;
     }
 
     if (controller.getYButton()) {
-      drive.zeroHeading();
+      swerveDrive.zeroHeading();
     }
 
-    double wheelPower = SwerveModule.wheelVelocityToMotorPower(Math.hypot(Math.hypot(xVelocity, yVelocity), drive.rotationalVelocityToWheelVelocity(rotateVelocity)));
+    double wheelPower = SwerveModule.wheelVelocityToMotorPower(Math.hypot(Math.hypot(xVelocity, yVelocity), swerveDrive.rotationalVelocityToWheelVelocity(rotateVelocity)));
 
     if (wheelPower > SwerveDriveConfig.MOTOR_POWER_HARD_CAP) {
       controller.setRumble(RumbleType.kBothRumble, 1);
@@ -132,11 +132,11 @@ public class XBoxSwerve extends CommandBase {
     // }
 
     if (controller.getLeftBumper()) {
-      drive.robotOrientedDrive(yVelocity, xVelocity, rightX * maxRotateVelocity);
+      swerveDrive.robotOrientedDrive(yVelocity, xVelocity, rightX * maxRotateVelocity);
       return;
     }
 
-    drive.fieldOrientedDrive(yVelocity, xVelocity, rotateVelocity);
+    swerveDrive.fieldOrientedDrive(yVelocity, xVelocity, rotateVelocity);
 
   }
 
