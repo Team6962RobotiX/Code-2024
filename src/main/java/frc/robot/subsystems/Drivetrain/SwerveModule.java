@@ -74,7 +74,7 @@ public class SwerveModule {
     driveMotor.setOpenLoopRampRate(SwerveDriveConfig.MOTOR_POWER_RAMP_RATE);
     steerMotor.setOpenLoopRampRate(SwerveDriveConfig.MOTOR_POWER_RAMP_RATE);
 
-    relativeDriveEncoder.setVelocityConversionFactor(SwerveDriveConfig.MOTOR_RPM_VELOCITY_RATIO);
+    relativeDriveEncoder.setVelocityConversionFactor(SwerveDriveConfig.DRIVE_METERS_PER_MOTOR_ROTATION);
     relativeSteerEncoder.setPositionConversionFactor(SwerveDriveConfig.STEER_GEAR_REDUCTION * 360);
 
     CANCoderConfiguration CANCoderConfig = new CANCoderConfiguration();
@@ -110,7 +110,7 @@ public class SwerveModule {
   // Drive motors to approximate target angle and velocity
   public void drive() { // Must be called periodically
     double drivePower = wheelVelocityToMotorPower(targetDriveVelocity);
-    double steerPower = wheelVelocityToMotorPower(steerController.calculate(Units.degreesToRadians(getAngle())));
+    double steerPower = steerVelocityToMotorPower(steerController.calculate(Units.degreesToRadians(getAngle())));
 
     if (Math.abs(drivePower) > SwerveDriveConfig.MOTOR_POWER_HARD_CAP) {
       drivePower = SwerveDriveConfig.MOTOR_POWER_HARD_CAP * Math.signum(drivePower);
@@ -174,14 +174,19 @@ public class SwerveModule {
     return relativeDriveEncoder.getVelocity();
   }
 
-  // Convert velocity in m/s to motor power from 0 - 1
-  public static double wheelVelocityToMotorPower(double velocity) {
-    return velocity / SwerveDriveConfig.FULL_POWER_WHEEL_VELOCITY;
+  // Convert steer velocity in rad/s to motor power from 0 - 1
+  public static double steerVelocityToMotorPower(double velocity) {
+    return velocity / SwerveDriveConfig.FULL_POWER_STEER_VELOCITY;
   }
 
-  // Convert motor power from 0 - 1 to velocity in m/s
+  // Convert drive velocity in m/s to motor power from 0 - 1
+  public static double wheelVelocityToMotorPower(double velocity) {
+    return velocity / SwerveDriveConfig.FULL_POWER_DRIVE_VELOCITY;
+  }
+
+  // Convert motor power from 0 - 1 to drive velocity in m/s
   public static double motorPowerToWheelVelocity(double power) {
-    return power * SwerveDriveConfig.FULL_POWER_WHEEL_VELOCITY;
+    return power * SwerveDriveConfig.FULL_POWER_DRIVE_VELOCITY;
   }
 
   // Get current angle and velocity (SwerveModuleState) 

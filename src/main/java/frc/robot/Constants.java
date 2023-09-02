@@ -83,15 +83,20 @@ public final class Constants {
     public static final double TRACKWIDTH_METERS = 0.6477; // left-to-right distance between the drivetrain wheels
     public static final double WHEELBASE_METERS = 0.62865; // front-to-back distance between the drivetrain wheels
     public static final double WHEEL_DIAMETER = 0.4572; // measured in meters
-    public static final double STEER_GEAR_REDUCTION = 7.0 / 150.0;
     public static final double DRIVE_GEAR_REDUCTION = 1.0 / 6.75;
+    public static final double STEER_GEAR_REDUCTION = 7.0 / 150.0;
     public static final double[] STEER_ENCODER_OFFSETS = { -124.805, -303.047, -101.602, -65.215 };
 
-    public static final double MOTOR_RPM_VELOCITY_RATIO = DRIVE_GEAR_REDUCTION / 60.0 * WHEEL_DIAMETER * Math.PI;
-    public static final double FULL_POWER_WHEEL_VELOCITY = 21.0; // [TODO] VERY IMPORTANT DO NOT CHANGE
+    public static final double DRIVE_METERS_PER_MOTOR_ROTATION = DRIVE_GEAR_REDUCTION / 60.0 * WHEEL_DIAMETER * Math.PI;
+    public static final double STEER_RADIANS_PER_MOTOR_ROTATION = STEER_GEAR_REDUCTION / 60.0 * Math.PI * 2;
+
+    public static final double FULL_POWER_DRIVE_MOTOR_RPM = 6000; // [TODO] VERY IMPORTANT DO NOT CHANGE
+    public static final double FULL_POWER_STEER_MOTOR_RPM = 6000;
+    public static final double FULL_POWER_DRIVE_VELOCITY = FULL_POWER_DRIVE_MOTOR_RPM * DRIVE_METERS_PER_MOTOR_ROTATION; // m/s
+    public static final double FULL_POWER_STEER_VELOCITY = FULL_POWER_STEER_MOTOR_RPM * STEER_RADIANS_PER_MOTOR_ROTATION; // rad/s
 
     // PID
-    public static final double[] MODULE_STEER_PID = { 10.0, 0.0, 0.0 }; // [TODO]
+    public static final double[] MODULE_STEER_PID = { 15.0, 0.0, 0.0 }; // [TODO]
     public static final double MODULE_STEER_PID_TOLERANCE = 1.0; // In degrees
 
     public static final double[] TELEOP_ROTATE_PID = { 10.0, 0.0, 0.0 }; // [TODO]
