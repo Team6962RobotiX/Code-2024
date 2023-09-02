@@ -18,6 +18,7 @@ import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardLayout;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
@@ -29,14 +30,10 @@ import frc.robot.Constants.*;
 
 public class Dashboard extends SubsystemBase {
   private SwerveDrive swerveDrive;
-  private ShuffleboardTab dashboardTab = Shuffleboard.getTab(DashboardConfig.TAB_NAME);
-  private ShuffleboardLayout swerveData = dashboardTab.getLayout("Swerve", BuiltInLayouts.kList).withSize(2, 5);
+  private ShuffleboardTab dashboardTab;
+  private ShuffleboardLayout swerveData;
   private AHRS gyro = new AHRS(SPI.Port.kMXP);
   private final Field2d field = new Field2d();
-
-  private GenericEntry swervekP;
-  private GenericEntry swervekI;
-  private GenericEntry swervekD;
 
   private ComplexWidget gyroEntry;
   private GenericEntry totalVoltage;
@@ -50,54 +47,75 @@ public class Dashboard extends SubsystemBase {
 
   private boolean initialized = false;
 
+  private int w = 2;
+  private int h = 10;
+
   /** Creates a new ExampleSubsystem. */
   public Dashboard(SwerveDrive swerveDrive) {
     this.swerveDrive = swerveDrive;
   }
 
   public void initialize() {
+    if (initialized) {
+      return;
+    }
+    
     initialized = true;
 
-    swervekP = swerveData.add("SwervekP", SwerveDriveConfig.MODULE_STEER_PID[0]).getEntry();
-    swervekI = swerveData.add("SwervekI", SwerveDriveConfig.MODULE_STEER_PID[1]).getEntry();
-    swervekD = swerveData.add("SwervekD", SwerveDriveConfig.MODULE_STEER_PID[2]).getEntry();
-    gyroEntry = swerveData.add(gyro).withProperties(Map.of("name", "Robot Heading"));
+    int x = 0;
 
-    totalVoltage = swerveData.add("Voltage", 0)
-        .withWidget(BuiltInWidgets.kDial)
-        .withProperties(Map.of("min", 0, "max", 24 * 8))
-        .getEntry();
+    dashboardTab = Shuffleboard.getTab(DashboardConfig.TAB_NAME);
+        
+    swerveData = dashboardTab.getLayout("Swerve", BuiltInLayouts.kList).withSize(2, 6).withPosition(x, 0);
 
-    totalCurrent = swerveData.add("Current", 0)
-        .withWidget(BuiltInWidgets.kDial)
-        .withProperties(Map.of("min", 0, "max", SwerveDriveConfig.TOTAL_CURRENT_LIMIT))
-        .getEntry();
+    x += 2;
 
-    swerveData.add("field", field);
+    gyroEntry = swerveData.add(gyro)
+        .withProperties(Map.of("name", "Robot Heading"))
+        .withPosition(x, 1);
+
+    // totalVoltage = swerveData.add("Voltage", 0)
+    //     .withWidget(BuiltInWidgets.kDial)
+    //     .withProperties(Map.of("min", 0, "max", 24 * 8))
+    //     .getEntry();
+    
+    // totalCurrent = swerveData.add("Current", 0)
+    //     .withWidget(BuiltInWidgets.kDial)
+    //     .withProperties(Map.of("min", 0, "max", SwerveDriveConfig.TOTAL_CURRENT_LIMIT))
+    //     .getEntry();
+
+    // dashboardTab.add("field", field).withPosition(x, 0).withSize(3, 2);
+
+    // x += 3;
 
     SwerveModule[] modules = swerveDrive.getModules();
 
     for (int i = 0; i < 4; i++) {
-      moduleDataLists[i] = dashboardTab.getLayout(modules[i].getName() + " Module", BuiltInLayouts.kList).withSize(2, 5);
+      moduleDataLists[i] = dashboardTab.getLayout(modules[i].getName() + " Module", BuiltInLayouts.kList)
+          .withSize(2, 6)
+          .withPosition(x, 0);
+
       moduleAngles[i] = moduleDataLists[i]
           .add("Angle", 0)
           .withWidget(BuiltInWidgets.kGyro)
+          .withPosition(x, 1)
           .getEntry();
-      moduleSpeeds[i] = moduleDataLists[i]
-          .add("Drive Speed", 0)
-          .withWidget(BuiltInWidgets.kDial)
-          .withProperties(Map.of("min", 0, "max", SwerveDriveConfig.MOTOR_POWER_HARD_CAP))
-          .getEntry();
-      moduleCurrents[i] = moduleDataLists[i]
-          .add("Current", 0)
-          .withWidget(BuiltInWidgets.kDial)
-          .withProperties(Map.of("min", 0, "max", SwerveDriveConfig.TOTAL_CURRENT_LIMIT / 4))
-          .getEntry();
-      moduleVoltages[i] = moduleDataLists[i]
-          .add("Voltage", 0)
-          .withWidget(BuiltInWidgets.kDial)
-          .withProperties(Map.of("min", 0, "max", 24 * 2))
-          .getEntry();
+      // moduleSpeeds[i] = moduleDataLists[i]
+      //     .add("Drive Speed", 0)
+      //     .withWidget(BuiltInWidgets.kDial)
+      //     .withProperties(Map.of("min", 0, "max", SwerveDriveConfig.MOTOR_POWER_HARD_CAP))
+      //     .getEntry();
+      // moduleCurrents[i] = moduleDataLists[i]
+      //     .add("Current", 0)
+      //     .withWidget(BuiltInWidgets.kDial)
+      //     .withProperties(Map.of("min", 0, "max", SwerveDriveConfig.TOTAL_CURRENT_LIMIT / 4))
+      //     .getEntry();
+      // moduleVoltages[i] = moduleDataLists[i]
+      //     .add("Voltage", 0)
+      //     .withWidget(BuiltInWidgets.kDial)
+      //     .withProperties(Map.of("min", 0, "max", 24 * 2))
+      //     .getEntry();
+      x += 2;
     }
   }
 
@@ -107,12 +125,7 @@ public class Dashboard extends SubsystemBase {
       return;
     }
 
-    // This method will be called once per scheduler run
-    double[] PIDValues = {
-        swervekP.getDouble(SwerveDriveConfig.MODULE_STEER_PID[0]),
-        swervekI.getDouble(SwerveDriveConfig.MODULE_STEER_PID[1]),
-        swervekD.getDouble(SwerveDriveConfig.MODULE_STEER_PID[2])
-    };
+    Shuffleboard.update();
 
     // swerveDrive.setPID(PIDValues);
     totalVoltage.setDouble(swerveDrive.getVoltage());

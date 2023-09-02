@@ -31,6 +31,7 @@ import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.SPI;
+import edu.wpi.first.wpilibj.SerialPort;
 import edu.wpi.first.wpilibj.XboxController;
 
 import java.util.Map;
@@ -98,12 +99,17 @@ public class SwerveDrive extends SubsystemBase {
 
   // Get gyro Rotation2d heading
   public Rotation2d getRotation2d() {
-    return Rotation2d.fromDegrees(((gyro.getRotation2d().getDegrees() + 180) % 360) - 180);
+    return gyro.getRotation2d();
   }
 
   // Get gyro degree heading
   public double getHeading() {
-    return getRotation2d().getDegrees();
+    // double degrees = getRotation2d().getDegrees();
+    return ((((getRotation2d().getDegrees() + 180.0) % 360.0) + 360) % 360) - 180.0;
+  }
+
+  public double getGyroVelocity() {
+    return Math.max(Math.max(gyro.getVelocityX(), gyro.getVelocityY()), gyro.getVelocityZ());
   }
 
   // Reset gyro heading

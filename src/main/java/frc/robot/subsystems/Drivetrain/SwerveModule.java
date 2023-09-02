@@ -29,6 +29,7 @@ import java.util.function.Supplier;
 
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
+import com.revrobotics.CANSparkMax.IdleMode;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 import frc.robot.commands.*;
@@ -67,15 +68,18 @@ public class SwerveModule {
     driveMotor.restoreFactoryDefaults();
     steerMotor.restoreFactoryDefaults();
 
-    steerMotor.setInverted(true);
+    driveMotor.setIdleMode(IdleMode.kBrake);
+    steerMotor.setIdleMode(IdleMode.kBrake);
 
+    steerMotor.setInverted(true);
+    
     driveMotor.setSmartCurrentLimit((int) (SwerveDriveConfig.TOTAL_CURRENT_LIMIT / 4.0 * (2.0 / 3.0)));
     steerMotor.setSmartCurrentLimit((int) (SwerveDriveConfig.TOTAL_CURRENT_LIMIT / 4.0 * (1.0 / 3.0)));
     driveMotor.setOpenLoopRampRate(SwerveDriveConfig.MOTOR_POWER_RAMP_RATE);
     steerMotor.setOpenLoopRampRate(SwerveDriveConfig.MOTOR_POWER_RAMP_RATE);
 
     relativeDriveEncoder.setVelocityConversionFactor(SwerveDriveConfig.DRIVE_METERS_PER_MOTOR_ROTATION);
-    relativeSteerEncoder.setPositionConversionFactor(SwerveDriveConfig.STEER_GEAR_REDUCTION * 360);
+    // relativeSteerEncoder.setPositionConversionFactor(SwerveDriveConfig.STEER_GEAR_REDUCTION * 360);
 
     CANCoderConfiguration CANCoderConfig = new CANCoderConfiguration();
     CANCoderConfig.magnetOffsetDegrees = SwerveDriveConfig.STEER_ENCODER_OFFSETS[id];
@@ -122,7 +126,7 @@ public class SwerveModule {
     }
 
     driveMotor.set(drivePower);
-    steerMotor.set(steerPower);
+    steerMotor.set(steerPower);    
 
     // if (driveMotor.get() == 0 && steerMotor.get() == 0) {
     //   if (!isSteerCalibrated) {
@@ -219,6 +223,10 @@ public class SwerveModule {
   // Get total current through both motors
   public double getCurrent() {
     return driveMotor.getOutputCurrent() + steerMotor.getOutputCurrent();
+  }
+
+  public double getDriveRPM() {
+    return relativeDriveEncoder.getVelocity() / SwerveDriveConfig.DRIVE_METERS_PER_MOTOR_ROTATION;
   }
 
   // Stop power to both motors

@@ -38,7 +38,7 @@ public final class Constants {
 
   // DASHBOARD (ShuffleBoard)
   public static final class DashboardConfig {
-    public static final String TAB_NAME = "Dashboard";
+    public static final String TAB_NAME = "SwerveDrive";
   }
 
   // LIMELIGHT
@@ -56,22 +56,22 @@ public final class Constants {
     */
 
     public static final double TELEOP_DRIVE_POWER = 0.2; // Percent driving power (0.2 = 20%), left trigger bypasses this value
-    public static final double TELEOP_DRIVE_BOOST_POWER = 0.5; // Percent driving power when holding down the left trigger
+    public static final double TELEOP_DRIVE_BOOST_POWER = 1.0; // Percent driving power when holding down the left trigger
     public static final double TELEOP_ROTATE_POWER = 0.4; // Percent rotating power (0.4 = 40%)
 
-    public static final double MOTOR_POWER_HARD_CAP = 0.5; // Only use for testing, otherwise set to 1.0
+    public static final double MOTOR_POWER_HARD_CAP = 1.0; // Only use for testing, otherwise set to 1.0
 
     public static final double JOYSTICK_DEADZONE = 0.1; // If joystick values are less than this (0.2 = 20%) than we just read 0
     public static final double VELOCITY_DEADZONE = 0.05; // speed at which we stop moving all together
 
     public static final int TOTAL_CURRENT_LIMIT = 300; // [TODO] Default is around 640 Amps (also drive motors have double the current allocation than steer motors)
     public static final double MOTOR_POWER_RAMP_RATE = 0.1; // [TODO] Maximum change in motor power between ticks to reduce power spikes
-
+    
     public static final Pose2d STARTING_POSE = new Pose2d(0.0, 0.0, Rotation2d.fromDegrees(0.0));
     public static final double STARTING_ANGLE_OFFSET = 0.0;
 
-    public static final String MOTION_RECORDING_WRITE_FILE = "teleop-recording.csv";
-    public static final String MOTION_RECORDING_READ_FILE = "auton-routine.csv";
+    public static final String MOTION_RECORDING_WRITE_FILE = "/test.csv";
+    public static final String MOTION_RECORDING_READ_FILE = "/test.csv";
 
     /*
       -------------------------------------------------------------------
@@ -82,16 +82,16 @@ public final class Constants {
     // PHYSICAL
     public static final double TRACKWIDTH_METERS = 0.6477; // left-to-right distance between the drivetrain wheels
     public static final double WHEELBASE_METERS = 0.62865; // front-to-back distance between the drivetrain wheels
-    public static final double WHEEL_DIAMETER = 0.4572; // measured in meters
+    public static final double WHEEL_DIAMETER = 0.1016; // measured in meters
     public static final double DRIVE_GEAR_REDUCTION = 1.0 / 6.75;
     public static final double STEER_GEAR_REDUCTION = 7.0 / 150.0;
     public static final double[] STEER_ENCODER_OFFSETS = { -124.805, -303.047, -101.602, -65.215 };
 
     public static final double DRIVE_METERS_PER_MOTOR_ROTATION = DRIVE_GEAR_REDUCTION / 60.0 * WHEEL_DIAMETER * Math.PI;
-    public static final double STEER_RADIANS_PER_MOTOR_ROTATION = STEER_GEAR_REDUCTION / 60.0 * Math.PI * 2;
+    public static final double STEER_RADIANS_PER_MOTOR_ROTATION = STEER_GEAR_REDUCTION / 60.0 * Math.PI * 2.0;
 
-    public static final double FULL_POWER_DRIVE_MOTOR_RPM = 6000; // [TODO] VERY IMPORTANT DO NOT CHANGE
-    public static final double FULL_POWER_STEER_MOTOR_RPM = 6000;
+    public static final double FULL_POWER_DRIVE_MOTOR_RPM = 6000.0; // [TODO] VERY IMPORTANT DO NOT CHANGE
+    public static final double FULL_POWER_STEER_MOTOR_RPM = 6000.0;
     public static final double FULL_POWER_DRIVE_VELOCITY = FULL_POWER_DRIVE_MOTOR_RPM * DRIVE_METERS_PER_MOTOR_ROTATION; // m/s
     public static final double FULL_POWER_STEER_VELOCITY = FULL_POWER_STEER_MOTOR_RPM * STEER_RADIANS_PER_MOTOR_ROTATION; // rad/s
 
@@ -99,12 +99,12 @@ public final class Constants {
     public static final double[] MODULE_STEER_PID = { 15.0, 0.0, 0.0 }; // [TODO]
     public static final double MODULE_STEER_PID_TOLERANCE = 1.0; // In degrees
 
-    public static final double[] TELEOP_ROTATE_PID = { 10.0, 0.0, 0.0 }; // [TODO]
+    public static final double[] TELEOP_ROTATE_PID = { 20.0, 0.0, 0.0 }; // [TODO]
     public static final double TELEOP_ROTATE_PID_TOLERANCE = 1.0; // In degrees
 
     public static final double[] AUTO_ROTATE_PID = { 10.0, 0.0, 0.0 };
-    public static final double[] AUTO_X_PID = { 1.0, 0.0, 0.0 }; // [TODO]
-    public static final double[] AUTO_Y_PID = { 1.0, 0.0, 0.0 }; // [TODO]
+    public static final double[] AUTO_X_PID = { 5.0, 0.0, 0.0 }; // [TODO]
+    public static final double[] AUTO_Y_PID = { 5.0, 0.0, 0.0 }; // [TODO]
 
     // AUTONOMOUS
     public static final double AUTO_MAX_DRIVE_VELOCITY = SwerveModule.motorPowerToWheelVelocity(TELEOP_DRIVE_POWER) / 4; // [TODO] measured in meters/sec

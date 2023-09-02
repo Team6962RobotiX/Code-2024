@@ -51,12 +51,16 @@ public class XBoxSwerve extends CommandBase {
   private double xVelocity = 0.0;
   private double rotateVelocity = 0.0;
 
+  private int n = 0;
+
+  private double topSpeed = 0.0;
+
   public XBoxSwerve(SwerveDrive swerveDrive, Dashboard dashboard, Supplier<XboxController> xboxSupplier) {
     this.swerveDrive = swerveDrive;
     this.dashboard = dashboard;
     this.xboxSupplier = xboxSupplier;
 
-    rotatePID.enableContinuousInput(Units.degreesToRadians(-180), Units.degreesToRadians(180));
+    rotatePID.enableContinuousInput(Units.degreesToRadians(-180.0), Units.degreesToRadians(180.0));
     rotatePID.setTolerance(Units.degreesToRadians(SwerveDriveConfig.TELEOP_ROTATE_PID_TOLERANCE));
     // Use addRequirements() here to declare subsystem dependencies.
     addRequirements(swerveDrive, dashboard);
@@ -97,6 +101,16 @@ public class XBoxSwerve extends CommandBase {
       yVelocity = 0.0;
     }
 
+    topSpeed = Math.max(topSpeed, swerveDrive.getGyroVelocity());
+    
+    // n += 1;
+    // if (n % 10 == 0) {
+    //   System.out.println(swerveDrive.getGyroVelocity());
+    //   System.out.println(swerveDrive.getModules()[0].getDriveRPM());
+    // }
+    // System.out.println("current: " + Units.degreesToRadians(swerveDrive.getHeading()));
+    // System.out.println("target: " + targetRotateAngle);
+
     // Right Stick
     double RStickMagnitude = Math.hypot(rightX, rightY);
     double targetRotateAngle = (((-Math.atan2(rightY, rightX) / Math.PI * 180.0) + 180.0 + 90.0) % 360.0) - 180.0;
@@ -124,12 +138,15 @@ public class XBoxSwerve extends CommandBase {
 
     if (controller.getYButton()) {
       swerveDrive.zeroHeading();
+      // dashboard.initialize();
     }
 
     double wheelPower = SwerveModule.wheelVelocityToMotorPower(Math.hypot(Math.hypot(xVelocity, yVelocity), swerveDrive.rotationalVelocityToWheelVelocity(rotateVelocity)));
 
     if (wheelPower > SwerveDriveConfig.MOTOR_POWER_HARD_CAP) {
-      controller.setRumble(RumbleType.kBothRumble, 1);
+      controller.setRumble(RumbleType.kBothRumble, 0.5);
+    } else {
+      controller.setRumble(RumbleType.kBothRumble, 0.0);
     }
 
     // if (controller.getAButton()) {

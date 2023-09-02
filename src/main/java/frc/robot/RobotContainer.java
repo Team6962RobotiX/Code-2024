@@ -103,10 +103,10 @@ public class RobotContainer {
         drive::setModuleStates,
         drive);
 
-    return null;
+    // return null;
 
-    // return new SequentialCommandGroup(
-    //     new InstantCommand(() -> drive.resetOdometry(trajectory.getInitialPose())), swerveControllerCommand, new InstantCommand(() -> drive.stopModules()));
+    return new SequentialCommandGroup(
+        new InstantCommand(() -> drive.resetOdometry(trajectory.getInitialPose())), swerveControllerCommand, new InstantCommand(() -> drive.stopModules()));
   }
 
   public void disabledPeriodic() {
