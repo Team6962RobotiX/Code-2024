@@ -50,7 +50,7 @@ public class Testing extends SubsystemBase {
     absoluteSteerEncoder = new CANCoder(42);
 
     CANCoderConfiguration CANCoderConfig = new CANCoderConfiguration();
-    CANCoderConfig.magnetOffsetDegrees = SwerveDriveConfig.STEER_ENCODER_OFFSETS[3];
+    CANCoderConfig.magnetOffsetDegrees = SwerveDriveConstants.STEER_ENCODER_OFFSETS[3];
     absoluteSteerEncoder.configAllSettings(CANCoderConfig);
   }
 

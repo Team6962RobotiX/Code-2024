@@ -24,7 +24,6 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 import frc.robot.commands.*;
 import frc.robot.subsystems.*;
-import frc.robot.subsystems.Drivetrain.*;
 import frc.robot.Constants;
 import frc.robot.Constants.*;
 
@@ -59,13 +58,13 @@ public class Dashboard extends SubsystemBase {
     if (initialized) {
       return;
     }
-    
+
     initialized = true;
 
     int x = 0;
 
-    dashboardTab = Shuffleboard.getTab(DashboardConfig.TAB_NAME);
-        
+    dashboardTab = Shuffleboard.getTab(DashboardConstants.TAB_NAME);
+
     swerveData = dashboardTab.getLayout("Swerve", BuiltInLayouts.kList).withSize(2, 6).withPosition(x, 0);
 
     x += 2;
@@ -78,7 +77,7 @@ public class Dashboard extends SubsystemBase {
     //     .withWidget(BuiltInWidgets.kDial)
     //     .withProperties(Map.of("min", 0, "max", 24 * 8))
     //     .getEntry();
-    
+
     // totalCurrent = swerveData.add("Current", 0)
     //     .withWidget(BuiltInWidgets.kDial)
     //     .withProperties(Map.of("min", 0, "max", SwerveDriveConfig.TOTAL_CURRENT_LIMIT))
@@ -138,8 +137,8 @@ public class Dashboard extends SubsystemBase {
     for (int i = 0; i < 4; i++) {
       SwerveModule module = modules[i];
 
-      moduleAngles[i].setDouble(module.getAngle());
-      moduleSpeeds[i].setDouble(Math.abs(module.getDriveVelocity()));
+      moduleAngles[i].setDouble(module.getSteerRadians());
+      moduleSpeeds[i].setDouble(Math.abs(module.getVelocity()));
       moduleCurrents[i].setDouble(module.getCurrent());
       moduleVoltages[i].setDouble(module.getVoltage());
     }

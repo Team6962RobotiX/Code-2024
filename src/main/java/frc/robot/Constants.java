@@ -10,8 +10,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.DifferentialDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
-import frc.robot.subsystems.Drivetrain.SwerveDrive;
-import frc.robot.subsystems.Drivetrain.SwerveModule;
+import frc.robot.subsystems.*;
 
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide numerical or boolean
@@ -37,17 +36,17 @@ public final class Constants {
   }
 
   // DASHBOARD (ShuffleBoard)
-  public static final class DashboardConfig {
+  public static final class DashboardConstants {
     public static final String TAB_NAME = "SwerveDrive";
   }
 
   // LIMELIGHT
-  public static final class LimelightConfig {
+  public static final class LimelightConstants {
     public static final String NAME = "limelight";
   }
 
   // SWERVE DRIVE
-  public static final class SwerveDriveConfig {
+  public static final class SwerveDriveConstants {
 
     /*
       -------------------------------------
@@ -66,7 +65,7 @@ public final class Constants {
 
     public static final int TOTAL_CURRENT_LIMIT = 300; // [TODO] Default is around 640 Amps (also drive motors have double the current allocation than steer motors)
     public static final double MOTOR_POWER_RAMP_RATE = 0.1; // [TODO] Maximum change in motor power between ticks to reduce power spikes
-    
+
     public static final Pose2d STARTING_POSE = new Pose2d(0.0, 0.0, Rotation2d.fromDegrees(0.0));
     public static final double STARTING_ANGLE_OFFSET = 0.0;
 
@@ -87,30 +86,32 @@ public final class Constants {
     public static final double STEER_GEAR_REDUCTION = 7.0 / 150.0;
     public static final double[] STEER_ENCODER_OFFSETS = { -124.805, -303.047, -101.602, -65.215 };
 
+    public static final double FULL_POWER_DRIVE_MOTOR_RPM = 5676.0; // VERY IMPORTANT DO NOT CHANGE
+    public static final double FULL_POWER_STEER_MOTOR_RPM = 5676.0; // VERY IMPORTANT DO NOT CHANGE
+
     public static final double DRIVE_METERS_PER_MOTOR_ROTATION = DRIVE_GEAR_REDUCTION / 60.0 * WHEEL_DIAMETER * Math.PI;
     public static final double STEER_RADIANS_PER_MOTOR_ROTATION = STEER_GEAR_REDUCTION / 60.0 * Math.PI * 2.0;
 
-    public static final double FULL_POWER_DRIVE_MOTOR_RPM = 6000.0; // [TODO] VERY IMPORTANT DO NOT CHANGE
-    public static final double FULL_POWER_STEER_MOTOR_RPM = 6000.0;
-    public static final double FULL_POWER_DRIVE_VELOCITY = FULL_POWER_DRIVE_MOTOR_RPM * DRIVE_METERS_PER_MOTOR_ROTATION; // m/s
+    public static final double FULL_POWER_DRIVE_VELOCITY = FULL_POWER_DRIVE_MOTOR_RPM * DRIVE_METERS_PER_MOTOR_ROTATION; // m/s (should be around 4.4196)
+    public static final double FULL_POWER_ROTATE_VELOCITY = SwerveMath.wheelVelocityToRotationalVelocity(FULL_POWER_DRIVE_VELOCITY); // rad/s (should be around 4.4196)
     public static final double FULL_POWER_STEER_VELOCITY = FULL_POWER_STEER_MOTOR_RPM * STEER_RADIANS_PER_MOTOR_ROTATION; // rad/s
 
     // PID
     public static final double[] MODULE_STEER_PID = { 15.0, 0.0, 0.0 }; // [TODO]
     public static final double MODULE_STEER_PID_TOLERANCE = 1.0; // In degrees
 
-    public static final double[] TELEOP_ROTATE_PID = { 20.0, 0.0, 0.0 }; // [TODO]
+    public static final double[] TELEOP_ROTATE_PID = { 5.0, 0.0, 0.0 }; // [TODO]
     public static final double TELEOP_ROTATE_PID_TOLERANCE = 1.0; // In degrees
 
-    public static final double[] AUTO_ROTATE_PID = { 10.0, 0.0, 0.0 };
+    public static final double[] AUTO_ROTATE_PID = { 10.0, 0.0, 0.0 }; // [TODO]
     public static final double[] AUTO_X_PID = { 5.0, 0.0, 0.0 }; // [TODO]
     public static final double[] AUTO_Y_PID = { 5.0, 0.0, 0.0 }; // [TODO]
 
     // AUTONOMOUS
-    public static final double AUTO_MAX_DRIVE_VELOCITY = SwerveModule.motorPowerToWheelVelocity(TELEOP_DRIVE_POWER) / 4; // [TODO] measured in meters/sec
+    public static final double AUTO_MAX_DRIVE_VELOCITY = SwerveMath.motorPowerToModuleVelocity(TELEOP_DRIVE_POWER) / 4; // [TODO] measured in meters/sec
     public static final double AUTO_MAX_ACCELERATION = 9.80 / 4; // [TODO] measured in meters/sec^2
-    public static final double AUTO_MAX_ROTATE_VELOCITY = SwerveDrive.wheelVelocityToRotationalVelocity(AUTO_MAX_DRIVE_VELOCITY); // measured in radians/sec
-    public static final double AUTO_MAX_ROTATE_ACCELERATION = SwerveDrive.wheelVelocityToRotationalVelocity(AUTO_MAX_ACCELERATION); // measured in rad/sec^2
+    public static final double AUTO_MAX_ROTATE_VELOCITY = SwerveMath.wheelVelocityToRotationalVelocity(AUTO_MAX_DRIVE_VELOCITY); // measured in radians/sec
+    public static final double AUTO_MAX_ROTATE_ACCELERATION = SwerveMath.wheelVelocityToRotationalVelocity(AUTO_MAX_ACCELERATION); // measured in rad/sec^2
     public static final TrapezoidProfile.Constraints AUTO_ANGLE_CONSTRAINTS = new TrapezoidProfile.Constraints(
         AUTO_MAX_ROTATE_VELOCITY,
         AUTO_MAX_ROTATE_ACCELERATION);
@@ -118,6 +119,52 @@ public final class Constants {
     // MODULES
     // In order of: front left, front right, back left, back right, where the battery is in the back
     public static final String[] MODULE_NAMES = { "FL", "FR", "BL", "BR" };
+  }
+
+  public static final class SwerveMath {
+
+    // Convert wheel velocity in m/s to rotational velocity in rad/s
+    public static double wheelVelocityToRotationalVelocity(double maxDriveVelocity) {
+      return maxDriveVelocity / Math.hypot(
+          SwerveDriveConstants.TRACKWIDTH_METERS / 2.0,
+          SwerveDriveConstants.WHEELBASE_METERS / 2.0);
+    }
+
+    // Convert rotation velocity in rad/s to wheel velocity in m/s
+    public static double rotationalVelocityToWheelVelocity(double maxAngularVelocity) {
+      return maxAngularVelocity * Math.hypot(
+          SwerveDriveConstants.TRACKWIDTH_METERS / 2.0,
+          SwerveDriveConstants.WHEELBASE_METERS / 2.0);
+    }
+
+    // Convert steer velocity in rad/s to motor power from 0 - 1
+    public static double steerVelocityToMotorPower(double velocity) {
+      return velocity / SwerveDriveConstants.FULL_POWER_STEER_VELOCITY;
+    }
+
+    // Convert motor power from 0 - 1 to steer velocity in rad/s
+    public static double motorPowerToSteerVelocity(double power) {
+      return power * SwerveDriveConstants.FULL_POWER_STEER_VELOCITY;
+    }
+
+    // Convert drive velocity in m/s to motor power from 0 - 1
+    public static double moduleVelocityToMotorPower(double velocity) {
+      return velocity / SwerveDriveConstants.FULL_POWER_DRIVE_VELOCITY;
+    }
+
+    // Convert motor power from 0 - 1 to drive velocity in m/s
+    public static double motorPowerToModuleVelocity(double power) {
+      return power * SwerveDriveConstants.FULL_POWER_DRIVE_VELOCITY;
+    }
+
+    // Calculate swerve drive kinematics
+    public static SwerveDriveKinematics getKinematics() {
+      return new SwerveDriveKinematics(
+          new Translation2d(SwerveDriveConstants.TRACKWIDTH_METERS / 2.0, SwerveDriveConstants.WHEELBASE_METERS / 2.0),
+          new Translation2d(SwerveDriveConstants.TRACKWIDTH_METERS / 2.0, -SwerveDriveConstants.WHEELBASE_METERS / 2.0),
+          new Translation2d(-SwerveDriveConstants.TRACKWIDTH_METERS / 2.0, SwerveDriveConstants.WHEELBASE_METERS / 2.0),
+          new Translation2d(-SwerveDriveConstants.TRACKWIDTH_METERS / 2.0, -SwerveDriveConstants.WHEELBASE_METERS / 2.0));
+    }
   }
 
   public static final class CAN {

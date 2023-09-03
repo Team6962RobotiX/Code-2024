@@ -22,10 +22,9 @@ import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 import frc.robot.commands.*;
-import frc.robot.subsystems.Drivetrain.*;
 import frc.robot.subsystems.*;
 import frc.robot.Constants;
-import frc.robot.Constants.SwerveDriveConfig;
+import frc.robot.Constants.SwerveDriveConstants;
 
 public class MotionRecorder extends SubsystemBase {
 
@@ -68,7 +67,7 @@ public class MotionRecorder extends SubsystemBase {
 
   public void writeData() {
     try {
-      File csvOutputFile = new File(SwerveDriveConfig.MOTION_RECORDING_WRITE_FILE);
+      File csvOutputFile = new File(SwerveDriveConstants.MOTION_RECORDING_WRITE_FILE);
       try (PrintWriter pw = new PrintWriter(csvOutputFile)) {
         positionData.stream().forEach(pw::println);
       }
@@ -80,7 +79,7 @@ public class MotionRecorder extends SubsystemBase {
   public static List<Pose2d> readData() {
     List<Pose2d> newPositionData = new ArrayList<>();
     try {
-      try (BufferedReader br = new BufferedReader(new FileReader(SwerveDriveConfig.MOTION_RECORDING_READ_FILE))) {
+      try (BufferedReader br = new BufferedReader(new FileReader(SwerveDriveConstants.MOTION_RECORDING_READ_FILE))) {
         String line;
         while ((line = br.readLine()) != null) {
           String[] values = line.split(",");

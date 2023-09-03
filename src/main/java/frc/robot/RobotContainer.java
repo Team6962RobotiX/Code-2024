@@ -8,7 +8,6 @@ import frc.robot.Constants;
 import frc.robot.Constants.*;
 import frc.robot.commands.*;
 import frc.robot.subsystems.*;
-import frc.robot.subsystems.Drivetrain.*;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
@@ -71,32 +70,32 @@ public class RobotContainer {
   }
 
   public Command getAutonomousCommand() {
-    TrajectoryConfig TrajectoryConfig = new TrajectoryConfig(SwerveDriveConfig.AUTO_MAX_DRIVE_VELOCITY, SwerveDriveConfig.AUTO_MAX_ACCELERATION)
-        .setKinematics(drive.getKinematics());
+    TrajectoryConfig TrajectoryConfig = new TrajectoryConfig(SwerveDriveConstants.AUTO_MAX_DRIVE_VELOCITY, SwerveDriveConstants.AUTO_MAX_ACCELERATION)
+        .setKinematics(SwerveMath.getKinematics());
 
     Trajectory trajectory = TrajectoryGenerator.generateTrajectory(
         MotionRecorder.readData(),
         TrajectoryConfig);
 
     PIDController xController = new PIDController(
-        SwerveDriveConfig.AUTO_X_PID[1],
-        SwerveDriveConfig.AUTO_X_PID[2],
-        SwerveDriveConfig.AUTO_X_PID[0]);
+        SwerveDriveConstants.AUTO_X_PID[1],
+        SwerveDriveConstants.AUTO_X_PID[2],
+        SwerveDriveConstants.AUTO_X_PID[0]);
     PIDController yController = new PIDController(
-        SwerveDriveConfig.AUTO_Y_PID[1],
-        SwerveDriveConfig.AUTO_Y_PID[2],
-        SwerveDriveConfig.AUTO_Y_PID[0]);
+        SwerveDriveConstants.AUTO_Y_PID[1],
+        SwerveDriveConstants.AUTO_Y_PID[2],
+        SwerveDriveConstants.AUTO_Y_PID[0]);
     ProfiledPIDController angleController = new ProfiledPIDController(
-        SwerveDriveConfig.AUTO_ROTATE_PID[1],
-        SwerveDriveConfig.AUTO_ROTATE_PID[2],
-        SwerveDriveConfig.AUTO_ROTATE_PID[0],
-        SwerveDriveConfig.AUTO_ANGLE_CONSTRAINTS);
+        SwerveDriveConstants.AUTO_ROTATE_PID[1],
+        SwerveDriveConstants.AUTO_ROTATE_PID[2],
+        SwerveDriveConstants.AUTO_ROTATE_PID[0],
+        SwerveDriveConstants.AUTO_ANGLE_CONSTRAINTS);
     angleController.enableContinuousInput(0, 360);
 
     SwerveControllerCommand swerveControllerCommand = new SwerveControllerCommand(
         trajectory,
         drive::getPose,
-        SwerveDrive.getKinematics(),
+        SwerveMath.getKinematics(),
         xController,
         yController,
         angleController,

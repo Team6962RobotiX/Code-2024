@@ -2,7 +2,7 @@
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
 
-package frc.robot.subsystems.Drivetrain;
+package frc.robot.subsystems;
 
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -43,7 +43,8 @@ import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 import frc.robot.commands.*;
 import frc.robot.Constants;
-import frc.robot.Constants.SwerveDriveConfig;
+import frc.robot.Constants.SwerveDriveConstants;
+import frc.robot.Constants.SwerveMath;
 import frc.robot.subsystems.*;
 
 import com.ctre.phoenix.sensors.CANCoder;
@@ -53,7 +54,7 @@ public class SwerveDrive extends SubsystemBase {
 
   private SwerveModule[] swerveModules = new SwerveModule[4];
   private AHRS gyro;
-  private SwerveDriveKinematics kinematics = getKinematics();
+  private SwerveDriveKinematics kinematics = SwerveMath.getKinematics();
   private SwerveDriveOdometry odometer;
 
   public SwerveDrive() {
@@ -71,7 +72,7 @@ public class SwerveDrive extends SubsystemBase {
         kinematics,
         getRotation2d(),
         getModulePositions(),
-        SwerveDriveConfig.STARTING_POSE);
+        SwerveDriveConstants.STARTING_POSE);
 
     new Thread(() -> {
       try {
@@ -102,20 +103,15 @@ public class SwerveDrive extends SubsystemBase {
     return gyro.getRotation2d();
   }
 
-  // Get gyro degree heading
+  // Get gyro degree heading (-180 - 180)
   public double getHeading() {
-    // double degrees = getRotation2d().getDegrees();
     return ((((getRotation2d().getDegrees() + 180.0) % 360.0) + 360) % 360) - 180.0;
-  }
-
-  public double getGyroVelocity() {
-    return Math.max(Math.max(gyro.getVelocityX(), gyro.getVelocityY()), gyro.getVelocityZ());
   }
 
   // Reset gyro heading
   public void zeroHeading() {
     gyro.reset();
-    gyro.setAngleAdjustment(SwerveDriveConfig.STARTING_ANGLE_OFFSET);
+    gyro.setAngleAdjustment(SwerveDriveConstants.STARTING_ANGLE_OFFSET);
   }
 
   // Drive the robot relative to the field
@@ -134,7 +130,7 @@ public class SwerveDrive extends SubsystemBase {
 
   // Set all modules target speed and directions
   public void setModuleStates(SwerveModuleState[] moduleStates) {
-    SwerveDriveKinematics.desaturateWheelSpeeds(moduleStates, SwerveModule.motorPowerToWheelVelocity(SwerveDriveConfig.MOTOR_POWER_HARD_CAP));
+    SwerveDriveKinematics.desaturateWheelSpeeds(moduleStates, SwerveMath.motorPowerToModuleVelocity(SwerveDriveConstants.MOTOR_POWER_HARD_CAP));
     for (int i = 0; i < 4; i++) {
       swerveModules[i].setTargetState(moduleStates[i]);
     }
@@ -169,13 +165,6 @@ public class SwerveDrive extends SubsystemBase {
     swerveModules[3].setTargetState(new SwerveModuleState(0.0, Rotation2d.fromDegrees(45.0)));
   }
 
-  // Tune PID values, only used in testing mode
-  public void setPID(double[] PID) {
-    for (SwerveModule module : swerveModules) {
-      module.setPID(PID);
-    }
-  }
-
   // Get total voltage through all modules
   public double getVoltage() {
     double totalVoltage = 0.0;
@@ -202,28 +191,6 @@ public class SwerveDrive extends SubsystemBase {
   // Set pose on field
   public void resetOdometry(Pose2d pose) {
     odometer.resetPosition(getRotation2d(), getModulePositions(), pose);
-  }
-
-  public static SwerveDriveKinematics getKinematics() {
-    return new SwerveDriveKinematics(
-        new Translation2d(SwerveDriveConfig.TRACKWIDTH_METERS / 2.0, SwerveDriveConfig.WHEELBASE_METERS / 2.0),
-        new Translation2d(SwerveDriveConfig.TRACKWIDTH_METERS / 2.0, -SwerveDriveConfig.WHEELBASE_METERS / 2.0),
-        new Translation2d(-SwerveDriveConfig.TRACKWIDTH_METERS / 2.0, SwerveDriveConfig.WHEELBASE_METERS / 2.0),
-        new Translation2d(-SwerveDriveConfig.TRACKWIDTH_METERS / 2.0, -SwerveDriveConfig.WHEELBASE_METERS / 2.0));
-  }
-
-  // Calculate max angular velocity from max module drive velocity
-  public static double wheelVelocityToRotationalVelocity(double maxDriveVelocity) {
-    return maxDriveVelocity / Math.hypot( // measured in radians/second
-        SwerveDriveConfig.TRACKWIDTH_METERS / 2.0,
-        SwerveDriveConfig.WHEELBASE_METERS / 2.0);
-  }
-
-  // Calculate max module drive velocity from max angular velocity
-  public static double rotationalVelocityToWheelVelocity(double maxAngularVelocity) {
-    return maxAngularVelocity * Math.hypot(
-        SwerveDriveConfig.TRACKWIDTH_METERS / 2.0,
-        SwerveDriveConfig.WHEELBASE_METERS / 2.0);
   }
 
   // Stop motors on all modules
