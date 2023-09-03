@@ -82,8 +82,8 @@ public class XBoxSwerve extends CommandBase {
     // double rightY = -controller.getRawAxis(3);
     // double leftTrigger = (controller.getRawAxis(5) + 1.0) / 2.0;
 
-    double maxDriveVelocity = SwerveMath.motorPowerToModuleVelocity(Constants.map(leftTrigger, 0.0, 1.0, SwerveDriveConstants.TELEOP_DRIVE_POWER, SwerveDriveConstants.TELEOP_DRIVE_BOOST_POWER));
-    double maxRotateVelocity = SwerveMath.wheelVelocityToRotationalVelocity(SwerveMath.motorPowerToModuleVelocity(SwerveDriveConstants.TELEOP_ROTATE_POWER));
+    double maxDriveVelocity = SwerveMath.motorPowerToWheelVelocity(Constants.map(leftTrigger, 0.0, 1.0, SwerveDriveConstants.TELEOP_DRIVE_POWER, SwerveDriveConstants.TELEOP_DRIVE_BOOST_POWER));
+    double maxRotateVelocity = SwerveMath.wheelVelocityToRotationalVelocity(SwerveMath.motorPowerToWheelVelocity(SwerveDriveConstants.TELEOP_ROTATE_POWER));
 
     // Left Stick
     double LStickMagnitude = Math.hypot(leftX, leftY);
@@ -127,7 +127,7 @@ public class XBoxSwerve extends CommandBase {
 
     double avgWheelPower = 0.0;
     for (SwerveModule module : swerveDrive.getModules()) {
-      avgWheelPower += SwerveMath.moduleVelocityToMotorPower(module.getVelocity());
+      avgWheelPower += SwerveMath.wheelVelocityToMotorPower(module.getVelocity());
     }
     avgWheelPower /= 4;
 

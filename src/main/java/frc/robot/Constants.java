@@ -108,7 +108,7 @@ public final class Constants {
     public static final double[] AUTO_Y_PID = { 5.0, 0.0, 0.0 }; // [TODO]
 
     // AUTONOMOUS
-    public static final double AUTO_MAX_DRIVE_VELOCITY = SwerveMath.motorPowerToModuleVelocity(TELEOP_DRIVE_POWER) / 4; // [TODO] measured in meters/sec
+    public static final double AUTO_MAX_DRIVE_VELOCITY = SwerveMath.motorPowerToWheelVelocity(TELEOP_DRIVE_POWER) / 4; // [TODO] measured in meters/sec
     public static final double AUTO_MAX_ACCELERATION = 9.80 / 4; // [TODO] measured in meters/sec^2
     public static final double AUTO_MAX_ROTATE_VELOCITY = SwerveMath.wheelVelocityToRotationalVelocity(AUTO_MAX_DRIVE_VELOCITY); // measured in radians/sec
     public static final double AUTO_MAX_ROTATE_ACCELERATION = SwerveMath.wheelVelocityToRotationalVelocity(AUTO_MAX_ACCELERATION); // measured in rad/sec^2
@@ -148,12 +148,12 @@ public final class Constants {
     }
 
     // Convert drive velocity in m/s to motor power from 0 - 1
-    public static double moduleVelocityToMotorPower(double velocity) {
+    public static double wheelVelocityToMotorPower(double velocity) {
       return velocity / SwerveDriveConstants.FULL_POWER_DRIVE_VELOCITY;
     }
 
     // Convert motor power from 0 - 1 to drive velocity in m/s
-    public static double motorPowerToModuleVelocity(double power) {
+    public static double motorPowerToWheelVelocity(double power) {
       return power * SwerveDriveConstants.FULL_POWER_DRIVE_VELOCITY;
     }
 

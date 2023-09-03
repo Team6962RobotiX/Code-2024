@@ -44,6 +44,8 @@ import com.ctre.phoenix.sensors.CANCoderStatusFrame;
 import com.ctre.phoenix.sensors.SensorInitializationStrategy;
 import com.ctre.phoenix.sensors.SensorTimeBase;
 
+import frc.robot.SelfCheck;
+
 public class SwerveModule {
   private CANSparkMax driveMotor;
   private RelativeEncoder relativeDriveEncoder;
@@ -51,8 +53,8 @@ public class SwerveModule {
   private RelativeEncoder relativeSteerEncoder;
   private CANCoder absoluteSteerEncoder;
   public PIDController steerController = new PIDController(0.0, 0.0, 0.0);
-  private SwerveModuleState targetState;
   private double targetVelocity = 0.0;
+  private double targetSteerRadians = 0.0;
   private String name;
 
   SwerveModule(int id) {
@@ -89,30 +91,30 @@ public class SwerveModule {
 
     steerController.setTolerance(Units.degreesToRadians(SwerveDriveConstants.MODULE_STEER_PID_TOLERANCE));
     steerController.enableContinuousInput(-Math.PI, Math.PI);
-    steerController.setPID(SwerveDriveConstants.MODULE_STEER_PID[0], SwerveDriveConstants.MODULE_STEER_PID[1], SwerveDriveConstants.MODULE_STEER_PID[2]);
+    steerController.setPID(
+        SwerveDriveConstants.MODULE_STEER_PID[0],
+        SwerveDriveConstants.MODULE_STEER_PID[1],
+        SwerveDriveConstants.MODULE_STEER_PID[2]);
 
-    SelfCheck.checkMotorFaults(new CANSparkMax[] { driveMotor, steerMotor });
+    selfCheck();
   }
 
   // Set target angle and velocity
   public void setTargetState(SwerveModuleState state) {
     state = SwerveModuleState.optimize(state, Rotation2d.fromRadians(getSteerRadians()));
 
-    targetState = state;
-
     targetVelocity = state.speedMetersPerSecond;
     if (Math.abs(targetVelocity) < SwerveDriveConstants.VELOCITY_DEADZONE) {
       targetVelocity = 0.0;
     }
-    double targetSteerRadians = state.angle.getRadians();
 
-    steerController.setSetpoint(targetSteerRadians);
+    targetSteerRadians = state.angle.getRadians();
   }
 
   // Drive motors to approximate target angle and velocity
   public void drive() { // Must be called periodically
-    double drivePower = SwerveMath.moduleVelocityToMotorPower(targetVelocity);
-    double steerPower = SwerveMath.steerVelocityToMotorPower(steerController.calculate(getSteerRadians()));
+    double drivePower = SwerveMath.wheelVelocityToMotorPower(targetVelocity);
+    double steerPower = SwerveMath.steerVelocityToMotorPower(steerController.calculate(getSteerRadians(), targetSteerRadians));
 
     if (Math.abs(drivePower) > SwerveDriveConstants.MOTOR_POWER_HARD_CAP) {
       drivePower = SwerveDriveConstants.MOTOR_POWER_HARD_CAP * Math.signum(drivePower);
@@ -131,7 +133,7 @@ public class SwerveModule {
 
   // Get the direction of the steering wheel (-PI - PI)
   public double getSteerRadians() {
-    return getSteerDegrees() / 180 * Math.PI;
+    return getSteerDegrees() / 180.0 * Math.PI;
   }
 
   // Get the direction of the steering wheel (-180 - 180)
@@ -147,11 +149,6 @@ public class SwerveModule {
   // Get current angle and velocity (SwerveModulePosition)
   public SwerveModulePosition getPosition() {
     return new SwerveModulePosition(relativeDriveEncoder.getPosition(), Rotation2d.fromRadians(getSteerRadians()));
-  }
-
-  // Get target angle and velocity
-  public SwerveModuleState getTargetState() {
-    return targetState;
   }
 
   // Get name of module

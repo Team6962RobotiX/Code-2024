@@ -50,6 +50,8 @@ import frc.robot.subsystems.*;
 import com.ctre.phoenix.sensors.CANCoder;
 import com.kauailabs.navx.frc.AHRS;
 
+import frc.robot.SelfCheck;
+
 public class SwerveDrive extends SubsystemBase {
 
   private SwerveModule[] swerveModules = new SwerveModule[4];
@@ -105,7 +107,7 @@ public class SwerveDrive extends SubsystemBase {
 
   // Get gyro degree heading (-180 - 180)
   public double getHeading() {
-    return ((((getRotation2d().getDegrees() + 180.0) % 360.0) + 360) % 360) - 180.0;
+    return ((((getRotation2d().getDegrees() + 180.0) % 360.0) + 360.0) % 360.0) - 180.0;
   }
 
   // Reset gyro heading
@@ -130,7 +132,7 @@ public class SwerveDrive extends SubsystemBase {
 
   // Set all modules target speed and directions
   public void setModuleStates(SwerveModuleState[] moduleStates) {
-    SwerveDriveKinematics.desaturateWheelSpeeds(moduleStates, SwerveMath.motorPowerToModuleVelocity(SwerveDriveConstants.MOTOR_POWER_HARD_CAP));
+    SwerveDriveKinematics.desaturateWheelSpeeds(moduleStates, SwerveMath.motorPowerToWheelVelocity(SwerveDriveConstants.MOTOR_POWER_HARD_CAP));
     for (int i = 0; i < 4; i++) {
       swerveModules[i].setTargetState(moduleStates[i]);
     }
