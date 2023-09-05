@@ -146,8 +146,13 @@ public class SwerveModule {
     return relativeDriveEncoder.getVelocity();
   }
 
+  // Get distance traveled in m
+  public double getDistanceTraveled() {
+    return relativeDriveEncoder.getPosition();
+  }
+
   // Get current angle and velocity (SwerveModulePosition)
-  public SwerveModulePosition getPosition() {
+  public SwerveModulePosition getModulePosition() {
     return new SwerveModulePosition(relativeDriveEncoder.getPosition(), Rotation2d.fromRadians(getSteerRadians()));
   }
 

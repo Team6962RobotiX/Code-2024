@@ -54,13 +54,13 @@ public final class Constants {
       -------------------------------------
     */
 
-    public static final double TELEOP_DRIVE_POWER = 0.2; // Percent driving power (0.2 = 20%), left trigger bypasses this value
+    public static final double TELEOP_DRIVE_POWER = 0.3; // Percent driving power (0.2 = 20%), left trigger bypasses this value
     public static final double TELEOP_DRIVE_BOOST_POWER = 1.0; // Percent driving power when holding down the left trigger
     public static final double TELEOP_ROTATE_POWER = 0.4; // Percent rotating power (0.4 = 40%)
 
     public static final double MOTOR_POWER_HARD_CAP = 1.0; // Only use for testing, otherwise set to 1.0
 
-    public static final double JOYSTICK_DEADZONE = 0.1; // If joystick values are less than this (0.2 = 20%) than we just read 0
+    public static final double JOYSTICK_DEADZONE = 0.05; // If joystick values are less than this (0.2 = 20%) than we just read 0
     public static final double VELOCITY_DEADZONE = 0.05; // speed at which we stop moving all together
 
     public static final int TOTAL_CURRENT_LIMIT = 300; // [TODO] Default is around 640 Amps (also drive motors have double the current allocation than steer motors)
@@ -89,18 +89,18 @@ public final class Constants {
     public static final double FULL_POWER_DRIVE_MOTOR_RPM = 5676.0; // VERY IMPORTANT DO NOT CHANGE
     public static final double FULL_POWER_STEER_MOTOR_RPM = 5676.0; // VERY IMPORTANT DO NOT CHANGE
 
-    public static final double DRIVE_METERS_PER_MOTOR_ROTATION = DRIVE_GEAR_REDUCTION / 60.0 * WHEEL_DIAMETER * Math.PI;
-    public static final double STEER_RADIANS_PER_MOTOR_ROTATION = STEER_GEAR_REDUCTION / 60.0 * Math.PI * 2.0;
+    public static final double DRIVE_METERS_PER_MOTOR_ROTATION = DRIVE_GEAR_REDUCTION * WHEEL_DIAMETER * Math.PI;
+    public static final double STEER_RADIANS_PER_MOTOR_ROTATION = STEER_GEAR_REDUCTION * Math.PI * 2.0;
 
-    public static final double FULL_POWER_DRIVE_VELOCITY = FULL_POWER_DRIVE_MOTOR_RPM * DRIVE_METERS_PER_MOTOR_ROTATION; // m/s (should be around 4.4196)
+    public static final double FULL_POWER_DRIVE_VELOCITY = (FULL_POWER_DRIVE_MOTOR_RPM / 60) * DRIVE_METERS_PER_MOTOR_ROTATION; // m/s (should be around 4.4196)
     public static final double FULL_POWER_ROTATE_VELOCITY = SwerveMath.wheelVelocityToRotationalVelocity(FULL_POWER_DRIVE_VELOCITY); // rad/s (should be around 4.4196)
-    public static final double FULL_POWER_STEER_VELOCITY = FULL_POWER_STEER_MOTOR_RPM * STEER_RADIANS_PER_MOTOR_ROTATION; // rad/s
+    public static final double FULL_POWER_STEER_VELOCITY = (FULL_POWER_STEER_MOTOR_RPM / 60) * STEER_RADIANS_PER_MOTOR_ROTATION; // rad/s
 
     // PID
     public static final double[] MODULE_STEER_PID = { 15.0, 0.0, 0.0 }; // [TODO]
     public static final double MODULE_STEER_PID_TOLERANCE = 1.0; // In degrees
 
-    public static final double[] TELEOP_ROTATE_PID = { 5.0, 0.0, 0.0 }; // [TODO]
+    public static final double[] TELEOP_ROTATE_PID = { 4.0, 0.0, 0.0 }; // [TODO]
     public static final double TELEOP_ROTATE_PID_TOLERANCE = 1.0; // In degrees
 
     public static final double[] AUTO_ROTATE_PID = { 10.0, 0.0, 0.0 }; // [TODO]

@@ -31,7 +31,6 @@ public class Dashboard extends SubsystemBase {
   private SwerveDrive swerveDrive;
   private ShuffleboardTab dashboardTab;
   private ShuffleboardLayout swerveData;
-  private AHRS gyro = new AHRS(SPI.Port.kMXP);
   private final Field2d field = new Field2d();
 
   private ComplexWidget gyroEntry;
@@ -69,7 +68,7 @@ public class Dashboard extends SubsystemBase {
 
     x += 2;
 
-    gyroEntry = swerveData.add(gyro)
+    gyroEntry = swerveData.add(swerveDrive.getGyro())
         .withProperties(Map.of("name", "Robot Heading"))
         .withPosition(x, 1);
 

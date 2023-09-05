@@ -46,6 +46,7 @@ import com.ctre.phoenix.sensors.CANCoderFaults;
 import com.ctre.phoenix.sensors.CANCoderStatusFrame;
 import com.ctre.phoenix.sensors.SensorInitializationStrategy;
 import com.ctre.phoenix.sensors.SensorTimeBase;
+import com.kauailabs.navx.frc.AHRS;
 
 public final class SelfCheck {
 

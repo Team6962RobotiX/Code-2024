@@ -100,6 +100,12 @@ public class SwerveDrive extends SubsystemBase {
     // This method will be called once per scheduler run during simulation
   }
 
+  
+  // Get gyro Rotation2d heading
+  public AHRS getGyro() {
+    return gyro;
+  }
+
   // Get gyro Rotation2d heading
   public Rotation2d getRotation2d() {
     return gyro.getRotation2d();
@@ -141,10 +147,10 @@ public class SwerveDrive extends SubsystemBase {
   // Get all modules speed and directions
   public SwerveModulePosition[] getModulePositions() {
     return new SwerveModulePosition[] {
-        swerveModules[0].getPosition(),
-        swerveModules[1].getPosition(),
-        swerveModules[2].getPosition(),
-        swerveModules[3].getPosition()
+        swerveModules[0].getModulePosition(),
+        swerveModules[1].getModulePosition(),
+        swerveModules[2].getModulePosition(),
+        swerveModules[3].getModulePosition()
     };
   }
 
