@@ -159,8 +159,18 @@ public class XBoxSwerve extends CommandBase {
     //   dashboard.initialize();
     // }
 
-    if (controller.getLeftBumper() || controller.getRightBumper()) {
+    if (controller.getLeftBumper() && controller.getRightBumper()) {
       swerveDrive.robotOrientedDrive(yVelocity, xVelocity, rightX * maxRotateVelocity);
+      return;
+    }
+
+    if (controller.getLeftBumper()) {
+      swerveDrive.robotOrientedDrive(yVelocity, xVelocity, rotateVelocity);
+      return;
+    }
+
+    if (controller.getRightBumper()) {
+      swerveDrive.fieldOrientedDrive(yVelocity, xVelocity, rightX * maxRotateVelocity);
       return;
     }
 

@@ -21,6 +21,7 @@ import java.util.List;
 import com.ctre.phoenix.sensors.CANCoder;
 
 import edu.wpi.first.hal.ConstantsJNI;
+import edu.wpi.first.math.controller.HolonomicDriveController;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.controller.RamseteController;
@@ -28,6 +29,7 @@ import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.spline.Spline.ControlVector;
 import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.math.trajectory.TrajectoryConfig;
 import edu.wpi.first.math.trajectory.TrajectoryGenerator;
@@ -62,6 +64,8 @@ public class RobotContainer {
 
     // Configure the trigger bindings
     configureBindings();
+
+    dashboard.initialize();
   }
 
   private void configureBindings() {
@@ -72,25 +76,25 @@ public class RobotContainer {
   public Command getAutonomousCommand() {
     TrajectoryConfig TrajectoryConfig = new TrajectoryConfig(SwerveDriveConstants.AUTO_MAX_DRIVE_VELOCITY, SwerveDriveConstants.AUTO_MAX_ACCELERATION)
         .setKinematics(SwerveMath.getKinematics());
-
+    
     Trajectory trajectory = TrajectoryGenerator.generateTrajectory(
         MotionRecorder.readData(),
         TrajectoryConfig);
 
     PIDController xController = new PIDController(
+        SwerveDriveConstants.AUTO_X_PID[0],
         SwerveDriveConstants.AUTO_X_PID[1],
-        SwerveDriveConstants.AUTO_X_PID[2],
-        SwerveDriveConstants.AUTO_X_PID[0]);
+        SwerveDriveConstants.AUTO_X_PID[2]);
     PIDController yController = new PIDController(
+        SwerveDriveConstants.AUTO_Y_PID[0],
         SwerveDriveConstants.AUTO_Y_PID[1],
-        SwerveDriveConstants.AUTO_Y_PID[2],
-        SwerveDriveConstants.AUTO_Y_PID[0]);
+        SwerveDriveConstants.AUTO_Y_PID[2]);
     ProfiledPIDController angleController = new ProfiledPIDController(
+        SwerveDriveConstants.AUTO_ROTATE_PID[0],
         SwerveDriveConstants.AUTO_ROTATE_PID[1],
         SwerveDriveConstants.AUTO_ROTATE_PID[2],
-        SwerveDriveConstants.AUTO_ROTATE_PID[0],
         SwerveDriveConstants.AUTO_ANGLE_CONSTRAINTS);
-    angleController.enableContinuousInput(0, 360);
+    angleController.enableContinuousInput(-Math.PI, Math.PI);
 
     SwerveControllerCommand swerveControllerCommand = new SwerveControllerCommand(
         trajectory,
@@ -101,7 +105,6 @@ public class RobotContainer {
         angleController,
         drive::setModuleStates,
         drive);
-
     // return null;
 
     return new SequentialCommandGroup(

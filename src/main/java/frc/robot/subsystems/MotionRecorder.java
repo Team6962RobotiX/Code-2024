@@ -60,7 +60,7 @@ public class MotionRecorder extends SubsystemBase {
 
     Pose2d pose = swerveDrive.getPose();
 
-    positionData.add(pose.getTranslation().getX() + "," + pose.getTranslation().getY() + "," + pose.getRotation().getDegrees());
+    positionData.add(pose.getTranslation().getX() + "," + pose.getTranslation().getY() + "," + pose.getRotation().getRadians());
 
     // This method will be called once per scheduler run
   }
@@ -86,7 +86,7 @@ public class MotionRecorder extends SubsystemBase {
           newPositionData.add(new Pose2d(
               Double.parseDouble(values[0]),
               Double.parseDouble(values[1]),
-              Rotation2d.fromDegrees(Double.parseDouble(values[2]))));
+              Rotation2d.fromRadians(Double.parseDouble(values[2]))));
         }
       }
     } catch (Exception e) {

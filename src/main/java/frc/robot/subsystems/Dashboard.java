@@ -70,17 +70,17 @@ public class Dashboard extends SubsystemBase {
 
     gyroEntry = swerveData.add(swerveDrive.getGyro())
         .withProperties(Map.of("name", "Robot Heading"))
-        .withPosition(x, 1);
+        .withPosition(x, 0);
 
-    // totalVoltage = swerveData.add("Voltage", 0)
-    //     .withWidget(BuiltInWidgets.kDial)
-    //     .withProperties(Map.of("min", 0, "max", 24 * 8))
-    //     .getEntry();
+    totalVoltage = swerveData.add("Voltage", 0)
+        .withWidget(BuiltInWidgets.kDial)
+        .withProperties(Map.of("min", 0.0, "max", 24.0 * 8.0))
+        .getEntry();
 
-    // totalCurrent = swerveData.add("Current", 0)
-    //     .withWidget(BuiltInWidgets.kDial)
-    //     .withProperties(Map.of("min", 0, "max", SwerveDriveConfig.TOTAL_CURRENT_LIMIT))
-    //     .getEntry();
+    totalCurrent = swerveData.add("Current", 0)
+        .withWidget(BuiltInWidgets.kDial)
+        .withProperties(Map.of("min", 0.0, "max", SwerveDriveConstants.TOTAL_CURRENT_LIMIT))
+        .getEntry();
 
     // dashboardTab.add("field", field).withPosition(x, 0).withSize(3, 2);
 
@@ -89,31 +89,32 @@ public class Dashboard extends SubsystemBase {
     SwerveModule[] modules = swerveDrive.getModules();
 
     for (int i = 0; i < 4; i++) {
+      int _x = (i + 1) * 2 + x;
+
       moduleDataLists[i] = dashboardTab.getLayout(modules[i].getName() + " Module", BuiltInLayouts.kList)
           .withSize(2, 6)
-          .withPosition(x, 0);
+          .withPosition(_x, 0);
 
-      moduleAngles[i] = moduleDataLists[i]
-          .add("Angle", 0)
-          .withWidget(BuiltInWidgets.kGyro)
-          .withPosition(x, 1)
+      // moduleAngles[i] = moduleDataLists[i]
+      //     .add("Angle", 0)
+      //     .withWidget(BuiltInWidgets.kDial)
+      //     .withProperties(Map.of("min", -180.0, "max", 180.0))
+      //     .getEntry();
+      moduleSpeeds[i] = moduleDataLists[i]
+          .add("Drive Speed", 0)
+          .withWidget(BuiltInWidgets.kDial)
+          .withProperties(Map.of("min", 0.0, "max", SwerveDriveConstants.MOTOR_POWER_HARD_CAP))
           .getEntry();
-      // moduleSpeeds[i] = moduleDataLists[i]
-      //     .add("Drive Speed", 0)
-      //     .withWidget(BuiltInWidgets.kDial)
-      //     .withProperties(Map.of("min", 0, "max", SwerveDriveConfig.MOTOR_POWER_HARD_CAP))
-      //     .getEntry();
-      // moduleCurrents[i] = moduleDataLists[i]
-      //     .add("Current", 0)
-      //     .withWidget(BuiltInWidgets.kDial)
-      //     .withProperties(Map.of("min", 0, "max", SwerveDriveConfig.TOTAL_CURRENT_LIMIT / 4))
-      //     .getEntry();
-      // moduleVoltages[i] = moduleDataLists[i]
-      //     .add("Voltage", 0)
-      //     .withWidget(BuiltInWidgets.kDial)
-      //     .withProperties(Map.of("min", 0, "max", 24 * 2))
-      //     .getEntry();
-      x += 2;
+      moduleCurrents[i] = moduleDataLists[i]
+          .add("Current", 0)
+          .withWidget(BuiltInWidgets.kDial)
+          .withProperties(Map.of("min", 0, "max", SwerveDriveConstants.TOTAL_CURRENT_LIMIT / 4))
+          .getEntry();
+      moduleVoltages[i] = moduleDataLists[i]
+          .add("Voltage", 0)
+          .withWidget(BuiltInWidgets.kDial)
+          .withProperties(Map.of("min", 0, "max", 24 * 2))
+          .getEntry();
     }
   }
 
@@ -129,14 +130,14 @@ public class Dashboard extends SubsystemBase {
     totalVoltage.setDouble(swerveDrive.getVoltage());
     totalCurrent.setDouble(swerveDrive.getCurrent());
 
-    field.setRobotPose(swerveDrive.getPose());
+    // field.setRobotPose(swerveDrive.getPose());
 
     SwerveModule[] modules = swerveDrive.getModules();
 
     for (int i = 0; i < 4; i++) {
       SwerveModule module = modules[i];
 
-      moduleAngles[i].setDouble(module.getSteerRadians());
+      // moduleAngles[i].setDouble(module.getSteerDegrees());
       moduleSpeeds[i].setDouble(Math.abs(module.getVelocity()));
       moduleCurrents[i].setDouble(module.getCurrent());
       moduleVoltages[i].setDouble(module.getVoltage());
