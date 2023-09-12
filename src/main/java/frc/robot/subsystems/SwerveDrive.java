@@ -167,9 +167,9 @@ public class SwerveDrive extends SubsystemBase {
 
   // This creates an "X" pattern with the wheels which makes the robot very hard to move
   public void groundModules() {
-    swerveModules[0].setTargetState(new SwerveModuleState(0.0, Rotation2d.fromDegrees(-45.0)));
+    swerveModules[0].setTargetState(new SwerveModuleState(0.0, Rotation2d.fromDegrees(45.0)));
     swerveModules[1].setTargetState(new SwerveModuleState(0.0, Rotation2d.fromDegrees(-45.0)));
-    swerveModules[2].setTargetState(new SwerveModuleState(0.0, Rotation2d.fromDegrees(45.0)));
+    swerveModules[2].setTargetState(new SwerveModuleState(0.0, Rotation2d.fromDegrees(-45.0)));
     swerveModules[3].setTargetState(new SwerveModuleState(0.0, Rotation2d.fromDegrees(45.0)));
   }
 

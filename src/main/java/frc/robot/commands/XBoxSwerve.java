@@ -51,6 +51,8 @@ public class XBoxSwerve extends CommandBase {
 
   private double targetRotateAngle = 0.0;
 
+  private boolean absoluteRotation = false;
+
   public XBoxSwerve(SwerveDrive swerveDrive, Dashboard dashboard, Supplier<XboxController> xboxSupplier) {
     this.swerveDrive = swerveDrive;
     this.dashboard = dashboard;
@@ -118,9 +120,10 @@ public class XBoxSwerve extends CommandBase {
     double maxRotateVelocity = SwerveMath.wheelVelocityToRotationalVelocity(SwerveMath.motorPowerToWheelVelocity(SwerveDriveConstants.TELEOP_ROTATE_POWER));
 
     if (controller.getPOV() != -1) {
-      targetRotateAngle = controller.getPOV();
+      targetRotateAngle = (((360.0 - controller.getPOV()) % 360.0) + 360.0) % 360.0;
+      absoluteRotation = true;
     }
-    targetRotateAngle += leftY * (SwerveMath.wheelVelocityToRotationalVelocity(SwerveMath.motorPowerToWheelVelocity(SwerveDriveConstants.TELEOP_ROTATE_POWER)) / Math.PI * 180.0);
+
     targetRotateAngle = ((targetRotateAngle % 360.0) + 360.0) % 360.0;
 
     // Left Stick
@@ -136,11 +139,32 @@ public class XBoxSwerve extends CommandBase {
 
     // Right Stick
     double LStickMagnitude = Math.hypot(leftX, leftY);
+    double RStickMagnitude = Math.hypot(rightX, rightY);
 
-    if (LStickMagnitude > SwerveDriveConstants.JOYSTICK_DEADZONE) {
-      swerveDrive.fieldOrientedDrive(yVelocity, xVelocity, rotateVelocity);
+    if (!absoluteRotation) {
+      targetRotateAngle = swerveDrive.getHeading();
+    } else if (Math.abs(rotateVelocity) < SwerveMath.wheelVelocityToRotationalVelocity(SwerveDriveConstants.VELOCITY_DEADZONE)) {
+      absoluteRotation = false;
+    }
+
+    if (RStickMagnitude > SwerveDriveConstants.JOYSTICK_DEADZONE) {
+      rotateVelocity = rightX * maxRotateVelocity;
+      absoluteRotation = false;
+    }
+
+    if (RStickMagnitude > SwerveDriveConstants.JOYSTICK_DEADZONE || LStickMagnitude > SwerveDriveConstants.JOYSTICK_DEADZONE) {
+      if (Math.hypot(yVelocity, xVelocity) > rightY * maxDriveVelocity) {
+        swerveDrive.fieldOrientedDrive(yVelocity, xVelocity, rotateVelocity);
+      } else {
+        swerveDrive.robotOrientedDrive(rightY * maxDriveVelocity, 0.0, rotateVelocity);
+      }
     } else {
-      swerveDrive.robotOrientedDrive(rightY * maxDriveVelocity, 0.0, rotateVelocity);
+      if (absoluteRotation) {
+        swerveDrive.robotOrientedDrive(0.0, 0.0, rotateVelocity);
+      } else {
+        swerveDrive.robotOrientedDrive(0.0, 0.0, 0.0);
+        swerveDrive.groundModules();
+      }
     }
 
     if (!controller.isConnected()) {
@@ -155,6 +179,7 @@ public class XBoxSwerve extends CommandBase {
 
     if (controller.getYButton()) {
       swerveDrive.zeroHeading();
+      targetRotateAngle = swerveDrive.getHeading();
       // dashboard.initialize();
     }
 

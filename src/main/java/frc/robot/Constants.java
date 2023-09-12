@@ -97,7 +97,7 @@ public final class Constants {
     public static final double FULL_POWER_STEER_VELOCITY = (FULL_POWER_STEER_MOTOR_RPM / 60) * STEER_RADIANS_PER_MOTOR_ROTATION; // rad/s
 
     // PID
-    public static final double[] MODULE_STEER_PID = { 15.0, 0.0, 0.0 }; // [TODO]
+    public static final double[] MODULE_STEER_PID = { 10.0, 0.0, 0.0 }; // [TODO]
     public static final double MODULE_STEER_PID_TOLERANCE = 1.0; // In degrees
 
     public static final double[] TELEOP_ROTATE_PID = { 4.0, 0.0, 0.0 }; // [TODO]
