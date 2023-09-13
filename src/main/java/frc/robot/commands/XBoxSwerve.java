@@ -112,10 +112,10 @@ public class XBoxSwerve extends CommandBase {
     }
 
     double rightStickAngle = (((-Math.atan2(rightY, rightX) / Math.PI * 180.0) + 180.0 + 90.0) % 360.0) - 180.0;
-    rightStickAngle /= (360 / 8);
-    rightStickAngle = Math.round(rightStickAngle);
-    rightStickAngle *= (360 / 8);
-
+    // rightStickAngle /= (360.0 / 16.0);
+    // rightStickAngle = Math.round(rightStickAngle);
+    // rightStickAngle *= (360.0 / 16.0);
+    System.out.println(rightStickAngle);
     targetRotateAngle = rightStickAngle;
 
     // For when doing simulation mode
@@ -160,7 +160,7 @@ public class XBoxSwerve extends CommandBase {
       swerveDrive.robotOrientedDrive(yVelocity, xVelocity, rotateVelocity);
     }
 
-    if (Math.hypot(yVelocity, xVelocity) < SwerveDriveConstants.VELOCITY_DEADZONE && rotateVelocity < SwerveMath.wheelVelocityToRotationalVelocity(SwerveDriveConstants.VELOCITY_DEADZONE)) {
+    if (Math.hypot(yVelocity, xVelocity) < SwerveDriveConstants.VELOCITY_DEADZONE && Math.abs(rotateVelocity) < SwerveMath.wheelVelocityToRotationalVelocity(SwerveDriveConstants.VELOCITY_DEADZONE)) {
       swerveDrive.groundModules();
     }
 
