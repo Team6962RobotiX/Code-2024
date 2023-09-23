@@ -31,6 +31,7 @@ import com.revrobotics.RelativeEncoder;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 
@@ -47,6 +48,7 @@ public class XBoxSwerve extends CommandBase {
 
   private double yVelocity = 0.0;
   private double xVelocity = 0.0;
+  SlewRateLimiter slewLimiter = new SlewRateLimiter(SwerveDriveConstants.TELEOP_MAX_ACCELERATION);
   private double rotateVelocity = 0.0;
 
   private double targetRotateAngle = 0.0;
@@ -153,6 +155,12 @@ public class XBoxSwerve extends CommandBase {
       swerveDrive.stopModules();
       return;
     }
+
+    double velocityUnfiltered = Math.hypot(xVelocity, yVelocity);
+    double velocityFiltered = slewLimiter.calculate(velocityUnfiltered);
+
+    xVelocity = xVelocity * velocityFiltered / velocityUnfiltered;
+    yVelocity = yVelocity * velocityFiltered / velocityUnfiltered;
 
     swerveDrive.fieldOrientedDrive(yVelocity, xVelocity, rotateVelocity);
 
