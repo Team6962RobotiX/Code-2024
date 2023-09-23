@@ -8,6 +8,7 @@ import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -56,6 +57,7 @@ public class SwerveModule {
   private double targetVelocity = 0.0;
   private double targetSteerRadians = 0.0;
   private String name;
+  SlewRateLimiter slewLimiter = new SlewRateLimiter(SwerveDriveConstants.WHEEL_MAX_ACCELERATION);
 
   SwerveModule(int id) {
     driveMotor = new CANSparkMax(CAN.SWERVE_DRIVE[id], MotorType.kBrushless);
@@ -124,6 +126,8 @@ public class SwerveModule {
     if (Math.abs(steerPower) > SwerveDriveConstants.MOTOR_POWER_HARD_CAP) {
       steerPower = SwerveDriveConstants.MOTOR_POWER_HARD_CAP * Math.signum(steerPower);
     }
+
+    drivePower = SwerveMath.wheelVelocityToMotorPower(slewLimiter.calculate(SwerveMath.motorPowerToWheelVelocity(drivePower)));
 
     driveMotor.set(drivePower);
     steerMotor.set(steerPower);

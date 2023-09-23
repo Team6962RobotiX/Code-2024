@@ -48,7 +48,6 @@ public class XBoxSwerve extends CommandBase {
 
   private double yVelocity = 0.0;
   private double xVelocity = 0.0;
-  SlewRateLimiter slewLimiter = new SlewRateLimiter(SwerveDriveConstants.TELEOP_MAX_ACCELERATION);
   private double rotateVelocity = 0.0;
 
   private double targetRotateAngle = 0.0;
@@ -103,12 +102,12 @@ public class XBoxSwerve extends CommandBase {
       }
     }
 
-    if (Math.hypot(leftX, leftY) < SwerveDriveConstants.JOYSTICK_DEADZONE) {
+    if (Math.hypot(leftX, leftY) < SwerveDriveConstants.JOYSTICK_DEADZONE * 2) {
       leftX = 0.0;
       leftY = 0.0;
     }
 
-    if (Math.hypot(rightX, rightY) < SwerveDriveConstants.JOYSTICK_DEADZONE) {
+    if (Math.hypot(rightX, rightY) < SwerveDriveConstants.JOYSTICK_DEADZONE * 2) {
       rightX = 0.0;
       rightY = 0.0;
     }
@@ -117,7 +116,6 @@ public class XBoxSwerve extends CommandBase {
     // rightStickAngle /= (360.0 / 16.0);
     // rightStickAngle = Math.round(rightStickAngle);
     // rightStickAngle *= (360.0 / 16.0);
-    System.out.println(rightStickAngle);
     targetRotateAngle = rightStickAngle;
 
     // For when doing simulation mode
@@ -156,19 +154,19 @@ public class XBoxSwerve extends CommandBase {
       return;
     }
 
-    double velocityUnfiltered = Math.hypot(xVelocity, yVelocity);
-    double velocityFiltered = slewLimiter.calculate(velocityUnfiltered);
-
-    xVelocity = xVelocity * velocityFiltered / velocityUnfiltered;
-    yVelocity = yVelocity * velocityFiltered / velocityUnfiltered;
-
     swerveDrive.fieldOrientedDrive(yVelocity, xVelocity, rotateVelocity);
 
     if (controller.getLeftBumper()) {
       swerveDrive.robotOrientedDrive(yVelocity, xVelocity, rotateVelocity);
     }
 
-    if (Math.hypot(yVelocity, xVelocity) < SwerveDriveConstants.VELOCITY_DEADZONE && Math.abs(rotateVelocity) < SwerveMath.wheelVelocityToRotationalVelocity(SwerveDriveConstants.VELOCITY_DEADZONE)) {
+    boolean stopped = true;
+    for (SwerveModule module : swerveDrive.getModules()) {
+      if (module.getVelocity() > SwerveDriveConstants.VELOCITY_DEADZONE) {
+        stopped = false;
+      }
+    }
+    if (stopped && Math.hypot(yVelocity, xVelocity) < SwerveDriveConstants.VELOCITY_DEADZONE && Math.abs(rotateVelocity) < SwerveMath.wheelVelocityToRotationalVelocity(SwerveDriveConstants.VELOCITY_DEADZONE)) {
       swerveDrive.groundModules();
     }
 
