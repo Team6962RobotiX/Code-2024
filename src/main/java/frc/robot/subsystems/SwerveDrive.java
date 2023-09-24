@@ -58,10 +58,8 @@ public class SwerveDrive extends SubsystemBase {
   private AHRS gyro;
   private SwerveDriveKinematics kinematics = SwerveMath.getKinematics();
   private SwerveDriveOdometry odometer;
-  private SlewRateLimiter strafeSlew = new SlewRateLimiter(SwerveDriveConstants.STRAFE_MAX_ACCELERATION);
-  private SlewRateLimiter forwardSlew = new SlewRateLimiter(SwerveDriveConstants.FORWARD_MAX_ACCELERATION);
-
-  private boolean slewUpdated = false;
+  private SlewRateLimiter accelerationLimiter = new SlewRateLimiter(SwerveDriveConstants.MAX_ACCELERATION);
+  private double driveDirection = 0.0;
 
   public SwerveDrive() {
     try {
@@ -97,12 +95,6 @@ public class SwerveDrive extends SubsystemBase {
 
     selfCheckModules();
     SelfCheck.checkPDPFaults();
-
-    if (!slewUpdated) {
-      forwardSlew.calculate(0.0);
-      strafeSlew.calculate(0.0);
-    }
-    slewUpdated = false;
   }
 
   @Override
@@ -110,7 +102,6 @@ public class SwerveDrive extends SubsystemBase {
     // This method will be called once per scheduler run during simulation
   }
 
-  
   // Get gyro Rotation2d heading
   public AHRS getGyro() {
     return gyro;
@@ -134,6 +125,17 @@ public class SwerveDrive extends SubsystemBase {
 
   // Drive the robot relative to the field
   public void fieldOrientedDrive(double xVelocity, double yVelocity, double rotation) { // m/s and rad/s
+    double velocity = Math.hypot(xVelocity, yVelocity);
+
+    if (velocity != 0) {
+      driveDirection = Math.atan2(yVelocity, xVelocity);
+    }
+
+    velocity = accelerationLimiter.calculate(velocity);
+
+    xVelocity = velocity * Math.cos(driveDirection);
+    yVelocity = velocity * Math.sin(driveDirection);
+
     Rotation2d robotAngle = getRotation2d();
     ChassisSpeeds speeds = ChassisSpeeds.fromFieldRelativeSpeeds(xVelocity, yVelocity, rotation, robotAngle);
     SwerveModuleState moduleStates[] = kinematics.toSwerveModuleStates(speeds);
@@ -144,10 +146,9 @@ public class SwerveDrive extends SubsystemBase {
   public void robotOrientedDrive(double forward, double strafe, double rotation) { // m/s and rad/s
     Rotation2d robotAngle = getRotation2d();
     fieldOrientedDrive(
-      forward * robotAngle.getCos() - strafe * robotAngle.getSin(),
-      forward * robotAngle.getSin() + strafe * robotAngle.getCos(),
-      rotation
-    );
+        forward * robotAngle.getCos() - strafe * robotAngle.getSin(),
+        forward * robotAngle.getSin() + strafe * robotAngle.getCos(),
+        rotation);
   }
 
   // Set all modules target speed and directions
