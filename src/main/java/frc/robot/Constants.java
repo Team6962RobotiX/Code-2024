@@ -58,6 +58,7 @@ public final class Constants {
     public static final double TELEOP_DRIVE_BOOST_POWER = 1.0; // Percent driving power when holding down the left trigger
     public static final double TELEOP_ROTATE_POWER = 0.5; // Percent rotating power (0.4 = 40%)
     public static final double MAX_ACCELERATION = 6.0;
+    public static final double WHEEL_MAX_ACCELERATION = 15.0;
 
     public static final double MOTOR_POWER_HARD_CAP = 1.0; // Only use for testing, otherwise set to 1.0
 

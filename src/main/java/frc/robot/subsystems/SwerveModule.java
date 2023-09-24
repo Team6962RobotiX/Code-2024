@@ -57,7 +57,7 @@ public class SwerveModule {
   private double targetVelocity = 0.0;
   private double targetSteerRadians = 0.0;
   private String name;
-  // SlewRateLimiter slewLimiter = new SlewRateLimiter(SwerveDriveConstants.WHEEL_MAX_ACCELERATION);
+  SlewRateLimiter accelerationLimiter = new SlewRateLimiter(SwerveDriveConstants.WHEEL_MAX_ACCELERATION);
 
   SwerveModule(int id) {
     driveMotor = new CANSparkMax(CAN.SWERVE_DRIVE[id], MotorType.kBrushless);
@@ -124,7 +124,7 @@ public class SwerveModule {
       steerPower = SwerveDriveConstants.MOTOR_POWER_HARD_CAP * Math.signum(steerPower);
     }
 
-    // drivePower = SwerveMath.wheelVelocityToMotorPower(slewLimiter.calculate(SwerveMath.motorPowerToWheelVelocity(drivePower)));
+    drivePower = SwerveMath.wheelVelocityToMotorPower(accelerationLimiter.calculate(SwerveMath.motorPowerToWheelVelocity(drivePower)));
 
     driveMotor.set(drivePower);
     steerMotor.set(steerPower);
