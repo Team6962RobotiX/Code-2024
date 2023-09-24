@@ -106,10 +106,7 @@ public class SwerveModule {
     state = SwerveModuleState.optimize(state, Rotation2d.fromRadians(getSteerRadians()));
 
     targetVelocity = state.speedMetersPerSecond;
-    if (Math.abs(targetVelocity) < SwerveDriveConstants.VELOCITY_DEADZONE) {
-      targetVelocity = 0.0;
-    }
-
+    
     targetSteerRadians = state.angle.getRadians();
   }
 
