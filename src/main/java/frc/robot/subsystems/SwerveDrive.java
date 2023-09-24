@@ -7,7 +7,7 @@ package frc.robot.subsystems;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-
+import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -58,6 +58,10 @@ public class SwerveDrive extends SubsystemBase {
   private AHRS gyro;
   private SwerveDriveKinematics kinematics = SwerveMath.getKinematics();
   private SwerveDriveOdometry odometer;
+  private SlewRateLimiter strafeSlew = new SlewRateLimiter(SwerveDriveConstants.STRAFE_MAX_ACCELERATION);
+  private SlewRateLimiter forwardSlew = new SlewRateLimiter(SwerveDriveConstants.FORWARD_MAX_ACCELERATION);
+
+  private boolean slewUpdated = false;
 
   public SwerveDrive() {
     try {
@@ -93,6 +97,12 @@ public class SwerveDrive extends SubsystemBase {
 
     selfCheckModules();
     SelfCheck.checkPDPFaults();
+
+    if (!slewUpdated) {
+      forwardSlew.calculate(0.0);
+      strafeSlew.calculate(0.0);
+    }
+    slewUpdated = false;
   }
 
   @Override
@@ -123,17 +133,21 @@ public class SwerveDrive extends SubsystemBase {
   }
 
   // Drive the robot relative to the field
-  public void fieldOrientedDrive(double forward, double strafe, double rotation) { // m/s and rad/s
-    ChassisSpeeds speeds = ChassisSpeeds.fromFieldRelativeSpeeds(forward, strafe, rotation, getRotation2d());
+  public void fieldOrientedDrive(double xVelocity, double yVelocity, double rotation) { // m/s and rad/s
+    Rotation2d robotAngle = getRotation2d();
+    ChassisSpeeds speeds = ChassisSpeeds.fromFieldRelativeSpeeds(xVelocity, yVelocity, rotation, robotAngle);
     SwerveModuleState moduleStates[] = kinematics.toSwerveModuleStates(speeds);
     setModuleStates(moduleStates);
   }
 
   // Drive the robot relative to itself
   public void robotOrientedDrive(double forward, double strafe, double rotation) { // m/s and rad/s
-    ChassisSpeeds speeds = new ChassisSpeeds(forward, strafe, rotation);
-    SwerveModuleState moduleStates[] = kinematics.toSwerveModuleStates(speeds);
-    setModuleStates(moduleStates);
+    Rotation2d robotAngle = getRotation2d();
+    fieldOrientedDrive(
+      forward * robotAngle.getCos() - strafe * robotAngle.getSin(),
+      forward * robotAngle.getSin() + strafe * robotAngle.getCos(),
+      rotation
+    );
   }
 
   // Set all modules target speed and directions

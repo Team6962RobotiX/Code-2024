@@ -162,7 +162,7 @@ public class XBoxSwerve extends CommandBase {
 
     boolean stopped = true;
     for (SwerveModule module : swerveDrive.getModules()) {
-      if (module.getVelocity() > SwerveDriveConstants.VELOCITY_DEADZONE) {
+      if (Math.abs(module.getVelocity()) > SwerveDriveConstants.VELOCITY_DEADZONE) {
         stopped = false;
       }
     }

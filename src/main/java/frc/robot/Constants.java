@@ -57,12 +57,13 @@ public final class Constants {
     public static final double TELEOP_DRIVE_POWER = 0.5; // Percent driving power (0.2 = 20%), left trigger bypasses this value
     public static final double TELEOP_DRIVE_BOOST_POWER = 1.0; // Percent driving power when holding down the left trigger
     public static final double TELEOP_ROTATE_POWER = 0.5; // Percent rotating power (0.4 = 40%)
-    public static final double WHEEL_MAX_ACCELERATION = 6.0;
+    public static final double FORWARD_MAX_ACCELERATION = 8.0;
+    public static final double STRAFE_MAX_ACCELERATION = 8.0;
 
     public static final double MOTOR_POWER_HARD_CAP = 1.0; // Only use for testing, otherwise set to 1.0
 
     public static final double JOYSTICK_DEADZONE = 0.1; // If joystick values are less than this (0.2 = 20%) than we just read 0
-    public static final double VELOCITY_DEADZONE = 0.1; // speed at which we stop moving all together
+    public static final double VELOCITY_DEADZONE = 0.05; // speed at which we stop moving all together
 
     public static final int TOTAL_CURRENT_LIMIT = 300; // [TODO] Default is around 640 Amps (also drive motors have double the current allocation than steer motors)
     public static final double MOTOR_POWER_RAMP_RATE = 0.1; // [TODO] Maximum change in motor power between ticks to reduce power spikes
