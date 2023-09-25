@@ -61,12 +61,12 @@ public final class Constants {
       -------------------------------------
     */
 
-    public static final double TELEOP_DRIVE_POWER = 0.5; // Percent driving power (0.2 = 20%), left trigger bypasses this value
+    public static final double TELEOP_DRIVE_POWER = 0.3; // Percent driving power (0.2 = 20%), left trigger bypasses this value
     public static final double TELEOP_DRIVE_BOOST_POWER = 1.0; // Percent driving power when holding down the left trigger
-    public static final double TELEOP_ROTATE_POWER = 0.5; // Percent rotating power (0.4 = 40%)
+    public static final double TELEOP_ROTATE_POWER = 0.3; // Percent rotating power (0.4 = 40%)
 
-    public static final double DRIVE_MAX_ACCELERATION = 6.0; // Measured in m/s^2
-    public static final double WHEEL_MAX_ACCELERATION = 15.0; // Measured in m/s^2
+    public static final double DRIVE_MAX_ACCELERATION = 8.0; // Measured in m/s^2
+    public static final double WHEEL_MAX_ACCELERATION = 25.0; // Measured in m/s^2
 
     public static final double MOTOR_POWER_HARD_CAP = 1.0; // Only use for testing, otherwise set to 1.0
 

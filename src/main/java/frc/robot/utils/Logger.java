@@ -35,7 +35,7 @@ import frc.robot.subsystems.*;
 import frc.robot.Constants.*;
 
 public class Logger {
-  DataLog log;
+  DataLog log = DataLogManager.getLog();
   Map<String, Object> logEntries = new HashMap<String, Object>();
   SwerveDrive drive;
   PowerDistribution PDP = new PowerDistribution(CAN.PDP, ModuleType.kRev);
@@ -44,11 +44,9 @@ public class Logger {
 
   public Logger(SwerveDrive drive) {
     this.drive = drive;
-    DataLogManager.start();
   }
 
   public void logAll() {
-    log = DataLogManager.getLog();
     if (Logging.ENABLE_DRIVE)
       logSwerve("/swerveDrive", drive);
     if (Logging.ENABLE_PDP)
