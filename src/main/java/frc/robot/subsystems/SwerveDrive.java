@@ -113,6 +113,10 @@ public class SwerveDrive extends SubsystemBase {
     return gyro.getRotation2d();
   }
 
+  public SwerveDriveOdometry getOdometer() {
+    return odometer;
+  }
+
   // Get gyro degree heading (-180 - 180)
   public double getHeading() {
     return ((((getRotation2d().getDegrees() + 180.0) % 360.0) + 360.0) % 360.0) - 180.0;
@@ -161,7 +165,7 @@ public class SwerveDrive extends SubsystemBase {
   public void setModuleStates(SwerveModuleState[] moduleStates) {
     SwerveDriveKinematics.desaturateWheelSpeeds(moduleStates, SwerveMath.motorPowerToWheelVelocity(SwerveDriveConstants.MOTOR_POWER_HARD_CAP));
     for (int i = 0; i < 4; i++) {
-      swerveModules[i].setTargetState(moduleStates[i]);
+      swerveModules[i].setState(moduleStates[i]);
     }
   }
 
@@ -172,6 +176,20 @@ public class SwerveDrive extends SubsystemBase {
         swerveModules[1].getModulePosition(),
         swerveModules[2].getModulePosition(),
         swerveModules[3].getModulePosition()
+    };
+  }
+
+  // Get all modules target speed and directions
+  public ChassisSpeeds getChassisSpeeds() {
+    return kinematics.toChassisSpeeds(getModuleStates());
+  }
+
+  public SwerveModuleState[] getModuleStates() {
+    return new SwerveModuleState[] {
+        swerveModules[0].getState(),
+        swerveModules[1].getState(),
+        swerveModules[2].getState(),
+        swerveModules[3].getState()
     };
   }
 
@@ -188,10 +206,10 @@ public class SwerveDrive extends SubsystemBase {
 
   // This creates an "X" pattern with the wheels which makes the robot very hard to move
   public void groundModules() {
-    swerveModules[0].setTargetState(new SwerveModuleState(0.0, Rotation2d.fromDegrees(45.0)));
-    swerveModules[1].setTargetState(new SwerveModuleState(0.0, Rotation2d.fromDegrees(-45.0)));
-    swerveModules[2].setTargetState(new SwerveModuleState(0.0, Rotation2d.fromDegrees(-45.0)));
-    swerveModules[3].setTargetState(new SwerveModuleState(0.0, Rotation2d.fromDegrees(45.0)));
+    swerveModules[0].setState(new SwerveModuleState(0.0, Rotation2d.fromDegrees(45.0)));
+    swerveModules[1].setState(new SwerveModuleState(0.0, Rotation2d.fromDegrees(-45.0)));
+    swerveModules[2].setState(new SwerveModuleState(0.0, Rotation2d.fromDegrees(-45.0)));
+    swerveModules[3].setState(new SwerveModuleState(0.0, Rotation2d.fromDegrees(45.0)));
   }
 
   // Get total voltage through all modules

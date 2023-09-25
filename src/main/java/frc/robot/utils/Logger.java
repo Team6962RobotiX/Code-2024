@@ -13,6 +13,10 @@ import edu.wpi.first.hal.PowerDistributionFaults;
 import edu.wpi.first.hal.PowerDistributionStickyFaults;
 import edu.wpi.first.hal.PowerDistributionVersion;
 import edu.wpi.first.hal.can.CANStatus;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
+import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.util.datalog.*;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.PowerDistribution;
@@ -44,6 +48,14 @@ public class Logger {
 
   public void logSwerve(String path, SwerveDrive drive) {
     logNavX(path + "/gyro", drive.getGyro());
+    logOdometer(path + "/odometer", drive.getOdometer());
+    logData(path + "/heading", drive.getHeading());
+    logData(path + "/totalCurrent", drive.getCurrent());
+    logData(path + "/totalVoltage", drive.getVoltage());
+    logPose(path + "/pose", drive.getPose());
+    logModulePositions(path + "/pose", drive.getModulePositions());
+    logChassisSpeeds(path + "/chassisSpeeds", drive.getChassisSpeeds());
+
     for (SwerveModule module : drive.getModules()) {
       logSwerveModule(path + "/" + module.getName() + "Module", module);
     }
@@ -95,7 +107,23 @@ public class Logger {
 
   }
 
-  public void logRadio(String path, AHRS navX) {
+  public void logRadio(String path, Object radio) {
+
+  }
+
+  public void logOdometer(String path, SwerveDriveOdometry odometer) {
+
+  }
+
+  public void logPose(String path, Pose2d pose) {
+
+  }
+
+  public void logModulePositions(String path, SwerveModulePosition[] modulePositions) {
+
+  }
+
+  public void logChassisSpeeds(String path, ChassisSpeeds chassisSpeeds) {
 
   }
 

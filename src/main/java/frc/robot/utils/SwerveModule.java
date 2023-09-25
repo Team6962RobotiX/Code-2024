@@ -52,8 +52,7 @@ public class SwerveModule {
   private RelativeEncoder relativeSteerEncoder;
   private CANCoder absoluteSteerEncoder;
   public PIDController steerController = new PIDController(0.0, 0.0, 0.0);
-  private double targetVelocity = 0.0;
-  private double targetSteerRadians = 0.0;
+  private SwerveModuleState state;
   private String name;
   SlewRateLimiter accelerationLimiter = new SlewRateLimiter(SwerveDriveConstants.WHEEL_MAX_ACCELERATION);
 
@@ -102,16 +101,14 @@ public class SwerveModule {
   }
 
   // Set target angle and velocity
-  public void setTargetState(SwerveModuleState state) {
-    state = SwerveModuleState.optimize(state, Rotation2d.fromRadians(getSteerRadians()));
-    targetVelocity = state.speedMetersPerSecond;
-    targetSteerRadians = state.angle.getRadians();
+  public void setState(SwerveModuleState state) {
+    this.state = SwerveModuleState.optimize(state, Rotation2d.fromRadians(getSteerRadians()));
   }
 
   // Drive motors to approximate target angle and velocity
   public void drive() { // Must be called periodically
-    double drivePower = SwerveMath.wheelVelocityToMotorPower(targetVelocity);
-    double steerPower = SwerveMath.steerVelocityToMotorPower(steerController.calculate(getSteerRadians(), targetSteerRadians));
+    double drivePower = SwerveMath.wheelVelocityToMotorPower(state.speedMetersPerSecond);
+    double steerPower = SwerveMath.steerVelocityToMotorPower(steerController.calculate(getSteerRadians(), state.angle.getRadians()));
 
     if (Math.abs(drivePower) > SwerveDriveConstants.MOTOR_POWER_HARD_CAP) {
       drivePower = SwerveDriveConstants.MOTOR_POWER_HARD_CAP * Math.signum(drivePower);
@@ -126,7 +123,7 @@ public class SwerveModule {
     driveMotor.set(drivePower);
     steerMotor.set(steerPower);
 
-    targetVelocity = 0.0;
+    state = new SwerveModuleState();
   }
 
   // Get the direction of the steering wheel (-PI - PI)
@@ -178,6 +175,10 @@ public class SwerveModule {
   public void selfCheck() {
     SelfCheck.checkMotorFaults(new CANSparkMax[] { driveMotor, steerMotor });
     SelfCheck.checkCANCoderFaults(absoluteSteerEncoder);
+  }
+
+  public SwerveModuleState getState() {
+    return state;
   }
 
   public CANSparkMax getDriveMotor() {
