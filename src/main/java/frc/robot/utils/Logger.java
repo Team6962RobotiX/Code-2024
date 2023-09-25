@@ -3,7 +3,9 @@ package frc.robot.utils;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.ctre.phoenix.ErrorCode;
 import com.ctre.phoenix.sensors.CANCoder;
+import com.ctre.phoenix.sensors.CANCoderFaults;
 import com.kauailabs.navx.frc.AHRS;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
@@ -100,11 +102,49 @@ public class Logger {
   }
 
   public void logCANCoder(String path, CANCoder encoder) {
+    logData(path + "/absolutePosition", encoder.getAbsolutePosition());
+    logData(path + "/voltage", encoder.getBusVoltage());
+    logData(path + "/firmwareVersion", encoder.getFirmwareVersion(), true);
+    logData(path + "/magnetFieldStrength", encoder.getMagnetFieldStrength());
+    logData(path + "/position", encoder.getPosition());
+    logData(path + "/velocity", encoder.getVelocity());
 
+    CANCoderFaults faults = new CANCoderFaults();
+    encoder.getFaults(new CANCoderFaults())
+
+    logCANCoderFaults(path + "/faults", faults);
+  }
+
+  public void logCANCoderFaults(String path, CANCoderFaults faults) {
+    logData(path + "/hardwareFault", faults.HardwareFault);
+    logData(path + "/APIError", faults.APIError);
+    logData(path + "/magnetTooWeak", faults.MagnetTooWeak);
+    logData(path + "/resetDuringEn", faults.ResetDuringEn);
+    logData(path + "/underVoltage", faults.UnderVoltage);
   }
 
   public void logNavX(String path, AHRS navX) {
-
+    logData(path + "/actualUpdateRate", navX.getActualUpdateRate(), true);
+    logData(path + "/firmwareVersion", navX.getFirmwareVersion(), true);
+    logData(path + "/altitude", navX.getAltitude());
+    logData(path + "/angle", navX.getAngle());
+    logData(path + "/angleAdjustment", navX.getAngleAdjustment());
+    logData(path + "/compassHeading", navX.getCompassHeading());
+    logData(path + "/displacementX", navX.getDisplacementX());
+    logData(path + "/displacementY", navX.getDisplacementY());
+    logData(path + "/displacementZ", navX.getDisplacementZ());
+    logData(path + "/fusedHeading", navX.getFusedHeading());
+    logData(path + "/pitch", navX.getPitch());
+    logData(path + "/pressure", navX.getPressure());
+    logData(path + "/roll", navX.getRoll());
+    logData(path + "/yaw", navX.getYaw());
+    logData(path + "/temperature", navX.getTempC());
+    logData(path + "/velocityX", navX.getVelocityX());
+    logData(path + "/velocityY", navX.getVelocityY());
+    logData(path + "/velocityZ", navX.getVelocityZ());
+    logData(path + "/accelerationX", navX.getRawAccelX());
+    logData(path + "/accelerationY", navX.getRawAccelY());
+    logData(path + "/accelerationZ", navX.getRawAccelZ());
   }
 
   public void logRadio(String path, Object radio) {
@@ -213,6 +253,8 @@ public class Logger {
         logEntries.put(key, new BooleanLogEntry(log, key));
       else if (value instanceof Double)
         logEntries.put(key, new DoubleLogEntry(log, key));
+      else if (value instanceof Float)
+        logEntries.put(key, new FloatLogEntry(log, key));
       else if (value instanceof Integer)
         logEntries.put(key, new IntegerLogEntry(log, key));
       else if (value instanceof double[])
@@ -228,6 +270,8 @@ public class Logger {
         ((BooleanLogEntry) logEntries.get(key)).append((boolean) value);
       else if (value instanceof Double)
         ((DoubleLogEntry) logEntries.get(key)).append((double) value);
+      else if (value instanceof Float)
+        ((FloatLogEntry) logEntries.get(key)).append((float) value);
       else if (value instanceof Integer)
         ((IntegerLogEntry) logEntries.get(key)).append((int) value);
       else if (value instanceof double[])
