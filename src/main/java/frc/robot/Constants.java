@@ -27,7 +27,12 @@ public final class Constants {
     public static final boolean ENABLE_DRIVE = true;
     public static final boolean ENABLE_LIMELIGHT = false;
     public static final boolean ENABLE_DASHBOARD = true;
-    public static final boolean ENABLE_TESTING = true; // Disables all other systems.
+  }
+
+  public static final class EnabledLogging {
+    public static final boolean ENABLE_DRIVE = true;
+    public static final boolean ENABLE_PDP = true;
+    public static final boolean ENABLE_ROBOT_CONTROLLER = true;
   }
 
   // DEVICES
@@ -57,8 +62,9 @@ public final class Constants {
     public static final double TELEOP_DRIVE_POWER = 0.5; // Percent driving power (0.2 = 20%), left trigger bypasses this value
     public static final double TELEOP_DRIVE_BOOST_POWER = 1.0; // Percent driving power when holding down the left trigger
     public static final double TELEOP_ROTATE_POWER = 0.5; // Percent rotating power (0.4 = 40%)
-    public static final double MAX_ACCELERATION = 6.0;
-    public static final double WHEEL_MAX_ACCELERATION = 15.0;
+
+    public static final double DRIVE_MAX_ACCELERATION = 6.0; // Measured in m/s^2
+    public static final double WHEEL_MAX_ACCELERATION = 15.0; // Measured in m/s^2
 
     public static final double MOTOR_POWER_HARD_CAP = 1.0; // Only use for testing, otherwise set to 1.0
 
@@ -66,7 +72,7 @@ public final class Constants {
     public static final double VELOCITY_DEADZONE = 0.1; // speed at which we stop moving all together
 
     public static final int TOTAL_CURRENT_LIMIT = 300; // [TODO] Default is around 640 Amps (also drive motors have double the current allocation than steer motors)
-    public static final double MOTOR_POWER_RAMP_RATE = 0.1; // [TODO] Maximum change in motor power between ticks to reduce power spikes
+    public static final double TIME_TO_FULL_POWER = 0.05; // [TODO] Seconds that it takes to go from 0 - 100% motor power
 
     public static final Pose2d STARTING_POSE = new Pose2d(0.0, 0.0, Rotation2d.fromDegrees(0.0));
     public static final double STARTING_ANGLE_OFFSET = 0.0;
@@ -166,6 +172,36 @@ public final class Constants {
           new Translation2d(SwerveDriveConstants.TRACKWIDTH_METERS / 2.0, -SwerveDriveConstants.WHEELBASE_METERS / 2.0),
           new Translation2d(-SwerveDriveConstants.TRACKWIDTH_METERS / 2.0, SwerveDriveConstants.WHEELBASE_METERS / 2.0),
           new Translation2d(-SwerveDriveConstants.TRACKWIDTH_METERS / 2.0, -SwerveDriveConstants.WHEELBASE_METERS / 2.0));
+    }
+  }
+
+  public static final class InputMath {
+    public static double addLinearDeadzone(double input, double deadzone) { // input ranges from -1 to 1
+      if (Math.abs(input) <= deadzone) {
+        return 0.0;
+      }
+
+      if (input > 0) {
+        return map(input, deadzone, 1.0, 0.0, 1.0);
+      }
+
+      return map(input, -deadzone, -1.0, 0.0, -1.0);
+    }
+
+    public static double[] addCirculuarDeadzone(double[] input, double deadzone) { // input ranges from -1 to 1
+      double magnitude = Math.hypot(input[0], input[1]);
+      double direction = Math.atan2(input[1], input[0]);
+
+      if (Math.abs(magnitude) <= deadzone) {
+        return new double[] { 0.0, 0.0 };
+      }
+
+      magnitude = map(magnitude, deadzone, 1.0, 0.0, 1.0);
+
+      return new double[] {
+          magnitude * Math.cos(direction),
+          magnitude * Math.sin(direction)
+      };
     }
   }
 

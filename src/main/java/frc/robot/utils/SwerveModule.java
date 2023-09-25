@@ -2,7 +2,7 @@
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
 
-package frc.robot.subsystems;
+package frc.robot.utils;
 
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -45,8 +45,6 @@ import com.ctre.phoenix.sensors.CANCoderStatusFrame;
 import com.ctre.phoenix.sensors.SensorInitializationStrategy;
 import com.ctre.phoenix.sensors.SensorTimeBase;
 
-import frc.robot.SelfCheck;
-
 public class SwerveModule {
   private CANSparkMax driveMotor;
   private RelativeEncoder relativeDriveEncoder;
@@ -59,12 +57,13 @@ public class SwerveModule {
   private String name;
   SlewRateLimiter accelerationLimiter = new SlewRateLimiter(SwerveDriveConstants.WHEEL_MAX_ACCELERATION);
 
-  SwerveModule(int id) {
-    driveMotor = new CANSparkMax(CAN.SWERVE_DRIVE[id], MotorType.kBrushless);
-    steerMotor = new CANSparkMax(CAN.SWERVE_STEER[id], MotorType.kBrushless);
-    absoluteSteerEncoder = new CANCoder(CAN.SWERVE_STEER_CANCODER[id]);
+  public SwerveModule(int id) {
     name = SwerveDriveConstants.MODULE_NAMES[id];
 
+    driveMotor = new CANSparkMax(CAN.SWERVE_DRIVE[id], MotorType.kBrushless);
+    steerMotor = new CANSparkMax(CAN.SWERVE_STEER[id], MotorType.kBrushless);
+
+    absoluteSteerEncoder = new CANCoder(CAN.SWERVE_STEER_CANCODER[id]);
     relativeDriveEncoder = driveMotor.getEncoder();
     relativeSteerEncoder = steerMotor.getEncoder();
 
@@ -78,8 +77,9 @@ public class SwerveModule {
 
     driveMotor.setSmartCurrentLimit((int) (SwerveDriveConstants.TOTAL_CURRENT_LIMIT / 4.0 * (2.0 / 3.0)));
     steerMotor.setSmartCurrentLimit((int) (SwerveDriveConstants.TOTAL_CURRENT_LIMIT / 4.0 * (1.0 / 3.0)));
-    driveMotor.setOpenLoopRampRate(SwerveDriveConstants.MOTOR_POWER_RAMP_RATE);
-    steerMotor.setOpenLoopRampRate(SwerveDriveConstants.MOTOR_POWER_RAMP_RATE);
+
+    driveMotor.setOpenLoopRampRate(SwerveDriveConstants.TIME_TO_FULL_POWER);
+    steerMotor.setOpenLoopRampRate(SwerveDriveConstants.TIME_TO_FULL_POWER);
 
     relativeDriveEncoder.setPositionConversionFactor(SwerveDriveConstants.DRIVE_METERS_PER_MOTOR_ROTATION);
     relativeDriveEncoder.setVelocityConversionFactor(SwerveDriveConstants.DRIVE_METERS_PER_MOTOR_ROTATION / 60);
@@ -104,9 +104,7 @@ public class SwerveModule {
   // Set target angle and velocity
   public void setTargetState(SwerveModuleState state) {
     state = SwerveModuleState.optimize(state, Rotation2d.fromRadians(getSteerRadians()));
-
     targetVelocity = state.speedMetersPerSecond;
-    
     targetSteerRadians = state.angle.getRadians();
   }
 
@@ -117,7 +115,6 @@ public class SwerveModule {
 
     if (Math.abs(drivePower) > SwerveDriveConstants.MOTOR_POWER_HARD_CAP) {
       drivePower = SwerveDriveConstants.MOTOR_POWER_HARD_CAP * Math.signum(drivePower);
-      System.out.println("Swerve Drive motor power is being clamped, be careful!");
     }
 
     if (Math.abs(steerPower) > SwerveDriveConstants.MOTOR_POWER_HARD_CAP) {
@@ -181,5 +178,17 @@ public class SwerveModule {
   public void selfCheck() {
     SelfCheck.checkMotorFaults(new CANSparkMax[] { driveMotor, steerMotor });
     SelfCheck.checkCANCoderFaults(absoluteSteerEncoder);
+  }
+
+  public CANSparkMax getDriveMotor() {
+    return driveMotor;
+  }
+
+  public CANSparkMax getSteerMotor() {
+    return steerMotor;
+  }
+
+  public CANCoder getCanCoder() {
+    return absoluteSteerEncoder;
   }
 }

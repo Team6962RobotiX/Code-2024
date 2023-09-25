@@ -5,6 +5,8 @@
 package frc.robot.commands;
 
 import frc.robot.subsystems.*;
+import frc.robot.utils.Dashboard;
+import frc.robot.utils.SwerveModule;
 import frc.robot.Constants;
 import frc.robot.Constants.*;
 import frc.robot.Robot;
@@ -39,7 +41,6 @@ import edu.wpi.first.math.geometry.Translation2d;
 
 public class XBoxSwerve extends CommandBase {
   private final SwerveDrive swerveDrive;
-  private final Dashboard dashboard;
   private final Supplier<XboxController> xboxSupplier;
   private final PIDController rotatePID = new PIDController(
       SwerveDriveConstants.TELEOP_ROTATE_PID[0],
@@ -54,15 +55,14 @@ public class XBoxSwerve extends CommandBase {
 
   private boolean absoluteRotation = false;
 
-  public XBoxSwerve(SwerveDrive swerveDrive, Dashboard dashboard, Supplier<XboxController> xboxSupplier) {
+  public XBoxSwerve(SwerveDrive swerveDrive, Supplier<XboxController> xboxSupplier) {
     this.swerveDrive = swerveDrive;
-    this.dashboard = dashboard;
     this.xboxSupplier = xboxSupplier;
 
     rotatePID.enableContinuousInput(Units.degreesToRadians(-180.0), Units.degreesToRadians(180.0));
     rotatePID.setTolerance(Units.degreesToRadians(SwerveDriveConstants.TELEOP_ROTATE_PID_TOLERANCE));
     // Use addRequirements() here to declare subsystem dependencies.
-    addRequirements(swerveDrive, dashboard);
+    addRequirements(swerveDrive);
   }
 
   // Called when the command is initially scheduled.
@@ -82,35 +82,15 @@ public class XBoxSwerve extends CommandBase {
     double rightX = -controller.getRightX();
     double rightY = -controller.getRightY();
 
-    if (Math.hypot(leftX, leftY) > 1.0 - SwerveDriveConstants.JOYSTICK_DEADZONE * 2) {
-      if (Math.abs(leftX) < SwerveDriveConstants.JOYSTICK_DEADZONE * 2) {
-        leftX = 0.0;
-      }
+    leftX = InputMath.addLinearDeadzone(leftX, SwerveDriveConstants.JOYSTICK_DEADZONE);
+    leftY = InputMath.addLinearDeadzone(leftY, SwerveDriveConstants.JOYSTICK_DEADZONE);
+    rightX = InputMath.addLinearDeadzone(rightX, SwerveDriveConstants.JOYSTICK_DEADZONE);
+    rightY = InputMath.addLinearDeadzone(rightY, SwerveDriveConstants.JOYSTICK_DEADZONE);
 
-      if (Math.abs(leftY) < SwerveDriveConstants.JOYSTICK_DEADZONE * 2) {
-        leftY = 0.0;
-      }
-    }
-
-    if (Math.hypot(rightX, rightY) > 1.0 - SwerveDriveConstants.JOYSTICK_DEADZONE * 2) {
-      if (Math.abs(rightX) < SwerveDriveConstants.JOYSTICK_DEADZONE * 2) {
-        rightX = 0.0;
-      }
-
-      if (Math.abs(rightY) < SwerveDriveConstants.JOYSTICK_DEADZONE * 2) {
-        rightY = 0.0;
-      }
-    }
-
-    if (Math.hypot(leftX, leftY) < SwerveDriveConstants.JOYSTICK_DEADZONE * 2) {
-      leftX = 0.0;
-      leftY = 0.0;
-    }
-
-    if (Math.hypot(rightX, rightY) < SwerveDriveConstants.JOYSTICK_DEADZONE * 2) {
-      rightX = 0.0;
-      rightY = 0.0;
-    }
+    // leftX = InputMath.addCirculuarDeadzone(new double[] { leftX, leftY }, SwerveDriveConstants.JOYSTICK_DEADZONE)[0];
+    // leftY = InputMath.addCirculuarDeadzone(new double[] { leftX, leftY }, SwerveDriveConstants.JOYSTICK_DEADZONE)[1];
+    // rightX = InputMath.addCirculuarDeadzone(new double[] { rightX, rightY }, SwerveDriveConstants.JOYSTICK_DEADZONE)[0];
+    // rightY = InputMath.addCirculuarDeadzone(new double[] { rightX, rightY }, SwerveDriveConstants.JOYSTICK_DEADZONE)[1];
 
     double rightStickAngle = (((-Math.atan2(rightY, rightX) / Math.PI * 180.0) + 180.0 + 90.0) % 360.0) - 180.0;
     // rightStickAngle /= (360.0 / 16.0);

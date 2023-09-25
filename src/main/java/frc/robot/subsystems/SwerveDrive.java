@@ -34,6 +34,8 @@ import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.SerialPort;
 import edu.wpi.first.wpilibj.XboxController;
 
+import edu.wpi.first.util.datalog.*;
+
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -46,11 +48,10 @@ import frc.robot.Constants;
 import frc.robot.Constants.SwerveDriveConstants;
 import frc.robot.Constants.SwerveMath;
 import frc.robot.subsystems.*;
+import frc.robot.utils.*;
 
 import com.ctre.phoenix.sensors.CANCoder;
 import com.kauailabs.navx.frc.AHRS;
-
-import frc.robot.SelfCheck;
 
 public class SwerveDrive extends SubsystemBase {
 
@@ -58,7 +59,7 @@ public class SwerveDrive extends SubsystemBase {
   private AHRS gyro;
   private SwerveDriveKinematics kinematics = SwerveMath.getKinematics();
   private SwerveDriveOdometry odometer;
-  private SlewRateLimiter accelerationLimiter = new SlewRateLimiter(SwerveDriveConstants.MAX_ACCELERATION);
+  private SlewRateLimiter accelerationLimiter = new SlewRateLimiter(SwerveDriveConstants.DRIVE_MAX_ACCELERATION);
   private double driveDirection = 0.0;
 
   public SwerveDrive() {

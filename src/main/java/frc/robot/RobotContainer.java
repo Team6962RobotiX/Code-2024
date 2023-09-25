@@ -8,6 +8,8 @@ import frc.robot.Constants;
 import frc.robot.Constants.*;
 import frc.robot.commands.*;
 import frc.robot.subsystems.*;
+import frc.robot.utils.Dashboard;
+import frc.robot.utils.MotionRecorder;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
@@ -60,7 +62,7 @@ public class RobotContainer {
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
-    drive.setDefaultCommand(new XBoxSwerve(drive, dashboard, () -> controller));
+    drive.setDefaultCommand(new XBoxSwerve(drive, () -> controller));
 
     // Configure the trigger bindings
     configureBindings();
@@ -76,7 +78,7 @@ public class RobotContainer {
   public Command getAutonomousCommand() {
     TrajectoryConfig TrajectoryConfig = new TrajectoryConfig(SwerveDriveConstants.AUTO_MAX_DRIVE_VELOCITY, SwerveDriveConstants.AUTO_MAX_ACCELERATION)
         .setKinematics(SwerveMath.getKinematics());
-    
+
     Trajectory trajectory = TrajectoryGenerator.generateTrajectory(
         MotionRecorder.readData(),
         TrajectoryConfig);

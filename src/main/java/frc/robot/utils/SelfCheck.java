@@ -2,12 +2,13 @@
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
 
-package frc.robot;
+package frc.robot.utils;
 
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.hal.PowerDistributionFaults;
+import edu.wpi.first.hal.can.CANStatus;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -39,6 +40,8 @@ import frc.robot.commands.*;
 import frc.robot.subsystems.*;
 import frc.robot.Constants.*;
 
+import edu.wpi.first.wpilibj.RobotController;
+
 import com.ctre.phoenix.sensors.AbsoluteSensorRange;
 import com.ctre.phoenix.sensors.CANCoder;
 import com.ctre.phoenix.sensors.CANCoderConfiguration;
@@ -51,6 +54,12 @@ import com.kauailabs.navx.frc.AHRS;
 public final class SelfCheck {
 
   public static PowerDistribution PDP = new PowerDistribution(CAN.PDP, ModuleType.kRev);
+
+  public static void checkRobotController() {
+    if (RobotController.isBrownedOut()) {
+      warn("Robot Controller is having a brownout");
+    }
+  }
 
   public static void checkMotorFaults(CANSparkMax[] motorsControllers) {
     for (CANSparkMax motorController : motorsControllers) {

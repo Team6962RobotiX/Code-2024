@@ -2,7 +2,7 @@
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
 
-package frc.robot.subsystems;
+package frc.robot.utils;
 
 import java.util.Map;
 
@@ -27,7 +27,7 @@ import frc.robot.subsystems.*;
 import frc.robot.Constants;
 import frc.robot.Constants.*;
 
-public class Dashboard extends SubsystemBase {
+public class Dashboard {
   private SwerveDrive swerveDrive;
   private ShuffleboardTab dashboardTab;
   private ShuffleboardLayout swerveData;
@@ -118,8 +118,7 @@ public class Dashboard extends SubsystemBase {
     }
   }
 
-  @Override
-  public void periodic() {
+  public void update() {
     if (!initialized) {
       return;
     }
@@ -142,10 +141,5 @@ public class Dashboard extends SubsystemBase {
       moduleCurrents[i].setDouble(module.getCurrent());
       moduleVoltages[i].setDouble(module.getVoltage());
     }
-  }
-
-  @Override
-  public void simulationPeriodic() {
-    // This method will be called once per scheduler run during simulation
   }
 }
