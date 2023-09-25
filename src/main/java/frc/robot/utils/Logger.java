@@ -22,6 +22,7 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.util.datalog.*;
 import edu.wpi.first.wpilibj.DataLogManager;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution;
 
 import edu.wpi.first.wpilibj.RobotController;
@@ -56,6 +57,12 @@ public class Logger {
       logPDP("/powerDistribution", PDP);
     if (EnabledLogging.ENABLE_ROBOT_CONTROLLER)
       logRobotController("/robotController");
+    if (EnabledLogging.ENABLE_DRIVER_STATION)
+      logDriverStation("/driverStation");
+  }
+
+  public void logDriverStation(String path) {
+    DriverStation.startDataLog(log, true);
   }
 
   public void logSwerve(String path, SwerveDrive drive) {
@@ -68,7 +75,7 @@ public class Logger {
     logModuleStates(path + "/moduleStates", drive.getTargetModuleStates(), drive.getMeasuredModuleStates(), drive.getModulePositions());
 
     for (SwerveModule module : drive.getModules()) {
-      logSwerveModule(path + "/" + module.getName() + "Module", module);
+      logSwerveModule(path + "/modules/" + module.getName(), module);
     }
   }
 
@@ -96,7 +103,7 @@ public class Logger {
     logData(path + "/voltageCompensationNominalVoltage", sparkMax.getVoltageCompensationNominalVoltage(), true);
     logData(path + "/firmwareVersion", sparkMax.getFirmwareVersion(), true);
     logData(path + "/stickyFaults", sparkMax.getStickyFaults(), true);
-    // logRelativeEncoder(path + "/relativeEncoder", sparkMax.getEncoder());
+    logRelativeEncoder(path + "/relativeEncoder", sparkMax.getEncoder());
   }
 
   public void logRelativeEncoder(String path, RelativeEncoder encoder) {
@@ -165,7 +172,7 @@ public class Logger {
   }
 
   public void logPose(String path, Pose2d pose) {
-    logData(path + "/pose", new double[] {
+    logData(path, new double[] {
         pose.getX(),
         pose.getY(),
         pose.getRotation().getRadians()
@@ -229,7 +236,7 @@ public class Logger {
 
     logData(path + "/canId", PDP.getModule(), true);
     for (int i = 0; i <= 23; i++) {
-      logData(path + "/channel" + i + "/current", PDP.getCurrent(i));
+      logData(path + "/channels/channel" + i + "Current", PDP.getCurrent(i));
     }
     logData(path + "/isSwitchableChannelOn", PDP.getSwitchableChannel(), true);
     logData(path + "/temperature", PDP.getTemperature());
