@@ -181,15 +181,24 @@ public class SwerveDrive extends SubsystemBase {
 
   // Get all modules target speed and directions
   public ChassisSpeeds getChassisSpeeds() {
-    return kinematics.toChassisSpeeds(getModuleStates());
+    return kinematics.toChassisSpeeds(getTargetModuleStates());
   }
 
-  public SwerveModuleState[] getModuleStates() {
+  public SwerveModuleState[] getTargetModuleStates() {
     return new SwerveModuleState[] {
         swerveModules[0].getState(),
         swerveModules[1].getState(),
         swerveModules[2].getState(),
         swerveModules[3].getState()
+    };
+  }
+
+  public SwerveModuleState[] getMeasuredModuleStates() {
+    return new SwerveModuleState[] {
+        swerveModules[0].getMeasuredState(),
+        swerveModules[1].getMeasuredState(),
+        swerveModules[2].getMeasuredState(),
+        swerveModules[3].getMeasuredState()
     };
   }
 

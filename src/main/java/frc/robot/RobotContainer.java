@@ -8,8 +8,7 @@ import frc.robot.Constants;
 import frc.robot.Constants.*;
 import frc.robot.commands.*;
 import frc.robot.subsystems.*;
-import frc.robot.utils.Dashboard;
-import frc.robot.utils.MotionRecorder;
+import frc.robot.utils.*;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
@@ -58,6 +57,7 @@ public class RobotContainer {
   // private final Limelight limelight = new Limelight(LimelightConfig.NAME);
   private final Dashboard dashboard = new Dashboard(drive);
   private final MotionRecorder recorder = new MotionRecorder(drive);
+  private final Logger logger = new Logger(drive);
   // private final Testing tesing = new Testing();
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */

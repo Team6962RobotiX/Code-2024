@@ -181,6 +181,10 @@ public class SwerveModule {
     return state;
   }
 
+  public SwerveModuleState getMeasuredState() {
+    return new SwerveModuleState(getVelocity(), Rotation2d.fromRadians(getSteerRadians()));
+  }
+
   public CANSparkMax getDriveMotor() {
     return driveMotor;
   }

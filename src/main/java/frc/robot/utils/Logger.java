@@ -19,27 +19,34 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
+import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.util.datalog.*;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.PowerDistribution;
 
 import edu.wpi.first.wpilibj.RobotController;
+import edu.wpi.first.wpilibj2.command.CommandBase;
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import frc.robot.subsystems.*;
 
 import frc.robot.Constants.*;
 
-public class Logger {
+public class Logger extends SubsystemBase {
   DataLog log;
 
   Map<String, Object> logEntries = new HashMap<String, Object>();
 
-  public Logger() {
+  SwerveDrive drive;
+
+  public Logger(SwerveDrive drive) {
+    this.drive = drive;
     DataLogManager.start();
     log = DataLogManager.getLog();
   }
 
-  public void logAll(SwerveDrive drive) {
+  @Override
+  public void periodic() {
     if (EnabledLogging.ENABLE_DRIVE)
       logSwerve("/swerveDrive", drive);
     if (EnabledLogging.ENABLE_PDP)
@@ -55,8 +62,7 @@ public class Logger {
     logData(path + "/totalCurrent", drive.getCurrent());
     logData(path + "/totalVoltage", drive.getVoltage());
     logPose(path + "/pose", drive.getPose());
-    logModulePositions(path + "/pose", drive.getModulePositions());
-    logChassisSpeeds(path + "/chassisSpeeds", drive.getChassisSpeeds());
+    logModuleStates(path + "/chassisSpeeds", drive.getTargetModuleStates(), drive.getMeasuredModuleStates(), drive.getModulePositions());
 
     for (SwerveModule module : drive.getModules()) {
       logSwerveModule(path + "/" + module.getName() + "Module", module);
@@ -147,24 +153,43 @@ public class Logger {
     logData(path + "/accelerationZ", navX.getRawAccelZ());
   }
 
-  public void logRadio(String path, Object radio) {
-
-  }
-
   public void logOdometer(String path, SwerveDriveOdometry odometer) {
-
+    logData(path + "/odometer", new double[] {
+        odometer.getPoseMeters().getX(),
+        odometer.getPoseMeters().getY(),
+        odometer.getPoseMeters().getRotation().getRadians()
+    });
   }
 
   public void logPose(String path, Pose2d pose) {
-
+    logData(path + "/pose", new double[] {
+        pose.getX(),
+        pose.getY(),
+        pose.getRotation().getRadians()
+    });
   }
 
-  public void logModulePositions(String path, SwerveModulePosition[] modulePositions) {
+  public void logModuleStates(String path, SwerveModuleState[] targetModuleStates, SwerveModuleState[] measuredModuleStates, SwerveModulePosition[] modulePositions) {
+    logData(path + "/modulePositions", new double[] {
+        modulePositions[0].angle.getRadians(), modulePositions[0].distanceMeters,
+        modulePositions[1].angle.getRadians(), modulePositions[1].distanceMeters,
+        modulePositions[2].angle.getRadians(), modulePositions[2].distanceMeters,
+        modulePositions[3].angle.getRadians(), modulePositions[3].distanceMeters,
+    });
 
-  }
+    logData(path + "/targetModuleStates", new double[] {
+        targetModuleStates[0].angle.getRadians(), targetModuleStates[0].speedMetersPerSecond,
+        targetModuleStates[1].angle.getRadians(), targetModuleStates[1].speedMetersPerSecond,
+        targetModuleStates[2].angle.getRadians(), targetModuleStates[2].speedMetersPerSecond,
+        targetModuleStates[3].angle.getRadians(), targetModuleStates[3].speedMetersPerSecond,
+    });
 
-  public void logChassisSpeeds(String path, ChassisSpeeds chassisSpeeds) {
-
+    logData(path + "/measuredModuleStates", new double[] {
+        measuredModuleStates[0].angle.getRadians(), measuredModuleStates[0].speedMetersPerSecond,
+        measuredModuleStates[1].angle.getRadians(), measuredModuleStates[1].speedMetersPerSecond,
+        measuredModuleStates[2].angle.getRadians(), measuredModuleStates[2].speedMetersPerSecond,
+        measuredModuleStates[3].angle.getRadians(), measuredModuleStates[3].speedMetersPerSecond,
+    });
   }
 
   public void logRobotController(String path) {
