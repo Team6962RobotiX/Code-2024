@@ -42,11 +42,11 @@ public class Logger extends SubsystemBase {
   public Logger(SwerveDrive drive) {
     this.drive = drive;
     DataLogManager.start();
-    log = DataLogManager.getLog();
   }
 
   @Override
   public void periodic() {
+    log = DataLogManager.getLog();
     if (EnabledLogging.ENABLE_DRIVE)
       logSwerve("/swerveDrive", drive);
     if (EnabledLogging.ENABLE_PDP)
