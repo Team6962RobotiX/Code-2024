@@ -110,7 +110,7 @@ public class Logger {
     logData(path + "/velocity", encoder.getVelocity());
 
     CANCoderFaults faults = new CANCoderFaults();
-    encoder.getFaults(new CANCoderFaults())
+    encoder.getFaults(new CANCoderFaults());
 
     logCANCoderFaults(path + "/faults", faults);
   }
