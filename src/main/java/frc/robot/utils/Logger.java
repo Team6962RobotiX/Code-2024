@@ -39,8 +39,6 @@ public class Logger {
   Map<String, Object> logEntries = new HashMap<String, Object>();
   SwerveDrive drive;
   PowerDistribution PDP = new PowerDistribution(CAN.PDP, ModuleType.kRev);
-  public int loopCount = 0;
-  public boolean inTeleop = false;
 
   public NetworkTableInstance instance = NetworkTableInstance.getDefault();
 
@@ -50,9 +48,6 @@ public class Logger {
   }
 
   public void logAll() {
-    if (!inTeleop) {
-      return;
-    }
     log = DataLogManager.getLog();
     if (Logging.ENABLE_DRIVE)
       logSwerve("/swerveDrive", drive);
@@ -71,7 +66,7 @@ public class Logger {
   public void logSwerve(String path, SwerveDrive drive) {
     logNavX(path + "/gyro", drive.getGyro());
     logOdometer(path + "/odometer", drive.getOdometer());
-    logData(path + "/heading", drive.getHeading());
+    logData(path + "/heading", drive.getRotation2d().getRadians());
     logData(path + "/totalCurrent", drive.getCurrent());
     logData(path + "/totalVoltage", drive.getVoltage());
     logPose(path + "/pose", drive.getPose());
@@ -99,11 +94,7 @@ public class Logger {
     logData(path + "/motorTemperature", sparkMax.getMotorTemperature());
     logData(path + "/outputCurrent", sparkMax.getOutputCurrent());
     logData(path + "/faults", sparkMax.getFaults());
-    logData(path + "/closedLoopRampRate", sparkMax.getClosedLoopRampRate(), true);
-    logData(path + "/openLoopRampRate", sparkMax.getOpenLoopRampRate(), true);
-    logData(path + "/deviceId", sparkMax.getDeviceId(), true);
     logData(path + "/firmwareString", sparkMax.getFirmwareString(), true);
-    logData(path + "/voltageCompensationNominalVoltage", sparkMax.getVoltageCompensationNominalVoltage(), true);
     logData(path + "/firmwareVersion", sparkMax.getFirmwareVersion(), true);
     logData(path + "/stickyFaults", sparkMax.getStickyFaults(), true);
     logRelativeEncoder(path + "/relativeEncoder", sparkMax.getEncoder());
@@ -112,12 +103,6 @@ public class Logger {
   public void logRelativeEncoder(String path, RelativeEncoder encoder) {
     logData(path + "/position", encoder.getPosition());
     logData(path + "/velocity", encoder.getVelocity());
-    logData(path + "/averageSamplingDepth", encoder.getAverageDepth(), true);
-    logData(path + "/countsPerRevolution", encoder.getCountsPerRevolution(), true);
-    logData(path + "/isInverted", encoder.getInverted(), true);
-    logData(path + "/positionMeasurementPeriod", encoder.getMeasurementPeriod(), true);
-    logData(path + "/positionConversionFactor", encoder.getPositionConversionFactor(), true);
-    logData(path + "/velocityConversionFactor", encoder.getVelocityConversionFactor(), true);
   }
 
   public void logCANCoder(String path, CANCoder encoder) {

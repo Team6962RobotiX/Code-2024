@@ -92,7 +92,7 @@ public class SwerveDrive extends SubsystemBase {
   public void periodic() {
     // This method will be called once per scheduler run
     driveModules();
-    groundModules();
+    // groundModules();
     odometer.update(getRotation2d(), getModulePositions());
 
     selfCheckModules();

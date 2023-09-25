@@ -34,7 +34,7 @@ public final class Constants {
     public static final boolean ENABLE_PDP = true;
     public static final boolean ENABLE_ROBOT_CONTROLLER = true;
     public static final boolean ENABLE_DRIVER_STATION = true;
-    public static final double LOGGING_PERIOD = 0.1; // in seconds
+    public static final double LOGGING_PERIOD = 0.02; // in seconds
   }
 
   // DEVICES
@@ -71,7 +71,7 @@ public final class Constants {
     public static final double MOTOR_POWER_HARD_CAP = 1.0; // Only use for testing, otherwise set to 1.0
 
     public static final double JOYSTICK_DEADZONE = 0.1; // If joystick values are less than this (0.2 = 20%) than we just read 0
-    public static final double VELOCITY_DEADZONE = 0.1; // speed at which we stop moving all together
+    public static final double VELOCITY_DEADZONE = 0.05; // speed at which we stop moving all together
 
     public static final int TOTAL_CURRENT_LIMIT = 300; // [TODO] Default is around 640 Amps (also drive motors have double the current allocation than steer motors)
     public static final double TIME_TO_FULL_POWER = 0.05; // [TODO] Seconds that it takes to go from 0 - 100% motor power

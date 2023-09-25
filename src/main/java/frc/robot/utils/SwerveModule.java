@@ -96,7 +96,6 @@ public class SwerveModule {
         SwerveDriveConstants.MODULE_STEER_PID[0],
         SwerveDriveConstants.MODULE_STEER_PID[1],
         SwerveDriveConstants.MODULE_STEER_PID[2]);
-
     selfCheck();
   }
 
