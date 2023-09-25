@@ -160,16 +160,6 @@ public class XBoxSwerve extends CommandBase {
       swerveDrive.robotOrientedDrive(yVelocity, xVelocity, rotateVelocity);
     }
 
-    boolean stopped = true;
-    for (SwerveModule module : swerveDrive.getModules()) {
-      if (Math.abs(module.getVelocity()) > SwerveDriveConstants.VELOCITY_DEADZONE) {
-        stopped = false;
-      }
-    }
-    if (stopped && Math.hypot(yVelocity, xVelocity) < SwerveDriveConstants.VELOCITY_DEADZONE && Math.abs(rotateVelocity) < SwerveMath.wheelVelocityToRotationalVelocity(SwerveDriveConstants.VELOCITY_DEADZONE)) {
-      swerveDrive.groundModules();
-    }
-
     if (controller.getYButton()) {
       swerveDrive.zeroHeading();
       targetRotateAngle = swerveDrive.getHeading();

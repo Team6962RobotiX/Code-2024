@@ -133,6 +133,11 @@ public class SwerveDrive extends SubsystemBase {
 
     velocity = accelerationLimiter.calculate(velocity);
 
+    if (velocity + SwerveMath.rotationalVelocityToWheelVelocity(Math.abs(rotation)) < SwerveDriveConstants.VELOCITY_DEADZONE) {
+      groundModules();
+      return;
+    }
+
     xVelocity = velocity * Math.cos(driveDirection);
     yVelocity = velocity * Math.sin(driveDirection);
 
