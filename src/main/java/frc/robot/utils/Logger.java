@@ -51,13 +51,13 @@ public class Logger {
       return;
     }
     log = DataLogManager.getLog();
-    if (EnabledLogging.ENABLE_DRIVE)
+    if (Logging.ENABLE_DRIVE)
       logSwerve("/swerveDrive", drive);
-    if (EnabledLogging.ENABLE_PDP)
+    if (Logging.ENABLE_PDP)
       logPDP("/powerDistribution", PDP);
-    if (EnabledLogging.ENABLE_ROBOT_CONTROLLER)
+    if (Logging.ENABLE_ROBOT_CONTROLLER)
       logRobotController("/robotController");
-    if (EnabledLogging.ENABLE_DRIVER_STATION)
+    if (Logging.ENABLE_DRIVER_STATION)
       logDriverStation("/driverStation");
   }
 

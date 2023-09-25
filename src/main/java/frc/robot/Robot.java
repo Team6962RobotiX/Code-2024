@@ -37,7 +37,7 @@ public class Robot extends TimedRobot {
     robotContainer = new RobotContainer();
     addPeriodic(() -> {
       robotContainer.getLogger().logAll();
-    }, EnabledLogging.LOGGING_PERIOD);
+    }, Logging.LOGGING_PERIOD);
   }
 
   /**
