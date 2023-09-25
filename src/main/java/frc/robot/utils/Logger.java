@@ -20,6 +20,7 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.networktables.*;
 import edu.wpi.first.util.datalog.*;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -40,6 +41,8 @@ public class Logger {
   PowerDistribution PDP = new PowerDistribution(CAN.PDP, ModuleType.kRev);
   public int loopCount = 0;
   public boolean inTeleop = false;
+
+  public NetworkTableInstance instance = NetworkTableInstance.getDefault();
 
   public Logger(SwerveDrive drive) {
     this.drive = drive;
@@ -280,45 +283,45 @@ public class Logger {
     logData(key, value, false);
   }
 
-  public void logData(String key, Object value, boolean once) {
-    boolean loggedYet = logEntries.containsKey(key);
+   public void logData(String key, Object value, boolean once) {
+        boolean loggedYet = logEntries.containsKey(key);
 
-    if (!loggedYet) {
-      if (value instanceof Boolean)
-        logEntries.put(key, new BooleanLogEntry(log, key));
-      else if (value instanceof Double)
-        logEntries.put(key, new DoubleLogEntry(log, key));
-      else if (value instanceof Short)
-        logEntries.put(key, new IntegerLogEntry(log, key));
-      else if (value instanceof Float)
-        logEntries.put(key, new FloatLogEntry(log, key));
-      else if (value instanceof Integer)
-        logEntries.put(key, new IntegerLogEntry(log, key));
-      else if (value instanceof double[])
-        logEntries.put(key, new DoubleArrayLogEntry(log, key));
-      else if (value instanceof String)
-        logEntries.put(key, new StringLogEntry(log, key));
-      else
-        System.out.println("unknown logging data type: " + value.getClass().getSimpleName());
-    }
+        if (!loggedYet) {
+            if (value instanceof Boolean)
+                logEntries.put(key, instance.getBooleanTopic(key).publish());
+            else if (value instanceof Double)
+                logEntries.put(key, instance.getDoubleTopic(key).publish());
+            else if (value instanceof Short)
+                logEntries.put(key, instance.getIntegerTopic(key).publish());
+            else if (value instanceof Float)
+                logEntries.put(key, instance.getFloatTopic(key).publish());
+            else if (value instanceof Integer)
+                logEntries.put(key, instance.getIntegerTopic(key).publish());
+            else if (value instanceof double[])
+                logEntries.put(key, instance.getDoubleArrayTopic(key).publish());
+            else if (value instanceof String)
+                logEntries.put(key, instance.getStringTopic(key).publish());
+            else
+                System.out.println("unknown logging data type: " + value.getClass().getSimpleName());
+            }
 
-    if (!once || !loggedYet) {
-      if (value instanceof Boolean)
-        ((BooleanLogEntry) logEntries.get(key)).append((boolean) value);
-      else if (value instanceof Double)
-        ((DoubleLogEntry) logEntries.get(key)).append((double) value);
-      else if (value instanceof Short)
-        ((IntegerLogEntry) logEntries.get(key)).append(((Short) value).intValue());
-      else if (value instanceof Float)
-        ((FloatLogEntry) logEntries.get(key)).append((float) value);
-      else if (value instanceof Integer)
-        ((IntegerLogEntry) logEntries.get(key)).append((int) value);
-      else if (value instanceof double[])
-        ((DoubleArrayLogEntry) logEntries.get(key)).append((double[]) value);
-      else if (value instanceof String)
-        ((StringLogEntry) logEntries.get(key)).append((String) value);
-      else
-        System.out.println("unknown logging data type: " + value.getClass().getSimpleName());
+        if (!once || !loggedYet) {
+            if (value instanceof Boolean)
+                ((BooleanPublisher) logEntries.get(key)).set((boolean) value);
+            else if (value instanceof Double)
+                ((DoublePublisher) logEntries.get(key)).set((double) value);
+            else if (value instanceof Short)
+                ((IntegerPublisher) logEntries.get(key)).set(((Short) value).intValue());
+            else if (value instanceof Float)
+                ((FloatPublisher) logEntries.get(key)).set((float) value);
+            else if (value instanceof Integer)
+                ((IntegerPublisher) logEntries.get(key)).set((int) value);
+            else if (value instanceof double[])
+                ((DoubleArrayPublisher) logEntries.get(key)).set((double[]) value);
+            else if (value instanceof String)
+                ((StringPublisher) logEntries.get(key)).set((String) value);
+            else
+                System.out.println("unknown logging data type: " + value.getClass().getSimpleName());
+        }
     }
-  }
 }
