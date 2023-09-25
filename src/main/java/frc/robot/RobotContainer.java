@@ -115,4 +115,8 @@ public class RobotContainer {
 
   public void disabledPeriodic() {
   }
+
+  public Logger getLogger() {
+    return logger;
+  }
 }

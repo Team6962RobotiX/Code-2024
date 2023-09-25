@@ -33,6 +33,7 @@ public final class Constants {
     public static final boolean ENABLE_DRIVE = true;
     public static final boolean ENABLE_PDP = true;
     public static final boolean ENABLE_ROBOT_CONTROLLER = true;
+    public static final double LOGGING_PERIOD = 0.1; // in seconds
   }
 
   // DEVICES

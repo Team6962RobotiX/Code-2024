@@ -32,25 +32,28 @@ import frc.robot.subsystems.*;
 
 import frc.robot.Constants.*;
 
-public class Logger extends SubsystemBase {
+public class Logger {
   DataLog log;
-
   Map<String, Object> logEntries = new HashMap<String, Object>();
-
   SwerveDrive drive;
+  PowerDistribution PDP = new PowerDistribution(CAN.PDP, ModuleType.kRev);
+  public int loopCount = 0;
+  public boolean inTeleop = false;
 
   public Logger(SwerveDrive drive) {
     this.drive = drive;
     DataLogManager.start();
   }
 
-  @Override
-  public void periodic() {
+  public void logAll() {
+    if (!inTeleop) {
+      return;
+    }
     log = DataLogManager.getLog();
     if (EnabledLogging.ENABLE_DRIVE)
       logSwerve("/swerveDrive", drive);
     if (EnabledLogging.ENABLE_PDP)
-      logPDP("/powerDistribution", new PowerDistribution(CAN.PDP, ModuleType.kRev));
+      logPDP("/powerDistribution", PDP);
     if (EnabledLogging.ENABLE_ROBOT_CONTROLLER)
       logRobotController("/robotController");
   }
@@ -62,7 +65,7 @@ public class Logger extends SubsystemBase {
     logData(path + "/totalCurrent", drive.getCurrent());
     logData(path + "/totalVoltage", drive.getVoltage());
     logPose(path + "/pose", drive.getPose());
-    logModuleStates(path + "/chassisSpeeds", drive.getTargetModuleStates(), drive.getMeasuredModuleStates(), drive.getModulePositions());
+    logModuleStates(path + "/moduleStates", drive.getTargetModuleStates(), drive.getMeasuredModuleStates(), drive.getModulePositions());
 
     for (SwerveModule module : drive.getModules()) {
       logSwerveModule(path + "/" + module.getName() + "Module", module);
@@ -80,7 +83,7 @@ public class Logger extends SubsystemBase {
   }
 
   public void logSparkMax(String path, CANSparkMax sparkMax) {
-    logData(path + "/speed", sparkMax.get());
+    logData(path + "/power", sparkMax.get());
     logData(path + "/appliedOutputDutyCycle", sparkMax.getAppliedOutput());
     logData(path + "/busVoltage", sparkMax.getBusVoltage());
     logData(path + "/motorTemperature", sparkMax.getMotorTemperature());
@@ -93,7 +96,7 @@ public class Logger extends SubsystemBase {
     logData(path + "/voltageCompensationNominalVoltage", sparkMax.getVoltageCompensationNominalVoltage(), true);
     logData(path + "/firmwareVersion", sparkMax.getFirmwareVersion(), true);
     logData(path + "/stickyFaults", sparkMax.getStickyFaults(), true);
-    logRelativeEncoder(path + "/relativeEncoder", sparkMax.getEncoder());
+    // logRelativeEncoder(path + "/relativeEncoder", sparkMax.getEncoder());
   }
 
   public void logRelativeEncoder(String path, RelativeEncoder encoder) {
@@ -111,7 +114,7 @@ public class Logger extends SubsystemBase {
     logData(path + "/absolutePosition", encoder.getAbsolutePosition());
     logData(path + "/voltage", encoder.getBusVoltage());
     logData(path + "/firmwareVersion", encoder.getFirmwareVersion(), true);
-    logData(path + "/magnetFieldStrength", encoder.getMagnetFieldStrength());
+    logData(path + "/magnetFieldStrength", encoder.getMagnetFieldStrength().value);
     logData(path + "/position", encoder.getPosition());
     logData(path + "/velocity", encoder.getVelocity());
 
@@ -278,6 +281,8 @@ public class Logger extends SubsystemBase {
         logEntries.put(key, new BooleanLogEntry(log, key));
       else if (value instanceof Double)
         logEntries.put(key, new DoubleLogEntry(log, key));
+      else if (value instanceof Short)
+        logEntries.put(key, new IntegerLogEntry(log, key));
       else if (value instanceof Float)
         logEntries.put(key, new FloatLogEntry(log, key));
       else if (value instanceof Integer)
@@ -295,6 +300,8 @@ public class Logger extends SubsystemBase {
         ((BooleanLogEntry) logEntries.get(key)).append((boolean) value);
       else if (value instanceof Double)
         ((DoubleLogEntry) logEntries.get(key)).append((double) value);
+      else if (value instanceof Short)
+        ((IntegerLogEntry) logEntries.get(key)).append(((Short) value).intValue());
       else if (value instanceof Float)
         ((FloatLogEntry) logEntries.get(key)).append((float) value);
       else if (value instanceof Integer)

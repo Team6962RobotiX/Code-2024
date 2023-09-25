@@ -52,7 +52,7 @@ public class SwerveModule {
   private RelativeEncoder relativeSteerEncoder;
   private CANCoder absoluteSteerEncoder;
   public PIDController steerController = new PIDController(0.0, 0.0, 0.0);
-  private SwerveModuleState state;
+  private SwerveModuleState state = new SwerveModuleState();
   private String name;
   SlewRateLimiter accelerationLimiter = new SlewRateLimiter(SwerveDriveConstants.WHEEL_MAX_ACCELERATION);
 
@@ -122,8 +122,6 @@ public class SwerveModule {
 
     driveMotor.set(drivePower);
     steerMotor.set(steerPower);
-
-    state = new SwerveModuleState();
   }
 
   // Get the direction of the steering wheel (-PI - PI)

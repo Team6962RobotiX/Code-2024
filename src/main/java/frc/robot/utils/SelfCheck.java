@@ -53,7 +53,7 @@ import com.kauailabs.navx.frc.AHRS;
 
 public final class SelfCheck {
 
-  public static PowerDistribution PDP = new PowerDistribution(CAN.PDP, ModuleType.kRev);
+  // public static PowerDistribution PDP = new PowerDistribution(CAN.PDP, ModuleType.kRev);
 
   public static void checkRobotController() {
     if (RobotController.isBrownedOut()) {
@@ -97,59 +97,59 @@ public final class SelfCheck {
     }
   }
 
-  public static void checkPDPFaults() {
-    PowerDistributionFaults faults = PDP.getFaults();
+  // public static void checkPDPFaults() {
+  //   PowerDistributionFaults faults = PDP.getFaults();
 
-    if (faults.Brownout) {
-      warn("The PDP is having a brownout");
-    }
+  //   if (faults.Brownout) {
+  //     warn("The PDP is having a brownout");
+  //   }
 
-    if (faults.CanWarning) {
-      warn("The PDP is having CAN issues");
-    }
+  //   if (faults.CanWarning) {
+  //     warn("The PDP is having CAN issues");
+  //   }
 
-    if (faults.HardwareFault) {
-      warn("The PDP is having hardware issues");
-    }
+  //   if (faults.HardwareFault) {
+  //     warn("The PDP is having hardware issues");
+  //   }
 
-    Boolean[] channelFaults = {
-        faults.Channel0BreakerFault,
-        faults.Channel1BreakerFault,
-        faults.Channel2BreakerFault,
-        faults.Channel3BreakerFault,
-        faults.Channel4BreakerFault,
-        faults.Channel5BreakerFault,
-        faults.Channel6BreakerFault,
-        faults.Channel7BreakerFault,
-        faults.Channel8BreakerFault,
-        faults.Channel9BreakerFault,
-        faults.Channel10BreakerFault,
-        faults.Channel11BreakerFault,
-        faults.Channel12BreakerFault,
-        faults.Channel13BreakerFault,
-        faults.Channel14BreakerFault,
-        faults.Channel15BreakerFault,
-        faults.Channel16BreakerFault,
-        faults.Channel17BreakerFault,
-        faults.Channel18BreakerFault,
-        faults.Channel19BreakerFault,
-        faults.Channel20BreakerFault,
-        faults.Channel21BreakerFault,
-        faults.Channel22BreakerFault,
-        faults.Channel23BreakerFault
-    };
-    boolean hasBreakerFault = false;
-    String breakerFaultMessage = "The PDP is having issues with breakers: ";
-    for (int x = 0; x < channelFaults.length; x++) {
-      if (channelFaults[x]) {
-        breakerFaultMessage += (x + ", ");
-        hasBreakerFault = true;
-      }
-    }
-    if (hasBreakerFault) {
-      // warn(breakerFaultMessage);
-    }
-  }
+  //   Boolean[] channelFaults = {
+  //       faults.Channel0BreakerFault,
+  //       faults.Channel1BreakerFault,
+  //       faults.Channel2BreakerFault,
+  //       faults.Channel3BreakerFault,
+  //       faults.Channel4BreakerFault,
+  //       faults.Channel5BreakerFault,
+  //       faults.Channel6BreakerFault,
+  //       faults.Channel7BreakerFault,
+  //       faults.Channel8BreakerFault,
+  //       faults.Channel9BreakerFault,
+  //       faults.Channel10BreakerFault,
+  //       faults.Channel11BreakerFault,
+  //       faults.Channel12BreakerFault,
+  //       faults.Channel13BreakerFault,
+  //       faults.Channel14BreakerFault,
+  //       faults.Channel15BreakerFault,
+  //       faults.Channel16BreakerFault,
+  //       faults.Channel17BreakerFault,
+  //       faults.Channel18BreakerFault,
+  //       faults.Channel19BreakerFault,
+  //       faults.Channel20BreakerFault,
+  //       faults.Channel21BreakerFault,
+  //       faults.Channel22BreakerFault,
+  //       faults.Channel23BreakerFault
+  //   };
+  //   boolean hasBreakerFault = false;
+  //   String breakerFaultMessage = "The PDP is having issues with breakers: ";
+  //   for (int x = 0; x < channelFaults.length; x++) {
+  //     if (channelFaults[x]) {
+  //       breakerFaultMessage += (x + ", ");
+  //       hasBreakerFault = true;
+  //     }
+  //   }
+  //   if (hasBreakerFault) {
+  //     // warn(breakerFaultMessage);
+  //   }
+  // }
 
   public static void checkCANCoderFaults(CANCoder encoder) {
     CANCoderFaults faults = new CANCoderFaults();
