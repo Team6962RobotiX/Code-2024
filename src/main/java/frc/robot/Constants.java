@@ -62,17 +62,17 @@ public final class Constants {
     */
 
     public static final double TELEOP_DRIVE_POWER = 0.3; // Percent driving power (0.2 = 20%), left trigger bypasses this value
-    public static final double TELEOP_SLOW_DRIVE_POWER = 0.05; // Percent driving power when using the DPad
+    public static final double TELEOP_SLOW_DRIVE_POWER = 0.1; // Percent driving power when using the DPad
     public static final double TELEOP_ROTATE_POWER = 0.3; // Percent rotating power (0.4 = 40%)
 
-    public static final double MAX_ACCELERATION = 8.0; // Measured in m/s^2
-    public static final double MAX_ANGULAR_ACCELERATION = 15.0; // Measured in rad/s^2
+    public static final double TELEOP_MAX_ACCELERATION = 25.0; // Measured in m/s^2
+    public static final double TELEOP_MAX_ANGULAR_ACCELERATION = 25.0; // Measured in rad/s^2
     public static final double WHEEL_MAX_ACCELERATION = 25.0; // Measured in m/s^2
     
     public static final double MOTOR_POWER_HARD_CAP = 1.0; // Only use for testing, otherwise set to 1.0
 
     public static final double JOYSTICK_DEADZONE = 0.1; // If joystick values are less than this (0.2 = 20%) than we just read 0
-    public static final double VELOCITY_DEADZONE = 0.05; // speed at which we stop moving all together
+    public static final double VELOCITY_DEADZONE = 0.25; // speed at which we stop moving all together (meters)
 
     public static final int TOTAL_CURRENT_LIMIT = 300; // [TODO] Default is around 640 Amps (also drive motors have two times more current allocation than steer motors)
     public static final double MOTOR_RAMP_RATE_SECONDS = 0.05; // [TODO] Seconds that it takes to go from 0 - 100% motor power
@@ -121,11 +121,11 @@ public final class Constants {
     // AUTONOMOUS
     public static final double AUTO_MAX_DRIVE_VELOCITY = SwerveMath.motorPowerToWheelVelocity(TELEOP_DRIVE_POWER); // [TODO] measured in meters/sec
     public static final double AUTO_MAX_ACCELERATION = 1.0; // [TODO] measured in meters/sec^2
-    public static final double AUTO_MAX_ROTATE_VELOCITY = SwerveMath.wheelVelocityToRotationalVelocity(AUTO_MAX_DRIVE_VELOCITY); // measured in radians/sec
-    public static final double AUTO_MAX_ROTATE_ACCELERATION = SwerveMath.wheelVelocityToRotationalVelocity(AUTO_MAX_ACCELERATION); // measured in rad/sec^2
+    public static final double AUTO_MAX_ANGULAR_VELOCITY = SwerveMath.wheelVelocityToRotationalVelocity(AUTO_MAX_DRIVE_VELOCITY); // measured in radians/sec
+    public static final double AUTO_MAX_ANGULAR_ACCELERATION = SwerveMath.wheelVelocityToRotationalVelocity(AUTO_MAX_ACCELERATION); // measured in rad/sec^2
     public static final TrapezoidProfile.Constraints AUTO_ANGLE_CONSTRAINTS = new TrapezoidProfile.Constraints(
-        AUTO_MAX_ROTATE_VELOCITY,
-        AUTO_MAX_ROTATE_ACCELERATION);
+        AUTO_MAX_ANGULAR_VELOCITY,
+        AUTO_MAX_ANGULAR_ACCELERATION);
 
     // MODULES
     // In order of: front left, front right, back left, back right, where the battery is in the back
@@ -189,6 +189,16 @@ public final class Constants {
       }
 
       return map(input, -deadzone, -1.0, 0.0, -1.0);
+    }
+
+    public static double mapBothSides(double X, double A, double B, double C, double D) {
+      if (X > 0.0) {
+        return map(X, A, B, C, D);
+      }
+      if (X < 0.0) {
+        return map(X, -A, -B, -C, -D);
+      }
+      return 0.0;
     }
 
     public static double[] addCirculuarDeadzone(double[] input, double deadzone) { // input ranges from -1 to 1

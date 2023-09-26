@@ -61,9 +61,6 @@ public class SwerveDrive extends SubsystemBase {
   private AHRS gyro;
   private SwerveDriveKinematics kinematics = SwerveMath.getKinematics();
   private SwerveDriveOdometry odometer;
-  private SlewRateLimiter accelerationLimiter = new SlewRateLimiter(SwerveDriveConstants.MAX_ACCELERATION);
-  private SlewRateLimiter angularAccelerationLimiter = new SlewRateLimiter(SwerveDriveConstants.MAX_ANGULAR_ACCELERATION);
-  private double driveDirection = 0.0;
 
   public SwerveDrive() {
     try {
@@ -95,18 +92,6 @@ public class SwerveDrive extends SubsystemBase {
   public void periodic() {
     // This method will be called once per scheduler run
     driveModules();
-
-    boolean stopped = true;
-    for (SwerveModule module : swerveModules) {
-      if (module.getVelocity() > SwerveDriveConstants.VELOCITY_DEADZONE) {
-        stopped = false;
-        break;
-      }
-    }
-
-    if (stopped) {
-      groundModules();
-    }
 
     // groundModules();
     odometer.update(getRotation2d(), getModulePositions());
@@ -155,23 +140,18 @@ public class SwerveDrive extends SubsystemBase {
   }
 
   // Drive the robot relative to the field
-  public void fieldOrientedDrive(double xVelocity, double yVelocity, double angularVelocity) { // m/s and rad/s
-    double speed = Math.hypot(xVelocity, yVelocity);
-
-    if (speed > SwerveDriveConstants.VELOCITY_DEADZONE) {
-      driveDirection = Math.atan2(yVelocity, xVelocity);
-    }
-
-    speed = accelerationLimiter.calculate(speed);
-    xVelocity = speed * Math.cos(driveDirection);
-    yVelocity = speed * Math.sin(driveDirection);
-
-    angularVelocity = angularAccelerationLimiter.calculate(angularVelocity);
-
+  public void fieldOrientedDrive(double xVelocity, double yVelocity, double angularVelocity) { // m/s and rad/s    
     Rotation2d robotAngle = getRotation2d();
     ChassisSpeeds speeds = ChassisSpeeds.fromFieldRelativeSpeeds(xVelocity, yVelocity, angularVelocity, robotAngle);
     SwerveModuleState moduleStates[] = kinematics.toSwerveModuleStates(speeds);
-    setModuleStates(moduleStates);
+    
+    for (SwerveModuleState moduleState : moduleStates) {
+      if (moduleState.speedMetersPerSecond > SwerveDriveConstants.VELOCITY_DEADZONE) {
+        setModuleStates(moduleStates);
+        return;
+      }
+    }
+    groundModules();
   }
 
   // Set all modules target speed and directions
@@ -197,10 +177,9 @@ public class SwerveDrive extends SubsystemBase {
     return kinematics.toChassisSpeeds(getTargetModuleStates());
   }
 
-  // Get rotate angular velocity
-  public double getAngularVelocity() {
-    ChassisSpeeds ChassisSpeeds = kinematics.toChassisSpeeds(getMeasuredModuleStates());
-    return ChassisSpeeds.omegaRadiansPerSecond;
+  // Get all modules target speed and directions
+  public ChassisSpeeds getMeasuredChassisSpeeds() {
+    return kinematics.toChassisSpeeds(getMeasuredModuleStates());
   }
 
   public SwerveModuleState[] getTargetModuleStates() {

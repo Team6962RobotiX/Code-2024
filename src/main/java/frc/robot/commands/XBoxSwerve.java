@@ -48,6 +48,10 @@ public class XBoxSwerve extends CommandBase {
       SwerveDriveConstants.TELEOP_ROTATE_PID[2]);
 
   private double targetRotateAngle = 0.0;
+  
+  private SlewRateLimiter xAccelerationLimiter = new SlewRateLimiter(SwerveDriveConstants.TELEOP_MAX_ACCELERATION);
+  private SlewRateLimiter yAccelerationLimiter = new SlewRateLimiter(SwerveDriveConstants.TELEOP_MAX_ACCELERATION);
+  private SlewRateLimiter angularAccelerationLimiter = new SlewRateLimiter(SwerveDriveConstants.TELEOP_MAX_ANGULAR_ACCELERATION);
 
   public XBoxSwerve(SwerveDrive swerveDrive, Supplier<XboxController> xboxSupplier) {
     this.swerveDrive = swerveDrive;
@@ -88,8 +92,8 @@ public class XBoxSwerve extends CommandBase {
     // leftTrigger = (controller.getRawAxis(5) + 1.0) / 2.0;
     // rightTrigger = (controller.getRawAxis(6) + 1.0) / 2.0;
     
-    leftTrigger = InputMath.addLinearDeadzone(leftTrigger, SwerveDriveConstants.JOYSTICK_DEADZONE);
-    rightTrigger = InputMath.addLinearDeadzone(rightTrigger, SwerveDriveConstants.JOYSTICK_DEADZONE);
+    leftTrigger = InputMath.addLinearDeadzone(leftTrigger, SwerveDriveConstants.JOYSTICK_DEADZONE / 2);
+    rightTrigger = InputMath.addLinearDeadzone(rightTrigger, SwerveDriveConstants.JOYSTICK_DEADZONE / 2);
     leftX = InputMath.addLinearDeadzone(leftX, SwerveDriveConstants.JOYSTICK_DEADZONE);
     leftY = InputMath.addLinearDeadzone(leftY, SwerveDriveConstants.JOYSTICK_DEADZONE);
     rightX = InputMath.addLinearDeadzone(rightX, SwerveDriveConstants.JOYSTICK_DEADZONE);
@@ -104,22 +108,23 @@ public class XBoxSwerve extends CommandBase {
     
     double rightStickAngle = ((-Math.atan2(rightY, rightX) + Math.PI + Math.PI / 2) % (Math.PI * 2)) - Math.PI;
     
-    double rotateVelocity = 0.0;
+    double angularVelocity = 0.0;
     double xVelocity = 0.0;
     double yVelocity = 0.0;
 
     // If the triggers are used to do relative rotation
     if (leftTrigger + rightTrigger > 0) {
-      double triggerDifference = -leftTrigger + rightTrigger;
-      rotateVelocity = triggerDifference * maxRotateVelocity;
-      double forwardSpeed = Math.min(leftTrigger, rightTrigger) * maxDriveVelocity;
+      double triggerDifference = leftTrigger + -rightTrigger;
+      angularVelocity = triggerDifference * maxRotateVelocity;
+      angularVelocity = InputMath.mapBothSides(angularVelocity, 0, maxRotateVelocity, SwerveMath.wheelVelocityToRotationalVelocity(SwerveDriveConstants.VELOCITY_DEADZONE), maxRotateVelocity);
+      double forwardSpeed = (Math.min(leftTrigger, rightTrigger)) * maxDriveVelocity;
       yVelocity += forwardSpeed * swerveDrive.getRotation2d().getCos();
       xVelocity += forwardSpeed * swerveDrive.getRotation2d().getSin();
-      
+
       // compensate for acceleration
-      double currentAngularVelocity = swerveDrive.getAngularVelocity();
-      double timeToStop = currentAngularVelocity / (SwerveDriveConstants.MAX_ANGULAR_ACCELERATION * Math.signum(rotateVelocity));
-      double radiansToStop = (currentAngularVelocity * timeToStop) + (0.5 * SwerveDriveConstants.MAX_ANGULAR_ACCELERATION * Math.signum(rotateVelocity) * Math.pow(timeToStop, 2));
+      double currentAngularVelocity = swerveDrive.getChassisSpeeds().omegaRadiansPerSecond;
+      double timeToStop = currentAngularVelocity / (SwerveDriveConstants.TELEOP_MAX_ANGULAR_ACCELERATION * Math.signum(angularVelocity));
+      double radiansToStop = (currentAngularVelocity * timeToStop) + (0.5 * SwerveDriveConstants.TELEOP_MAX_ANGULAR_ACCELERATION * Math.signum(angularVelocity) * Math.pow(timeToStop, 2));
       targetRotateAngle = Units.degreesToRadians(swerveDrive.getHeading()) + (radiansToStop);
     } else {
 
@@ -128,32 +133,42 @@ public class XBoxSwerve extends CommandBase {
         targetRotateAngle = rightStickAngle; 
       }
 
-      rotateVelocity = rotatePID.calculate(
+      if (controller.getLeftBumper() || controller.getRightBumper()) {
+        targetRotateAngle = Math.round(targetRotateAngle / (Math.PI / 2)) * (Math.PI / 2);
+      }
+      
+      angularVelocity = rotatePID.calculate(
         Units.degreesToRadians(swerveDrive.getHeading()),
         targetRotateAngle);
     }
 
-    if (controller.getPOV() == -1) {
-      xVelocity += leftX * maxDriveVelocity;
-      yVelocity += leftY * maxDriveVelocity;
-    } else {
-      System.out.println(controller.getPOV());
-      xVelocity += Math.sin(Units.degreesToRadians(controller.getPOV())) * slowDriveVelocity;
+    xVelocity += leftX * maxDriveVelocity;
+    yVelocity += leftY * maxDriveVelocity;
+
+    xVelocity = InputMath.mapBothSides(xVelocity, 0, maxDriveVelocity, SwerveDriveConstants.VELOCITY_DEADZONE, maxRotateVelocity);
+    yVelocity = InputMath.mapBothSides(yVelocity, 0, maxDriveVelocity, SwerveDriveConstants.VELOCITY_DEADZONE, maxRotateVelocity);
+
+    if (controller.getPOV() != -1) {
+      xVelocity += -Math.sin(Units.degreesToRadians(controller.getPOV())) * slowDriveVelocity;
       yVelocity += Math.cos(Units.degreesToRadians(controller.getPOV())) * slowDriveVelocity;
     }
-
+    
     // limit speed
     double speed = Math.min(maxDriveVelocity, Math.hypot(xVelocity, yVelocity));
-    double driveDirection = Math.atan2(yVelocity, xVelocity);
-    xVelocity = speed * Math.cos(driveDirection);
-    yVelocity = speed * Math.sin(driveDirection);
+    double velocityAngle = Math.atan2(yVelocity, xVelocity);
+    xVelocity = speed * Math.cos(velocityAngle);
+    yVelocity = speed * Math.sin(velocityAngle);
 
     // limit rotation speed
-    if (Math.abs(rotateVelocity) > maxRotateVelocity) {
-      rotateVelocity = maxRotateVelocity * Math.signum(rotateVelocity);
+    if (Math.abs(angularVelocity) > maxRotateVelocity) {
+      angularVelocity = maxRotateVelocity * Math.signum(angularVelocity);
     }
 
-    swerveDrive.fieldOrientedDrive(yVelocity, xVelocity, rotateVelocity);
+    xVelocity = xAccelerationLimiter.calculate(xVelocity);
+    yVelocity = yAccelerationLimiter.calculate(yVelocity);
+    angularVelocity = angularAccelerationLimiter.calculate(angularVelocity);
+
+    swerveDrive.fieldOrientedDrive(yVelocity, xVelocity, angularVelocity);
 
     if (controller.getYButton()) {
       swerveDrive.zeroHeading();
@@ -162,7 +177,7 @@ public class XBoxSwerve extends CommandBase {
 
     AHRS gyro = swerveDrive.getGyro();
     double acceleration = Math.sqrt(Math.pow(gyro.getRawAccelX(), 2) + Math.pow(gyro.getRawAccelY(), 2) + Math.pow(gyro.getRawAccelZ(), 2));
-    double accelerationBeyondLimit = Math.max(0, acceleration - SwerveDriveConstants.MAX_ACCELERATION);
+    double accelerationBeyondLimit = Math.max(0, acceleration - SwerveDriveConstants.TELEOP_MAX_ACCELERATION);
     double normalizedRumble = accelerationBeyondLimit / (accelerationBeyondLimit + 1);
     controller.setRumble(RumbleType.kBothRumble, normalizedRumble);
   }
