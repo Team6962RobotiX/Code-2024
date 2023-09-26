@@ -114,13 +114,13 @@ public final class Constants {
     public static final double[] TELEOP_ROTATE_PID = { 4.0, 0.0, 0.0 }; // [TODO]
     public static final double TELEOP_ROTATE_PID_TOLERANCE = 1.0; // In degrees
 
-    public static final double[] AUTO_ROTATE_PID = { 4.0, 0.0, 0.0 }; // [TODO]
-    public static final double[] AUTO_X_PID = { 2.0, 0.0, 0.0 }; // [TODO]
-    public static final double[] AUTO_Y_PID = { 2.0, 0.0, 0.0 }; // [TODO]
+    public static final double[] AUTO_THETA_PID = { 4.0, 0.0, 0.0 }; // [TODO]
+    public static final double[] AUTO_X_PID = { 5.0, 0.0, 0.0 }; // [TODO]
+    public static final double[] AUTO_Y_PID = { 5.0, 0.0, 0.0 }; // [TODO]
     
     // AUTONOMOUS
-    public static final double AUTO_MAX_VELOCITY = SwerveMath.motorPowerToWheelVelocity(TELEOP_DRIVE_POWER); // [TODO] measured in meters/sec
-    public static final double AUTO_MAX_ACCELERATION = 100.0; // [TODO] measured in meters/sec^2
+    public static final double AUTO_MAX_VELOCITY = 4.0; // [TODO] measured in meters/sec
+    public static final double AUTO_MAX_ACCELERATION = 25.0; // [TODO] measured in meters/sec^2
     public static final double AUTO_MAX_ANGULAR_VELOCITY = SwerveMath.wheelVelocityToRotationalVelocity(AUTO_MAX_VELOCITY); // measured in radians/sec
     public static final double AUTO_MAX_ANGULAR_ACCELERATION = SwerveMath.wheelVelocityToRotationalVelocity(AUTO_MAX_ACCELERATION); // measured in rad/sec^2
     public static final TrapezoidProfile.Constraints AUTO_ANGLE_CONSTRAINTS = new TrapezoidProfile.Constraints(

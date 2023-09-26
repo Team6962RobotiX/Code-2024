@@ -17,7 +17,10 @@ import java.util.stream.Stream;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
+import edu.wpi.first.math.spline.Spline.ControlVector;
+import edu.wpi.first.math.trajectory.TrajectoryGenerator.ControlVectorList;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
@@ -59,8 +62,9 @@ public class MotionRecorder extends SubsystemBase {
     }
 
     Pose2d pose = swerveDrive.getPose();
+    ChassisSpeeds velocity = swerveDrive.getChassisSpeeds();
 
-    positionData.add(pose.getTranslation().getX() + "," + pose.getTranslation().getY() + "," + pose.getRotation().getRadians());
+    positionData.add(pose.getTranslation().getX() + "," + velocity.vxMetersPerSecond + "," + pose.getTranslation().getY() + "," + velocity.vyMetersPerSecond + "," + pose.getRotation().getRadians() + "," + velocity.omegaRadiansPerSecond);
 
     // This method will be called once per scheduler run
   }
@@ -76,17 +80,25 @@ public class MotionRecorder extends SubsystemBase {
     }
   }
 
-  public static List<Pose2d> readData() {
-    List<Pose2d> newPositionData = new ArrayList<>();
+  public static ControlVectorList readData() {
+    ControlVectorList newPositionData = new ControlVectorList();
     try {
       try (BufferedReader br = new BufferedReader(new FileReader(SwerveDriveConstants.MOTION_RECORDING_READ_FILE))) {
         String line;
         while ((line = br.readLine()) != null) {
           String[] values = line.split(",");
-          newPositionData.add(new Pose2d(
-              Double.parseDouble(values[0]),
-              Double.parseDouble(values[1]),
-              Rotation2d.fromRadians(Double.parseDouble(values[2]))));
+          newPositionData.add(
+            new ControlVector(
+              new double[] {
+                Double.parseDouble(values[0]),
+                Double.parseDouble(values[1])
+              },
+              new double[] {
+                Double.parseDouble(values[2]),
+                Double.parseDouble(values[3])
+              }
+            )
+          );
         }
       }
     } catch (Exception e) {

@@ -75,40 +75,41 @@ public class RobotContainer {
 
   public Command getAutonomousCommand() {
 
-    List<Translation2d> positionData = new ArrayList<>();
-    positionData.add(new Translation2d(0.0, 1.0));
+    List<Pose2d> path = List.of(
+        new Pose2d(0, 0, Rotation2d.fromRadians(0.0)),
+        new Pose2d(1, 0, Rotation2d.fromRadians(Math.PI)),
+        new Pose2d(0, 0, Rotation2d.fromRadians(0.0))
+    );
     
     TrajectoryConfig TrajectoryConfig = new TrajectoryConfig(SwerveDriveConstants.AUTO_MAX_VELOCITY, SwerveDriveConstants.AUTO_MAX_ACCELERATION)
         .setKinematics(SwerveMath.getKinematics());
 
     Trajectory trajectory = TrajectoryGenerator.generateTrajectory(
-      new Pose2d(new Translation2d(0.0, 0.0), new Rotation2d(0.0)),
-      positionData,
-      new Pose2d(new Translation2d(0.0, 0.0), new Rotation2d(0.0)),
-      TrajectoryConfig);
+        path,
+        TrajectoryConfig);
 
-    PIDController xController = new PIDController(
+    PIDController xPID = new PIDController(
         SwerveDriveConstants.AUTO_X_PID[0],
         SwerveDriveConstants.AUTO_X_PID[1],
         SwerveDriveConstants.AUTO_X_PID[2]);
-    PIDController yController = new PIDController(
+    PIDController yPID = new PIDController(
         SwerveDriveConstants.AUTO_Y_PID[0],
         SwerveDriveConstants.AUTO_Y_PID[1],
         SwerveDriveConstants.AUTO_Y_PID[2]);
-    ProfiledPIDController angleController = new ProfiledPIDController(
-        SwerveDriveConstants.AUTO_ROTATE_PID[0],
-        SwerveDriveConstants.AUTO_ROTATE_PID[1],
-        SwerveDriveConstants.AUTO_ROTATE_PID[2],
+    ProfiledPIDController thetaPID = new ProfiledPIDController(
+        SwerveDriveConstants.AUTO_THETA_PID[0],
+        SwerveDriveConstants.AUTO_THETA_PID[1],
+        SwerveDriveConstants.AUTO_THETA_PID[2],
         SwerveDriveConstants.AUTO_ANGLE_CONSTRAINTS);
-    angleController.enableContinuousInput(-Math.PI, Math.PI);
+    thetaPID.enableContinuousInput(-Math.PI, Math.PI);
+
+    HolonomicDriveController swervePID = new HolonomicDriveController(xPID, yPID, thetaPID);
 
     SwerveControllerCommand swerveControllerCommand = new SwerveControllerCommand(
         trajectory,
         drive::getPose,
         SwerveMath.getKinematics(),
-        xController,
-        yController,
-        angleController,
+        swervePID,
         drive::setModuleStates,
         drive);
     // return null;
