@@ -110,7 +110,7 @@ public class XBoxSwerve extends CommandBase {
       rotateVelocity = triggerDifference * maxRotateVelocity;
       
       // compensate for acceleration
-      targetRotateAngle = Units.degreesToRadians(swerveDrive.getHeading()) + (rotateVelocity / (2 * SwerveDriveConstants.ROTATE_MAX_ACCELERATION));
+      targetRotateAngle = Units.degreesToRadians(swerveDrive.getHeading()) + (rotateVelocity / (2 * SwerveDriveConstants.DRIVE_MAX_ANGULAR_ACCELERATION));
     } else {
 
       // If the right stick is being used to do absolute rotation

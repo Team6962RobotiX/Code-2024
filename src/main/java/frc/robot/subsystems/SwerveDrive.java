@@ -62,6 +62,7 @@ public class SwerveDrive extends SubsystemBase {
   private SwerveDriveKinematics kinematics = SwerveMath.getKinematics();
   private SwerveDriveOdometry odometer;
   private SlewRateLimiter accelerationLimiter = new SlewRateLimiter(SwerveDriveConstants.DRIVE_MAX_ACCELERATION);
+  private SlewRateLimiter angularAccelerationLimiter = new SlewRateLimiter(SwerveDriveConstants.DRIVE_MAX_ANGULAR_ACCELERATION);
   private double driveDirection = 0.0;
 
   public SwerveDrive() {
@@ -164,6 +165,8 @@ public class SwerveDrive extends SubsystemBase {
     speed = accelerationLimiter.calculate(speed);
     xVelocity = speed * Math.cos(driveDirection);
     yVelocity = speed * Math.sin(driveDirection);
+
+    angularVelocity = angularAccelerationLimiter.calculate(angularVelocity);
 
     Rotation2d robotAngle = getRotation2d();
     ChassisSpeeds speeds = ChassisSpeeds.fromFieldRelativeSpeeds(xVelocity, yVelocity, angularVelocity, robotAngle);
