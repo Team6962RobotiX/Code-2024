@@ -7,6 +7,7 @@ package frc.robot.subsystems;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -19,6 +20,7 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics.*;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
@@ -92,6 +94,19 @@ public class SwerveDrive extends SubsystemBase {
   public void periodic() {
     // This method will be called once per scheduler run
     driveModules();
+
+    boolean stopped = true;
+    for (SwerveModule module : swerveModules) {
+      if (module.getVelocity() > SwerveDriveConstants.VELOCITY_DEADZONE) {
+        stopped = false;
+        break;
+      }
+    }
+
+    if (stopped) {
+      groundModules();
+    }
+
     // groundModules();
     odometer.update(getRotation2d(), getModulePositions());
 
@@ -120,7 +135,7 @@ public class SwerveDrive extends SubsystemBase {
 
   // Get gyro degree heading (-180 - 180)
   public double getHeading() {
-    return ((((getRotation2d().getDegrees() + 180.0) % 360.0) + 360.0) % 360.0) - 180.0;
+    return getRotation2d().getDegrees() % 180.0;
   }
 
   // Reset gyro heading
@@ -129,37 +144,31 @@ public class SwerveDrive extends SubsystemBase {
     gyro.setAngleAdjustment(SwerveDriveConstants.STARTING_ANGLE_OFFSET);
   }
 
-  // Drive the robot relative to the field
-  public void fieldOrientedDrive(double xVelocity, double yVelocity, double rotation) { // m/s and rad/s
-    double velocity = Math.hypot(xVelocity, yVelocity);
+  // Drive the robot relative to itself
+  public void robotOrientedDrive(double forwardVelocity, double strafeVelocity, double angularVelocity) { // m/s and rad/s
+    Rotation2d robotAngle = getRotation2d();
+    fieldOrientedDrive(
+        forwardVelocity * robotAngle.getCos() - strafeVelocity * robotAngle.getSin(),
+        forwardVelocity * robotAngle.getSin() + strafeVelocity * robotAngle.getCos(),
+        angularVelocity);
+  }
 
-    if (velocity != 0) {
+  // Drive the robot relative to the field
+  public void fieldOrientedDrive(double xVelocity, double yVelocity, double angularVelocity) { // m/s and rad/s
+    double speed = Math.hypot(xVelocity, yVelocity);
+
+    if (speed > SwerveDriveConstants.VELOCITY_DEADZONE) {
       driveDirection = Math.atan2(yVelocity, xVelocity);
     }
 
-    velocity = accelerationLimiter.calculate(velocity);
-
-    if (velocity + SwerveMath.rotationalVelocityToWheelVelocity(Math.abs(rotation)) < SwerveDriveConstants.VELOCITY_DEADZONE) {
-      groundModules();
-      return;
-    }
-
-    xVelocity = velocity * Math.cos(driveDirection);
-    yVelocity = velocity * Math.sin(driveDirection);
+    speed = accelerationLimiter.calculate(speed);
+    xVelocity = speed * Math.cos(driveDirection);
+    yVelocity = speed * Math.sin(driveDirection);
 
     Rotation2d robotAngle = getRotation2d();
-    ChassisSpeeds speeds = ChassisSpeeds.fromFieldRelativeSpeeds(xVelocity, yVelocity, rotation, robotAngle);
+    ChassisSpeeds speeds = ChassisSpeeds.fromFieldRelativeSpeeds(xVelocity, yVelocity, angularVelocity, robotAngle);
     SwerveModuleState moduleStates[] = kinematics.toSwerveModuleStates(speeds);
     setModuleStates(moduleStates);
-  }
-
-  // Drive the robot relative to itself
-  public void robotOrientedDrive(double forward, double strafe, double rotation) { // m/s and rad/s
-    Rotation2d robotAngle = getRotation2d();
-    fieldOrientedDrive(
-        forward * robotAngle.getCos() - strafe * robotAngle.getSin(),
-        forward * robotAngle.getSin() + strafe * robotAngle.getCos(),
-        rotation);
   }
 
   // Set all modules target speed and directions

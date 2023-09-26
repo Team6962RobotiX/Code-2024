@@ -55,7 +55,6 @@ public class RobotContainer {
   private final XboxController controller = new XboxController(Devices.USB_XBOX_CONTROLLER);
   private final SwerveDrive drive = new SwerveDrive();
   // private final Limelight limelight = new Limelight(LimelightConfig.NAME);
-  private final Dashboard dashboard = new Dashboard(drive);
   private final MotionRecorder recorder = new MotionRecorder(drive);
   private final Logger logger = new Logger(drive);
   // private final Testing tesing = new Testing();
@@ -66,8 +65,6 @@ public class RobotContainer {
 
     // Configure the trigger bindings
     configureBindings();
-
-    dashboard.initialize();
   }
 
   private void configureBindings() {

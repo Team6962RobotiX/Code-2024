@@ -108,17 +108,14 @@ public class SwerveModule {
   public void drive() { // Must be called periodically
     double drivePower = SwerveMath.wheelVelocityToMotorPower(state.speedMetersPerSecond);
     double steerPower = SwerveMath.steerVelocityToMotorPower(steerController.calculate(getSteerRadians(), state.angle.getRadians()));
-
-    if (Math.abs(drivePower) > SwerveDriveConstants.MOTOR_POWER_HARD_CAP) {
+    
+    if (Math.abs(drivePower) > SwerveDriveConstants.MOTOR_POWER_HARD_CAP)
       drivePower = SwerveDriveConstants.MOTOR_POWER_HARD_CAP * Math.signum(drivePower);
-    }
-
-    if (Math.abs(steerPower) > SwerveDriveConstants.MOTOR_POWER_HARD_CAP) {
+    if (Math.abs(steerPower) > SwerveDriveConstants.MOTOR_POWER_HARD_CAP)
       steerPower = SwerveDriveConstants.MOTOR_POWER_HARD_CAP * Math.signum(steerPower);
-    }
-
+    
     drivePower = SwerveMath.wheelVelocityToMotorPower(accelerationLimiter.calculate(SwerveMath.motorPowerToWheelVelocity(drivePower)));
-
+    
     driveMotor.set(drivePower);
     steerMotor.set(steerPower);
   }
