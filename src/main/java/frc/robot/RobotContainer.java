@@ -17,6 +17,7 @@ import edu.wpi.first.wpilibj2.command.RamseteCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SwerveControllerCommand;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.ctre.phoenix.sensors.CANCoder;
@@ -73,12 +74,18 @@ public class RobotContainer {
   }
 
   public Command getAutonomousCommand() {
-    TrajectoryConfig TrajectoryConfig = new TrajectoryConfig(SwerveDriveConstants.AUTO_MAX_DRIVE_VELOCITY, SwerveDriveConstants.AUTO_MAX_ACCELERATION)
+
+    List<Translation2d> positionData = new ArrayList<>();
+    positionData.add(new Translation2d(0.0, 1.0));
+    
+    TrajectoryConfig TrajectoryConfig = new TrajectoryConfig(SwerveDriveConstants.AUTO_MAX_VELOCITY, SwerveDriveConstants.AUTO_MAX_ACCELERATION)
         .setKinematics(SwerveMath.getKinematics());
 
     Trajectory trajectory = TrajectoryGenerator.generateTrajectory(
-        MotionRecorder.readData(),
-        TrajectoryConfig);
+      new Pose2d(new Translation2d(0.0, 0.0), new Rotation2d(0.0)),
+      positionData,
+      new Pose2d(new Translation2d(0.0, 0.0), new Rotation2d(0.0)),
+      TrajectoryConfig);
 
     PIDController xController = new PIDController(
         SwerveDriveConstants.AUTO_X_PID[0],
