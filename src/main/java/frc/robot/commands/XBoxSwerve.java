@@ -47,10 +47,6 @@ public class XBoxSwerve extends CommandBase {
       SwerveDriveConstants.TELEOP_ROTATE_PID[1],
       SwerveDriveConstants.TELEOP_ROTATE_PID[2]);
 
-  private double yVelocity = 0.0;
-  private double xVelocity = 0.0;
-  private double rotateVelocity = 0.0;
-
   private double targetRotateAngle = 0.0;
 
   public XBoxSwerve(SwerveDrive swerveDrive, Supplier<XboxController> xboxSupplier) {
@@ -73,6 +69,11 @@ public class XBoxSwerve extends CommandBase {
   @Override
   public void execute() {
     XboxController controller = xboxSupplier.get();
+
+    if (!controller.isConnected()) {
+      swerveDrive.stopModules();
+      return;
+    }
 
     double leftX = -controller.getLeftX();
     double leftY = -controller.getLeftY();
@@ -97,20 +98,26 @@ public class XBoxSwerve extends CommandBase {
     double LStickMagnitude = Math.hypot(leftX, leftY);
     double RStickMagnitude = Math.hypot(rightX, rightY);
     
-    double maxDriveVelocity = SwerveMath.motorPowerToWheelVelocity(Constants.map(leftTrigger, 0.0, 1.0, SwerveDriveConstants.TELEOP_DRIVE_POWER, SwerveDriveConstants.TELEOP_DRIVE_BOOST_POWER));
+    double maxDriveVelocity = SwerveMath.motorPowerToWheelVelocity(SwerveDriveConstants.TELEOP_DRIVE_POWER);
+    double slowDriveVelocity = SwerveMath.motorPowerToWheelVelocity(SwerveDriveConstants.TELEOP_SLOW_DRIVE_POWER);
     double maxRotateVelocity = SwerveMath.wheelVelocityToRotationalVelocity(SwerveMath.motorPowerToWheelVelocity(SwerveDriveConstants.TELEOP_ROTATE_POWER));
     
     double rightStickAngle = (Math.atan2(-rightY, rightX) + Math.PI / 2) % Math.PI;
     
     double rotateVelocity = 0.0;
+    double xVelocity = 0.0;
+    double yVelocity = 0.0;
 
     // If the triggers are used to do relative rotation
     if (leftTrigger + rightTrigger > 0) {
       double triggerDifference = -leftTrigger + rightTrigger;
       rotateVelocity = triggerDifference * maxRotateVelocity;
+      double forwardSpeed = Math.min(leftTrigger, rightTrigger) * maxDriveVelocity;
+      yVelocity += forwardSpeed * swerveDrive.getRotation2d().getCos();
+      xVelocity += forwardSpeed * swerveDrive.getRotation2d().getSin();
       
       // compensate for acceleration
-      targetRotateAngle = Units.degreesToRadians(swerveDrive.getHeading()) + (rotateVelocity / (2 * SwerveDriveConstants.DRIVE_MAX_ANGULAR_ACCELERATION));
+      targetRotateAngle = Units.degreesToRadians(swerveDrive.getHeading()) + (rotateVelocity / (2 * SwerveDriveConstants.MAX_ANGULAR_ACCELERATION));
     } else {
 
       // If the right stick is being used to do absolute rotation
@@ -121,18 +128,25 @@ public class XBoxSwerve extends CommandBase {
       rotateVelocity = rotatePID.calculate(
         Units.degreesToRadians(swerveDrive.getHeading()),
         targetRotateAngle);
-      
-      if (Math.abs(rotateVelocity) > maxRotateVelocity) {
-        rotateVelocity = maxRotateVelocity * Math.signum(rotateVelocity);
-      }
     }
 
-    xVelocity = leftX * maxDriveVelocity;
-    yVelocity = leftY * maxDriveVelocity;
+    if (controller.getPOV() == -1) {
+      xVelocity += leftX * maxDriveVelocity;
+      yVelocity += leftY * maxDriveVelocity;
+    } else {
+      xVelocity += Math.sin(controller.getPOV()) * slowDriveVelocity;
+      yVelocity += Math.cos(controller.getPOV()) * slowDriveVelocity;
+    }
 
-    if (!controller.isConnected()) {
-      swerveDrive.stopModules();
-      return;
+    // limit speed
+    double speed = Math.min(maxDriveVelocity, Math.hypot(xVelocity, yVelocity));
+    double driveDirection = Math.atan2(yVelocity, xVelocity);
+    xVelocity = speed * Math.cos(driveDirection);
+    yVelocity = speed * Math.sin(driveDirection);
+
+    // limit rotation speed
+    if (Math.abs(rotateVelocity) > maxRotateVelocity) {
+      rotateVelocity = maxRotateVelocity * Math.signum(rotateVelocity);
     }
 
     swerveDrive.fieldOrientedDrive(yVelocity, xVelocity, rotateVelocity);
@@ -144,7 +158,7 @@ public class XBoxSwerve extends CommandBase {
 
     AHRS gyro = swerveDrive.getGyro();
     double acceleration = Math.sqrt(Math.pow(gyro.getRawAccelX(), 2) + Math.pow(gyro.getRawAccelY(), 2) + Math.pow(gyro.getRawAccelZ(), 2));
-    double accelerationBeyondLimit = Math.max(0, acceleration - SwerveDriveConstants.DRIVE_MAX_ACCELERATION);
+    double accelerationBeyondLimit = Math.max(0, acceleration - SwerveDriveConstants.MAX_ACCELERATION);
     double normalizedRumble = accelerationBeyondLimit / (accelerationBeyondLimit + 1);
     controller.setRumble(RumbleType.kBothRumble, normalizedRumble);
   }

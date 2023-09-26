@@ -61,8 +61,8 @@ public class SwerveDrive extends SubsystemBase {
   private AHRS gyro;
   private SwerveDriveKinematics kinematics = SwerveMath.getKinematics();
   private SwerveDriveOdometry odometer;
-  private SlewRateLimiter accelerationLimiter = new SlewRateLimiter(SwerveDriveConstants.DRIVE_MAX_ACCELERATION);
-  private SlewRateLimiter angularAccelerationLimiter = new SlewRateLimiter(SwerveDriveConstants.DRIVE_MAX_ANGULAR_ACCELERATION);
+  private SlewRateLimiter accelerationLimiter = new SlewRateLimiter(SwerveDriveConstants.MAX_ACCELERATION);
+  private SlewRateLimiter angularAccelerationLimiter = new SlewRateLimiter(SwerveDriveConstants.MAX_ANGULAR_ACCELERATION);
   private double driveDirection = 0.0;
 
   public SwerveDrive() {
