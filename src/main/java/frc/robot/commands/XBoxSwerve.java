@@ -78,7 +78,7 @@ public class XBoxSwerve extends CommandBase {
     double leftX = -controller.getLeftX();
     double leftY = -controller.getLeftY();
     double leftTrigger = controller.getLeftTriggerAxis();
-    double rightTrigger = controller.getLeftTriggerAxis();
+    double rightTrigger = controller.getRightTriggerAxis();
     double rightX = -controller.getRightX();
     double rightY = -controller.getRightY();
 
@@ -102,7 +102,7 @@ public class XBoxSwerve extends CommandBase {
     double slowDriveVelocity = SwerveMath.motorPowerToWheelVelocity(SwerveDriveConstants.TELEOP_SLOW_DRIVE_POWER);
     double maxRotateVelocity = SwerveMath.wheelVelocityToRotationalVelocity(SwerveMath.motorPowerToWheelVelocity(SwerveDriveConstants.TELEOP_ROTATE_POWER));
     
-    double rightStickAngle = (Math.atan2(-rightY, rightX) + Math.PI / 2) % Math.PI;
+    double rightStickAngle = ((-Math.atan2(rightY, rightX) + Math.PI + Math.PI / 2) % (Math.PI * 2)) - Math.PI;
     
     double rotateVelocity = 0.0;
     double xVelocity = 0.0;
@@ -117,7 +117,10 @@ public class XBoxSwerve extends CommandBase {
       xVelocity += forwardSpeed * swerveDrive.getRotation2d().getSin();
       
       // compensate for acceleration
-      targetRotateAngle = Units.degreesToRadians(swerveDrive.getHeading()) + (rotateVelocity / (2 * SwerveDriveConstants.MAX_ANGULAR_ACCELERATION));
+      double currentAngularVelocity = swerveDrive.getAngularVelocity();
+      double timeToStop = currentAngularVelocity / (SwerveDriveConstants.MAX_ANGULAR_ACCELERATION * Math.signum(rotateVelocity));
+      double radiansToStop = (currentAngularVelocity * timeToStop) + (0.5 * SwerveDriveConstants.MAX_ANGULAR_ACCELERATION * Math.signum(rotateVelocity) * Math.pow(timeToStop, 2));
+      targetRotateAngle = Units.degreesToRadians(swerveDrive.getHeading()) + (radiansToStop);
     } else {
 
       // If the right stick is being used to do absolute rotation
@@ -134,8 +137,9 @@ public class XBoxSwerve extends CommandBase {
       xVelocity += leftX * maxDriveVelocity;
       yVelocity += leftY * maxDriveVelocity;
     } else {
-      xVelocity += Math.sin(controller.getPOV()) * slowDriveVelocity;
-      yVelocity += Math.cos(controller.getPOV()) * slowDriveVelocity;
+      System.out.println(controller.getPOV());
+      xVelocity += Math.sin(Units.degreesToRadians(controller.getPOV())) * slowDriveVelocity;
+      yVelocity += Math.cos(Units.degreesToRadians(controller.getPOV())) * slowDriveVelocity;
     }
 
     // limit speed

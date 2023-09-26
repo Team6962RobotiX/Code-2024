@@ -136,7 +136,7 @@ public class SwerveDrive extends SubsystemBase {
 
   // Get gyro degree heading (-180 - 180)
   public double getHeading() {
-    return getRotation2d().getDegrees() % 180.0;
+    return ((((getRotation2d().getDegrees() + 180.0) % 360.0) + 360.0) % 360.0) - 180.0;
   }
 
   // Reset gyro heading
@@ -195,6 +195,12 @@ public class SwerveDrive extends SubsystemBase {
   // Get all modules target speed and directions
   public ChassisSpeeds getChassisSpeeds() {
     return kinematics.toChassisSpeeds(getTargetModuleStates());
+  }
+
+  // Get rotate angular velocity
+  public double getAngularVelocity() {
+    ChassisSpeeds ChassisSpeeds = kinematics.toChassisSpeeds(getMeasuredModuleStates());
+    return ChassisSpeeds.omegaRadiansPerSecond;
   }
 
   public SwerveModuleState[] getTargetModuleStates() {
