@@ -74,48 +74,7 @@ public class RobotContainer {
   }
 
   public Command getAutonomousCommand() {
-
-    List<Pose2d> path = List.of(
-        new Pose2d(0, 0, Rotation2d.fromRadians(0.0)),
-        new Pose2d(1, 0, Rotation2d.fromRadians(Math.PI)),
-        new Pose2d(0, 0, Rotation2d.fromRadians(0.0))
-    );
-    
-    TrajectoryConfig TrajectoryConfig = new TrajectoryConfig(SwerveDriveConstants.AUTO_MAX_VELOCITY, SwerveDriveConstants.AUTO_MAX_ACCELERATION)
-        .setKinematics(SwerveMath.getKinematics());
-
-    Trajectory trajectory = TrajectoryGenerator.generateTrajectory(
-        path,
-        TrajectoryConfig);
-
-    PIDController xPID = new PIDController(
-        SwerveDriveConstants.AUTO_X_PID[0],
-        SwerveDriveConstants.AUTO_X_PID[1],
-        SwerveDriveConstants.AUTO_X_PID[2]);
-    PIDController yPID = new PIDController(
-        SwerveDriveConstants.AUTO_Y_PID[0],
-        SwerveDriveConstants.AUTO_Y_PID[1],
-        SwerveDriveConstants.AUTO_Y_PID[2]);
-    ProfiledPIDController thetaPID = new ProfiledPIDController(
-        SwerveDriveConstants.AUTO_THETA_PID[0],
-        SwerveDriveConstants.AUTO_THETA_PID[1],
-        SwerveDriveConstants.AUTO_THETA_PID[2],
-        SwerveDriveConstants.AUTO_ANGLE_CONSTRAINTS);
-    thetaPID.enableContinuousInput(-Math.PI, Math.PI);
-
-    HolonomicDriveController swervePID = new HolonomicDriveController(xPID, yPID, thetaPID);
-
-    SwerveControllerCommand swerveControllerCommand = new SwerveControllerCommand(
-        trajectory,
-        drive::getPose,
-        SwerveMath.getKinematics(),
-        swervePID,
-        drive::setModuleStates,
-        drive);
-    // return null;
-
-    return new SequentialCommandGroup(
-        new InstantCommand(() -> drive.resetOdometry(trajectory.getInitialPose())), swerveControllerCommand, new InstantCommand(() -> drive.stopModules()));
+    return null;
   }
 
   public void disabledPeriodic() {

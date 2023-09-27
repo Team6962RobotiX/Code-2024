@@ -4,38 +4,20 @@
 
 package frc.robot.commands;
 
-import frc.robot.subsystems.*;
-import frc.robot.utils.SwerveModule;
-import frc.robot.Constants;
-import frc.robot.Constants.*;
-import frc.robot.Robot;
-import frc.robot.RobotContainer;
-
-import java.util.Map;
 import java.util.function.Supplier;
 
-import edu.wpi.first.wpilibj.Joystick;
-import edu.wpi.first.wpilibj.GenericHID;
-import edu.wpi.first.wpilibj.XboxController;
-import edu.wpi.first.wpilibj.GenericHID.RumbleType;
-import edu.wpi.first.wpilibj.drive.DifferentialDrive.WheelSpeeds;
-import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.CommandBase;
-import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.math.util.Units;
-
-import com.ctre.phoenix.sensors.CANCoder;
 import com.kauailabs.navx.frc.AHRS;
-import com.revrobotics.CANSparkMax;
-import com.revrobotics.RelativeEncoder;
-import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.filter.SlewRateLimiter;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.GenericHID.RumbleType;
+import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj2.command.CommandBase;
+import frc.robot.Constants.InputMath;
+import frc.robot.Constants.SwerveDriveConstants;
+import frc.robot.Constants.SwerveMath;
+import frc.robot.subsystems.SwerveDrive;
 
 /** An example command that uses an example subsystem. */
 

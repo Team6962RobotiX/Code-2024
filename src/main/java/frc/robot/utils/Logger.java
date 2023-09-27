@@ -3,36 +3,34 @@ package frc.robot.utils;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.ctre.phoenix.ErrorCode;
 import com.ctre.phoenix.sensors.CANCoder;
 import com.ctre.phoenix.sensors.CANCoderFaults;
 import com.kauailabs.navx.frc.AHRS;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
-import com.revrobotics.SparkMaxRelativeEncoder;
 
 import edu.wpi.first.hal.PowerDistributionFaults;
-import edu.wpi.first.hal.PowerDistributionStickyFaults;
-import edu.wpi.first.hal.PowerDistributionVersion;
 import edu.wpi.first.hal.can.CANStatus;
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.networktables.*;
-import edu.wpi.first.util.datalog.*;
+import edu.wpi.first.networktables.BooleanPublisher;
+import edu.wpi.first.networktables.DoubleArrayPublisher;
+import edu.wpi.first.networktables.DoublePublisher;
+import edu.wpi.first.networktables.FloatPublisher;
+import edu.wpi.first.networktables.IntegerPublisher;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.StringPublisher;
+import edu.wpi.first.util.datalog.DataLog;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution;
-
-import edu.wpi.first.wpilibj.RobotController;
-import edu.wpi.first.wpilibj2.command.CommandBase;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
-import frc.robot.subsystems.*;
-
-import frc.robot.Constants.*;
+import edu.wpi.first.wpilibj.RobotController;
+import frc.robot.Constants.CAN;
+import frc.robot.Constants.Logging;
+import frc.robot.subsystems.SwerveDrive;
 
 public class Logger {
   DataLog log = DataLogManager.getLog();

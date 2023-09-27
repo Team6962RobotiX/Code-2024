@@ -4,56 +4,21 @@
 
 package frc.robot.subsystems;
 
-import edu.wpi.first.wpilibj2.command.CommandBase;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
-import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.math.filter.SlewRateLimiter;
+import com.kauailabs.navx.frc.AHRS;
+
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.math.kinematics.DifferentialDriveOdometry;
-import edu.wpi.first.math.kinematics.DifferentialDriveWheelSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
-import edu.wpi.first.math.kinematics.SwerveModulePosition;
-import edu.wpi.first.math.kinematics.SwerveDriveKinematics.*;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
+import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.math.util.Units;
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.Joystick;
-import edu.wpi.first.wpilibj.drive.DifferentialDrive;
-import edu.wpi.first.wpilibj.motorcontrol.MotorControllerGroup;
-import edu.wpi.first.wpilibj.shuffleboard.BuiltInLayouts;
-import edu.wpi.first.wpilibj.shuffleboard.BuiltInWidgets;
-import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
-import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardLayout;
-import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
-import edu.wpi.first.wpilibj.smartdashboard.Field2d;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.SPI;
-import edu.wpi.first.wpilibj.SerialPort;
-import edu.wpi.first.wpilibj.XboxController;
-
-import edu.wpi.first.util.datalog.*;
-
-import java.util.Map;
-import java.util.function.Supplier;
-
-import com.revrobotics.CANSparkMax;
-import com.revrobotics.RelativeEncoder;
-import com.revrobotics.CANSparkMaxLowLevel.MotorType;
-
-import frc.robot.commands.*;
-import frc.robot.Constants;
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.SwerveDriveConstants;
 import frc.robot.Constants.SwerveMath;
-import frc.robot.subsystems.*;
-import frc.robot.utils.*;
-
-import com.ctre.phoenix.sensors.CANCoder;
-import com.kauailabs.navx.frc.AHRS;
+import frc.robot.utils.SelfCheck;
+import frc.robot.utils.SwerveModule;
 
 public class SwerveDrive extends SubsystemBase {
 
@@ -161,6 +126,16 @@ public class SwerveDrive extends SubsystemBase {
       swerveModules[i].setState(moduleStates[i]);
     }
   }
+  
+  // Get all modules target speed and directions
+  public ChassisSpeeds getChassisSpeeds() {
+    return kinematics.toChassisSpeeds(getTargetModuleStates());
+  }
+
+  // Get all modules target speed and directions
+  public ChassisSpeeds getMeasuredChassisSpeeds() {
+    return kinematics.toChassisSpeeds(getMeasuredModuleStates());
+  }
 
   // Get all modules speed and directions
   public SwerveModulePosition[] getModulePositions() {
@@ -170,16 +145,6 @@ public class SwerveDrive extends SubsystemBase {
         swerveModules[2].getModulePosition(),
         swerveModules[3].getModulePosition()
     };
-  }
-
-  // Get all modules target speed and directions
-  public ChassisSpeeds getChassisSpeeds() {
-    return kinematics.toChassisSpeeds(getTargetModuleStates());
-  }
-
-  // Get all modules target speed and directions
-  public ChassisSpeeds getMeasuredChassisSpeeds() {
-    return kinematics.toChassisSpeeds(getMeasuredModuleStates());
   }
 
   public SwerveModuleState[] getTargetModuleStates() {
