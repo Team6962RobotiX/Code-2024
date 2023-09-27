@@ -1,8 +1,9 @@
 // Copyright (c) FIRST and other WPILib contributors.
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
-
 package frc.robot;
+
+import com.pathplanner.lib.auto.PIDConstants;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -68,7 +69,7 @@ public final class Constants {
     public static final double TELEOP_MAX_ACCELERATION = 25.0; // Measured in m/s^2
     public static final double TELEOP_MAX_ANGULAR_ACCELERATION = 25.0; // Measured in rad/s^2
     public static final double WHEEL_MAX_ACCELERATION = 25.0; // Measured in m/s^2
-    
+
     public static final double MOTOR_POWER_HARD_CAP = 1.0; // Only use for testing, otherwise set to 1.0
 
     public static final double JOYSTICK_DEADZONE = 0.1; // If joystick values are less than this (0.2 = 20%) than we just read 0
@@ -114,18 +115,15 @@ public final class Constants {
     public static final double[] TELEOP_ROTATE_PID = { 4.0, 0.0, 0.0 }; // [TODO]
     public static final double TELEOP_ROTATE_PID_TOLERANCE = 1.0; // In degrees
 
-    public static final double[] AUTO_THETA_PID = { 4.0, 0.0, 0.0 }; // [TODO]
-    public static final double[] AUTO_X_PID = { 3.5, 0.0, 0.0 }; // [TODO]
-    public static final double[] AUTO_Y_PID = { 3.5, 0.0, 0.0 }; // [TODO]
-    
+    public static final PIDConstants AUTO_ROTATE_PID = new PIDConstants(4.0, 0.0, 0.0); // [TODO]
+    public static final PIDConstants AUTO_MOVE_PID = new PIDConstants(3.5, 0.0, 0.0); // [TODO]
+
     // AUTONOMOUS
     public static final double AUTO_MAX_VELOCITY = 4.0; // [TODO] measured in meters/sec
     public static final double AUTO_MAX_ACCELERATION = 3.0; // [TODO] measured in meters/sec^2
     public static final double AUTO_MAX_ANGULAR_VELOCITY = SwerveMath.wheelVelocityToRotationalVelocity(AUTO_MAX_VELOCITY); // measured in radians/sec
     public static final double AUTO_MAX_ANGULAR_ACCELERATION = SwerveMath.wheelVelocityToRotationalVelocity(AUTO_MAX_ACCELERATION); // measured in rad/sec^2
-    public static final TrapezoidProfile.Constraints AUTO_ANGLE_CONSTRAINTS = new TrapezoidProfile.Constraints(
-        AUTO_MAX_ANGULAR_VELOCITY,
-        AUTO_MAX_ANGULAR_ACCELERATION);
+    public static final TrapezoidProfile.Constraints AUTO_ANGLE_CONSTRAINTS = new TrapezoidProfile.Constraints(AUTO_MAX_ANGULAR_VELOCITY, AUTO_MAX_ANGULAR_ACCELERATION);
 
     // MODULES
     // In order of: front left, front right, back left, back right, where the battery is in the back
@@ -136,16 +134,12 @@ public final class Constants {
 
     // Convert wheel velocity in m/s to rotational velocity in rad/s
     public static double wheelVelocityToRotationalVelocity(double maxDriveVelocity) {
-      return maxDriveVelocity / Math.hypot(
-          SwerveDriveConstants.TRACKWIDTH_METERS / 2.0,
-          SwerveDriveConstants.WHEELBASE_METERS / 2.0);
+      return maxDriveVelocity / Math.hypot(SwerveDriveConstants.TRACKWIDTH_METERS / 2.0, SwerveDriveConstants.WHEELBASE_METERS / 2.0);
     }
 
     // Convert rotation velocity in rad/s to wheel velocity in m/s
     public static double rotationalVelocityToWheelVelocity(double maxAngularVelocity) {
-      return maxAngularVelocity * Math.hypot(
-          SwerveDriveConstants.TRACKWIDTH_METERS / 2.0,
-          SwerveDriveConstants.WHEELBASE_METERS / 2.0);
+      return maxAngularVelocity * Math.hypot(SwerveDriveConstants.TRACKWIDTH_METERS / 2.0, SwerveDriveConstants.WHEELBASE_METERS / 2.0);
     }
 
     // Convert steer velocity in rad/s to motor power from 0 - 1
@@ -170,11 +164,7 @@ public final class Constants {
 
     // Calculate swerve drive kinematics
     public static SwerveDriveKinematics getKinematics() {
-      return new SwerveDriveKinematics(
-          new Translation2d(SwerveDriveConstants.TRACKWIDTH_METERS / 2.0, SwerveDriveConstants.WHEELBASE_METERS / 2.0),
-          new Translation2d(SwerveDriveConstants.TRACKWIDTH_METERS / 2.0, -SwerveDriveConstants.WHEELBASE_METERS / 2.0),
-          new Translation2d(-SwerveDriveConstants.TRACKWIDTH_METERS / 2.0, SwerveDriveConstants.WHEELBASE_METERS / 2.0),
-          new Translation2d(-SwerveDriveConstants.TRACKWIDTH_METERS / 2.0, -SwerveDriveConstants.WHEELBASE_METERS / 2.0));
+      return new SwerveDriveKinematics(new Translation2d(SwerveDriveConstants.TRACKWIDTH_METERS / 2.0, SwerveDriveConstants.WHEELBASE_METERS / 2.0), new Translation2d(SwerveDriveConstants.TRACKWIDTH_METERS / 2.0, -SwerveDriveConstants.WHEELBASE_METERS / 2.0), new Translation2d(-SwerveDriveConstants.TRACKWIDTH_METERS / 2.0, SwerveDriveConstants.WHEELBASE_METERS / 2.0), new Translation2d(-SwerveDriveConstants.TRACKWIDTH_METERS / 2.0, -SwerveDriveConstants.WHEELBASE_METERS / 2.0));
     }
   }
 
@@ -211,10 +201,7 @@ public final class Constants {
 
       magnitude = map(magnitude, deadzone, 1.0, 0.0, 1.0);
 
-      return new double[] {
-          magnitude * Math.cos(direction),
-          magnitude * Math.sin(direction)
-      };
+      return new double[] { magnitude * Math.cos(direction), magnitude * Math.sin(direction) };
     }
   }
 

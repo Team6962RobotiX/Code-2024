@@ -109,7 +109,7 @@ public class SwerveDrive extends SubsystemBase {
     Rotation2d robotAngle = getRotation2d();
     ChassisSpeeds speeds = ChassisSpeeds.fromFieldRelativeSpeeds(xVelocity, yVelocity, angularVelocity, robotAngle);
     SwerveModuleState moduleStates[] = kinematics.toSwerveModuleStates(speeds);
-    
+
     for (SwerveModuleState moduleState : moduleStates) {
       if (moduleState.speedMetersPerSecond > SwerveDriveConstants.VELOCITY_DEADZONE) {
         setModuleStates(moduleStates);
@@ -121,12 +121,13 @@ public class SwerveDrive extends SubsystemBase {
 
   // Set all modules target speed and directions
   public void setModuleStates(SwerveModuleState[] moduleStates) {
-    SwerveDriveKinematics.desaturateWheelSpeeds(moduleStates, SwerveMath.motorPowerToWheelVelocity(SwerveDriveConstants.MOTOR_POWER_HARD_CAP));
+    SwerveDriveKinematics.desaturateWheelSpeeds(moduleStates,
+        SwerveMath.motorPowerToWheelVelocity(SwerveDriveConstants.MOTOR_POWER_HARD_CAP));
     for (int i = 0; i < 4; i++) {
       swerveModules[i].setState(moduleStates[i]);
     }
   }
-  
+
   // Get all modules target speed and directions
   public ChassisSpeeds getChassisSpeeds() {
     return kinematics.toChassisSpeeds(getTargetModuleStates());
@@ -208,7 +209,7 @@ public class SwerveDrive extends SubsystemBase {
   }
 
   // Set pose on field
-  public void resetOdometry(Pose2d pose) {
+  public void resetPose(Pose2d pose) {
     odometer.resetPosition(getRotation2d(), getModulePositions(), pose);
   }
 
