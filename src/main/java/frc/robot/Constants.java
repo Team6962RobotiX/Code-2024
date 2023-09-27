@@ -115,8 +115,8 @@ public final class Constants {
     public static final double[] TELEOP_ROTATE_PID = { 4.0, 0.0, 0.0 }; // [TODO]
     public static final double TELEOP_ROTATE_PID_TOLERANCE = 1.0; // In degrees
 
-    public static final PIDConstants AUTO_ROTATE_PID = new PIDConstants(4.0, 0.0, 0.0); // [TODO]
-    public static final PIDConstants AUTO_MOVE_PID = new PIDConstants(3.5, 0.0, 0.0); // [TODO]
+    public static final PIDConstants AUTO_ROTATE_PID = new PIDConstants(1.0, 0.0, 0.0); // [TODO]
+    public static final PIDConstants AUTO_MOVE_PID = new PIDConstants(1.0, 0.0, 0.0); // [TODO]
 
     // AUTONOMOUS
     public static final double AUTO_MAX_VELOCITY = 4.0; // [TODO] measured in meters/sec

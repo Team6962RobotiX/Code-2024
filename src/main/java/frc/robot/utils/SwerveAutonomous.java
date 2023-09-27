@@ -32,14 +32,13 @@ import com.pathplanner.lib.auto.*;
 import com.pathplanner.lib.commands.*;
 import com.pathplanner.lib.controllers.*;
 import com.pathplanner.lib.server.*;
-import com.pathplanner.*;
 
 public final class SwerveAutonomous {
-  public Command fullAuto(String pathName, HashMap<String, Command> eventMap, SwerveDrive swerveDrive) {
+  public static Command fullAuto(String pathName, HashMap<String, Command> eventMap, SwerveDrive swerveDrive) {
     // This will load the file "FullAuto.path" and generate it with a max velocity of 4 m/s and a max acceleration of 3 m/s^2
     // for every path in the group
     List<PathPlannerTrajectory> pathGroup = PathPlanner.loadPathGroup(pathName, new PathConstraints(SwerveDriveConstants.AUTO_MAX_VELOCITY, SwerveDriveConstants.AUTO_MAX_ACCELERATION));
-
+    
     // Create the AutoBuilder. This only needs to be created once when robot code starts, not every time you want to create an auto command. A good place to put this is in RobotContainer along with your subsystems.
     SwerveAutoBuilder autoBuilder = new SwerveAutoBuilder(swerveDrive::getPose, // Pose2d supplier
         swerveDrive::resetPose, // Pose2d consumer, used to reset odometry at the beginning of auto

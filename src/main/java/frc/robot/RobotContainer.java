@@ -78,7 +78,7 @@ public class RobotContainer {
   public Command getAutonomousCommand() {
     HashMap<String, Command> eventMap = new HashMap<>();
     eventMap.put("marker1", new PrintCommand("Passed marker 1"));
-    return null;
+    return SwerveAutonomous.fullAuto("Test Path", eventMap, drive);
   }
 
   public void disabledPeriodic() {
