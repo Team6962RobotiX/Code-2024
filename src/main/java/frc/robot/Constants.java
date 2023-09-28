@@ -32,7 +32,7 @@ public final class Constants {
 
   public static final class Logging {
     public static final boolean ENABLE_DRIVE = true;
-    public static final boolean ENABLE_PDP = true;
+    public static final boolean ENABLE_PDH = true;
     public static final boolean ENABLE_ROBOT_CONTROLLER = true;
     public static final boolean ENABLE_DRIVER_STATION = true;
     public static final double LOGGING_PERIOD = 0.02; // in seconds
@@ -72,8 +72,8 @@ public final class Constants {
 
     public static final double MOTOR_POWER_HARD_CAP = 1.0; // Only use for testing, otherwise set to 1.0
 
-    public static final double JOYSTICK_DEADZONE = 0.1; // If joystick values are less than this (0.2 = 20%) than we just read 0
-    public static final double VELOCITY_DEADZONE = 0.25; // speed at which we stop moving all together (meters)
+    public static final double JOYSTICK_DEADBAND = 0.1; // If joystick values are less than this (0.2 = 20%) than we just read 0
+    public static final double VELOCITY_DEADBAND = 0.25; // speed at which we stop moving all together (meters)
 
     public static final int TOTAL_CURRENT_LIMIT = 300; // [TODO] Default is around 640 Amps (also drive motors have two times more current allocation than steer motors)
     public static final double MOTOR_RAMP_RATE_SECONDS = 0.05; // [TODO] Seconds that it takes to go from 0 - 100% motor power
@@ -169,38 +169,23 @@ public final class Constants {
   }
 
   public static final class InputMath {
-    public static double addLinearDeadzone(double input, double deadzone) { // input ranges from -1 to 1
-      if (Math.abs(input) <= deadzone) {
-        return 0.0;
-      }
-
-      if (input > 0) {
-        return map(input, deadzone, 1.0, 0.0, 1.0);
-      }
-
-      return map(input, -deadzone, -1.0, 0.0, -1.0);
+    public static double addLinearDeadband(double input, double deadband) { // input ranges from -1 to 1
+      if (Math.abs(input) <= deadband) return 0.0;
+      if (input > 0) return map(input, deadband, 1.0, 0.0, 1.0);
+      return map(input, -deadband, -1.0, 0.0, -1.0);
     }
 
     public static double mapBothSides(double X, double A, double B, double C, double D) {
-      if (X > 0.0) {
-        return map(X, A, B, C, D);
-      }
-      if (X < 0.0) {
-        return map(X, -A, -B, -C, -D);
-      }
+      if (X > 0.0) return map(X, A, B, C, D);
+      if (X < 0.0) return map(X, -A, -B, -C, -D);
       return 0.0;
     }
 
-    public static double[] addCirculuarDeadzone(double[] input, double deadzone) { // input ranges from -1 to 1
+    public static double[] addCirculuarDeadband(double[] input, double deadband) { // input ranges from -1 to 1
       double magnitude = Math.hypot(input[0], input[1]);
       double direction = Math.atan2(input[1], input[0]);
-
-      if (Math.abs(magnitude) <= deadzone) {
-        return new double[] { 0.0, 0.0 };
-      }
-
-      magnitude = map(magnitude, deadzone, 1.0, 0.0, 1.0);
-
+      if (Math.abs(magnitude) <= deadband) return new double[] { 0.0, 0.0 };
+      magnitude = map(magnitude, deadband, 1.0, 0.0, 1.0);
       return new double[] { magnitude * Math.cos(direction), magnitude * Math.sin(direction) };
     }
   }
@@ -210,7 +195,7 @@ public final class Constants {
     public static final int[] SWERVE_DRIVE = { 10, 20, 30, 40 };
     public static final int[] SWERVE_STEER = { 11, 21, 31, 41 };
     public static final int[] SWERVE_STEER_CANCODER = { 12, 22, 32, 42 };
-    public static final int PDP = 5;
+    public static final int PDH = 5;
   }
 
   public static double map(double X, double A, double B, double C, double D) {

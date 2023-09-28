@@ -4,34 +4,18 @@
 
 package frc.robot.utils;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import edu.wpi.first.math.controller.HolonomicDriveController;
-import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.math.controller.ProfiledPIDController;
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
-import edu.wpi.first.math.trajectory.Trajectory;
-import edu.wpi.first.math.trajectory.TrajectoryConfig;
-import edu.wpi.first.math.trajectory.TrajectoryGenerator;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.PrintCommand;
-import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
-import edu.wpi.first.wpilibj2.command.SwerveControllerCommand;
+import com.pathplanner.lib.PathConstraints;
+import com.pathplanner.lib.PathPlanner;
+import com.pathplanner.lib.PathPlannerTrajectory;
+import com.pathplanner.lib.auto.SwerveAutoBuilder;
 
+import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants.SwerveDriveConstants;
 import frc.robot.Constants.SwerveMath;
 import frc.robot.subsystems.SwerveDrive;
-
-import com.pathplanner.lib.*;
-import com.pathplanner.lib.auto.*;
-import com.pathplanner.lib.commands.*;
-import com.pathplanner.lib.controllers.*;
-import com.pathplanner.lib.server.*;
 
 public final class SwerveAutonomous {
   public static Command fullAuto(String pathName, HashMap<String, Command> eventMap, SwerveDrive swerveDrive) {
@@ -45,7 +29,7 @@ public final class SwerveAutonomous {
         SwerveMath.getKinematics(), // SwerveDriveKinematics
         SwerveDriveConstants.AUTO_MOVE_PID, // PID constants to correct for translation error (used to create the X and Y PID controllers)
         SwerveDriveConstants.AUTO_ROTATE_PID, // PID constants to correct for rotation error (used to create the rotation controller)
-        swerveDrive::setModuleStates, // Module states consumer used to output to the drive subsystem
+        swerveDrive::driveModules, // Module states consumer used to output to the drive subsystem
         eventMap, true, // Should the path be automatically mirrored depending on alliance color. Optional, defaults to true
         swerveDrive // The drive subsystem. Used to properly set the requirements of path following commands
     );

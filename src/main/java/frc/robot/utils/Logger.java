@@ -36,7 +36,7 @@ public class Logger {
   DataLog log = DataLogManager.getLog();
   Map<String, Object> logEntries = new HashMap<String, Object>();
   SwerveDrive drive;
-  PowerDistribution PDP = new PowerDistribution(CAN.PDP, ModuleType.kRev);
+  PowerDistribution PDH = new PowerDistribution(CAN.PDH, ModuleType.kRev);
 
   public NetworkTableInstance instance = NetworkTableInstance.getDefault();
 
@@ -47,8 +47,8 @@ public class Logger {
   public void logAll() {
     if (Logging.ENABLE_DRIVE)
       logSwerve("/swerveDrive", drive);
-    if (Logging.ENABLE_PDP)
-      logPDP("/powerDistribution", PDP);
+    if (Logging.ENABLE_PDH)
+      logPDH("/powerDistribution", PDH);
     if (Logging.ENABLE_ROBOT_CONTROLLER)
       logRobotController("/robotController");
     if (Logging.ENABLE_DRIVER_STATION)
@@ -64,7 +64,6 @@ public class Logger {
     logOdometer(path + "/odometer", drive.getOdometer());
     logData(path + "/heading", drive.getRotation2d().getRadians());
     logData(path + "/totalCurrent", drive.getCurrent());
-    logData(path + "/totalVoltage", drive.getVoltage());
     logPose(path + "/pose", drive.getPose());
     logModuleStates(path + "/moduleStates", drive.getTargetModuleStates(), drive.getMeasuredModuleStates(), drive.getModulePositions());
 
@@ -74,13 +73,11 @@ public class Logger {
   }
 
   public void logSwerveModule(String path, SwerveModule module) {
-    logSparkMax(path + "/driveMotor", module.getDriveMotor());
-    logSparkMax(path + "/steerMotor", module.getSteerMotor());
+    logSparkMax(path + "/driveMotor", module.getMotors()[0]);
+    logSparkMax(path + "/steerMotor", module.getMotors()[1]);
     logCANCoder(path + "/canCoder", module.getCanCoder());
-    logData(path + "/steerDegrees", module.getSteerDegrees());
-    logData(path + "/steerRadians", module.getSteerRadians());
+    logData(path + "/steerDegrees", module.getSteerDirection().getDegrees());
     logData(path + "/velocity", module.getVelocity());
-    logData(path + "/distanceTraveled", module.getDistanceTraveled());
   }
 
   public void logSparkMax(String path, CANSparkMax sparkMax) {
@@ -215,22 +212,22 @@ public class Logger {
     logData(path + "/txFullCount", canStatus.txFullCount);
   }
 
-  public void logPDP(String path, PowerDistribution PDP) {
-    logPDPFaults(path + "/faults", PDP.getFaults());
+  public void logPDH(String path, PowerDistribution PDH) {
+    logPDHFaults(path + "/faults", PDH.getFaults());
 
-    logData(path + "/canId", PDP.getModule(), true);
+    logData(path + "/canId", PDH.getModule(), true);
     for (int i = 0; i <= 23; i++) {
-      logData(path + "/channels/channel" + i + "Current", PDP.getCurrent(i));
+      logData(path + "/channels/channel" + i + "Current", PDH.getCurrent(i));
     }
-    logData(path + "/isSwitchableChannelOn", PDP.getSwitchableChannel(), true);
-    logData(path + "/temperature", PDP.getTemperature());
-    logData(path + "/totalCurrent", PDP.getTotalCurrent());
-    logData(path + "/totalJoules", PDP.getTotalEnergy());
-    logData(path + "/totalWatts", PDP.getTotalPower());
-    logData(path + "/voltage", PDP.getVoltage());
+    logData(path + "/isSwitchableChannelOn", PDH.getSwitchableChannel(), true);
+    logData(path + "/temperature", PDH.getTemperature());
+    logData(path + "/totalCurrent", PDH.getTotalCurrent());
+    logData(path + "/totalJoules", PDH.getTotalEnergy());
+    logData(path + "/totalWatts", PDH.getTotalPower());
+    logData(path + "/voltage", PDH.getVoltage());
   }
 
-  public void logPDPFaults(String path, PowerDistributionFaults faults) {
+  public void logPDHFaults(String path, PowerDistributionFaults faults) {
     logData(path + "/brownout", faults.Brownout);
     logData(path + "/canWarning", faults.CanWarning);
     logData(path + "/channel0BreakerFault", faults.Channel0BreakerFault);
@@ -284,7 +281,7 @@ public class Logger {
                 logEntries.put(key, instance.getStringTopic(key).publish());
             else
                 System.out.println("unknown logging data type: " + value.getClass().getSimpleName());
-            }
+          }
 
         if (!once || !loggedYet) {
             if (value instanceof Boolean)

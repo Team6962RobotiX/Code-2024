@@ -53,7 +53,7 @@ public class MotionRecorder extends SubsystemBase {
     }
 
     Pose2d pose = swerveDrive.getPose();
-    ChassisSpeeds velocity = swerveDrive.getChassisSpeeds();
+    ChassisSpeeds velocity = swerveDrive.getTargetChassisSpeeds();
 
     positionData.add(pose.getTranslation().getX() + "," + velocity.vxMetersPerSecond + "," + pose.getTranslation().getY() + "," + velocity.vyMetersPerSecond + "," + pose.getRotation().getRadians() + "," + velocity.omegaRadiansPerSecond);
 
