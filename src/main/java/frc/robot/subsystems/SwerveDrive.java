@@ -97,7 +97,7 @@ public class SwerveDrive extends SubsystemBase {
 
   // Set all modules target speed and directions
   public void driveModules(SwerveModuleState[] moduleStates) {
-    SwerveDriveKinematics.desaturateWheelSpeeds(moduleStates, SwerveMath.theoreticalMotorPowerToWheelVelocity(SwerveDriveConstants.MOTOR_POWER_HARD_CAP));
+    SwerveDriveKinematics.desaturateWheelSpeeds(moduleStates, SwerveMath.motorPowerToWheelVelocity(SwerveDriveConstants.MOTOR_POWER_HARD_CAP));
     for (int i = 0; i < 4; i++) modules[i].drive(moduleStates[i]);
   }
 
