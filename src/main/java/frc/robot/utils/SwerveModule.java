@@ -35,9 +35,8 @@ public class SwerveModule {
   private RelativeEncoder steerEncoder;
   private CANCoder absoluteSteerEncoder;
   public PIDController steerPID = new PIDController(SwerveDriveConstants.MODULE_STEER_PID[0], SwerveDriveConstants.MODULE_STEER_PID[1], SwerveDriveConstants.MODULE_STEER_PID[2]);
-  private SwerveModuleState state;
+  private SwerveModuleState state = new SwerveModuleState();
   private String name;
-  SlewRateLimiter accelerationLimiter = new SlewRateLimiter(SwerveDriveConstants.WHEEL_MAX_ACCELERATION);
 
   public SwerveModule(int id) {
     name = SwerveDriveConstants.MODULE_NAMES[id];
@@ -87,7 +86,8 @@ public class SwerveModule {
 
   // Set target angle and velocity
   public void drive(SwerveModuleState state) {
-    this.state = SwerveModuleState.optimize(state, getSteerDirection());
+    state = SwerveModuleState.optimize(state, getSteerDirection());
+    this.state = state;
 
     // Calculate motor power from velocities
     double drivePower = SwerveMath.wheelVelocityToMotorPower(state.speedMetersPerSecond);
@@ -96,9 +96,6 @@ public class SwerveModule {
     // Clamp power to be within the motor power hard cap
     drivePower = Math.abs(drivePower) > SwerveDriveConstants.MOTOR_POWER_HARD_CAP ? SwerveDriveConstants.MOTOR_POWER_HARD_CAP * Math.signum(drivePower) : drivePower;
     steerPower = Math.abs(steerPower) > SwerveDriveConstants.MOTOR_POWER_HARD_CAP ? SwerveDriveConstants.MOTOR_POWER_HARD_CAP * Math.signum(steerPower) : steerPower;
-
-    // Limit wheel acceleration
-    drivePower = SwerveMath.wheelVelocityToMotorPower(accelerationLimiter.calculate(SwerveMath.motorPowerToWheelVelocity(drivePower)));
 
     // Drive motors
     driveMotor.setVoltage(drivePower * SwerveDriveConstants.MAX_VOLTAGE);
@@ -111,7 +108,7 @@ public class SwerveModule {
 
   // Get the direction of the steering wheel (-180 - 180)
   public Rotation2d getSteerDirection() {
-    return Rotation2d.fromRadians(absoluteSteerEncoder.getAbsolutePosition());
+    return Rotation2d.fromDegrees(absoluteSteerEncoder.getAbsolutePosition());
   }
 
   // Get velocity in m/s

@@ -32,11 +32,6 @@ public class XBoxSwerve extends CommandBase {
   // What angle we want the robot to face
   private double targetRobotAngle = 0.0;
 
-  // Acceleration limits to prevent tipping and skidding
-  private SlewRateLimiter xAccelerationLimiter = new SlewRateLimiter(SwerveDriveConstants.TELEOP_MAX_ACCELERATION);
-  private SlewRateLimiter yAccelerationLimiter = new SlewRateLimiter(SwerveDriveConstants.TELEOP_MAX_ACCELERATION);
-  private SlewRateLimiter angularAccelerationLimiter = new SlewRateLimiter(SwerveDriveConstants.TELEOP_MAX_ANGULAR_ACCELERATION);
-
   public XBoxSwerve(SwerveDrive swerveDrive, Supplier<XboxController> xboxSupplier) {
     this.swerveDrive = swerveDrive;
     this.xboxSupplier = xboxSupplier;
@@ -79,12 +74,12 @@ public class XBoxSwerve extends CommandBase {
     // rightTrigger = (controller.getRawAxis(6) + 1.0) / 2.0;
     
     // Add deadbands to prevent misinputs and easier 90 degree alignments on joysticks
-    leftTrigger = InputMath.addLinearDeadband(leftTrigger, SwerveDriveConstants.JOYSTICK_DEADBAND / 2);
-    rightTrigger = InputMath.addLinearDeadband(rightTrigger, SwerveDriveConstants.JOYSTICK_DEADBAND / 2);
-    leftX = InputMath.addLinearDeadband(leftX, SwerveDriveConstants.JOYSTICK_DEADBAND);
-    leftY = InputMath.addLinearDeadband(leftY, SwerveDriveConstants.JOYSTICK_DEADBAND);
-    rightX = InputMath.addLinearDeadband(rightX, SwerveDriveConstants.JOYSTICK_DEADBAND);
-    rightY = InputMath.addLinearDeadband(rightY, SwerveDriveConstants.JOYSTICK_DEADBAND);
+    // leftTrigger = InputMath.addLinearDeadband(leftTrigger, SwerveDriveConstants.JOYSTICK_DEADBAND / 2);
+    // rightTrigger = InputMath.addLinearDeadband(rightTrigger, SwerveDriveConstants.JOYSTICK_DEADBAND / 2);
+    // leftX = InputMath.addLinearDeadband(leftX, SwerveDriveConstants.JOYSTICK_DEADBAND);
+    // leftY = InputMath.addLinearDeadband(leftY, SwerveDriveConstants.JOYSTICK_DEADBAND);
+    // rightX = InputMath.addLinearDeadband(rightX, SwerveDriveConstants.JOYSTICK_DEADBAND);
+    // rightY = InputMath.addLinearDeadband(rightY, SwerveDriveConstants.JOYSTICK_DEADBAND);
 
     // How far is each joystick from the center?
     double LStickMagnitude = Math.hypot(leftX, leftY);
@@ -108,9 +103,7 @@ public class XBoxSwerve extends CommandBase {
       // Angular movement for each trigger
       double triggerDifference = leftTrigger + -rightTrigger;
       angularVelocity = triggerDifference * maxRotateVelocity;
-      // Map the velocity so the minimum value is the minimum speed we can move at
-      angularVelocity = InputMath.mapBothSides(angularVelocity, 0, maxRotateVelocity, SwerveMath.wheelVelocityToRotationalVelocity(SwerveDriveConstants.VELOCITY_DEADBAND), maxRotateVelocity);
-      
+
       // Forward movement if both triggers are pressed
       double forwardSpeed = (Math.min(leftTrigger, rightTrigger)) * maxDriveVelocity;
       yVelocity += forwardSpeed * swerveDrive.getRotation2d().getCos();
@@ -120,16 +113,13 @@ public class XBoxSwerve extends CommandBase {
       double currentGyroAngularVelocity = swerveDrive.getGyro().getRawGyroZ() / 180.0 * Math.PI;
       double currentAngularVelocity = currentGyroAngularVelocity;
       
-      System.out.println("currentGyroAngularVelocity " + currentGyroAngularVelocity);
-      System.out.println("currentAngularVelocity " + currentAngularVelocity);
-      
       double timeToStop = currentAngularVelocity / (SwerveDriveConstants.TELEOP_MAX_ANGULAR_ACCELERATION * Math.signum(angularVelocity));
       double radiansToStop = (currentAngularVelocity * timeToStop) + (0.5 * SwerveDriveConstants.TELEOP_MAX_ANGULAR_ACCELERATION * Math.signum(angularVelocity) * Math.pow(timeToStop, 2));
       targetRobotAngle = Units.degreesToRadians(swerveDrive.getHeading()) + (radiansToStop);
     } else {
 
       // If the right stick is being used to do absolute rotation
-      if (RStickMagnitude > 1.0 - SwerveDriveConstants.JOYSTICK_DEADBAND) {
+      if (RStickMagnitude > 0.8) {
         targetRobotAngle = rightStickAngle; 
       }
 
@@ -151,8 +141,8 @@ public class XBoxSwerve extends CommandBase {
     yVelocity += leftY * maxDriveVelocity;
 
     // Map the velocity so the minimum value is the minimum speed we can move at
-    xVelocity = InputMath.mapBothSides(xVelocity, 0, maxDriveVelocity, SwerveDriveConstants.VELOCITY_DEADBAND, maxRotateVelocity);
-    yVelocity = InputMath.mapBothSides(yVelocity, 0, maxDriveVelocity, SwerveDriveConstants.VELOCITY_DEADBAND, maxRotateVelocity);
+    // xVelocity = InputMath.mapBothSides(xVelocity, 0, maxDriveVelocity, SwerveDriveConstants.VELOCITY_DEADBAND, maxRotateVelocity);
+    // yVelocity = InputMath.mapBothSides(yVelocity, 0, maxDriveVelocity, SwerveDriveConstants.VELOCITY_DEADBAND, maxRotateVelocity);
 
     // Slow drive fine control
     if (controller.getPOV() != -1) {
@@ -168,11 +158,6 @@ public class XBoxSwerve extends CommandBase {
 
     // Limit rotation speed
     angularVelocity = Math.abs(angularVelocity) > maxRotateVelocity ? maxRotateVelocity * Math.signum(angularVelocity) : angularVelocity;
-
-    // Limit acceleration
-    xVelocity = xAccelerationLimiter.calculate(xVelocity);
-    yVelocity = yAccelerationLimiter.calculate(yVelocity);
-    angularVelocity = angularAccelerationLimiter.calculate(angularVelocity);
 
     // Drive swerve
     swerveDrive.fieldOrientedDrive(yVelocity, xVelocity, angularVelocity);

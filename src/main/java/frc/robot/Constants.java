@@ -67,14 +67,12 @@ public final class Constants {
     public static final double TELEOP_SLOW_DRIVE_POWER = 0.1; // Percent driving power when using the DPad
     public static final double TELEOP_ROTATE_POWER = 0.5; // Percent rotating power (0.4 = 40%)
 
-    public static final double TELEOP_MAX_ACCELERATION = 10.0; // Measured in m/s^2
+    public static final double TELEOP_MAX_ACCELERATION = 15.0; // Measured in m/s^2
     public static final double TELEOP_MAX_ANGULAR_ACCELERATION = 20.0; // Measured in rad/s^2
-    public static final double WHEEL_MAX_ACCELERATION = 15.0; // Measured in m/s^2
 
     public static final double MOTOR_POWER_HARD_CAP = 1.0; // Only use for testing, otherwise set to 1.0
 
-    public static final double JOYSTICK_DEADBAND = 0.1; // If joystick values are less than this (0.2 = 20%) than we just read 0
-    public static final double VELOCITY_DEADBAND = 0.25; // speed at which we stop moving all together (meters)
+    public static final double VELOCITY_DEADBAND = 0.15; // speed at which we stop moving all together (meters)
 
     public static final double MAX_VOLTAGE = 12.0;
     public static final int TOTAL_CURRENT_LIMIT = 100; // [TODO] Default is around 640 Amps (also drive motors have two times more current allocation than steer motors)

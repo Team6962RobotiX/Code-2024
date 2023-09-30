@@ -6,6 +6,7 @@ package frc.robot.subsystems;
 
 import com.kauailabs.navx.frc.AHRS;
 
+import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -26,6 +27,10 @@ public class SwerveDrive extends SubsystemBase {
   private AHRS gyro;
   private SwerveDriveKinematics kinematics = SwerveMath.getKinematics();
   private SwerveDriveOdometry odometer;
+
+  private SlewRateLimiter xAccelerationLimiter = new SlewRateLimiter(SwerveDriveConstants.TELEOP_MAX_ACCELERATION);
+  private SlewRateLimiter yAccelerationLimiter = new SlewRateLimiter(SwerveDriveConstants.TELEOP_MAX_ACCELERATION);
+  private SlewRateLimiter angularAccelerationLimiter = new SlewRateLimiter(SwerveDriveConstants.TELEOP_MAX_ANGULAR_ACCELERATION);
 
   public SwerveDrive() {
     try {
@@ -53,7 +58,7 @@ public class SwerveDrive extends SubsystemBase {
   @Override
   public void periodic() {
     odometer.update(getRotation2d(), getModulePositions());
-    selfCheckModules();
+    // selfCheckModules();
   }
 
   @Override
@@ -72,26 +77,24 @@ public class SwerveDrive extends SubsystemBase {
 
   // Drive the robot relative to the field
   public void fieldOrientedDrive(double xVelocity, double yVelocity, double angularVelocity) { // m/s and rad/s    
+    boolean stationary = Math.hypot(xVelocity, yVelocity) < SwerveDriveConstants.VELOCITY_DEADBAND && Math.abs(SwerveMath.rotationalVelocityToWheelVelocity(angularVelocity)) < SwerveDriveConstants.VELOCITY_DEADBAND;
+
+    xVelocity = xAccelerationLimiter.calculate(xVelocity);
+    yVelocity = yAccelerationLimiter.calculate(yVelocity);
+    angularVelocity = angularAccelerationLimiter.calculate(angularVelocity);
+    
+    if (stationary) {
+      stationary = Math.hypot(xVelocity, yVelocity) < SwerveDriveConstants.VELOCITY_DEADBAND && Math.abs(SwerveMath.rotationalVelocityToWheelVelocity(angularVelocity)) < SwerveDriveConstants.VELOCITY_DEADBAND;
+    }
+
     Rotation2d robotAngle = getRotation2d();
     ChassisSpeeds speeds = ChassisSpeeds.fromFieldRelativeSpeeds(xVelocity, yVelocity, angularVelocity, robotAngle);
     SwerveModuleState moduleStates[] = kinematics.toSwerveModuleStates(speeds);
-    boolean moving = false;
-    for (SwerveModuleState moduleState : moduleStates) {
-      if (moduleState.speedMetersPerSecond > SwerveDriveConstants.VELOCITY_DEADBAND) {
-        moving = true;
-        break;
-      }
-    }
-    // for (SwerveModule module : swerveModules) {
-    //   if (module.getVelocity() > SwerveDriveConstants.VELOCITY_DEADBAND) {
-    //     moving = true;
-    //     break;
-    //   }
-    // }
-    if (moving) {
-      driveModules(moduleStates);
-    } else {
+    
+    if (stationary) {
       groundModules();
+    } else {
+      driveModules(moduleStates);
     }
   }
 
