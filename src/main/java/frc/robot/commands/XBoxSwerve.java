@@ -115,9 +115,14 @@ public class XBoxSwerve extends CommandBase {
       double forwardSpeed = (Math.min(leftTrigger, rightTrigger)) * maxDriveVelocity;
       yVelocity += forwardSpeed * swerveDrive.getRotation2d().getCos();
       xVelocity += forwardSpeed * swerveDrive.getRotation2d().getSin();
-
+      
       // Calculate TargetRobotAngle, compensating for acceleration
-      double currentAngularVelocity = swerveDrive.getTargetChassisSpeeds().omegaRadiansPerSecond;
+      double currentGyroAngularVelocity = swerveDrive.getGyro().getRawGyroZ() / 180.0 * Math.PI;
+      double currentAngularVelocity = currentGyroAngularVelocity;
+      
+      System.out.println("currentGyroAngularVelocity " + currentGyroAngularVelocity);
+      System.out.println("currentAngularVelocity " + currentAngularVelocity);
+      
       double timeToStop = currentAngularVelocity / (SwerveDriveConstants.TELEOP_MAX_ANGULAR_ACCELERATION * Math.signum(angularVelocity));
       double radiansToStop = (currentAngularVelocity * timeToStop) + (0.5 * SwerveDriveConstants.TELEOP_MAX_ANGULAR_ACCELERATION * Math.signum(angularVelocity) * Math.pow(timeToStop, 2));
       targetRobotAngle = Units.degreesToRadians(swerveDrive.getHeading()) + (radiansToStop);
@@ -133,6 +138,8 @@ public class XBoxSwerve extends CommandBase {
         targetRobotAngle = Math.round(targetRobotAngle / (Math.PI / 2)) * (Math.PI / 2);
       }
       
+      targetRobotAngle = ((((targetRobotAngle + Math.PI) % (Math.PI * 2.0)) + (Math.PI * 2.0)) % (Math.PI * 2.0)) - Math.PI;
+
       // Calculate the angular velocity we need to rotate to the target angle
       angularVelocity = rotatePID.calculate(
         Units.degreesToRadians(swerveDrive.getHeading()),

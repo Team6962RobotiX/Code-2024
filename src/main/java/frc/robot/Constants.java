@@ -62,20 +62,20 @@ public final class Constants {
       -------------------------------------
     */
 
-    public static final double TELEOP_DRIVE_POWER = 0.3; // Percent driving power (0.2 = 20%), left trigger bypasses this value
+    public static final double TELEOP_DRIVE_POWER = 0.5; // Percent driving power (0.2 = 20%), left trigger bypasses this value
     public static final double TELEOP_SLOW_DRIVE_POWER = 0.1; // Percent driving power when using the DPad
-    public static final double TELEOP_ROTATE_POWER = 0.3; // Percent rotating power (0.4 = 40%)
+    public static final double TELEOP_ROTATE_POWER = 0.5; // Percent rotating power (0.4 = 40%)
 
-    public static final double TELEOP_MAX_ACCELERATION = 25.0; // Measured in m/s^2
-    public static final double TELEOP_MAX_ANGULAR_ACCELERATION = 25.0; // Measured in rad/s^2
-    public static final double WHEEL_MAX_ACCELERATION = 25.0; // Measured in m/s^2
+    public static final double TELEOP_MAX_ACCELERATION = 10.0; // Measured in m/s^2
+    public static final double TELEOP_MAX_ANGULAR_ACCELERATION = 20.0; // Measured in rad/s^2
+    public static final double WHEEL_MAX_ACCELERATION = 15.0; // Measured in m/s^2
 
     public static final double MOTOR_POWER_HARD_CAP = 1.0; // Only use for testing, otherwise set to 1.0
 
     public static final double JOYSTICK_DEADBAND = 0.1; // If joystick values are less than this (0.2 = 20%) than we just read 0
     public static final double VELOCITY_DEADBAND = 0.25; // speed at which we stop moving all together (meters)
 
-    public static final int TOTAL_CURRENT_LIMIT = 300; // [TODO] Default is around 640 Amps (also drive motors have two times more current allocation than steer motors)
+    public static final int TOTAL_CURRENT_LIMIT = 100; // [TODO] Default is around 640 Amps (also drive motors have two times more current allocation than steer motors)
     public static final double MOTOR_RAMP_RATE_SECONDS = 0.05; // [TODO] Seconds that it takes to go from 0 - 100% motor power
 
     public static final Pose2d STARTING_POSE = new Pose2d(0.0, 0.0, Rotation2d.fromDegrees(0.0));
@@ -110,10 +110,10 @@ public final class Constants {
 
     // PID
     public static final double[] MODULE_STEER_PID = { 10.0, 0.0, 0.0 }; // [TODO]
-    public static final double MODULE_STEER_PID_TOLERANCE = 1.0; // In degrees
+    public static final double MODULE_STEER_PID_TOLERANCE = 0.5; // In degrees
 
     public static final double[] TELEOP_ROTATE_PID = { 4.0, 0.0, 0.0 }; // [TODO]
-    public static final double TELEOP_ROTATE_PID_TOLERANCE = 1.0; // In degrees
+    public static final double TELEOP_ROTATE_PID_TOLERANCE = 0.5; // In degrees
 
     public static final PIDConstants AUTO_ROTATE_PID = new PIDConstants(1.0, 0.0, 0.0); // [TODO]
     public static final PIDConstants AUTO_MOVE_PID = new PIDConstants(1.0, 0.0, 0.0); // [TODO]

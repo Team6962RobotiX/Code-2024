@@ -51,8 +51,7 @@ public class SwerveModule {
 
     steerMotor.setInverted(true);
 
-    driveMotor.setSmartCurrentLimit((int) (SwerveDriveConstants.TOTAL_CURRENT_LIMIT / 4.0 * (2.0 / 3.0)));
-    steerMotor.setSmartCurrentLimit((int) (SwerveDriveConstants.TOTAL_CURRENT_LIMIT / 4.0 * (1.0 / 3.0)));
+    driveMotor.setSmartCurrentLimit((int) (SwerveDriveConstants.TOTAL_CURRENT_LIMIT / 4.0));
 
     driveMotor.setOpenLoopRampRate(SwerveDriveConstants.MOTOR_RAMP_RATE_SECONDS);
     steerMotor.setOpenLoopRampRate(SwerveDriveConstants.MOTOR_RAMP_RATE_SECONDS);
