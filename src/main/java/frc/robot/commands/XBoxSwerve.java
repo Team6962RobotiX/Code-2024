@@ -138,7 +138,7 @@ public class XBoxSwerve extends CommandBase {
         targetRobotAngle = Math.round(targetRobotAngle / (Math.PI / 2)) * (Math.PI / 2);
       }
       
-      targetRobotAngle = ((((targetRobotAngle + Math.PI) % (Math.PI * 2.0)) + (Math.PI * 2.0)) % (Math.PI * 2.0)) - Math.PI;
+      targetRobotAngle = SwerveMath.clampRadians(targetRobotAngle);
 
       // Calculate the angular velocity we need to rotate to the target angle
       angularVelocity = rotatePID.calculate(

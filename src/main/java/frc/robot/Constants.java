@@ -11,6 +11,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.DifferentialDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import edu.wpi.first.math.util.Units;
 import frc.robot.subsystems.*;
 
 /**
@@ -75,6 +76,7 @@ public final class Constants {
     public static final double JOYSTICK_DEADBAND = 0.1; // If joystick values are less than this (0.2 = 20%) than we just read 0
     public static final double VELOCITY_DEADBAND = 0.25; // speed at which we stop moving all together (meters)
 
+    public static final double MAX_VOLTAGE = 12.0;
     public static final int TOTAL_CURRENT_LIMIT = 100; // [TODO] Default is around 640 Amps (also drive motors have two times more current allocation than steer motors)
     public static final double MOTOR_RAMP_RATE_SECONDS = 0.05; // [TODO] Seconds that it takes to go from 0 - 100% motor power
 
@@ -165,6 +167,14 @@ public final class Constants {
     // Calculate swerve drive kinematics
     public static SwerveDriveKinematics getKinematics() {
       return new SwerveDriveKinematics(new Translation2d(SwerveDriveConstants.TRACKWIDTH_METERS / 2.0, SwerveDriveConstants.WHEELBASE_METERS / 2.0), new Translation2d(SwerveDriveConstants.TRACKWIDTH_METERS / 2.0, -SwerveDriveConstants.WHEELBASE_METERS / 2.0), new Translation2d(-SwerveDriveConstants.TRACKWIDTH_METERS / 2.0, SwerveDriveConstants.WHEELBASE_METERS / 2.0), new Translation2d(-SwerveDriveConstants.TRACKWIDTH_METERS / 2.0, -SwerveDriveConstants.WHEELBASE_METERS / 2.0));
+    }
+
+    public static double clampRadians(double radians) {
+      return Units.degreesToRadians(clampDegrees(Units.radiansToDegrees(radians)));
+    }
+
+    public static double clampDegrees(double degrees) {
+      return ((((degrees + 180.0) % 360.0) + 360.0) % 360.0) - 180.0;
     }
   }
 

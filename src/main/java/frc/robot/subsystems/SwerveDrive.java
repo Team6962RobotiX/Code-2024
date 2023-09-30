@@ -22,7 +22,7 @@ import frc.robot.utils.SwerveModule;
 
 public class SwerveDrive extends SubsystemBase {
 
-  private SwerveModule[] swerveModules = new SwerveModule[4];
+  private SwerveModule[] modules = new SwerveModule[4];
   private AHRS gyro;
   private SwerveDriveKinematics kinematics = SwerveMath.getKinematics();
   private SwerveDriveOdometry odometer;
@@ -34,7 +34,7 @@ public class SwerveDrive extends SubsystemBase {
       SelfCheck.warn("Error instantiating navX-MXP:  " + ex.getMessage());
     }
 
-    for (int i = 0; i < 4; i++) swerveModules[i] = new SwerveModule(i);
+    for (int i = 0; i < 4; i++) modules[i] = new SwerveModule(i);
 
     odometer = new SwerveDriveOdometry(
         kinematics,
@@ -97,16 +97,16 @@ public class SwerveDrive extends SubsystemBase {
 
   // Set all modules target speed and directions
   public void driveModules(SwerveModuleState[] moduleStates) {
-    SwerveDriveKinematics.desaturateWheelSpeeds(moduleStates, SwerveMath.motorPowerToWheelVelocity(SwerveDriveConstants.MOTOR_POWER_HARD_CAP));
-    for (int i = 0; i < 4; i++) swerveModules[i].drive(moduleStates[i]);
+    SwerveDriveKinematics.desaturateWheelSpeeds(moduleStates, SwerveMath.theoreticalMotorPowerToWheelVelocity(SwerveDriveConstants.MOTOR_POWER_HARD_CAP));
+    for (int i = 0; i < 4; i++) modules[i].drive(moduleStates[i]);
   }
 
   // This creates an "X" pattern with the wheels which makes the robot very hard to move
   public void groundModules() {
-    swerveModules[0].drive(new SwerveModuleState(0.0, Rotation2d.fromDegrees(45.0)));
-    swerveModules[1].drive(new SwerveModuleState(0.0, Rotation2d.fromDegrees(-45.0)));
-    swerveModules[2].drive(new SwerveModuleState(0.0, Rotation2d.fromDegrees(-45.0)));
-    swerveModules[3].drive(new SwerveModuleState(0.0, Rotation2d.fromDegrees(45.0)));
+    modules[0].drive(new SwerveModuleState(0.0, Rotation2d.fromDegrees(45.0)));
+    modules[1].drive(new SwerveModuleState(0.0, Rotation2d.fromDegrees(-45.0)));
+    modules[2].drive(new SwerveModuleState(0.0, Rotation2d.fromDegrees(-45.0)));
+    modules[3].drive(new SwerveModuleState(0.0, Rotation2d.fromDegrees(45.0)));
   }
 
   // Set pose on field
@@ -116,11 +116,11 @@ public class SwerveDrive extends SubsystemBase {
 
   // Stop motors on all modules
   public void stopModules() {
-    for (SwerveModule module : swerveModules) module.stop();
+    for (SwerveModule module : modules) module.stop();
   }
 
   public void selfCheckModules() {
-    for (SwerveModule module : swerveModules) module.selfCheck();
+    for (SwerveModule module : modules) module.selfCheck();
   }
 
   // Get all modules target speed and directions
@@ -136,39 +136,39 @@ public class SwerveDrive extends SubsystemBase {
   // Get all modules speed and directions
   public SwerveModulePosition[] getModulePositions() {
     return new SwerveModulePosition[] {
-        swerveModules[0].getModulePosition(),
-        swerveModules[1].getModulePosition(),
-        swerveModules[2].getModulePosition(),
-        swerveModules[3].getModulePosition()
+        modules[0].getModulePosition(),
+        modules[1].getModulePosition(),
+        modules[2].getModulePosition(),
+        modules[3].getModulePosition()
     };
   }
 
   public SwerveModuleState[] getTargetModuleStates() {
     return new SwerveModuleState[] {
-        swerveModules[0].getTargetState(),
-        swerveModules[1].getTargetState(),
-        swerveModules[2].getTargetState(),
-        swerveModules[3].getTargetState()
+        modules[0].getTargetState(),
+        modules[1].getTargetState(),
+        modules[2].getTargetState(),
+        modules[3].getTargetState()
     };
   }
 
   public SwerveModuleState[] getMeasuredModuleStates() {
     return new SwerveModuleState[] {
-        swerveModules[0].getMeasuredState(),
-        swerveModules[1].getMeasuredState(),
-        swerveModules[2].getMeasuredState(),
-        swerveModules[3].getMeasuredState()
+        modules[0].getMeasuredState(),
+        modules[1].getMeasuredState(),
+        modules[2].getMeasuredState(),
+        modules[3].getMeasuredState()
     };
   }
 
   public SwerveModule[] getModules() {
-    return swerveModules;
+    return modules;
   }
 
   // Get total current through all modules
   public double getCurrent() {
     double totalCurrent = 0.0;
-    for (SwerveModule module : swerveModules) totalCurrent += module.getCurrent();
+    for (SwerveModule module : modules) totalCurrent += module.getCurrent();
     return totalCurrent;
   }
 
@@ -194,7 +194,7 @@ public class SwerveDrive extends SubsystemBase {
 
   // Get gyro degree heading (-180 - 180)
   public double getHeading() {
-    return ((((getRotation2d().getDegrees() + 180.0) % 360.0) + 360.0) % 360.0) - 180.0;
+    return SwerveMath.clampDegrees(getRotation2d().getDegrees());
   }
 
   // Get pose on field

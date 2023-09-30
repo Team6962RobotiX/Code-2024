@@ -7,6 +7,7 @@ package frc.robot.utils;
 import com.ctre.phoenix.sensors.CANCoder;
 import com.ctre.phoenix.sensors.CANCoderFaults;
 import com.revrobotics.CANSparkMax;
+import com.revrobotics.REVLibError;
 
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotController;

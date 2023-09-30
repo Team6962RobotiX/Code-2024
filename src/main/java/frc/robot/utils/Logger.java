@@ -7,6 +7,7 @@ import com.ctre.phoenix.sensors.CANCoder;
 import com.ctre.phoenix.sensors.CANCoderFaults;
 import com.kauailabs.navx.frc.AHRS;
 import com.revrobotics.CANSparkMax;
+import com.revrobotics.REVLibError;
 import com.revrobotics.RelativeEncoder;
 
 import edu.wpi.first.hal.PowerDistributionFaults;
@@ -145,19 +146,11 @@ public class Logger {
   }
 
   public void logOdometer(String path, SwerveDriveOdometry odometer) {
-    logData(path + "/odometer", new double[] {
-        odometer.getPoseMeters().getX(),
-        odometer.getPoseMeters().getY(),
-        odometer.getPoseMeters().getRotation().getRadians()
-    });
+    logData(path + "/odometer", new double[] { odometer.getPoseMeters().getX(), odometer.getPoseMeters().getY(), odometer.getPoseMeters().getRotation().getRadians() });
   }
 
   public void logPose(String path, Pose2d pose) {
-    logData(path, new double[] {
-        pose.getX(),
-        pose.getY(),
-        pose.getRotation().getRadians()
-    });
+    logData(path, new double[] { pose.getX(), pose.getY(), pose.getRotation().getRadians() });
   }
 
   public void logModuleStates(String path, SwerveModuleState[] targetModuleStates, SwerveModuleState[] measuredModuleStates, SwerveModulePosition[] modulePositions) {
@@ -261,45 +254,52 @@ public class Logger {
     logData(key, value, false);
   }
 
-   public void logData(String key, Object value, boolean once) {
-        boolean loggedYet = logEntries.containsKey(key);
+  public void logData(String key, Object value, boolean once) {
+    boolean loggedYet = logEntries.containsKey(key);
 
-        if (!loggedYet) {
-            if (value instanceof Boolean)
-                logEntries.put(key, instance.getBooleanTopic(key).publish());
-            else if (value instanceof Double)
-                logEntries.put(key, instance.getDoubleTopic(key).publish());
-            else if (value instanceof Short)
-                logEntries.put(key, instance.getIntegerTopic(key).publish());
-            else if (value instanceof Float)
-                logEntries.put(key, instance.getFloatTopic(key).publish());
-            else if (value instanceof Integer)
-                logEntries.put(key, instance.getIntegerTopic(key).publish());
-            else if (value instanceof double[])
-                logEntries.put(key, instance.getDoubleArrayTopic(key).publish());
-            else if (value instanceof String)
-                logEntries.put(key, instance.getStringTopic(key).publish());
-            else
-                System.out.println("unknown logging data type: " + value.getClass().getSimpleName());
-          }
-
-        if (!once || !loggedYet) {
-            if (value instanceof Boolean)
-                ((BooleanPublisher) logEntries.get(key)).set((boolean) value);
-            else if (value instanceof Double)
-                ((DoublePublisher) logEntries.get(key)).set((double) value);
-            else if (value instanceof Short)
-                ((IntegerPublisher) logEntries.get(key)).set(((Short) value).intValue());
-            else if (value instanceof Float)
-                ((FloatPublisher) logEntries.get(key)).set((float) value);
-            else if (value instanceof Integer)
-                ((IntegerPublisher) logEntries.get(key)).set((int) value);
-            else if (value instanceof double[])
-                ((DoubleArrayPublisher) logEntries.get(key)).set((double[]) value);
-            else if (value instanceof String)
-                ((StringPublisher) logEntries.get(key)).set((String) value);
-            else
-                System.out.println("unknown logging data type: " + value.getClass().getSimpleName());
-        }
+    if (!loggedYet) {
+      if (value instanceof Boolean)
+        logEntries.put(key, instance.getBooleanTopic(key).publish());
+      else if (value instanceof Double)
+        logEntries.put(key, instance.getDoubleTopic(key).publish());
+      else if (value instanceof Short)
+        logEntries.put(key, instance.getIntegerTopic(key).publish());
+      else if (value instanceof Float)
+        logEntries.put(key, instance.getFloatTopic(key).publish());
+      else if (value instanceof Integer)
+        logEntries.put(key, instance.getIntegerTopic(key).publish());
+      else if (value instanceof double[])
+        logEntries.put(key, instance.getDoubleArrayTopic(key).publish());
+      else if (value instanceof String)
+        logEntries.put(key, instance.getStringTopic(key).publish());
+      else
+        System.out.println("unknown logging data type: " + value.getClass().getSimpleName());
     }
+
+    if (!once || !loggedYet) {
+      if (value instanceof Boolean)
+        ((BooleanPublisher) logEntries.get(key)).set((boolean) value);
+      else if (value instanceof Double)
+        ((DoublePublisher) logEntries.get(key)).set((double) value);
+      else if (value instanceof Short)
+        ((IntegerPublisher) logEntries.get(key)).set(((Short) value).intValue());
+      else if (value instanceof Float)
+        ((FloatPublisher) logEntries.get(key)).set((float) value);
+      else if (value instanceof Integer)
+        ((IntegerPublisher) logEntries.get(key)).set((int) value);
+      else if (value instanceof double[])
+        ((DoubleArrayPublisher) logEntries.get(key)).set((double[]) value);
+      else if (value instanceof String)
+        ((StringPublisher) logEntries.get(key)).set((String) value);
+      else
+        System.out.println("unknown logging data type: " + value.getClass().getSimpleName());
+    }
+  }
+
+  static void REV(REVLibError error, String message) {
+    if (error != REVLibError.kOk) {
+      DriverStation.reportError(String.format("[FAILED] %s: %s", message, error.toString()), false);
+      System.out.println(String.format("[FAILED] %s: %s", message, error.toString()));
+    }
+  }
 }
