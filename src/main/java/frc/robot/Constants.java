@@ -91,9 +91,9 @@ public final class Constants {
     */
 
     // PHYSICAL
-    public static final double TRACKWIDTH_METERS = 0.6477; // left-to-right distance between the drivetrain wheels
-    public static final double WHEELBASE_METERS = 0.62865; // front-to-back distance between the drivetrain wheels
-    public static final double WHEEL_DIAMETER = 0.1016; // measured in meters
+    public static final double TRACKWIDTH_METERS = Units.inchesToMeters(24.75); // left-to-right distance between the drivetrain wheels
+    public static final double WHEELBASE_METERS = Units.inchesToMeters(24.75); // front-to-back distance between the drivetrain wheels
+    public static final double WHEEL_DIAMETER = Units.inchesToMeters(4.0);; // measured in meters
     public static final double DRIVE_GEAR_REDUCTION = 1.0 / 6.75;
     public static final double STEER_GEAR_REDUCTION = 7.0 / 150.0;
     public static final double[] STEER_ENCODER_OFFSETS = { -124.805, -303.047, -101.602, -65.215 };
