@@ -1,0 +1,94 @@
+{
+  "NTProvider": {
+    "types": {
+      "/FMSInfo": "FMSInfo",
+      "/SmartDashboard/PIDController[1]": "PIDController",
+      "/SmartDashboard/PIDController[2]": "PIDController",
+      "/SmartDashboard/PIDController[3]": "PIDController",
+      "/SmartDashboard/PIDController[4]": "PIDController",
+      "/SmartDashboard/PIDController[5]": "PIDController",
+      "/SmartDashboard/PIDController[6]": "PIDController",
+      "/SmartDashboard/PIDController[7]": "PIDController",
+      "/SmartDashboard/PIDController[8]": "PIDController"
+    }
+  },
+  "NetworkTables": {
+    "Persistent Values": {
+      "open": false
+    },
+    "Retained Values": {
+      "open": false
+    },
+    "transitory": {
+      "Logger": {
+        "open": true,
+        "powerDistribution": {
+          "open": true
+        },
+        "robotController": {
+          "3V3Line": {
+            "open": true
+          },
+          "open": true
+        }
+      },
+      "Shuffleboard": {
+        "open": true
+      },
+      "SmartDashboard": {
+        "Constants": {
+          "open": true
+        },
+        "open": true,
+        "swerveDrive": {
+          "modules": {
+            "FL": {
+              "driveMotor": {
+                "open": true,
+                "relativeEncoder": {
+                  "open": true
+                }
+              },
+              "open": true
+            },
+            "FR": {
+              "canCoder": {
+                "faults": {
+                  "open": true
+                },
+                "open": true
+              },
+              "driveMotor": {
+                "open": true
+              },
+              "open": true,
+              "steerMotor": {
+                "open": true,
+                "relativeEncoder": {
+                  "open": true
+                }
+              }
+            },
+            "open": true
+          },
+          "open": true
+        }
+      }
+    }
+  },
+  "NetworkTables Info": {
+    "Clients": {
+      "open": true
+    },
+    "Server": {
+      "Publishers": {
+        "open": true
+      },
+      "Subscribers": {
+        "open": true
+      },
+      "open": true
+    },
+    "visible": true
+  }
+}

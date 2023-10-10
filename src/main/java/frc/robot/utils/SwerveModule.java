@@ -8,42 +8,37 @@ import com.ctre.phoenix.sensors.AbsoluteSensorRange;
 import com.ctre.phoenix.sensors.CANCoder;
 import com.ctre.phoenix.sensors.CANCoderConfiguration;
 import com.revrobotics.CANSparkMax;
+import com.revrobotics.CANSparkMax.ControlType;
 import com.revrobotics.CANSparkMax.IdleMode;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
-import com.revrobotics.REVLibError;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkMaxPIDController;
 
-import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.math.controller.SimpleMotorFeedforward;
-import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.wpilibj.DriverStation;
 import frc.robot.Constants.CAN;
-import frc.robot.Constants.SwerveDriveConstants;
+import frc.robot.Constants.NEO;
+import frc.robot.Constants.SWERVE_DRIVE;
+import frc.robot.Constants.SWERVE_DRIVE.DRIVE_SMART_MOTION;
+import frc.robot.Constants.SWERVE_DRIVE.STEER_SMART_MOTION;
 import frc.robot.Constants.SwerveMath;
-import frc.robot.subsystems.SwerveDrive;
-import frc.robot.utils.SelfCheck.*;
 
 public class SwerveModule {
-  private CANSparkMax driveMotor;
-  private CANSparkMax steerMotor;
-  private RelativeEncoder driveEncoder;
-  private RelativeEncoder steerEncoder;
+  private CANSparkMax driveMotor, steerMotor;
+  private RelativeEncoder driveEncoder, steerEncoder;
   private CANCoder absoluteSteerEncoder;
-  public PIDController steerPID = new PIDController(SwerveDriveConstants.MODULE_STEER_PID[0], SwerveDriveConstants.MODULE_STEER_PID[1], SwerveDriveConstants.MODULE_STEER_PID[2]);
+  private SparkMaxPIDController driveController, steerController;
   private SwerveModuleState state = new SwerveModuleState();
   private String name;
 
   public SwerveModule(int id) {
-    name = SwerveDriveConstants.MODULE_NAMES[id];
-
+    name = SWERVE_DRIVE.MODULE_NAMES[id];
+    
     // MOTOR SETUP
-    driveMotor = new CANSparkMax(CAN.SWERVE_DRIVE[id], MotorType.kBrushless);
-    steerMotor = new CANSparkMax(CAN.SWERVE_STEER[id], MotorType.kBrushless);
+    driveMotor = new CANSparkMax(CAN.SWERVE_DRIVE_SPARK_MAX[id], MotorType.kBrushless);
+    steerMotor = new CANSparkMax(CAN.SWERVE_STEER_SPARK_MAX[id], MotorType.kBrushless);
 
     Logger.REV(driveMotor.restoreFactoryDefaults(), "driveMotor.restoreFactoryDefaults");
     Logger.REV(steerMotor.restoreFactoryDefaults(), "steerMotor.restoreFactoryDefaults");
@@ -53,107 +48,158 @@ public class SwerveModule {
 
     steerMotor.setInverted(true);
 
-    Logger.REV(driveMotor.setSmartCurrentLimit((int) (SwerveDriveConstants.TOTAL_CURRENT_LIMIT / 4.0)), "driveMotor.setSmartCurrentLimit");
-    Logger.REV(driveMotor.setOpenLoopRampRate(SwerveDriveConstants.MOTOR_RAMP_RATE_SECONDS), "driveMotor.setOpenLoopRampRate");
-    Logger.REV(steerMotor.setOpenLoopRampRate(SwerveDriveConstants.MOTOR_RAMP_RATE_SECONDS), "steerMotor.setOpenLoopRampRate");
+    Logger.REV(driveMotor.setSmartCurrentLimit(SWERVE_DRIVE.MOTOR_CURRENT_LIMIT, NEO.SAFE_STALL_CURRENT), "driveMotor.setSmartCurrentLimit");
+    Logger.REV(steerMotor.setSmartCurrentLimit(SWERVE_DRIVE.MOTOR_CURRENT_LIMIT, NEO.SAFE_STALL_CURRENT), "driveMotor.setSmartCurrentLimit");
+    Logger.REV(driveMotor.setOpenLoopRampRate(SWERVE_DRIVE.MOTOR_RAMP_RATE_SECONDS), "driveMotor.setOpenLoopRampRate");
+    Logger.REV(steerMotor.setOpenLoopRampRate(SWERVE_DRIVE.MOTOR_RAMP_RATE_SECONDS), "steerMotor.setOpenLoopRampRate");
+    Logger.REV(driveMotor.setClosedLoopRampRate(SWERVE_DRIVE.MOTOR_RAMP_RATE_SECONDS), "driveMotor.setClosedLoopRampRate");
+    Logger.REV(steerMotor.setClosedLoopRampRate(SWERVE_DRIVE.MOTOR_RAMP_RATE_SECONDS), "steerMotor.setClosedLoopRampRate");
 
+    
     // ENCODER SETUP
-    absoluteSteerEncoder = new CANCoder(CAN.SWERVE_STEER_CANCODER[id]);
+    absoluteSteerEncoder = new CANCoder(CAN.SWERVE_STEER_CANCODERS[id]);
     steerEncoder = steerMotor.getEncoder();
     driveEncoder = driveMotor.getEncoder();
 
-    Logger.REV(driveEncoder.setPositionConversionFactor(SwerveDriveConstants.DRIVE_METERS_PER_MOTOR_ROTATION), "driveEncoder.setPositionConversionFactor");
-    Logger.REV(driveEncoder.setVelocityConversionFactor(SwerveDriveConstants.DRIVE_METERS_PER_MOTOR_ROTATION / 60.0), "driveEncoder.setVelocityConversionFactor");
-    Logger.REV(steerEncoder.setPositionConversionFactor(SwerveDriveConstants.STEER_RADIANS_PER_MOTOR_ROTATION), "steerEncoder.setPositionConversionFactor");
-    Logger.REV(steerEncoder.setVelocityConversionFactor(SwerveDriveConstants.STEER_RADIANS_PER_MOTOR_ROTATION / 60.0), "steerEncoder.setVelocityConversionFactor");
+    Logger.REV(driveEncoder.setPositionConversionFactor(SWERVE_DRIVE.DRIVE_MOTOR_METERS_PER_REVOLUTION), "driveEncoder.setPositionConversionFactor");
+    Logger.REV(driveEncoder.setVelocityConversionFactor(SWERVE_DRIVE.DRIVE_MOTOR_METERS_PER_REVOLUTION / 60.0), "driveEncoder.setVelocityConversionFactor");
+    Logger.REV(steerEncoder.setPositionConversionFactor(SWERVE_DRIVE.STEER_MOTOR_RADIANS_PER_REVOLUTION), "steerEncoder.setPositionConversionFactor");
+    Logger.REV(steerEncoder.setVelocityConversionFactor(SWERVE_DRIVE.STEER_MOTOR_RADIANS_PER_REVOLUTION / 60.0), "steerEncoder.setVelocityConversionFactor");
 
     CANCoderConfiguration CANCoderConfig = new CANCoderConfiguration();
-    CANCoderConfig.magnetOffsetDegrees = SwerveDriveConstants.STEER_ENCODER_OFFSETS[id];
+    CANCoderConfig.magnetOffsetDegrees = SWERVE_DRIVE.STEER_ENCODER_OFFSETS[id];
     CANCoderConfig.absoluteSensorRange = AbsoluteSensorRange.Signed_PlusMinus180;
     absoluteSteerEncoder.configAllSettings(CANCoderConfig);
 
+    
     // PID SETUP
-    steerPID.enableContinuousInput(-Math.PI, Math.PI);
-    steerPID.setTolerance(Units.degreesToRadians(SwerveDriveConstants.MODULE_STEER_PID_TOLERANCE));
+    driveController = driveMotor.getPIDController();
+    Logger.REV(driveController.setP(DRIVE_SMART_MOTION.kP, 0), "driveController.setP");
+    Logger.REV(driveController.setI(DRIVE_SMART_MOTION.kI, 0), "driveController.setI");
+    Logger.REV(driveController.setD(DRIVE_SMART_MOTION.kD, 0), "driveController.setD");
+    Logger.REV(driveController.setFF(DRIVE_SMART_MOTION.kFF, 0), "driveController.setFF");
+    Logger.REV(driveController.setSmartMotionMaxVelocity(DRIVE_SMART_MOTION.kV, 0), "driveController.setSmartMotionMaxVelocity");
+    Logger.REV(driveController.setSmartMotionMaxAccel(DRIVE_SMART_MOTION.kA, 0), "driveController.setSmartMotionMaxAccel");
+    Logger.REV(driveController.setOutputRange(-SWERVE_DRIVE.MOTOR_POWER_HARD_CAP, SWERVE_DRIVE.MOTOR_POWER_HARD_CAP, 0), "driveController.setOutputRange");
+    Logger.REV(driveController.setSmartMotionMinOutputVelocity(SWERVE_DRIVE.VELOCITY_DEADBAND, 0), "driveController.setSmartMotionMinOutputVelocity");
+    Logger.REV(driveController.setFeedbackDevice(driveEncoder), "driveController.setFeedbackDevice");
+
+    steerController = steerMotor.getPIDController();
+    Logger.REV(steerController.setP(STEER_SMART_MOTION.kP, 0), "steerController.setP");
+    Logger.REV(steerController.setI(STEER_SMART_MOTION.kI, 0), "steerController.setI");
+    Logger.REV(steerController.setD(STEER_SMART_MOTION.kD, 0), "steerController.setD");
+    Logger.REV(steerController.setFF(STEER_SMART_MOTION.kFF, 0), "steerController.setFF");
+    Logger.REV(steerController.setSmartMotionMaxVelocity(STEER_SMART_MOTION.kV, 0), "steerController.setSmartMotionMaxVelocity");
+    Logger.REV(steerController.setSmartMotionMaxAccel(STEER_SMART_MOTION.kA, 0), "steerController.setSmartMotionMaxAccel");
+    Logger.REV(steerController.setOutputRange(-SWERVE_DRIVE.MOTOR_POWER_HARD_CAP, SWERVE_DRIVE.MOTOR_POWER_HARD_CAP, 0), "steerController.setOutputRange");
+    Logger.REV(steerController.setSmartMotionMinOutputVelocity(SWERVE_DRIVE.VELOCITY_DEADBAND, 0), "steerController.setSmartMotionMinOutputVelocity");
+    Logger.REV(steerController.setFeedbackDevice(steerEncoder), "steerController.setFeedbackDevice");
+    Logger.REV(steerController.setPositionPIDWrappingEnabled(true), "steerController.setPositionPIDWrappingEnabled");
+    Logger.REV(steerController.setPositionPIDWrappingMaxInput(Math.PI), "steerController.setPositionPIDWrappingMaxInput");
+    Logger.REV(steerController.setPositionPIDWrappingMinInput(-Math.PI), "steerController.setPositionPIDWrappingMaxInput");
     
     driveMotor.burnFlash();
     steerMotor.burnFlash();
     
     seedSteerEncoder();
-
-    selfCheck();
   }
 
   // Set target angle and velocity
   public void drive(SwerveModuleState state) {
     state = SwerveModuleState.optimize(state, getSteerDirection());
     this.state = state;
-
-    // Calculate motor power from velocities
-    double drivePower = SwerveMath.wheelVelocityToMotorPower(state.speedMetersPerSecond);
-    double steerPower = SwerveMath.steerVelocityToMotorPower(steerPID.calculate(getSteerDirection().getRadians(), state.angle.getRadians()));
     
-    // Clamp power to be within the motor power hard cap
-    drivePower = Math.abs(drivePower) > SwerveDriveConstants.MOTOR_POWER_HARD_CAP ? SwerveDriveConstants.MOTOR_POWER_HARD_CAP * Math.signum(drivePower) : drivePower;
-    steerPower = Math.abs(steerPower) > SwerveDriveConstants.MOTOR_POWER_HARD_CAP ? SwerveDriveConstants.MOTOR_POWER_HARD_CAP * Math.signum(steerPower) : steerPower;
+    // Use onboard PIDF controllers
+    driveController.setReference(state.speedMetersPerSecond, ControlType.kSmartVelocity);
+    steerController.setReference(state.angle.getRadians(), ControlType.kSmartMotion);
 
-    // Drive motors
-    driveMotor.setVoltage(drivePower * SwerveDriveConstants.MAX_VOLTAGE);
-    steerMotor.setVoltage(steerPower * SwerveDriveConstants.MAX_VOLTAGE);
+    if (Math.abs(steerEncoder.getPosition()) > Math.PI) steerEncoder.setPosition(SwerveMath.clampRadians(steerEncoder.getPosition()));
+    if (Math.abs(steerEncoder.getVelocity()) == 0.0) seedSteerEncoder();
   }
 
+  /**
+   * Seeds the position of the built-in relative encoder with the absolute position of the steer CANCoder.
+   * This is because the CANCoder polls at a lower rate than we'd like, so we essentially turn the relative encoder into an fast-updating absolute encoder.
+   * Also the built-in SparkMaxPIDControllers require a compatible encoder to run the faster 1kHz closed loop 
+   */
   public void seedSteerEncoder() {
     steerEncoder.setPosition(Units.degreesToRadians(absoluteSteerEncoder.getAbsolutePosition()));
   }
 
-  // Get the direction of the steering wheel (-180 - 180)
+  /**
+   * @return Steering direction in degrees (-180 - 180)
+   */
   public Rotation2d getSteerDirection() {
-    return Rotation2d.fromDegrees(absoluteSteerEncoder.getAbsolutePosition());
+    return Rotation2d.fromRadians(steerEncoder.getPosition());
   }
 
-  // Get velocity in m/s
+  /**
+   * @return Drive wheel velocity in m/s
+   */
   public double getVelocity() {
     return driveEncoder.getVelocity();
   }
 
-  // Get name of module
+  /**
+   * @return Name of the module (set in constants file)
+   */
   public String getName() {
     return name;
   }
 
-  // Get total current through both motors
+  /**
+   * @return The total current of both motors (measured in Amps)
+   */
   public double getCurrent() {
     return driveMotor.getOutputCurrent() + steerMotor.getOutputCurrent();
   }
 
-  // Stop power to both motors
+  /**
+   * Stops power to both motors (not persistent)
+   */
   public void stop() {
-    steerMotor.set(0.0);
-    driveMotor.set(0.0);
+    steerMotor.stopMotor();
+    driveMotor.stopMotor();
   }
-
+  
+  /**
+   * @return The target SwerveModuleState
+   */
   public SwerveModuleState getTargetState() {
     return state;
   }
 
+  /**
+   * @return The measured SwerveModuleState
+   */
   public SwerveModuleState getMeasuredState() {
     return new SwerveModuleState(getVelocity(), getSteerDirection());
   }
 
+  /**
+   * @return The measured SwerveModulePosition
+   */
   public SwerveModulePosition getModulePosition() {
     return new SwerveModulePosition(driveEncoder.getPosition(), getSteerDirection());
   }
 
-  public CANSparkMax[] getMotors() {
-    return new CANSparkMax[] { driveMotor, steerMotor };
+  /**
+   * Logs all values, motor controllers, and encoders to network tables to be saved later
+   */
+  public void log(String path) {
+    Logger.logSparkMax(path + "/driveMotor", driveMotor);
+    Logger.logSparkMax(path + "/steerMotor", steerMotor);
+    Logger.logCANCoder(path + "/canCoder", absoluteSteerEncoder);
+    Logger.logValue(path + "/steerDegrees", getSteerDirection().getDegrees());
+    Logger.logValue(path + "/velocity", getVelocity());
+    Logger.logValue(path + "/name", name);
   }
 
-  public CANCoder getCanCoder() {
-    return absoluteSteerEncoder;
-  }
-
-  public void selfCheck() {
-    SelfCheck.checkMotorFaults(getMotors());
-    SelfCheck.checkCANCoderFaults(getCanCoder());
+  /**
+   * @param power Motor power (-1.0 - 1.0)
+   * @return Drive velocity
+   */
+  public static double powerToDriveVelocity(double power) {
+    return STEER_SMART_MOTION.kFF * power;
   }
 }

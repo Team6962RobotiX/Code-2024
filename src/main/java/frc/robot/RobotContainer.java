@@ -4,46 +4,21 @@
 
 package frc.robot;
 
-import frc.robot.Constants;
-import frc.robot.Constants.*;
-import frc.robot.commands.*;
-import frc.robot.subsystems.*;
-import frc.robot.utils.*;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.PrintCommand;
-import edu.wpi.first.wpilibj2.command.ProfiledPIDCommand;
-import edu.wpi.first.wpilibj2.command.RamseteCommand;
-import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
-import edu.wpi.first.wpilibj2.command.SwerveControllerCommand;
-
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 
-import com.ctre.phoenix.sensors.CANCoder;
-
-import edu.wpi.first.hal.ConstantsJNI;
-import edu.wpi.first.math.controller.HolonomicDriveController;
-import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.math.controller.ProfiledPIDController;
-import edu.wpi.first.math.controller.RamseteController;
-import edu.wpi.first.math.controller.SimpleMotorFeedforward;
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.spline.Spline.ControlVector;
-import edu.wpi.first.math.trajectory.Trajectory;
-import edu.wpi.first.math.trajectory.TrajectoryConfig;
-import edu.wpi.first.math.trajectory.TrajectoryGenerator;
-import edu.wpi.first.math.trajectory.constraint.DifferentialDriveVoltageConstraint;
-import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.util.datalog.DataLog;
+import edu.wpi.first.wpilibj.DataLogManager;
+import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.XboxController;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj2.command.button.JoystickButton;
-import edu.wpi.first.wpilibj2.command.button.POVButton;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
+import edu.wpi.first.wpilibj.livewindow.LiveWindow;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.PrintCommand;
+import frc.robot.Constants.DEVICES;
+import frc.robot.commands.XBoxSwerve;
+import frc.robot.subsystems.SwerveDrive;
+import frc.robot.utils.Logger;
+import frc.robot.utils.SwerveAutonomous;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -55,24 +30,27 @@ public class RobotContainer {
 
   // The robot's subsystems and commands are defined here...
 
-  private final XboxController controller = new XboxController(Devices.USB_XBOX_CONTROLLER);
+  private final XboxController controller = new XboxController(DEVICES.USB_XBOX_CONTROLLER);
   private final SwerveDrive drive = new SwerveDrive();
   // private final Limelight limelight = new Limelight(LimelightConfig.NAME);
-  private final MotionRecorder recorder = new MotionRecorder(drive);
-  private final Logger logger = new Logger(drive);
   // private final Testing tesing = new Testing();
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
-    drive.setDefaultCommand(new XBoxSwerve(drive, () -> controller));
+    Logger.logClassValues("Constants", this, Constants.class);
+    if (RobotBase.isReal()) {
+      DataLogManager.start();
+      if (Constants.LOGGING.ENABLE_DRIVER_STATION) Logger.logDriverStation("/driverStation");
+    }
 
+    drive.setDefaultCommand(new XBoxSwerve(drive, () -> controller));
+    
     // Configure the trigger bindings
     configureBindings();
   }
 
   private void configureBindings() {
-    new Trigger(controller::getAButton).onTrue(recorder.startRecording());
-    new Trigger(controller::getBButton).onTrue(recorder.stopRecording());
+    
   }
 
   public Command getAutonomousCommand() {
@@ -82,9 +60,5 @@ public class RobotContainer {
   }
 
   public void disabledPeriodic() {
-  }
-
-  public Logger getLogger() {
-    return logger;
   }
 }

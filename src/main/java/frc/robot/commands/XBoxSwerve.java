@@ -15,10 +15,10 @@ import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.Constants.InputMath;
-import frc.robot.Constants.SwerveDriveConstants;
-import frc.robot.Constants;
+import frc.robot.Constants.SWERVE_DRIVE;
 import frc.robot.Constants.SwerveMath;
 import frc.robot.subsystems.SwerveDrive;
+import frc.robot.utils.SwerveModule;
 
 /** An example command that uses an example subsystem. */
 
@@ -26,7 +26,11 @@ public class XBoxSwerve extends CommandBase {
   private XboxController controller;
   
   private final SwerveDrive swerveDrive;
-  private final PIDController rotatePID = new PIDController(SwerveDriveConstants.TELEOP_ROTATE_PID[0], SwerveDriveConstants.TELEOP_ROTATE_PID[1], SwerveDriveConstants.TELEOP_ROTATE_PID[2]);
+  private final PIDController rotatePID = new PIDController(
+    SWERVE_DRIVE.ABSOLUTE_ROTATION_GAINS.kP,
+    SWERVE_DRIVE.ABSOLUTE_ROTATION_GAINS.kI,
+    SWERVE_DRIVE.ABSOLUTE_ROTATION_GAINS.kD
+  );
 
   // What angle we want the robot to face
   private double targetRobotAngle = 0.0;
@@ -44,22 +48,22 @@ public class XBoxSwerve extends CommandBase {
   private double rightTrigger;
 
   // Calculate the maximum speeds we should drive at during teleop
-  private double maxDriveVelocity = SwerveMath.motorPowerToWheelVelocity(SwerveDriveConstants.TELEOP_DRIVE_POWER);
-  private double slowDriveVelocity = SwerveMath.motorPowerToWheelVelocity(SwerveDriveConstants.TELEOP_SLOW_DRIVE_POWER);
-  private double maxRotateVelocity = SwerveMath.wheelVelocityToRotationalVelocity(SwerveMath.motorPowerToWheelVelocity(SwerveDriveConstants.TELEOP_ROTATE_POWER));
+  private double maxDriveVelocity = SwerveModule.powerToDriveVelocity(SWERVE_DRIVE.TELEOPERATED_DRIVE_POWER);
+  private double slowDriveVelocity = SwerveModule.powerToDriveVelocity(SWERVE_DRIVE.TELEOPERATED_SLOW_DRIVE_POWER);
+  private double maxRotateVelocity = SwerveDrive.wheelVelocityToRotationalVelocity(SwerveModule.powerToDriveVelocity(SWERVE_DRIVE.TELEOPERATED_ROTATE_POWER));
 
+  private double tipCompensationSpeed = 0.0;
 
   // Acceleration limits to prevent tipping and skidding
-  private SlewRateLimiter xAccelerationLimiter = new SlewRateLimiter(SwerveDriveConstants.TELEOP_MAX_ACCELERATION);
-  private SlewRateLimiter yAccelerationLimiter = new SlewRateLimiter(SwerveDriveConstants.TELEOP_MAX_ACCELERATION);
-  private SlewRateLimiter angularAccelerationLimiter = new SlewRateLimiter(SwerveDriveConstants.TELEOP_MAX_ANGULAR_ACCELERATION);
+  private SlewRateLimiter xAccelerationLimiter = new SlewRateLimiter(SWERVE_DRIVE.TELEOPERATED_ACCELERATION);
+  private SlewRateLimiter yAccelerationLimiter = new SlewRateLimiter(SWERVE_DRIVE.TELEOPERATED_ACCELERATION);
+  private SlewRateLimiter angularAccelerationLimiter = new SlewRateLimiter(SWERVE_DRIVE.TELEOPERATED_ANGULAR_ACCELERATION);
 
   public XBoxSwerve(SwerveDrive swerveDrive, Supplier<XboxController> xboxSupplier) {
     this.swerveDrive = swerveDrive;
     controller = xboxSupplier.get();
 
     rotatePID.enableContinuousInput(-Math.PI, Math.PI);
-    rotatePID.setTolerance(Units.degreesToRadians(SwerveDriveConstants.TELEOP_ROTATE_PID_TOLERANCE));
     
     addRequirements(swerveDrive);
   }
@@ -86,22 +90,22 @@ public class XBoxSwerve extends CommandBase {
     rightTrigger = controller.getRightTriggerAxis();
     rightX = -controller.getRightX();
     rightY = -controller.getRightY();
-    
+
     // These variables we will eventually plug into the swerve drive command
     angularVelocity = 0.0;
     xVelocity = 0.0;
     yVelocity = 0.0;
-
-        
+    
     triggerRelativeMovement();
     
     rightStickAbsoluteRotation();
     
     bumperRotationLock();
-
-    fieldOrientedRotation();
     
-    fieldOrientedDrive();
+    if (swerveDrive.getGyro().isConnected()) doFieldOrientedRotation();
+    else fieldOrientedRotation = false;
+
+    leftStickFieldOrientedDrive();
 
     slowDPadDrive();
 
@@ -131,7 +135,7 @@ public class XBoxSwerve extends CommandBase {
     // Rumble if acceleration is higher than expected (basically if we hit something)
     AHRS gyro = swerveDrive.getGyro();
     double acceleration = Math.sqrt(Math.pow(gyro.getRawAccelX(), 2) + Math.pow(gyro.getRawAccelY(), 2) + Math.pow(gyro.getRawAccelZ(), 2));
-    double accelerationBeyondLimit = Math.max(0, acceleration - SwerveDriveConstants.TELEOP_MAX_ACCELERATION);
+    double accelerationBeyondLimit = Math.max(0, acceleration - SWERVE_DRIVE.TELEOPERATED_ACCELERATION);
     double normalizedRumble = accelerationBeyondLimit / (accelerationBeyondLimit + 1);
     controller.setRumble(RumbleType.kBothRumble, normalizedRumble);
   }
@@ -140,7 +144,6 @@ public class XBoxSwerve extends CommandBase {
   @Override
   public void end(boolean interrupted) {
     rotatePID.reset();
-    rotatePID.setP(SwerveDriveConstants.TELEOP_ROTATE_PID[0]);
   }
 
   // Returns true when the command should end.
@@ -149,8 +152,8 @@ public class XBoxSwerve extends CommandBase {
     return false;
   }
 
-  public void fieldOrientedRotation() {
-    boolean isRotating = Units.degreesToRadians(swerveDrive.getGyro().getRawGyroZ()) > SwerveMath.wheelVelocityToRotationalVelocity(SwerveDriveConstants.VELOCITY_DEADBAND);
+  public void doFieldOrientedRotation() {
+    boolean isRotating = Units.degreesToRadians(swerveDrive.getGyro().getRawGyroZ()) > SwerveDrive.wheelVelocityToRotationalVelocity(SWERVE_DRIVE.VELOCITY_DEADBAND);
     if (!fieldOrientedRotation && !isRotating) {
       fieldOrientedRotation = true;
       targetRobotAngle = Units.degreesToRadians(swerveDrive.getHeading());
@@ -197,7 +200,7 @@ public class XBoxSwerve extends CommandBase {
     }
   }
 
-  public void fieldOrientedDrive() {
+  public void leftStickFieldOrientedDrive() {
     // Left stick field oriented drive
     xVelocity += leftX * maxDriveVelocity;
     yVelocity += leftY * maxDriveVelocity;
@@ -209,5 +212,27 @@ public class XBoxSwerve extends CommandBase {
       xVelocity += -Math.sin(Units.degreesToRadians(controller.getPOV())) * slowDriveVelocity;
       yVelocity += Math.cos(Units.degreesToRadians(controller.getPOV())) * slowDriveVelocity;
     }
+  }
+
+  public void tipCompensation() {
+    AHRS gyro = swerveDrive.getGyro();
+
+    double xTip = Units.degreesToRadians(gyro.getPitch()) * Math.cos(swerveDrive.getRotation2d().getRadians());
+    double yTip = Units.degreesToRadians(gyro.getRoll()) * Math.sin(swerveDrive.getRotation2d().getRadians());
+
+    double tipDirection = Math.atan2(yTip, xTip);
+    double tipRadians = Math.hypot(xTip, yTip);
+
+    if (tipRadians < SWERVE_DRIVE.TIP_COMPENSATION_MIN_TILT) {
+      tipCompensationSpeed = 0.0;
+      return;
+    }
+
+    double acceleration = tipRadians / Math.PI * SWERVE_DRIVE.AUTONOMOUS_ACCELERATION;
+    
+    tipCompensationSpeed += acceleration * 0.02;
+
+    xVelocity += tipCompensationSpeed * Math.cos(tipDirection);
+    yVelocity += tipCompensationSpeed * Math.sin(tipDirection);
   }
 }

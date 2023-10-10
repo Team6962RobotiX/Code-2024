@@ -3,16 +3,12 @@
 // the WPILib BSD license file in the root directory of this project.
 package frc.robot;
 
-import com.pathplanner.lib.auto.PIDConstants;
-
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.kinematics.DifferentialDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
-import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
-import frc.robot.subsystems.*;
+import frc.robot.subsystems.SwerveDrive;
 
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide numerical or boolean
@@ -25,37 +21,37 @@ import frc.robot.subsystems.*;
 public final class Constants {
 
   // ENABLED SYSTEMS
-  public static final class EnabledSystems {
-    public static final boolean ENABLE_DRIVE = true;
+  public static final class ENABLED_SYSTEMS {
+    public static final boolean ENABLE_DRIVE     = true;
     public static final boolean ENABLE_LIMELIGHT = false;
     public static final boolean ENABLE_DASHBOARD = true;
   }
 
-  public static final class Logging {
-    public static final boolean ENABLE_DRIVE = true;
-    public static final boolean ENABLE_PDH = true;
+  public static final class LOGGING {
+    public static final boolean ENABLE_DRIVE            = true;
+    public static final boolean ENABLE_PDH              = true;
     public static final boolean ENABLE_ROBOT_CONTROLLER = true;
-    public static final boolean ENABLE_DRIVER_STATION = true;
-    public static final double LOGGING_PERIOD = 0.02; // in seconds
+    public static final boolean ENABLE_DRIVER_STATION   = true;
+    public static final double LOGGING_PERIOD           = 0.02; // in seconds
   }
 
   // DEVICES
-  public static final class Devices {
+  public static final class DEVICES {
     public static final int USB_XBOX_CONTROLLER = 0;
   }
 
   // DASHBOARD (ShuffleBoard)
-  public static final class DashboardConstants {
+  public static final class DASHBOARD {
     public static final String TAB_NAME = "SwerveDrive";
   }
 
   // LIMELIGHT
-  public static final class LimelightConstants {
+  public static final class LIMELIGHT {
     public static final String NAME = "limelight";
   }
 
   // SWERVE DRIVE
-  public static final class SwerveDriveConstants {
+  public static final class SWERVE_DRIVE {
 
     /*
       -------------------------------------
@@ -63,26 +59,28 @@ public final class Constants {
       -------------------------------------
     */
 
-    public static final double TELEOP_DRIVE_POWER = 0.5; // Percent driving power (0.2 = 20%), left trigger bypasses this value
-    public static final double TELEOP_SLOW_DRIVE_POWER = 0.1; // Percent driving power when using the DPad
-    public static final double TELEOP_ROTATE_POWER = 0.5; // Percent rotating power (0.4 = 40%)
+    public static final double   MOTOR_POWER_HARD_CAP               = 1.0; // Only use for testing, otherwise set to 1.0
 
-    public static final double TELEOP_MAX_ACCELERATION = 15.0; // Measured in m/s^2
-    public static final double TELEOP_MAX_ANGULAR_ACCELERATION = 20.0; // Measured in rad/s^2
+    public static final double   TELEOPERATED_DRIVE_POWER           = 0.5; // Percent driving power (0.2  = 20%)
+    public static final double   TELEOPERATED_SLOW_DRIVE_POWER      = 0.1; // Percent driving power when using the DPad
+    public static final double   TELEOPERATED_ROTATE_POWER          = 0.5; // Percent rotating power (0.4 = 40%)
 
-    public static final double MOTOR_POWER_HARD_CAP = 1.0; // Only use for testing, otherwise set to 1.0
+    public static final double   WHEEL_FRICTION                     = 1.0; // 1.0 when on carpet
 
-    public static final double VELOCITY_DEADBAND = 0.15; // speed at which we stop moving all together (meters)
+    public static final double   TELEOPERATED_ACCELERATION          = SWERVE_DRIVE.MAX_SLIPLESS_ACCELERATION; // Measured in m/s^2
+    public static final double   TELEOPERATED_ANGULAR_ACCELERATION  = SwerveDrive.wheelVelocityToRotationalVelocity(SWERVE_DRIVE.MAX_SLIPLESS_ACCELERATION); // Measured in rad/s^2
 
-    public static final double MAX_VOLTAGE = 12.0;
-    public static final int TOTAL_CURRENT_LIMIT = 100; // [TODO] Default is around 640 Amps (also drive motors have two times more current allocation than steer motors)
-    public static final double MOTOR_RAMP_RATE_SECONDS = 0.05; // [TODO] Seconds that it takes to go from 0 - 100% motor power
+    public static final double   AUTONOMOUS_VELOCITY                = 4.0; // [TODO] measured in meters/sec
+    public static final double   AUTONOMOUS_ACCELERATION            = 3.0; // [TODO] measured in meters/sec^2
+    
+    public static final double   VELOCITY_DEADBAND                  = 0.1; // speed at which we stop moving all together (m/s)
 
-    public static final Pose2d STARTING_POSE = new Pose2d(0.0, 0.0, Rotation2d.fromDegrees(0.0));
-    public static final double STARTING_ANGLE_OFFSET = 0.0;
+    public static final double   VOLTAGE                            = 12.0;
+    public static final int      MOTOR_CURRENT_LIMIT                = 80;
+    public static final double   MOTOR_RAMP_RATE_SECONDS            = 0.05; // Seconds that it takes to go from 0 - 100% motor power
 
-    public static final String MOTION_RECORDING_WRITE_FILE = "/u/test.csv";
-    public static final String MOTION_RECORDING_READ_FILE = "/u/test.csv";
+    public static final Pose2d   STARTING_POSE                      = new Pose2d(0.0, 0.0, Rotation2d.fromDegrees(0.0));
+    public static final double   STARTING_ANGLE_OFFSET              = 0.0;
 
     /*
       -------------------------------------------------------------------
@@ -91,80 +89,95 @@ public final class Constants {
     */
 
     // PHYSICAL
-    public static final double TRACKWIDTH_METERS = Units.inchesToMeters(24.75); // left-to-right distance between the drivetrain wheels
-    public static final double WHEELBASE_METERS = Units.inchesToMeters(24.75); // front-to-back distance between the drivetrain wheels
-    public static final double WHEEL_DIAMETER = Units.inchesToMeters(4.0);; // measured in meters
-    public static final double DRIVE_GEAR_REDUCTION = 1.0 / 6.75;
-    public static final double STEER_GEAR_REDUCTION = 7.0 / 150.0;
-    public static final double[] STEER_ENCODER_OFFSETS = { -124.805, -303.047, -101.602, -65.215 };
+    public static final double   CHASSIS_WIDTH                      = Units.inchesToMeters(30);
+    public static final double   CHASSIS_LENGTH                     = Units.inchesToMeters(30);
 
-    public static final double FULL_POWER_DRIVE_MOTOR_RPM = 5676.0; // VERY IMPORTANT DO NOT CHANGE
-    public static final double FULL_POWER_STEER_MOTOR_RPM = 5676.0; // VERY IMPORTANT DO NOT CHANGE
+    public static final double   WHEEL_FRAME_DISTANCE               = Units.inchesToMeters(2.625);
 
-    public static final double DRIVE_METERS_PER_MOTOR_ROTATION = DRIVE_GEAR_REDUCTION * WHEEL_DIAMETER * Math.PI;
-    public static final double STEER_RADIANS_PER_MOTOR_ROTATION = STEER_GEAR_REDUCTION * Math.PI * 2.0;
+    public static final double   TRACKWIDTH                         = CHASSIS_WIDTH - WHEEL_FRAME_DISTANCE * 2.0; // left-to-right distance between the drivetrain wheels
+    public static final double   WHEELBASE                          = CHASSIS_LENGTH - WHEEL_FRAME_DISTANCE * 2.0; // front-to-back distance between the drivetrain wheels
+    public static final double   WHEEL_DIAMETER                     = Units.inchesToMeters(4.0); // measured in meters
+    public static final double   DRIVE_GEAR_REDUCTION               = 1.0 / 6.75;
+    public static final double   STEER_GEAR_REDUCTION               = 7.0 / 150.0;
+    public static final double[] STEER_ENCODER_OFFSETS              = { -124.805, -303.047, -101.602, -65.215 };
+    
+    public static final double   DRIVE_MOTOR_METERS_PER_REVOLUTION  = DRIVE_GEAR_REDUCTION * WHEEL_DIAMETER * Math.PI;
+    public static final double   STEER_MOTOR_RADIANS_PER_REVOLUTION = STEER_GEAR_REDUCTION * Math.PI * 2.0;
+    
+    public static final double   MAX_SLIPLESS_ACCELERATION          = 9.80 * WHEEL_FRICTION;
 
-    public static final double FULL_POWER_DRIVE_VELOCITY = (FULL_POWER_DRIVE_MOTOR_RPM / 60) * DRIVE_METERS_PER_MOTOR_ROTATION; // m/s (should be around 4.4196)
-    public static final double FULL_POWER_ROTATE_VELOCITY = SwerveMath.wheelVelocityToRotationalVelocity(FULL_POWER_DRIVE_VELOCITY); // rad/s (should be around 4.4196)
-    public static final double FULL_POWER_STEER_VELOCITY = (FULL_POWER_STEER_MOTOR_RPM / 60) * STEER_RADIANS_PER_MOTOR_ROTATION; // rad/s
+    // TIP COMPENSATION
+    public static final double   TIP_COMPENSATION_MIN_TILT          = 5.0;
 
-    // PID
-    public static final double[] MODULE_STEER_PID = { 10.0, 0.0, 0.0 }; // [TODO]
-    public static final double MODULE_STEER_PID_TOLERANCE = 0.5; // In degrees
+    // MOTION PROFILING
+    public static final class DRIVE_SMART_MOTION {
+      public static final double kFF = 1.0 / (NEO.FREE_SPEED / 60 * DRIVE_MOTOR_METERS_PER_REVOLUTION);
+      public static final double kP  = 0.2;
+      public static final double kI  = 0.0;
+      public static final double kD  = 0.0;
+      public static final double kV  = NEO.FREE_SPEED / 60.0 * DRIVE_MOTOR_METERS_PER_REVOLUTION;
+      public static final double kA  = MAX_SLIPLESS_ACCELERATION;
+    }
 
-    public static final double[] TELEOP_ROTATE_PID = { 4.0, 0.0, 0.0 }; // [TODO]
-    public static final double TELEOP_ROTATE_PID_TOLERANCE = 0.5; // In degrees
-
-    public static final PIDConstants AUTO_ROTATE_PID = new PIDConstants(1.0, 0.0, 0.0); // [TODO]
-    public static final PIDConstants AUTO_MOVE_PID = new PIDConstants(1.0, 0.0, 0.0); // [TODO]
+    public static final class STEER_SMART_MOTION {
+      public static final double kFF = 0.0;
+      public static final double kP  = 4.5;
+      public static final double kI  = 0.0;
+      public static final double kD  = 0.0;
+      public static final double kV  = NEO.FREE_SPEED / 60.0 * STEER_MOTOR_RADIANS_PER_REVOLUTION;
+      public static final double kA  = 10.0;
+    }
+    public static final class ABSOLUTE_ROTATION_GAINS {
+      public static final double kP  = 4.0;
+      public static final double kI  = 0.0;
+      public static final double kD  = 0.0;
+    }
 
     // AUTONOMOUS
-    public static final double AUTO_MAX_VELOCITY = 4.0; // [TODO] measured in meters/sec
-    public static final double AUTO_MAX_ACCELERATION = 3.0; // [TODO] measured in meters/sec^2
-    public static final double AUTO_MAX_ANGULAR_VELOCITY = SwerveMath.wheelVelocityToRotationalVelocity(AUTO_MAX_VELOCITY); // measured in radians/sec
-    public static final double AUTO_MAX_ANGULAR_ACCELERATION = SwerveMath.wheelVelocityToRotationalVelocity(AUTO_MAX_ACCELERATION); // measured in rad/sec^2
-    public static final TrapezoidProfile.Constraints AUTO_ANGLE_CONSTRAINTS = new TrapezoidProfile.Constraints(AUTO_MAX_ANGULAR_VELOCITY, AUTO_MAX_ANGULAR_ACCELERATION);
-
+    public static final class AUTONOMOUS_TRANSLATION_GAINS {
+      public static final double kP = 1.0;
+      public static final double kI = 0.0;
+      public static final double kD = 0.0;
+    }
+    public static final class AUTONOMOUS_ROTATION_GAINS {
+      public static final double kP = 1.0;
+      public static final double kI = 0.0;
+      public static final double kD = 0.0;
+    }
+    
     // MODULES
     // In order of: front left, front right, back left, back right, where the battery is in the back
     public static final String[] MODULE_NAMES = { "FL", "FR", "BL", "BR" };
   }
 
+  public static final class CAN {
+    // In order of: front left, front right, back left, back right, where the battery is in the back
+    public static final int[] SWERVE_DRIVE_SPARK_MAX = { 10, 20, 30, 40 };
+    public static final int[] SWERVE_STEER_SPARK_MAX = { 11, 21, 31, 41 };
+    public static final int[] SWERVE_STEER_CANCODERS = { 12, 22, 32, 42 };
+    public static final int PDH = 5;
+  }
+
+  public static final class NEO {
+    public static final double kV              = 493.5; // rpm / V
+    public static final double kT              = 0.0181; // Nm / A
+    public static final double STALL_TORQUE    = 3.28; // Nm
+    public static final double STALL_CURRENT   = 181; // A
+    public static final double FREE_CURRENT    = 1.3; // A
+    public static final double FREE_SPEED      = 5880; // rpm
+    public static final double RESISTANCE      = 0.066; // Ω
+    public static final int SAFE_STALL_CURRENT = 40; // A
+    public static final double SAFE_TEMPERATURE = 65.0; // °C
+  }
+
   public static final class SwerveMath {
-
-    // Convert wheel velocity in m/s to rotational velocity in rad/s
-    public static double wheelVelocityToRotationalVelocity(double maxDriveVelocity) {
-      return maxDriveVelocity / Math.hypot(SwerveDriveConstants.TRACKWIDTH_METERS / 2.0, SwerveDriveConstants.WHEELBASE_METERS / 2.0);
-    }
-
-    // Convert rotation velocity in rad/s to wheel velocity in m/s
-    public static double rotationalVelocityToWheelVelocity(double maxAngularVelocity) {
-      return maxAngularVelocity * Math.hypot(SwerveDriveConstants.TRACKWIDTH_METERS / 2.0, SwerveDriveConstants.WHEELBASE_METERS / 2.0);
-    }
-
-    // Convert steer velocity in rad/s to motor power from 0 - 1
-    public static double steerVelocityToMotorPower(double velocity) {
-      return velocity / SwerveDriveConstants.FULL_POWER_STEER_VELOCITY;
-    }
-
-    // Convert motor power from 0 - 1 to steer velocity in rad/s
-    public static double motorPowerToSteerVelocity(double power) {
-      return power * SwerveDriveConstants.FULL_POWER_STEER_VELOCITY;
-    }
-
-    // Convert drive velocity in m/s to motor power from 0 - 1
-    public static double wheelVelocityToMotorPower(double velocity) {
-      return velocity / SwerveDriveConstants.FULL_POWER_DRIVE_VELOCITY;
-    }
-
-    // Convert motor power from 0 - 1 to drive velocity in m/s
-    public static double motorPowerToWheelVelocity(double power) {
-      return power * SwerveDriveConstants.FULL_POWER_DRIVE_VELOCITY;
-    }
-
     // Calculate swerve drive kinematics
     public static SwerveDriveKinematics getKinematics() {
-      return new SwerveDriveKinematics(new Translation2d(SwerveDriveConstants.TRACKWIDTH_METERS / 2.0, SwerveDriveConstants.WHEELBASE_METERS / 2.0), new Translation2d(SwerveDriveConstants.TRACKWIDTH_METERS / 2.0, -SwerveDriveConstants.WHEELBASE_METERS / 2.0), new Translation2d(-SwerveDriveConstants.TRACKWIDTH_METERS / 2.0, SwerveDriveConstants.WHEELBASE_METERS / 2.0), new Translation2d(-SwerveDriveConstants.TRACKWIDTH_METERS / 2.0, -SwerveDriveConstants.WHEELBASE_METERS / 2.0));
+      return new SwerveDriveKinematics(
+        new Translation2d( SWERVE_DRIVE.TRACKWIDTH / 2.0, SWERVE_DRIVE.WHEELBASE  / 2.0), 
+        new Translation2d( SWERVE_DRIVE.TRACKWIDTH / 2.0, -SWERVE_DRIVE.WHEELBASE / 2.0), 
+        new Translation2d(-SWERVE_DRIVE.TRACKWIDTH / 2.0, SWERVE_DRIVE.WHEELBASE  / 2.0), 
+        new Translation2d(-SWERVE_DRIVE.TRACKWIDTH / 2.0, -SWERVE_DRIVE.WHEELBASE / 2.0));
     }
 
     public static double clampRadians(double radians) {
@@ -196,14 +209,6 @@ public final class Constants {
       magnitude = map(magnitude, deadband, 1.0, 0.0, 1.0);
       return new double[] { magnitude * Math.cos(direction), magnitude * Math.sin(direction) };
     }
-  }
-
-  public static final class CAN {
-    // In order of: front left, front right, back left, back right, where the battery is in the back
-    public static final int[] SWERVE_DRIVE = { 10, 20, 30, 40 };
-    public static final int[] SWERVE_STEER = { 11, 21, 31, 41 };
-    public static final int[] SWERVE_STEER_CANCODER = { 12, 22, 32, 42 };
-    public static final int PDH = 5;
   }
 
   public static double map(double X, double A, double B, double C, double D) {
