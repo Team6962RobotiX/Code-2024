@@ -5,6 +5,7 @@
 package frc.robot.subsystems;
 
 import com.kauailabs.navx.frc.AHRS;
+import com.revrobotics.SparkMaxPIDController;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -13,6 +14,7 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
@@ -23,6 +25,7 @@ import frc.robot.Constants.LOGGING;
 import frc.robot.Constants.SWERVE_DRIVE;
 import frc.robot.Constants.SwerveMath;
 import frc.robot.utils.Logger;
+import frc.robot.utils.SparkMaxPIDFTuner;
 import frc.robot.utils.SwerveModule;
 
 public class SwerveDrive extends SubsystemBase {
@@ -33,6 +36,9 @@ public class SwerveDrive extends SubsystemBase {
   private SwerveDriveOdometry odometer;
   private int moduleCount = SWERVE_DRIVE.MODULE_NAMES.length;
   private PowerDistribution PDH = new PowerDistribution(CAN.PDH, ModuleType.kRev);;
+
+  private SparkMaxPIDFTuner drivePIDFTuner;
+  private SparkMaxPIDFTuner steerPIDFTuner;
 
   public SwerveDrive() {
     try {
@@ -55,6 +61,30 @@ public class SwerveDrive extends SubsystemBase {
         zeroHeading();
       } catch (Exception e) {}
     }).start();
+
+    drivePIDFTuner = new SparkMaxPIDFTuner(
+      "Swerve Drive",
+      modules[0].getDrivePIDFController(),
+      new SparkMaxPIDController[] { 
+        modules[1].getDrivePIDFController(),
+        modules[2].getDrivePIDFController(),
+        modules[3].getDrivePIDFController()
+      }, 
+      modules[0]::getTargetVelocity, 
+      modules[0]::getVelocity
+    );
+
+    steerPIDFTuner = new SparkMaxPIDFTuner(
+      "Swerve Steer",
+      modules[0].getSteerPIDFController(),
+      new SparkMaxPIDController[] { 
+        modules[1].getSteerPIDFController(),
+        modules[2].getSteerPIDFController(),
+        modules[3].getSteerPIDFController()
+      }, 
+      modules[0]::getTargetAngle, 
+      modules[0]::getSteerRadians
+    );
   }
 
   @Override

@@ -106,7 +106,7 @@ public class SwerveModule {
 
   // Set target angle and velocity
   public void drive(SwerveModuleState state) {
-    state = SwerveModuleState.optimize(state, getSteerDirection());
+    state = SwerveModuleState.optimize(state, getSteerRotation2d());
     this.state = state;
     
     // Use onboard PIDF controllers
@@ -127,10 +127,17 @@ public class SwerveModule {
   }
 
   /**
+   * @return Steering direction in radians (-PI - PI)
+   */
+  public double getSteerRadians() {
+    return steerEncoder.getPosition();
+  }
+
+  /**
    * @return Steering direction in degrees (-180 - 180)
    */
-  public Rotation2d getSteerDirection() {
-    return Rotation2d.fromRadians(steerEncoder.getPosition());
+  public Rotation2d getSteerRotation2d() {
+    return Rotation2d.fromRadians(getSteerRadians());
   }
 
   /**
@@ -173,14 +180,14 @@ public class SwerveModule {
    * @return The measured SwerveModuleState
    */
   public SwerveModuleState getMeasuredState() {
-    return new SwerveModuleState(getVelocity(), getSteerDirection());
+    return new SwerveModuleState(getVelocity(), getSteerRotation2d());
   }
 
   /**
    * @return The measured SwerveModulePosition
    */
   public SwerveModulePosition getModulePosition() {
-    return new SwerveModulePosition(driveEncoder.getPosition(), getSteerDirection());
+    return new SwerveModulePosition(driveEncoder.getPosition(), getSteerRotation2d());
   }
 
   /**
@@ -190,7 +197,7 @@ public class SwerveModule {
     Logger.logSparkMax(path + "/driveMotor", driveMotor);
     Logger.logSparkMax(path + "/steerMotor", steerMotor);
     Logger.logCANCoder(path + "/canCoder", absoluteSteerEncoder);
-    Logger.logValue(path + "/steerDegrees", getSteerDirection().getDegrees());
+    Logger.logValue(path + "/steerDegrees", getSteerRotation2d().getDegrees());
     Logger.logValue(path + "/velocity", getVelocity());
     Logger.logValue(path + "/name", name);
   }
@@ -201,5 +208,21 @@ public class SwerveModule {
    */
   public static double powerToDriveVelocity(double power) {
     return STEER_SMART_MOTION.kFF * power;
+  }
+
+  public SparkMaxPIDController getDrivePIDFController() {
+    return driveController;
+  }
+  
+  public SparkMaxPIDController getSteerPIDFController() {
+    return steerController;
+  }
+
+  public double getTargetVelocity() {
+    return state.speedMetersPerSecond;
+  }
+
+  public double getTargetAngle() {
+    return state.angle.getRadians();
   }
 }
