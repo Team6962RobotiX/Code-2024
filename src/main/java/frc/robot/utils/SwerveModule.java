@@ -4,6 +4,8 @@
 
 package frc.robot.utils;
 
+import java.lang.constant.Constable;
+
 import com.ctre.phoenix.sensors.AbsoluteSensorRange;
 import com.ctre.phoenix.sensors.CANCoder;
 import com.ctre.phoenix.sensors.CANCoderConfiguration;
@@ -19,6 +21,7 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import frc.robot.Constants;
 import frc.robot.Constants.CAN;
 import frc.robot.Constants.NEO;
 import frc.robot.Constants.SWERVE_DRIVE;
@@ -79,8 +82,6 @@ public class SwerveModule {
     Logger.REV(driveController.setI(DRIVE_SMART_MOTION.kI, 0), "driveController.setI");
     Logger.REV(driveController.setD(DRIVE_SMART_MOTION.kD, 0), "driveController.setD");
     Logger.REV(driveController.setFF(DRIVE_SMART_MOTION.kFF, 0), "driveController.setFF");
-    Logger.REV(driveController.setSmartMotionMaxVelocity(DRIVE_SMART_MOTION.kV, 0), "driveController.setSmartMotionMaxVelocity");
-    Logger.REV(driveController.setSmartMotionMaxAccel(DRIVE_SMART_MOTION.kA, 0), "driveController.setSmartMotionMaxAccel");
     Logger.REV(driveController.setOutputRange(-SWERVE_DRIVE.MOTOR_POWER_HARD_CAP, SWERVE_DRIVE.MOTOR_POWER_HARD_CAP, 0), "driveController.setOutputRange");
     Logger.REV(driveController.setFeedbackDevice(driveEncoder), "driveController.setFeedbackDevice");
 
@@ -89,16 +90,14 @@ public class SwerveModule {
     Logger.REV(steerController.setI(STEER_SMART_MOTION.kI, 0), "steerController.setI");
     Logger.REV(steerController.setD(STEER_SMART_MOTION.kD, 0), "steerController.setD");
     Logger.REV(steerController.setFF(STEER_SMART_MOTION.kFF, 0), "steerController.setFF");
-    Logger.REV(steerController.setSmartMotionMaxVelocity(STEER_SMART_MOTION.kV, 0), "steerController.setSmartMotionMaxVelocity");
-    Logger.REV(steerController.setSmartMotionMaxAccel(STEER_SMART_MOTION.kA, 0), "steerController.setSmartMotionMaxAccel");
     Logger.REV(steerController.setOutputRange(-SWERVE_DRIVE.MOTOR_POWER_HARD_CAP, SWERVE_DRIVE.MOTOR_POWER_HARD_CAP, 0), "steerController.setOutputRange");
     Logger.REV(steerController.setFeedbackDevice(steerEncoder), "steerController.setFeedbackDevice");
     Logger.REV(steerController.setPositionPIDWrappingEnabled(true), "steerController.setPositionPIDWrappingEnabled");
     Logger.REV(steerController.setPositionPIDWrappingMaxInput(Math.PI), "steerController.setPositionPIDWrappingMaxInput");
     Logger.REV(steerController.setPositionPIDWrappingMinInput(-Math.PI), "steerController.setPositionPIDWrappingMaxInput");
-    
+
     driveMotor.burnFlash();
-    steerMotor.burnFlash();
+    steerMotor.burnFlash(); 
     
     seedSteerEncoder();
   }
@@ -106,12 +105,11 @@ public class SwerveModule {
   // Set target angle and velocity
   public void drive(SwerveModuleState state) {
     state = SwerveModuleState.optimize(state, getSteerRotation2d());
-    state.speedMetersPerSecond = Math.abs(state.speedMetersPerSecond) <= SWERVE_DRIVE.VELOCITY_DEADBAND ? 0.0 : state.speedMetersPerSecond;
     this.state = state;
     
     // Use onboard PIDF controllers
-    driveController.setReference(state.speedMetersPerSecond, ControlType.kSmartVelocity);
-    steerController.setReference(state.angle.getRadians(), ControlType.kSmartMotion);
+    driveController.setReference(state.speedMetersPerSecond, CANSparkMax.ControlType.kVelocity);
+    steerController.setReference(state.angle.getRadians(), CANSparkMax.ControlType.kPosition);
   }
 
   /**

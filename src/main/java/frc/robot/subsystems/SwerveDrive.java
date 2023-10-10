@@ -90,13 +90,9 @@ public class SwerveDrive extends SubsystemBase {
   @Override
   public void periodic() {
     odometer.update(getRotation2d(), getModulePositions());
-    for (SwerveModule module : modules) {
-      SmartDashboard.putNumber(module.getName() + " steerEncoder", module.getSteerRadians());
-      SmartDashboard.putNumber(module.getName() + " absoluteSteerEncoder", module.getAbsoluteSteerRadians());
-    }
-    // if (LOGGING.ENABLE_DRIVE) log("/swerveDrive");
-    // if (LOGGING.ENABLE_PDH) Logger.logPDH("/powerDistribution", PDH);
-    // if (LOGGING.ENABLE_ROBOT_CONTROLLER) Logger.logRobotController("/robotController");
+    if (LOGGING.ENABLE_SWERVE_DRIVE) log("/swerveDrive");
+    if (LOGGING.ENABLE_PDH) Logger.logPDH("/powerDistribution", PDH);
+    if (LOGGING.ENABLE_ROBOT_CONTROLLER) Logger.logRobotController("/robotController");
   }
 
   @Override
@@ -133,13 +129,14 @@ public class SwerveDrive extends SubsystemBase {
     
     boolean moving = false;
     for (SwerveModuleState moduleState : moduleStates) {
-      if (moduleState.speedMetersPerSecond > SWERVE_DRIVE.VELOCITY_DEADBAND) {
+      if (Math.abs(moduleState.speedMetersPerSecond) > SWERVE_DRIVE.VELOCITY_DEADBAND) {
         moving = true;
-        break;
+      } else {
+        moduleState.speedMetersPerSecond = 0.0;
       }
     }
 
-    if (!moving && !gyro.isMoving()) {
+    if (!moving) {
       groundModules();
       return;
     }
@@ -266,9 +263,8 @@ public class SwerveDrive extends SubsystemBase {
    * @return Returns gyro heading as a Rotation2d
    */
   public Rotation2d getRotation2d() {
-    if (gyro.isConnected()) return new Rotation2d();
-    return new Rotation2d();
-    // return gyro.getRotation2d();
+    if (!gyro.isConnected()) return new Rotation2d();
+    return gyro.getRotation2d();
   }
 
   /**

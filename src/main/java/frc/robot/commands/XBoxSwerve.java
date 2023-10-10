@@ -91,6 +91,14 @@ public class XBoxSwerve extends CommandBase {
     rightX = -controller.getRightX();
     rightY = -controller.getRightY();
 
+    // Deadbands
+    leftTrigger = InputMath.addLinearDeadband(leftTrigger, SWERVE_DRIVE.JOYSTICK_DEADBAND);
+    rightTrigger = InputMath.addLinearDeadband(rightTrigger, SWERVE_DRIVE.JOYSTICK_DEADBAND);
+    leftX = InputMath.addLinearDeadband(leftX, SWERVE_DRIVE.JOYSTICK_DEADBAND);
+    leftY = InputMath.addLinearDeadband(leftY, SWERVE_DRIVE.JOYSTICK_DEADBAND);
+    rightX = InputMath.addLinearDeadband(rightX, SWERVE_DRIVE.JOYSTICK_DEADBAND);
+    rightY = InputMath.addLinearDeadband(rightY, SWERVE_DRIVE.JOYSTICK_DEADBAND);
+
     // These variables we will eventually plug into the swerve drive command
     angularVelocity = 0.0;
     xVelocity = 0.0;
@@ -102,11 +110,9 @@ public class XBoxSwerve extends CommandBase {
     
     bumperRotationLock();
     
-    // if (swerveDrive.getGyro().isConnected()) doFieldOrientedRotation();
-    // else fieldOrientedRotation = false;
-
-    fieldOrientedRotation = false;
-
+    if (swerveDrive.getGyro().isConnected()) doFieldOrientedRotation();
+    else fieldOrientedRotation = false;
+    
     leftStickFieldOrientedDrive();
 
     slowDPadDrive();
@@ -124,7 +130,7 @@ public class XBoxSwerve extends CommandBase {
     xVelocity = xAccelerationLimiter.calculate(xVelocity);
     yVelocity = yAccelerationLimiter.calculate(yVelocity);
     angularVelocity = angularAccelerationLimiter.calculate(angularVelocity);
-
+    
     // Drive swerve
     swerveDrive.fieldOrientedDrive(yVelocity, xVelocity, angularVelocity);
 
@@ -155,8 +161,8 @@ public class XBoxSwerve extends CommandBase {
   }
 
   public void doFieldOrientedRotation() {
-    boolean isRotating = Units.degreesToRadians(swerveDrive.getGyro().getRawGyroZ()) > SwerveDrive.wheelVelocityToRotationalVelocity(SWERVE_DRIVE.VELOCITY_DEADBAND);
-    if (!fieldOrientedRotation && !isRotating) {
+    boolean isRotating = Math.abs(Units.degreesToRadians(swerveDrive.getGyro().getRawGyroZ())) > SwerveDrive.wheelVelocityToRotationalVelocity(SWERVE_DRIVE.VELOCITY_DEADBAND);
+    if (!fieldOrientedRotation && !isRotating && leftTrigger + rightTrigger == 0) {
       fieldOrientedRotation = true;
       targetRobotAngle = Units.degreesToRadians(swerveDrive.getHeading());
     }

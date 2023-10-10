@@ -2,7 +2,9 @@ package frc.robot.utils;
 
 import java.lang.reflect.Field;
 import java.sql.Driver;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import com.ctre.phoenix.sensors.CANCoder;
@@ -30,6 +32,7 @@ import frc.robot.Constants;
 
 public final class Logger {
   private static NetworkTable table = NetworkTableInstance.getDefault().getTable("Logs");
+  private static Map<String, Object> logEntries = new HashMap<String, Object>();
 
   public static void logDriverStation(String path) {
     DriverStation.startDataLog(DataLogManager.getLog(), true);
@@ -37,15 +40,11 @@ public final class Logger {
 
   public static void logSparkMax(String path, CANSparkMax sparkMax) {
     logValue(path + "/power", sparkMax.get());
-    logValue(path + "/appliedOutputDutyCycle", sparkMax.getAppliedOutput());
     logValue(path + "/busVoltage", sparkMax.getBusVoltage());
     logValue(path + "/motorTemperature", sparkMax.getMotorTemperature());
     logValue(path + "/outputCurrent", sparkMax.getOutputCurrent());
     logValue(path + "/faults", sparkMax.getFaults());
-    logValue(path + "/firmwareString", sparkMax.getFirmwareString());
-    logValue(path + "/firmwareVersion", sparkMax.getFirmwareVersion());
     logValue(path + "/stickyFaults", sparkMax.getStickyFaults());
-    logValue(path + "/isFollower", sparkMax.isFollower());
     logRelativeEncoder(path + "/relativeEncoder", sparkMax.getEncoder());
     checkSparkMaxStatus(sparkMax);
   }
@@ -58,7 +57,6 @@ public final class Logger {
   public static void logCANCoder(String path, CANCoder encoder) {
     logValue(path + "/absolutePosition", encoder.getAbsolutePosition());
     logValue(path + "/voltage", encoder.getBusVoltage());
-    logValue(path + "/firmwareVersion", encoder.getFirmwareVersion());
     logValue(path + "/magnetFieldStrength", encoder.getMagnetFieldStrength().value);
     logValue(path + "/position", encoder.getPosition());
     logValue(path + "/velocity", encoder.getVelocity());
@@ -225,6 +223,10 @@ public final class Logger {
 
   public static void logValue(String key, Object value) {
     if (value instanceof Pose2d) logPose(key, (Pose2d) value);
+    if (logEntries.containsKey(key) && logEntries.get(key).equals(value)) {
+      return;
+    }
+    logEntries.put(key, value);
     NetworkTableEntry entry = getEntry(key);
     entry.setValue(value);
   }

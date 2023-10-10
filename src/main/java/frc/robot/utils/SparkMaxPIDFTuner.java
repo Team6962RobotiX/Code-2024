@@ -78,29 +78,29 @@ public class SparkMaxPIDFTuner extends SubsystemBase {
     measurement_entry.setDouble(measurementSupplier.get());
     graph_entry.setDoubleArray(new Double[] { setpointSupplier.get(), measurementSupplier.get() });
 
-    if (new_kP != kP) {
-      kP = new_kP;
-      Logger.REV(PIDF.setP(kP), "PIDF.setP");
-      for (SparkMaxPIDController follower : followers)
-        Logger.REV(follower.setP(kP), "follower.setP");
-    }
-    if (new_kI != kI) {
-      kI = new_kI;
-      Logger.REV(PIDF.setI(kI), "PIDF.setI");
-      for (SparkMaxPIDController follower : followers)
-        Logger.REV(follower.setI(kP), "follower.setI");
-    }
-    if (new_kD != kD) {
-      kP = new_kD;
-      Logger.REV(PIDF.setD(kD), "PIDF.setD");
-      for (SparkMaxPIDController follower : followers)
-        Logger.REV(follower.setD(kP), "follower.setD");
-    }
-    if (new_kFF != kFF) {
-      kFF = new_kFF;
-      Logger.REV(PIDF.setFF(kFF), "PIDF.setFF");
-      for (SparkMaxPIDController follower : followers)
-        Logger.REV(follower.setFF(kP), "follower.setFF");
-    }
+    // if (new_kP != kP) {
+    //   kP = new_kP;
+    //   Logger.REV(PIDF.setP(kP), "PIDF.setP");
+    //   for (SparkMaxPIDController follower : followers)
+    //     Logger.REV(follower.setP(kP), "follower.setP");
+    // }
+    // if (new_kI != kI) {
+    //   kI = new_kI;
+    //   Logger.REV(PIDF.setI(kI), "PIDF.setI");
+    //   for (SparkMaxPIDController follower : followers)
+    //     Logger.REV(follower.setI(kP), "follower.setI");
+    // }
+    // if (new_kD != kD) {
+    //   kP = new_kD;
+    //   Logger.REV(PIDF.setD(kD), "PIDF.setD");
+    //   for (SparkMaxPIDController follower : followers)
+    //     Logger.REV(follower.setD(kP), "follower.setD");
+    // }
+    // if (new_kFF != kFF) {
+    //   kFF = new_kFF;
+    //   Logger.REV(PIDF.setFF(kFF), "PIDF.setFF");
+    //   for (SparkMaxPIDController follower : followers)
+    //     Logger.REV(follower.setFF(kP), "follower.setFF");
+    // }
   }
 }

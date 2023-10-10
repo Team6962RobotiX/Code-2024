@@ -28,11 +28,10 @@ public final class Constants {
   }
 
   public static final class LOGGING {
-    public static final boolean ENABLE_DRIVE            = true;
+    public static final boolean ENABLE_SWERVE_DRIVE     = true;
     public static final boolean ENABLE_PDH              = true;
     public static final boolean ENABLE_ROBOT_CONTROLLER = true;
     public static final boolean ENABLE_DRIVER_STATION   = true;
-    public static final double LOGGING_PERIOD           = 0.02; // in seconds
   }
 
   // DEVICES
@@ -61,9 +60,9 @@ public final class Constants {
 
     public static final double   MOTOR_POWER_HARD_CAP               = 1.0; // Only use for testing, otherwise set to 1.0
 
-    public static final double   TELEOPERATED_DRIVE_POWER           = 0.5; // Percent driving power (0.2  = 20%)
+    public static final double   TELEOPERATED_DRIVE_POWER           = 1.0; // Percent driving power (0.2  = 20%)
     public static final double   TELEOPERATED_SLOW_DRIVE_POWER      = 0.1; // Percent driving power when using the DPad
-    public static final double   TELEOPERATED_ROTATE_POWER          = 0.5; // Percent rotating power (0.4 = 40%)
+    public static final double   TELEOPERATED_ROTATE_POWER          = 1.0; // Percent rotating power (0.4 = 40%)
 
     public static final double   WHEEL_FRICTION                     = 1.0; // 1.0 when on carpet
 
@@ -71,13 +70,14 @@ public final class Constants {
     public static final double   TELEOPERATED_ANGULAR_ACCELERATION  = SwerveDrive.wheelVelocityToRotationalVelocity(SWERVE_DRIVE.MAX_SLIPLESS_ACCELERATION); // Measured in rad/s^2
 
     public static final double   AUTONOMOUS_VELOCITY                = 4.0; // [TODO] measured in meters/sec
-    public static final double   AUTONOMOUS_ACCELERATION            = 3.0; // [TODO] measured in meters/sec^2
+    public static final double   AUTONOMOUS_ACCELERATION            = 1.0; // [TODO] measured in meters/sec^2
     
     public static final double   VELOCITY_DEADBAND                  = 0.1; // speed at which we stop moving all together (m/s)
+    public static final double   JOYSTICK_DEADBAND                  = 0.05;
 
     public static final double   VOLTAGE                            = 12.0;
-    public static final int      MOTOR_CURRENT_LIMIT                = 80;
-    public static final double   MOTOR_RAMP_RATE_SECONDS            = 0.05; // Seconds that it takes to go from 0 - 100% motor power
+    public static final int      MOTOR_CURRENT_LIMIT                = 40;
+    public static final double   MOTOR_RAMP_RATE_SECONDS            = 0.1; // Seconds that it takes to go from 0 - 100% motor power
 
     public static final Pose2d   STARTING_POSE                      = new Pose2d(0.0, 0.0, Rotation2d.fromDegrees(0.0));
     public static final double   STARTING_ANGLE_OFFSET              = 0.0;
@@ -112,35 +112,30 @@ public final class Constants {
     // MOTION PROFILING
     public static final class DRIVE_SMART_MOTION {
       public static final double kFF = 1.0 / (NEO.FREE_SPEED / 60 * DRIVE_MOTOR_METERS_PER_REVOLUTION);
-      public static final double kP  = 0.0;
+      public static final double kP  = 0.1;
       public static final double kI  = 0.0;
       public static final double kD  = 0.0;
-      public static final double kV  = NEO.FREE_SPEED / 60.0 * DRIVE_MOTOR_METERS_PER_REVOLUTION;
-      public static final double kA  = MAX_SLIPLESS_ACCELERATION;
     }
-
     public static final class STEER_SMART_MOTION {
       public static final double kFF = 0.0;
-      public static final double kP  = 0.05;
+      public static final double kP  = 1.0;
       public static final double kI  = 0.0;
       public static final double kD  = 0.0;
-      public static final double kV  = NEO.FREE_SPEED / 60.0 * STEER_MOTOR_RADIANS_PER_REVOLUTION;
-      public static final double kA  = 10.0;
     }
     public static final class ABSOLUTE_ROTATION_GAINS {
-      public static final double kP  = 4.0;
+      public static final double kP  = 6.0;
       public static final double kI  = 0.0;
       public static final double kD  = 0.0;
     }
 
     // AUTONOMOUS
     public static final class AUTONOMOUS_TRANSLATION_GAINS {
-      public static final double kP = 1.0;
+      public static final double kP = 8.0;
       public static final double kI = 0.0;
       public static final double kD = 0.0;
     }
     public static final class AUTONOMOUS_ROTATION_GAINS {
-      public static final double kP = 1.0;
+      public static final double kP = 8.0;
       public static final double kI = 0.0;
       public static final double kD = 0.0;
     }
