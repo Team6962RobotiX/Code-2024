@@ -18,6 +18,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants.CAN;
 import frc.robot.Constants.NEO;
 import frc.robot.Constants.SWERVE_DRIVE;
@@ -81,7 +82,6 @@ public class SwerveModule {
     Logger.REV(driveController.setSmartMotionMaxVelocity(DRIVE_SMART_MOTION.kV, 0), "driveController.setSmartMotionMaxVelocity");
     Logger.REV(driveController.setSmartMotionMaxAccel(DRIVE_SMART_MOTION.kA, 0), "driveController.setSmartMotionMaxAccel");
     Logger.REV(driveController.setOutputRange(-SWERVE_DRIVE.MOTOR_POWER_HARD_CAP, SWERVE_DRIVE.MOTOR_POWER_HARD_CAP, 0), "driveController.setOutputRange");
-    Logger.REV(driveController.setSmartMotionMinOutputVelocity(SWERVE_DRIVE.VELOCITY_DEADBAND, 0), "driveController.setSmartMotionMinOutputVelocity");
     Logger.REV(driveController.setFeedbackDevice(driveEncoder), "driveController.setFeedbackDevice");
 
     steerController = steerMotor.getPIDController();
@@ -92,7 +92,6 @@ public class SwerveModule {
     Logger.REV(steerController.setSmartMotionMaxVelocity(STEER_SMART_MOTION.kV, 0), "steerController.setSmartMotionMaxVelocity");
     Logger.REV(steerController.setSmartMotionMaxAccel(STEER_SMART_MOTION.kA, 0), "steerController.setSmartMotionMaxAccel");
     Logger.REV(steerController.setOutputRange(-SWERVE_DRIVE.MOTOR_POWER_HARD_CAP, SWERVE_DRIVE.MOTOR_POWER_HARD_CAP, 0), "steerController.setOutputRange");
-    Logger.REV(steerController.setSmartMotionMinOutputVelocity(SWERVE_DRIVE.VELOCITY_DEADBAND, 0), "steerController.setSmartMotionMinOutputVelocity");
     Logger.REV(steerController.setFeedbackDevice(steerEncoder), "steerController.setFeedbackDevice");
     Logger.REV(steerController.setPositionPIDWrappingEnabled(true), "steerController.setPositionPIDWrappingEnabled");
     Logger.REV(steerController.setPositionPIDWrappingMaxInput(Math.PI), "steerController.setPositionPIDWrappingMaxInput");
@@ -107,14 +106,12 @@ public class SwerveModule {
   // Set target angle and velocity
   public void drive(SwerveModuleState state) {
     state = SwerveModuleState.optimize(state, getSteerRotation2d());
+    state.speedMetersPerSecond = Math.abs(state.speedMetersPerSecond) <= SWERVE_DRIVE.VELOCITY_DEADBAND ? 0.0 : state.speedMetersPerSecond;
     this.state = state;
     
     // Use onboard PIDF controllers
     driveController.setReference(state.speedMetersPerSecond, ControlType.kSmartVelocity);
     steerController.setReference(state.angle.getRadians(), ControlType.kSmartMotion);
-
-    if (Math.abs(steerEncoder.getPosition()) > Math.PI) steerEncoder.setPosition(SwerveMath.clampRadians(steerEncoder.getPosition()));
-    if (Math.abs(steerEncoder.getVelocity()) == 0.0) seedSteerEncoder();
   }
 
   /**
@@ -123,14 +120,23 @@ public class SwerveModule {
    * Also the built-in SparkMaxPIDControllers require a compatible encoder to run the faster 1kHz closed loop 
    */
   public void seedSteerEncoder() {
-    steerEncoder.setPosition(Units.degreesToRadians(absoluteSteerEncoder.getAbsolutePosition()));
+    steerEncoder.setPosition(getAbsoluteSteerRadians());
   }
 
   /**
    * @return Steering direction in radians (-PI - PI)
    */
   public double getSteerRadians() {
+    if (Math.abs(steerEncoder.getVelocity()) < 0.01) seedSteerEncoder();
+    if (Math.abs(steerEncoder.getPosition()) > Math.PI) steerEncoder.setPosition(SwerveMath.clampRadians(steerEncoder.getPosition()));
     return steerEncoder.getPosition();
+  }
+
+  /**
+   * @return Steering direction from absolute encoder (CANCoder) in radians (-PI - PI)
+   */
+  public double getAbsoluteSteerRadians() {
+    return Units.degreesToRadians(absoluteSteerEncoder.getAbsolutePosition());
   }
 
   /**
@@ -207,7 +213,7 @@ public class SwerveModule {
    * @return Drive velocity
    */
   public static double powerToDriveVelocity(double power) {
-    return STEER_SMART_MOTION.kFF * power;
+    return power / DRIVE_SMART_MOTION.kFF;
   }
 
   public SparkMaxPIDController getDrivePIDFController() {

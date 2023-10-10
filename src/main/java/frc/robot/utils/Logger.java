@@ -53,10 +53,6 @@ public final class Logger {
   public static void logRelativeEncoder(String path, RelativeEncoder encoder) {
     logValue(path + "/position", encoder.getPosition());
     logValue(path + "/velocity", encoder.getVelocity());
-    logValue(path + "/positionConversionFactor", encoder.getPositionConversionFactor());
-    logValue(path + "/velocityConversionFactor", encoder.getVelocityConversionFactor());
-    logValue(path + "/nativePosition", encoder.getPosition() / encoder.getPositionConversionFactor());
-    logValue(path + "/nativeVelocity", encoder.getVelocity() / encoder.getVelocityConversionFactor());
   }
 
   public static void logCANCoder(String path, CANCoder encoder) {

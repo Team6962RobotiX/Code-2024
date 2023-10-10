@@ -112,7 +112,7 @@ public final class Constants {
     // MOTION PROFILING
     public static final class DRIVE_SMART_MOTION {
       public static final double kFF = 1.0 / (NEO.FREE_SPEED / 60 * DRIVE_MOTOR_METERS_PER_REVOLUTION);
-      public static final double kP  = 0.2;
+      public static final double kP  = 0.0;
       public static final double kI  = 0.0;
       public static final double kD  = 0.0;
       public static final double kV  = NEO.FREE_SPEED / 60.0 * DRIVE_MOTOR_METERS_PER_REVOLUTION;
@@ -121,7 +121,7 @@ public final class Constants {
 
     public static final class STEER_SMART_MOTION {
       public static final double kFF = 0.0;
-      public static final double kP  = 4.5;
+      public static final double kP  = 0.05;
       public static final double kI  = 0.0;
       public static final double kD  = 0.0;
       public static final double kV  = NEO.FREE_SPEED / 60.0 * STEER_MOTOR_RADIANS_PER_REVOLUTION;

@@ -19,35 +19,41 @@ public class SparkMaxPIDFTuner extends SubsystemBase {
   private SparkMaxPIDController PIDF;
   private SparkMaxPIDController[] followers;
   private ShuffleboardTab tab;
+  private boolean loaded = false;
 
-  public SparkMaxPIDFTuner(String name, SparkMaxPIDController PIDF, Supplier<Double> setpointSupplier,
-      Supplier<Double> measurementSupplier) {
+  public SparkMaxPIDFTuner(String name, SparkMaxPIDController PIDF, Supplier<Double> setpointSupplier, Supplier<Double> measurementSupplier) {
     this(name, PIDF, new SparkMaxPIDController[] {}, setpointSupplier, measurementSupplier);
   }
 
-  public SparkMaxPIDFTuner(String name, SparkMaxPIDController PIDF, SparkMaxPIDController[] followers,
-      Supplier<Double> setpointSupplier, Supplier<Double> measurementSupplier) {
+  public SparkMaxPIDFTuner(String name, SparkMaxPIDController PIDF, SparkMaxPIDController[] followers, Supplier<Double> setpointSupplier, Supplier<Double> measurementSupplier) {
     this.PIDF = PIDF;
     this.followers = followers;
     this.setpointSupplier = setpointSupplier;
     this.measurementSupplier = measurementSupplier;
-    kP = PIDF.getP();
-    kI = PIDF.getI();
-    kD = PIDF.getD();
-    kFF = PIDF.getFF();
+    new Thread(() -> {
+      try {
+        Thread.sleep(1000);
+        kP = PIDF.getP(0);
+        kI = PIDF.getI(0);
+        kD = PIDF.getD(0);
+        kFF = PIDF.getFF(0);
+
+        kP_entry = tab.add(name + " kP", kP)
+            .withPosition(0, 0)
+            .getEntry();
+        kI_entry = tab.add(name + " kI", kI)
+            .withPosition(1, 0)
+            .getEntry();
+        kD_entry = tab.add(name + " kD", kD)
+            .withPosition(2, 0)
+            .getEntry();
+        kFF_entry = tab.add(name + " kFF", kFF)
+            .withPosition(3, 0)
+            .getEntry();
+        loaded = true;
+      } catch (Exception e) {}
+    }).start();
     tab = Shuffleboard.getTab(name + " PID Tuner");
-    kP_entry = tab.add(name + " kP", kP)
-        .withPosition(0, 0)
-        .getEntry();
-    kI_entry = tab.add(name + " kI", kI)
-        .withPosition(1, 0)
-        .getEntry();
-    kD_entry = tab.add(name + " kD", kD)
-        .withPosition(2, 0)
-        .getEntry();
-    kFF_entry = tab.add(name + " kFF", kFF)
-        .withPosition(3, 0)
-        .getEntry();
 
     setpoint_entry = tab.add(name + " setpoint", setpointSupplier.get()).getEntry();
     measurement_entry = tab.add(name + " measurement", measurementSupplier.get()).getEntry();
@@ -61,6 +67,8 @@ public class SparkMaxPIDFTuner extends SubsystemBase {
 
   @Override
   public void periodic() {
+    if (!loaded) return;
+
     double new_kP = kP_entry.getDouble(0);
     double new_kI = kI_entry.getDouble(0);
     double new_kD = kD_entry.getDouble(0);

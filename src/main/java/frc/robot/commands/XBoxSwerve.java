@@ -102,8 +102,10 @@ public class XBoxSwerve extends CommandBase {
     
     bumperRotationLock();
     
-    if (swerveDrive.getGyro().isConnected()) doFieldOrientedRotation();
-    else fieldOrientedRotation = false;
+    // if (swerveDrive.getGyro().isConnected()) doFieldOrientedRotation();
+    // else fieldOrientedRotation = false;
+
+    fieldOrientedRotation = false;
 
     leftStickFieldOrientedDrive();
 
