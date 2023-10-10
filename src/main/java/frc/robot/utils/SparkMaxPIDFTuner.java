@@ -14,11 +14,15 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class SparkMaxPIDFTuner extends SubsystemBase {
   private double kP, kI, kD, kFF;
-  private GenericEntry kP_entry, kI_entry, kD_entry, kFF_entry, setpoint_entry, measurement_entry;
+  private GenericEntry kP_entry, kI_entry, kD_entry, kFF_entry, setpoint_entry, measurement_entry, graph_entry;
   private Supplier<Double> setpointSupplier, measurementSupplier;
   private SparkMaxPIDController PIDF;
   private SparkMaxPIDController[] followers;
   private ShuffleboardTab tab;
+
+  public SparkMaxPIDFTuner(String name, SparkMaxPIDController PIDF, Supplier<Double> setpointSupplier, Supplier<Double> measurementSupplier) {
+    this(name, PIDF, new SparkMaxPIDController[] {}, setpointSupplier, measurementSupplier);
+  }
 
   public SparkMaxPIDFTuner(String name, SparkMaxPIDController PIDF, SparkMaxPIDController[] followers, Supplier<Double> setpointSupplier, Supplier<Double> measurementSupplier) {
     this.PIDF = PIDF;
@@ -43,13 +47,11 @@ public class SparkMaxPIDFTuner extends SubsystemBase {
       .withPosition(3, 0)
       .getEntry();
     
-    setpoint_entry = tab.add(name + " setpoint", setpointSupplier.get())
+    setpoint_entry = tab.add(name + " setpoint", setpointSupplier).withWidget(BuiltInWidgets.kGraph).getEntry();
+    measurement_entry = tab.add(name + " measurement", measurementSupplier).withWidget(BuiltInWidgets.kGraph).getEntry();
+    
+    graph_entry = tab.add(name + " graph", new GenericEntry[] {setpoint_entry, measurement_entry})
       .withPosition(0, 1)
-      .withWidget(BuiltInWidgets.kGraph)
-      .withSize(3,1)
-      .getEntry();
-    measurement_entry = tab.add(name + " measurement", measurementSupplier.get())
-      .withPosition(0, 2)
       .withWidget(BuiltInWidgets.kGraph)
       .withSize(3,1)
       .getEntry();
@@ -57,9 +59,6 @@ public class SparkMaxPIDFTuner extends SubsystemBase {
 
   @Override
   public void periodic() {
-    setpoint_entry.setDouble(setpointSupplier.get());
-    measurement_entry.setDouble(measurementSupplier.get());
-
     double new_kP = kP_entry.getDouble(0);
     double new_kI = kI_entry.getDouble(0);
     double new_kD = kD_entry.getDouble(0);
