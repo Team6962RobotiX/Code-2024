@@ -33,7 +33,15 @@
     "Retained Values": {
       "open": false
     },
+    "Transitory Values": {
+      "open": false
+    },
     "transitory": {
+      "LiveWindow": {
+        ".status": {
+          "open": true
+        }
+      },
       "Logger": {
         "open": true,
         "powerDistribution": {
@@ -46,8 +54,10 @@
           "open": true
         }
       },
-      "Shuffleboard": {
-        "open": true
+      "Logs": {
+        "robotController": {
+          "open": true
+        }
       },
       "SmartDashboard": {
         "Constants": {

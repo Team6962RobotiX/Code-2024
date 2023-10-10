@@ -8,6 +8,7 @@ import java.util.HashMap;
 
 import edu.wpi.first.util.datalog.DataLog;
 import edu.wpi.first.wpilibj.DataLogManager;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.XboxController;
@@ -17,6 +18,7 @@ import edu.wpi.first.wpilibj2.command.PrintCommand;
 import frc.robot.Constants.DEVICES;
 import frc.robot.commands.XBoxSwerve;
 import frc.robot.subsystems.SwerveDrive;
+import frc.robot.utils.ConsoleLogger;
 import frc.robot.utils.Logger;
 import frc.robot.utils.SwerveAutonomous;
 
@@ -32,11 +34,14 @@ public class RobotContainer {
 
   private final XboxController controller = new XboxController(DEVICES.USB_XBOX_CONTROLLER);
   private final SwerveDrive drive = new SwerveDrive();
+  ConsoleLogger consoleLogger = new ConsoleLogger(System.out);
   // private final Limelight limelight = new Limelight(LimelightConfig.NAME);
   // private final Testing tesing = new Testing();
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
+    System.setOut(consoleLogger);
+    System.setErr(consoleLogger);
     Logger.logClassValues("Constants", this, Constants.class);
     if (RobotBase.isReal()) {
       DataLogManager.start();
