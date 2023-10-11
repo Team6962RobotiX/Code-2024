@@ -15,7 +15,7 @@ import com.pathplanner.lib.auto.SwerveAutoBuilder;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants.SWERVE_DRIVE;
-import frc.robot.Constants.SwerveMath;
+import frc.robot.Constants.SWERVE_MATH;
 import frc.robot.subsystems.SwerveDrive;
 
 public final class SwerveAutonomous {
@@ -28,7 +28,7 @@ public final class SwerveAutonomous {
     SwerveAutoBuilder autoBuilder = new SwerveAutoBuilder(
         swerveDrive::getPose, // Pose2d supplier
         swerveDrive::resetPose, // Pose2d consumer, used to reset odometry at the beginning of auto
-        SwerveMath.getKinematics(), // SwerveDriveKinematics
+        SWERVE_MATH.getKinematics(), // SwerveDriveKinematics
         new PIDConstants(
           SWERVE_DRIVE.AUTONOMOUS_TRANSLATION_GAINS.kP,
           SWERVE_DRIVE.AUTONOMOUS_TRANSLATION_GAINS.kI,

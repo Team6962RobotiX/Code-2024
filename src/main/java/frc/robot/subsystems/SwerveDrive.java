@@ -23,7 +23,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.CAN;
 import frc.robot.Constants.LOGGING;
 import frc.robot.Constants.SWERVE_DRIVE;
-import frc.robot.Constants.SwerveMath;
+import frc.robot.Constants.SWERVE_MATH;
 import frc.robot.utils.Logger;
 import frc.robot.utils.SparkMaxPIDFTuner;
 import frc.robot.utils.SwerveModule;
@@ -32,7 +32,7 @@ public class SwerveDrive extends SubsystemBase {
 
   private SwerveModule[] modules = new SwerveModule[4];
   private AHRS gyro;
-  private SwerveDriveKinematics kinematics = SwerveMath.getKinematics();
+  private SwerveDriveKinematics kinematics = SWERVE_MATH.getKinematics();
   private SwerveDriveOdometry odometer;
   private int moduleCount = SWERVE_DRIVE.MODULE_NAMES.length;
   private PowerDistribution PDH = new PowerDistribution(CAN.PDH, ModuleType.kRev);;
@@ -129,7 +129,7 @@ public class SwerveDrive extends SubsystemBase {
     
     boolean moving = false;
     for (SwerveModuleState moduleState : moduleStates) {
-      if (Math.abs(moduleState.speedMetersPerSecond) > SWERVE_DRIVE.VELOCITY_DEADBAND) {
+      if (Math.abs(moduleState.speedMetersPerSecond) > 0.0) {
         moving = true;
       } else {
         moduleState.speedMetersPerSecond = 0.0;
@@ -137,7 +137,7 @@ public class SwerveDrive extends SubsystemBase {
     }
 
     if (!moving) {
-      groundModules();
+      parkModules();
       return;
     }
       
@@ -157,7 +157,7 @@ public class SwerveDrive extends SubsystemBase {
   /**
    * This creates an "X" pattern with the wheels which makes the robot very hard to move
    */
-  public void groundModules() {
+  public void parkModules() {
     modules[0].drive(new SwerveModuleState(0.0, Rotation2d.fromDegrees(45.0)));
     modules[1].drive(new SwerveModuleState(0.0, Rotation2d.fromDegrees(-45.0)));
     modules[2].drive(new SwerveModuleState(0.0, Rotation2d.fromDegrees(-45.0)));
@@ -271,7 +271,7 @@ public class SwerveDrive extends SubsystemBase {
    * @return Get gyro heading in degrees (-180 - 180)
    */
   public double getHeading() {
-    return SwerveMath.clampDegrees(getRotation2d().getDegrees());
+    return SWERVE_MATH.clampDegrees(getRotation2d().getDegrees());
   }
 
   /**

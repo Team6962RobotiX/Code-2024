@@ -57,30 +57,37 @@ public final class Constants {
       | SIMPLE CONFIG, FEEL FREE TO EDIT! |
       -------------------------------------
     */
+    
+    // COEFFICIENT OF FRICTION
+    public static final double   ROBOT_MASS                         = 30; // kg
+    public static final double   COEFFICIENT_OF_FRICTION            = 1.0; // 1.0 when on carpet 0.5 on KLS flooring
 
-    public static final double   MOTOR_POWER_HARD_CAP               = 1.0; // Only use for testing, otherwise set to 1.0
-
+    // TELEOPERATED POWER
     public static final double   TELEOPERATED_DRIVE_POWER           = 1.0; // Percent driving power (0.2  = 20%)
     public static final double   TELEOPERATED_SLOW_DRIVE_POWER      = 0.1; // Percent driving power when using the DPad
     public static final double   TELEOPERATED_ROTATE_POWER          = 1.0; // Percent rotating power (0.4 = 40%)
-
-    public static final double   WHEEL_FRICTION                     = 1.0; // 1.0 when on carpet
-
+    
+    // TELEOPERATED ACCELERATION
     public static final double   TELEOPERATED_ACCELERATION          = SWERVE_DRIVE.MAX_SLIPLESS_ACCELERATION; // Measured in m/s^2
     public static final double   TELEOPERATED_ANGULAR_ACCELERATION  = SwerveDrive.wheelVelocityToRotationalVelocity(SWERVE_DRIVE.MAX_SLIPLESS_ACCELERATION); // Measured in rad/s^2
+    
+    // INPUT TUNING
+    public static final double   JOYSTICK_DEADBAND                  = 0.05; // Inputs that we read zero at
 
+    // AUTONOMOUS
     public static final double   AUTONOMOUS_VELOCITY                = 4.0; // [TODO] measured in meters/sec
     public static final double   AUTONOMOUS_ACCELERATION            = 1.0; // [TODO] measured in meters/sec^2
+
+    // BROWNOUT PREVENTION
+    public static final int      DRIVE_MOTOR_CURRENT_LIMIT          = 40;
+    public static final int      STEER_MOTOR_CURRENT_LIMIT          = 20;
     
-    public static final double   VELOCITY_DEADBAND                  = 0.1; // speed at which we stop moving all together (m/s)
-    public static final double   JOYSTICK_DEADBAND                  = 0.05;
-
-    public static final double   VOLTAGE                            = 12.0;
-    public static final int      MOTOR_CURRENT_LIMIT                = 40;
-    public static final double   MOTOR_RAMP_RATE_SECONDS            = 0.1; // Seconds that it takes to go from 0 - 100% motor power
-
+    // ODOMETER
     public static final Pose2d   STARTING_POSE                      = new Pose2d(0.0, 0.0, Rotation2d.fromDegrees(0.0));
     public static final double   STARTING_ANGLE_OFFSET              = 0.0;
+    
+    // TESTING
+    public static final double   MOTOR_POWER_HARD_CAP               = 1.0; // Only use for testing, otherwise set to 1.0
 
     /*
       -------------------------------------------------------------------
@@ -91,36 +98,54 @@ public final class Constants {
     // PHYSICAL
     public static final double   CHASSIS_WIDTH                      = Units.inchesToMeters(30);
     public static final double   CHASSIS_LENGTH                     = Units.inchesToMeters(30);
-
     public static final double   WHEEL_FRAME_DISTANCE               = Units.inchesToMeters(2.625);
-
     public static final double   TRACKWIDTH                         = CHASSIS_WIDTH - WHEEL_FRAME_DISTANCE * 2.0; // left-to-right distance between the drivetrain wheels
     public static final double   WHEELBASE                          = CHASSIS_LENGTH - WHEEL_FRAME_DISTANCE * 2.0; // front-to-back distance between the drivetrain wheels
     public static final double   WHEEL_DIAMETER                     = Units.inchesToMeters(4.0); // measured in meters
-    public static final double   DRIVE_GEAR_REDUCTION               = 1.0 / 6.75;
-    public static final double   STEER_GEAR_REDUCTION               = 7.0 / 150.0;
+    public static final double   DRIVE_MOTOR_GEAR_REDUCTION         = 1.0 / 6.75;
+    public static final double   STEER_MOTOR_GEAR_REDUCTION         = 7.0 / 150.0;
     public static final double[] STEER_ENCODER_OFFSETS              = { -124.805, -303.047, -101.602, -65.215 };
     
-    public static final double   DRIVE_MOTOR_METERS_PER_REVOLUTION  = DRIVE_GEAR_REDUCTION * WHEEL_DIAMETER * Math.PI;
-    public static final double   STEER_MOTOR_RADIANS_PER_REVOLUTION = STEER_GEAR_REDUCTION * Math.PI * 2.0;
+    // GEAR AND WHEEL RATIOS
+    public static final double   DRIVE_MOTOR_METERS_PER_REVOLUTION  = DRIVE_MOTOR_GEAR_REDUCTION * WHEEL_DIAMETER * Math.PI;
+    public static final double   STEER_MOTOR_RADIANS_PER_REVOLUTION = STEER_MOTOR_GEAR_REDUCTION * Math.PI * 2.0;
     
-    public static final double   MAX_SLIPLESS_ACCELERATION          = 9.80 * WHEEL_FRICTION;
+    // MAX ACCELERATION
+    public static final double   MAX_SLIPLESS_ACCELERATION          = 9.80 * COEFFICIENT_OF_FRICTION;
 
     // TIP COMPENSATION
     public static final double   TIP_COMPENSATION_MIN_TILT          = 5.0;
 
-    // MOTION PROFILING
-    public static final class DRIVE_SMART_MOTION {
+    // REDUCE DRIVE VELOCITY WHEN FAR FROM ANGLE
+    public static final boolean  DO_ANGLE_ERROR_SPEED_REDUCTION     = true;
+
+    /*
+     * MOTION PROFILING
+     * kFF -> FeedForward term, multiplied by desired velocity to get an approximate motor power
+     * kP -> Proportional term, multiplied by the measured error to get additional motor power
+     * kI -> Integral term, uses the slope of the measured error. Essentially if the measured error isn't going away from just kP, the integral term will slowly build up additional motor power until it works out. Only really useful when there is external load on the system, like with an Arm.
+     * kD -> Derivative term, essentially a damping factor to reduce oscillations produced by kP or kI
+     * kV -> Velocity term, is the maximum velocity it will run the motor at
+     * kA -> Acceleration term, is the maximum acceleration it will run the motor at
+     * kE -> Minimum error term, is the minimum error required to start calculating the motion profile
+     */
+    public static final class DRIVE_MOTOR_MOTION_PROFILE {
       public static final double kFF = 1.0 / (NEO.FREE_SPEED / 60 * DRIVE_MOTOR_METERS_PER_REVOLUTION);
-      public static final double kP  = 0.1;
+      public static final double kP  = 0.2;
       public static final double kI  = 0.0;
       public static final double kD  = 0.0;
+      public static final double kV  = NEO.FREE_SPEED / 60.0 * DRIVE_MOTOR_METERS_PER_REVOLUTION;
+      public static final double kA  = MAX_SLIPLESS_ACCELERATION;
+      public static final double kE  = 0.1;
     }
-    public static final class STEER_SMART_MOTION {
+    public static final class STEER_MOTOR_MOTION_PROFILE {
       public static final double kFF = 0.0;
       public static final double kP  = 1.0;
       public static final double kI  = 0.0;
       public static final double kD  = 0.0;
+      public static final double kV  = NEO.FREE_SPEED / 60.0 * DRIVE_MOTOR_METERS_PER_REVOLUTION;
+      public static final double kA  = DRIVE_MOTOR_MOTION_PROFILE.kA / DRIVE_MOTOR_METERS_PER_REVOLUTION * STEER_MOTOR_RADIANS_PER_REVOLUTION;
+      public static final double kE  = Units.degreesToRadians(0.5);
     }
     public static final class ABSOLUTE_ROTATION_GAINS {
       public static final double kP  = 6.0;
@@ -165,7 +190,7 @@ public final class Constants {
     public static final double SAFE_TEMPERATURE = 65.0; // °C
   }
 
-  public static final class SwerveMath {
+  public static final class SWERVE_MATH {
     // Calculate swerve drive kinematics
     public static SwerveDriveKinematics getKinematics() {
       return new SwerveDriveKinematics(
@@ -182,9 +207,14 @@ public final class Constants {
     public static double clampDegrees(double degrees) {
       return ((((degrees + 180.0) % 360.0) + 360.0) % 360.0) - 180.0;
     }
+
+    public static double angleDistance(double alpha, double beta) {
+      double phi = Math.abs(beta - alpha) % (2.0 * Math.PI);
+      return phi > Math.PI ? (2.0 * Math.PI) - phi : phi;
+    }
   }
 
-  public static final class InputMath {
+  public static final class INPUT_MATH {
     public static double addLinearDeadband(double input, double deadband) { // input ranges from -1 to 1
       if (Math.abs(input) <= deadband) return 0.0;
       if (input > 0) return map(input, deadband, 1.0, 0.0, 1.0);

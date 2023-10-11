@@ -14,9 +14,9 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.CommandBase;
-import frc.robot.Constants.InputMath;
+import frc.robot.Constants.INPUT_MATH;
 import frc.robot.Constants.SWERVE_DRIVE;
-import frc.robot.Constants.SwerveMath;
+import frc.robot.Constants.SWERVE_MATH;
 import frc.robot.subsystems.SwerveDrive;
 import frc.robot.utils.SwerveModule;
 
@@ -92,12 +92,12 @@ public class XBoxSwerve extends CommandBase {
     rightY = -controller.getRightY();
 
     // Deadbands
-    leftTrigger = InputMath.addLinearDeadband(leftTrigger, SWERVE_DRIVE.JOYSTICK_DEADBAND);
-    rightTrigger = InputMath.addLinearDeadband(rightTrigger, SWERVE_DRIVE.JOYSTICK_DEADBAND);
-    leftX = InputMath.addLinearDeadband(leftX, SWERVE_DRIVE.JOYSTICK_DEADBAND);
-    leftY = InputMath.addLinearDeadband(leftY, SWERVE_DRIVE.JOYSTICK_DEADBAND);
-    rightX = InputMath.addLinearDeadband(rightX, SWERVE_DRIVE.JOYSTICK_DEADBAND);
-    rightY = InputMath.addLinearDeadband(rightY, SWERVE_DRIVE.JOYSTICK_DEADBAND);
+    leftTrigger = INPUT_MATH.addLinearDeadband(leftTrigger, SWERVE_DRIVE.JOYSTICK_DEADBAND);
+    rightTrigger = INPUT_MATH.addLinearDeadband(rightTrigger, SWERVE_DRIVE.JOYSTICK_DEADBAND);
+    leftX = INPUT_MATH.addLinearDeadband(leftX, SWERVE_DRIVE.JOYSTICK_DEADBAND);
+    leftY = INPUT_MATH.addLinearDeadband(leftY, SWERVE_DRIVE.JOYSTICK_DEADBAND);
+    rightX = INPUT_MATH.addLinearDeadband(rightX, SWERVE_DRIVE.JOYSTICK_DEADBAND);
+    rightY = INPUT_MATH.addLinearDeadband(rightY, SWERVE_DRIVE.JOYSTICK_DEADBAND);
 
     // These variables we will eventually plug into the swerve drive command
     angularVelocity = 0.0;
@@ -161,13 +161,13 @@ public class XBoxSwerve extends CommandBase {
   }
 
   public void doFieldOrientedRotation() {
-    boolean isRotating = Math.abs(Units.degreesToRadians(swerveDrive.getGyro().getRawGyroZ())) > SwerveDrive.wheelVelocityToRotationalVelocity(SWERVE_DRIVE.VELOCITY_DEADBAND);
+    boolean isRotating = Math.abs(Units.degreesToRadians(swerveDrive.getGyro().getRawGyroZ())) > SwerveDrive.wheelVelocityToRotationalVelocity(0.1);
     if (!fieldOrientedRotation && !isRotating && leftTrigger + rightTrigger == 0) {
       fieldOrientedRotation = true;
       targetRobotAngle = Units.degreesToRadians(swerveDrive.getHeading());
     }
 
-    targetRobotAngle = SwerveMath.clampRadians(targetRobotAngle);
+    targetRobotAngle = SWERVE_MATH.clampRadians(targetRobotAngle);
 
     if (fieldOrientedRotation) {
       // Calculate the angular velocity we need to rotate to the target angle
