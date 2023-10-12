@@ -9,6 +9,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.util.Units;
 import frc.robot.subsystems.SwerveDrive;
+import frc.robot.utils.Vector2D;
 
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide numerical or boolean
@@ -68,8 +69,8 @@ public final class Constants {
     public static final double   TELEOPERATED_ROTATE_POWER          = 1.0; // Percent rotating power (0.4 = 40%)
     
     // TELEOPERATED ACCELERATION
-    public static final double   TELEOPERATED_ACCELERATION          = SWERVE_DRIVE.MAX_SLIPLESS_ACCELERATION; // Measured in m/s^2
-    public static final double   TELEOPERATED_ANGULAR_ACCELERATION  = SwerveDrive.wheelVelocityToRotationalVelocity(SWERVE_DRIVE.MAX_SLIPLESS_ACCELERATION); // Measured in rad/s^2
+    public static final double   TELEOPERATED_ACCELERATION          = 20.0; // Measured in m/s^2
+    public static final double   TELEOPERATED_ANGULAR_ACCELERATION  = SwerveDrive.wheelVelocityToRotationalVelocity(TELEOPERATED_ACCELERATION); // Measured in rad/s^2
     
     // INPUT TUNING
     public static final double   JOYSTICK_DEADBAND                  = 0.05; // Inputs that we read zero at
@@ -110,9 +111,6 @@ public final class Constants {
     public static final double   DRIVE_MOTOR_METERS_PER_REVOLUTION  = DRIVE_MOTOR_GEAR_REDUCTION * WHEEL_DIAMETER * Math.PI;
     public static final double   STEER_MOTOR_RADIANS_PER_REVOLUTION = STEER_MOTOR_GEAR_REDUCTION * Math.PI * 2.0;
     
-    // MAX ACCELERATION
-    public static final double   MAX_SLIPLESS_ACCELERATION          = 9.80 * COEFFICIENT_OF_FRICTION;
-
     // TIP COMPENSATION
     public static final double   TIP_COMPENSATION_MIN_TILT          = 5.0;
 
@@ -134,8 +132,7 @@ public final class Constants {
       public static final double kP  = 0.2;
       public static final double kI  = 0.0;
       public static final double kD  = 0.0;
-      public static final double kV  = NEO.FREE_SPEED / 60.0 * DRIVE_MOTOR_METERS_PER_REVOLUTION;
-      public static final double kA  = MAX_SLIPLESS_ACCELERATION;
+      public static final double kRR = 0.25;
       public static final double kE  = 0.1;
     }
     public static final class STEER_MOTOR_MOTION_PROFILE {
@@ -143,8 +140,7 @@ public final class Constants {
       public static final double kP  = 1.0;
       public static final double kI  = 0.0;
       public static final double kD  = 0.0;
-      public static final double kV  = NEO.FREE_SPEED / 60.0 * DRIVE_MOTOR_METERS_PER_REVOLUTION;
-      public static final double kA  = DRIVE_MOTOR_MOTION_PROFILE.kA / DRIVE_MOTOR_METERS_PER_REVOLUTION * STEER_MOTOR_RADIANS_PER_REVOLUTION;
+      public static final double kRR = 0.25;
       public static final double kE  = Units.degreesToRadians(0.5);
     }
     public static final class ABSOLUTE_ROTATION_GAINS {
@@ -205,12 +201,29 @@ public final class Constants {
     }
 
     public static double clampDegrees(double degrees) {
-      return ((((degrees + 180.0) % 360.0) + 360.0) % 360.0) - 180.0;
+      return mod(degrees + 180.0, 360.0) - 180.0;
     }
 
     public static double angleDistance(double alpha, double beta) {
       double phi = Math.abs(beta - alpha) % (2.0 * Math.PI);
       return phi > Math.PI ? (2.0 * Math.PI) - phi : phi;
+    }
+
+    public static double[] circleFromPoints(Vector2D p1, Vector2D p2, Vector2D p3) {
+      final double offset  = Math.pow(p2.x, 2) + Math.pow(p2.y, 2);
+      final double bc      = (Math.pow(p1.x, 2) + Math.pow(p1.y, 2) - offset) / 2.0;
+      final double cd      = (offset - Math.pow(p3.x, 2) - Math.pow(p3.y, 2)) / 2.0;
+      final double det     = (p1.x - p2.x) * (p2.y - p3.y) - (p2.x - p3.x) * (p1.y - p2.y); 
+      
+      if (Math.abs(det) < 0.0000001) { throw new IllegalArgumentException("Bad Circle Points"); }
+  
+      final double idet    = 1 / det;
+       
+      final double centerx = (bc * (p2.y - p3.y) - cd * (p1.y - p2.y)) * idet;
+      final double centery = (cd * (p1.x - p2.x) - bc * (p2.x - p3.x)) * idet;
+      final double radius  = Math.sqrt( Math.pow(p2.x - centerx, 2) + Math.pow(p2.y - centery, 2));
+      
+      return new double[] {centerx, centery, radius};
     }
   }
 
@@ -227,16 +240,25 @@ public final class Constants {
       return 0.0;
     }
 
-    public static double[] addCirculuarDeadband(double[] input, double deadband) { // input ranges from -1 to 1
-      double magnitude = Math.hypot(input[0], input[1]);
-      double direction = Math.atan2(input[1], input[0]);
-      if (Math.abs(magnitude) <= deadband) return new double[] { 0.0, 0.0 };
-      magnitude = map(magnitude, deadband, 1.0, 0.0, 1.0);
-      return new double[] { magnitude * Math.cos(direction), magnitude * Math.sin(direction) };
+    public static Vector2D circular(Vector2D input, double deadband, double snapRadians) { // input ranges from -1 to 1
+      double magnitude = input.getMagnitude();
+      double direction = input.getAngle();
+      if (mod(direction, Math.PI / 2.0) <= snapRadians / 2.0 || mod(direction, Math.PI / 2.0) >= (Math.PI / 2.0) - (snapRadians / 2.0)) direction = Math.round(direction / (Math.PI / 2.0)) * (Math.PI / 2.0);
+      if (Math.abs(magnitude) <= deadband) return new Vector2D();
+      magnitude = nonLinear(map(magnitude, deadband, 1.0, 0.0, 1.0));
+      return new Vector2D(magnitude * Math.cos(direction), magnitude * Math.sin(direction));
+    }
+
+    public static double nonLinear(double x) {
+      return (1 - Math.cos(Math.abs(x) * Math.PI / 2.0)) * Math.signum(x);
     }
   }
 
   public static double map(double X, double A, double B, double C, double D) {
     return (X - A) / (B - A) * (D - C) + C;
+  }
+
+  public static double mod(double x, double r) {
+    return ((x % r) + r) % r;
   }
 }

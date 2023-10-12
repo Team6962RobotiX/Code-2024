@@ -7,18 +7,19 @@ package frc.robot.subsystems;
 import com.kauailabs.navx.frc.AHRS;
 import com.revrobotics.SparkMaxPIDController;
 
+import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
+import edu.wpi.first.math.estimator.AngleStatistics;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
-import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.SPI;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.CAN;
 import frc.robot.Constants.LOGGING;
@@ -26,14 +27,13 @@ import frc.robot.Constants.SWERVE_DRIVE;
 import frc.robot.Constants.SWERVE_MATH;
 import frc.robot.utils.Logger;
 import frc.robot.utils.SparkMaxPIDFTuner;
-import frc.robot.utils.SwerveModule;
 
 public class SwerveDrive extends SubsystemBase {
 
   private SwerveModule[] modules = new SwerveModule[4];
   private AHRS gyro;
   private SwerveDriveKinematics kinematics = SWERVE_MATH.getKinematics();
-  private SwerveDriveOdometry odometer;
+  private SwerveDrivePoseEstimator poseEstimator;
   private int moduleCount = SWERVE_DRIVE.MODULE_NAMES.length;
   private PowerDistribution PDH = new PowerDistribution(CAN.PDH, ModuleType.kRev);;
 
@@ -48,8 +48,7 @@ public class SwerveDrive extends SubsystemBase {
     }
 
     for (int i = 0; i < moduleCount; i++) modules[i] = new SwerveModule(i);
-
-    odometer = new SwerveDriveOdometry(
+    poseEstimator = new SwerveDrivePoseEstimator(
         kinematics,
         getRotation2d(),
         getModulePositions(),
@@ -89,7 +88,7 @@ public class SwerveDrive extends SubsystemBase {
 
   @Override
   public void periodic() {
-    odometer.update(getRotation2d(), getModulePositions());
+    poseEstimator.update(getRotation2d(), getModulePositions());
     if (LOGGING.ENABLE_SWERVE_DRIVE) log("/swerveDrive");
     if (LOGGING.ENABLE_PDH) Logger.logPDH("/powerDistribution", PDH);
     if (LOGGING.ENABLE_ROBOT_CONTROLLER) Logger.logRobotController("/robotController");
@@ -170,7 +169,11 @@ public class SwerveDrive extends SubsystemBase {
    * @param pose Desired position
    */
   public void resetPose(Pose2d pose) {
-    odometer.resetPosition(getRotation2d(), getModulePositions(), pose);
+    poseEstimator.resetPosition(getRotation2d(), getModulePositions(), pose);
+  }
+
+  public void addVisionMeasurement(Pose2d visionMeasurement) {
+    poseEstimator.addVisionMeasurement(visionMeasurement, Timer.getFPGATimestamp());
   }
 
   /**
@@ -266,7 +269,7 @@ public class SwerveDrive extends SubsystemBase {
     if (!gyro.isConnected()) return new Rotation2d();
     return gyro.getRotation2d();
   }
-
+  
   /**
    * @return Get gyro heading in degrees (-180 - 180)
    */
@@ -278,7 +281,7 @@ public class SwerveDrive extends SubsystemBase {
    * @return Get pose on the field from odometer as a Pose2d
    */
   public Pose2d getPose() {
-    return odometer.getPoseMeters();
+    return poseEstimator.getEstimatedPosition();
   }
 
   /**

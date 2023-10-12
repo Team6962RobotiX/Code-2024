@@ -73,7 +73,7 @@ public class SparkMaxPIDFTuner extends SubsystemBase {
     double new_kI = kI_entry.getDouble(0);
     double new_kD = kD_entry.getDouble(0);
     double new_kFF = kFF_entry.getDouble(0);
-
+    
     setpoint_entry.setDouble(setpointSupplier.get());
     measurement_entry.setDouble(measurementSupplier.get());
     graph_entry.setDoubleArray(new Double[] { setpointSupplier.get(), measurementSupplier.get() });

@@ -40,7 +40,8 @@ public final class Logger {
 
   public static void logSparkMax(String path, CANSparkMax sparkMax) {
     logValue(path + "/power", sparkMax.get());
-    logValue(path + "/busVoltage", sparkMax.getBusVoltage());
+    logValue(path + "/inputVoltage", sparkMax.getBusVoltage());
+    logValue(path + "/outputVoltage", sparkMax.getBusVoltage() * sparkMax.getAppliedOutput());
     logValue(path + "/motorTemperature", sparkMax.getMotorTemperature());
     logValue(path + "/outputCurrent", sparkMax.getOutputCurrent());
     logValue(path + "/faults", sparkMax.getFaults());
@@ -56,7 +57,7 @@ public final class Logger {
 
   public static void logCANCoder(String path, CANCoder encoder) {
     logValue(path + "/absolutePosition", encoder.getAbsolutePosition());
-    logValue(path + "/voltage", encoder.getBusVoltage());
+    logValue(path + "/busVoltage", encoder.getBusVoltage());
     logValue(path + "/magnetFieldStrength", encoder.getMagnetFieldStrength().value);
     logValue(path + "/position", encoder.getPosition());
     logValue(path + "/velocity", encoder.getVelocity());

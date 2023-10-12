@@ -2,7 +2,7 @@
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
 
-package frc.robot.utils;
+package frc.robot.subsystems;
 
 import java.lang.constant.Constable;
 
@@ -16,6 +16,7 @@ import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkMaxPIDController;
 
+import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
@@ -28,6 +29,7 @@ import frc.robot.Constants.SWERVE_DRIVE;
 import frc.robot.Constants.SWERVE_MATH;
 import frc.robot.Constants.SWERVE_DRIVE.DRIVE_MOTOR_MOTION_PROFILE;
 import frc.robot.Constants.SWERVE_DRIVE.STEER_MOTOR_MOTION_PROFILE;
+import frc.robot.utils.Logger;
 
 public class SwerveModule {
   private CANSparkMax driveMotor, steerMotor;
@@ -79,8 +81,8 @@ public class SwerveModule {
     Logger.REV(driveController.setI(                                 DRIVE_MOTOR_MOTION_PROFILE.kI,  0), "driveController.setI");
     Logger.REV(driveController.setD(                                 DRIVE_MOTOR_MOTION_PROFILE.kD,  0), "driveController.setD");
     Logger.REV(driveController.setFF(                                DRIVE_MOTOR_MOTION_PROFILE.kFF, 0), "driveController.setFF");
-    Logger.REV(driveController.setSmartMotionMaxVelocity(            DRIVE_MOTOR_MOTION_PROFILE.kV,  0), "driveController.setSmartMotionMaxVelocity");
-    Logger.REV(driveController.setSmartMotionMaxAccel(               DRIVE_MOTOR_MOTION_PROFILE.kA,  0), "driveController.setSmartMotionMaxAccel");
+    Logger.REV(driveMotor.     setClosedLoopRampRate(                DRIVE_MOTOR_MOTION_PROFILE.kRR), "driveMotor.setClosedLoopRampRate");
+    Logger.REV(driveMotor.     setOpenLoopRampRate(                  DRIVE_MOTOR_MOTION_PROFILE.kRR), "driveMotor.setOpenLoopRampRate");
     Logger.REV(driveController.setSmartMotionAllowedClosedLoopError( DRIVE_MOTOR_MOTION_PROFILE.kE,  0), "driveController.setSmartMotionAllowedClosedLoopError");
 
     Logger.REV(driveController.setOutputRange(-SWERVE_DRIVE.MOTOR_POWER_HARD_CAP, SWERVE_DRIVE.MOTOR_POWER_HARD_CAP, 0), "driveController.setOutputRange");
@@ -93,8 +95,8 @@ public class SwerveModule {
     Logger.REV(steerController.setI(                                 STEER_MOTOR_MOTION_PROFILE.kI,  0), "steerController.setI");
     Logger.REV(steerController.setD(                                 STEER_MOTOR_MOTION_PROFILE.kD,  0), "steerController.setD");
     Logger.REV(steerController.setFF(                                STEER_MOTOR_MOTION_PROFILE.kFF, 0), "steerController.setFF");
-    Logger.REV(steerController.setSmartMotionMaxVelocity(            STEER_MOTOR_MOTION_PROFILE.kV,  0), "steerController.setSmartMotionMaxVelocity");
-    Logger.REV(steerController.setSmartMotionMaxAccel(               STEER_MOTOR_MOTION_PROFILE.kA,  0), "steerController.setSmartMotionMaxAccel");
+    Logger.REV(steerMotor.     setClosedLoopRampRate(                STEER_MOTOR_MOTION_PROFILE.kRR), "steerMotor.setClosedLoopRampRate");
+    Logger.REV(steerMotor.     setOpenLoopRampRate(                  STEER_MOTOR_MOTION_PROFILE.kRR), "steerMotor.setOpenLoopRampRate");
     Logger.REV(steerController.setSmartMotionAllowedClosedLoopError( STEER_MOTOR_MOTION_PROFILE.kE,  0), "steerController.setSmartMotionAllowedClosedLoopError");
 
     Logger.REV(steerController.setOutputRange(-SWERVE_DRIVE.MOTOR_POWER_HARD_CAP, SWERVE_DRIVE.MOTOR_POWER_HARD_CAP, 0), "steerController.setOutputRange");
@@ -104,7 +106,6 @@ public class SwerveModule {
     Logger.REV(steerController.setPositionPIDWrappingMaxInput(Math.PI), "steerController.setPositionPIDWrappingMaxInput");
     Logger.REV(steerController.setPositionPIDWrappingMinInput(-Math.PI), "steerController.setPositionPIDWrappingMaxInput");
     
-
     // SAVE SETTINGS
     driveMotor.burnFlash();
     steerMotor.burnFlash(); 
