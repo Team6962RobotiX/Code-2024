@@ -116,23 +116,19 @@ public class XBoxSwerve extends CommandBase {
     slowDPadDrive();
 
     // Limit velocity magnitude
-    double speed = Math.min(maxDriveVelocity, Math.hypot(newVelocity.x, newVelocity.y));
-    double velocityAngle = Math.atan2(newVelocity.y, newVelocity.x);
-    newVelocity.x = speed * Math.cos(velocityAngle);
-    newVelocity.y = speed * Math.sin(velocityAngle);
+    newVelocity.setMagnitude(Math.min(maxDriveVelocity, newVelocity.getMagnitude()));
 
     // Limit rotation speed
     angularVelocity = Math.abs(angularVelocity) > maxRotateVelocity ? maxRotateVelocity * Math.signum(angularVelocity) : angularVelocity;
     
-
     Vector2D oldPos = new Vector2D(currentVelocity).reverse().multiply(0.02);
     Vector2D reallyOldPos = new Vector2D(oldVelocity).reverse().multiply(0.02).add(oldPos);
 
     double[] circleOfMotion = SWERVE_MATH.circleFromPoints(new Vector2D(), oldPos, reallyOldPos);
-    double centripetalForce = circleOfMotion[2] * SWERVE_DRIVE.ROBOT_MASS;
-    Vector2D antiCentripetalForceVector = new Vector2D(circleOfMotion[0], circleOfMotion[1]).setMagnitude(centripetalForce);
+    double centripetalForce = (SWERVE_DRIVE.ROBOT_MASS * Math.pow(currentVelocity.getMagnitude(), 2)) / circleOfMotion[2];
+    Vector2D antiCentripetalVelocity = new Vector2D(circleOfMotion[0], circleOfMotion[1]).setMagnitude((centripetalForce / SWERVE_DRIVE.ROBOT_MASS) * 0.02);
     double newVelocityMagnitude = newVelocity.getMagnitude();
-    newVelocity.add(antiCentripetalForceVector).setMagnitude(newVelocityMagnitude);
+    newVelocity.add(antiCentripetalVelocity).setMagnitude(newVelocityMagnitude);
 
     // Limit acceleration
     angularVelocity = angularAccelerationLimiter.calculate(angularVelocity);
