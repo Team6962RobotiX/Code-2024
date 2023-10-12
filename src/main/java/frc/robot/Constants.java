@@ -132,16 +132,18 @@ public final class Constants {
       public static final double kP  = 0.2;
       public static final double kI  = 0.0;
       public static final double kD  = 0.0;
-      public static final double kRR = 0.25;
+      public static final double kV  = NEO.FREE_SPEED / 60 * DRIVE_MOTOR_METERS_PER_REVOLUTION;
+      public static final double kA  = 10.0;
       public static final double kE  = 0.1;
     }
     public static final class STEER_MOTOR_MOTION_PROFILE {
       public static final double kFF = 0.0;
-      public static final double kP  = 0.4;
+      public static final double kP  = 0.005;
       public static final double kI  = 0.0;
       public static final double kD  = 0.0;
-      public static final double kRR = 0.0;
-      public static final double kE  = Units.degreesToRadians(0.5);
+      public static final double kV  = NEO.FREE_SPEED / 60 * STEER_MOTOR_RADIANS_PER_REVOLUTION;
+      public static final double kA  = 250.0;
+      public static final double kE  = Units.degreesToRadians(1);
     }
     public static final class ABSOLUTE_ROTATION_GAINS {
       public static final double kP  = 3.0;

@@ -39,15 +39,15 @@ public final class Logger {
   }
 
   public static void logSparkMax(String path, CANSparkMax sparkMax) {
-    logValue(path + "/power", sparkMax.get());
+    // logValue(path + "/power", sparkMax.get());
     // logValue(path + "/inputVoltage", sparkMax.getBusVoltage());
     // logValue(path + "/outputVoltage", sparkMax.getBusVoltage() * sparkMax.getAppliedOutput());
     // logValue(path + "/motorTemperature", sparkMax.getMotorTemperature());
     // logValue(path + "/outputCurrent", sparkMax.getOutputCurrent());
-    logValue(path + "/faults", sparkMax.getFaults());
-    logValue(path + "/stickyFaults", sparkMax.getStickyFaults());
-    logRelativeEncoder(path + "/relativeEncoder", sparkMax.getEncoder());
-    checkSparkMaxStatus(sparkMax);
+    // logValue(path + "/faults", sparkMax.getFaults());
+    // logValue(path + "/stickyFaults", sparkMax.getStickyFaults());
+    // logRelativeEncoder(path + "/relativeEncoder", sparkMax.getEncoder());
+    // checkSparkMaxStatus(sparkMax);
   }
 
   public static void logRelativeEncoder(String path, RelativeEncoder encoder) {
