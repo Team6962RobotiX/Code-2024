@@ -209,21 +209,22 @@ public final class Constants {
       return phi > Math.PI ? (2.0 * Math.PI) - phi : phi;
     }
 
-    public static double[] circleFromPoints(Vector2D p1, Vector2D p2, Vector2D p3) {
-      final double offset  = Math.pow(p2.x, 2) + Math.pow(p2.y, 2);
-      final double bc      = (Math.pow(p1.x, 2) + Math.pow(p1.y, 2) - offset) / 2.0;
-      final double cd      = (offset - Math.pow(p3.x, 2) - Math.pow(p3.y, 2)) / 2.0;
-      final double det     = (p1.x - p2.x) * (p2.y - p3.y) - (p2.x - p3.x) * (p1.y - p2.y); 
-      
-      if (Math.abs(det) < 0.0000001) { throw new IllegalArgumentException("Bad Circle Points"); }
-  
-      final double idet    = 1 / det;
-       
-      final double centerx = (bc * (p2.y - p3.y) - cd * (p1.y - p2.y)) * idet;
-      final double centery = (cd * (p1.x - p2.x) - bc * (p2.x - p3.x)) * idet;
-      final double radius  = Math.sqrt( Math.pow(p2.x - centerx, 2) + Math.pow(p2.y - centery, 2));
-      
-      return new double[] {centerx, centery, radius};
+    public static Vector2D circleCenter(Vector2D p1, Vector2D p2, Vector2D p3) {
+      double ax = (p1.x + p2.x) / 2;
+      double ay = (p1.y + p2.y) / 2;
+      double ux = (p1.y - p2.y);
+      double uy = (p2.x - p1.x);
+      double bx = (p2.x + p3.x) / 2;
+      double by = (p2.y + p3.y) / 2;
+      double vx = (p2.y - p3.y);
+      double vy = (p3.x - p2.x);
+      double dx = ax - bx;
+      double dy = ay - by;
+      double vu = vx * uy - vy * ux;
+      if (vu == 0)
+          return new Vector2D();
+      double g = (dx * uy - dy * ux) / vu;
+      return new Vector2D(bx + g * vx, by + g * vy);
     }
   }
 

@@ -67,7 +67,7 @@ public final class Logger {
 
     logCANCoderFaults(path + "/faults", faults);
   }
-
+  
   public static void logCANCoderFaults(String path, CANCoderFaults faults) {
     logValue(path + "/hardwareFault", faults.HardwareFault);
     logValue(path + "/APIError", faults.APIError);
