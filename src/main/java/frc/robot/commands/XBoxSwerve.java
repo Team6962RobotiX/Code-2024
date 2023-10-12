@@ -42,9 +42,9 @@ public class XBoxSwerve extends CommandBase {
   private boolean fieldOrientedRotation = true;
   
   private double angularVelocity = 0.0;
-  private Vector2D newVelocity;
-  private Vector2D currentVelocity;
-  private Vector2D oldVelocity;
+  private Vector2D newVelocity = new Vector2D();
+  private Vector2D currentVelocity = new Vector2D();
+  private Vector2D oldVelocity = new Vector2D();
 
   private Vector2D leftStick;
   private Vector2D rightStick;
@@ -84,23 +84,19 @@ public class XBoxSwerve extends CommandBase {
       return;
     }
 
-    // Get all inputs (some need to be reversed)
     leftTrigger = controller.getLeftTriggerAxis();
     rightTrigger = controller.getRightTriggerAxis();
-    leftStick = new Vector2D(-controller.getLeftX(), -controller.getLeftY());
-    rightStick = new Vector2D(-controller.getRightX(), -controller.getRightY());
+    leftStick = new Vector2D(controller.getLeftX(), controller.getLeftY());
+    rightStick = new Vector2D(controller.getRightX(), controller.getRightY());
     
     // Deadbands
-    leftTrigger = INPUT_MATH.nonLinear(leftTrigger);
-    rightTrigger = INPUT_MATH.nonLinear(rightTrigger);
-    leftStick = INPUT_MATH.circular(leftStick, 0.0, Math.PI / 4);
-    rightStick = INPUT_MATH.circular(rightStick, 0.0, Math.PI / 4);
+    leftStick = INPUT_MATH.circular(leftStick, 0.0, Math.PI / 8);
+    rightStick = INPUT_MATH.circular(rightStick, 0.0, Math.PI / 8);
 
     // These variables we will eventually plug into the swerve drive command
     angularVelocity = 0.0;
     newVelocity.x = 0.0;
     newVelocity.y = 0.0;
-    oldVelocity.set(currentVelocity);
     
     triggerRelativeMovement();
     
@@ -123,12 +119,15 @@ public class XBoxSwerve extends CommandBase {
     
     Vector2D oldPos = new Vector2D(currentVelocity).reverse().multiply(0.02);
     Vector2D reallyOldPos = new Vector2D(oldVelocity).reverse().multiply(0.02).add(oldPos);
+    oldVelocity.set(currentVelocity);
 
     Vector2D circleOfMotion = SWERVE_MATH.circleCenter(new Vector2D(), oldPos, reallyOldPos);
-    double centripetalForce = (SWERVE_DRIVE.ROBOT_MASS * Math.pow(currentVelocity.getMagnitude(), 2)) / circleOfMotion.getMagnitude();
-    Vector2D antiCentripetalVelocity = new Vector2D(circleOfMotion).setMagnitude((centripetalForce / SWERVE_DRIVE.ROBOT_MASS) * 0.02);
-    double newVelocityMagnitude = newVelocity.getMagnitude();
-    newVelocity.add(antiCentripetalVelocity).setMagnitude(newVelocityMagnitude);
+    if (circleOfMotion.getMagnitude() > 0.1) {
+      // double centripetalForce = (SWERVE_DRIVE.ROBOT_MASS * Math.pow(currentVelocity.getMagnitude(), 2)) / circleOfMotion.getMagnitude();
+      // Vector2D antiCentripetalVelocity = new Vector2D(circleOfMotion).setMagnitude((centripetalForce / SWERVE_DRIVE.ROBOT_MASS) * 0.02);
+      // double newVelocityMagnitude = newVelocity.getMagnitude();
+      // newVelocity.add(antiCentripetalVelocity).setMagnitude(newVelocityMagnitude);
+    }
     
     // Limit acceleration
     angularVelocity = angularAccelerationLimiter.calculate(angularVelocity);
@@ -139,8 +138,8 @@ public class XBoxSwerve extends CommandBase {
     currentVelocity.add(new Vector2D(acceleration).multiply(0.02));
     
     // Drive swerve
-    swerveDrive.fieldOrientedDrive(currentVelocity.x, currentVelocity.y, angularVelocity);
-
+    swerveDrive.fieldOrientedDrive(-currentVelocity.y, -currentVelocity.x, angularVelocity);
+    
     // Zero heading when Y is pressed
     if (controller.getYButton()) {
       swerveDrive.zeroHeading();
@@ -184,7 +183,7 @@ public class XBoxSwerve extends CommandBase {
   }
 
   public void triggerRelativeMovement() {
-    if (leftTrigger + rightTrigger > 0) {
+    if (leftTrigger + rightTrigger > 0.0) {
       fieldOrientedRotation = false;
       // Angular movement for each trigger
       double triggerDifference = leftTrigger + -rightTrigger;
@@ -225,8 +224,8 @@ public class XBoxSwerve extends CommandBase {
   public void slowDPadDrive() {
     // Slow drive fine control
     if (controller.getPOV() != -1) {
-      newVelocity.x += -Math.sin(Units.degreesToRadians(controller.getPOV())) * slowDriveVelocity;
-      newVelocity.y += Math.cos(Units.degreesToRadians(controller.getPOV())) * slowDriveVelocity;
+      newVelocity.x += Math.sin(Units.degreesToRadians(controller.getPOV())) * slowDriveVelocity;
+      newVelocity.y += -Math.cos(Units.degreesToRadians(controller.getPOV())) * slowDriveVelocity;
     }
   }
 

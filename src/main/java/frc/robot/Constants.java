@@ -29,10 +29,10 @@ public final class Constants {
   }
 
   public static final class LOGGING {
-    public static final boolean ENABLE_SWERVE_DRIVE     = true;
-    public static final boolean ENABLE_PDH              = true;
-    public static final boolean ENABLE_ROBOT_CONTROLLER = true;
-    public static final boolean ENABLE_DRIVER_STATION   = true;
+    public static final boolean ENABLE_SWERVE_DRIVE     = false;
+    public static final boolean ENABLE_PDH              = false;
+    public static final boolean ENABLE_ROBOT_CONTROLLER = false;
+    public static final boolean ENABLE_DRIVER_STATION   = false;
   }
 
   // DEVICES
@@ -64,12 +64,12 @@ public final class Constants {
     public static final double   COEFFICIENT_OF_FRICTION            = 1.0; // 1.0 when on carpet 0.5 on KLS flooring
 
     // TELEOPERATED POWER
-    public static final double   TELEOPERATED_DRIVE_POWER           = 1.0; // Percent driving power (0.2  = 20%)
+    public static final double   TELEOPERATED_DRIVE_POWER           = 0.5; // Percent driving power (0.2  = 20%)
     public static final double   TELEOPERATED_SLOW_DRIVE_POWER      = 0.1; // Percent driving power when using the DPad
-    public static final double   TELEOPERATED_ROTATE_POWER          = 1.0; // Percent rotating power (0.4 = 40%)
+    public static final double   TELEOPERATED_ROTATE_POWER          = 0.25; // Percent rotating power (0.4 = 40%)
     
     // TELEOPERATED ACCELERATION
-    public static final double   TELEOPERATED_ACCELERATION          = 20.0; // Measured in m/s^2
+    public static final double   TELEOPERATED_ACCELERATION          = 15.0; // Measured in m/s^2
     public static final double   TELEOPERATED_ANGULAR_ACCELERATION  = SwerveDrive.wheelVelocityToRotationalVelocity(TELEOPERATED_ACCELERATION); // Measured in rad/s^2
     
     // INPUT TUNING
@@ -77,7 +77,7 @@ public final class Constants {
 
     // AUTONOMOUS
     public static final double   AUTONOMOUS_VELOCITY                = 4.0; // [TODO] measured in meters/sec
-    public static final double   AUTONOMOUS_ACCELERATION            = 1.0; // [TODO] measured in meters/sec^2
+    public static final double   AUTONOMOUS_ACCELERATION            = 1.5; // [TODO] measured in meters/sec^2
 
     // BROWNOUT PREVENTION
     public static final int      DRIVE_MOTOR_CURRENT_LIMIT          = 40;
@@ -137,14 +137,14 @@ public final class Constants {
     }
     public static final class STEER_MOTOR_MOTION_PROFILE {
       public static final double kFF = 0.0;
-      public static final double kP  = 1.0;
+      public static final double kP  = 0.4;
       public static final double kI  = 0.0;
       public static final double kD  = 0.0;
-      public static final double kRR = 0.25;
+      public static final double kRR = 0.0;
       public static final double kE  = Units.degreesToRadians(0.5);
     }
     public static final class ABSOLUTE_ROTATION_GAINS {
-      public static final double kP  = 6.0;
+      public static final double kP  = 3.0;
       public static final double kI  = 0.0;
       public static final double kD  = 0.0;
     }

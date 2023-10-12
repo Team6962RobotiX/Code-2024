@@ -40,8 +40,8 @@ public class RobotContainer {
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
-    System.setOut(consoleLogger);
-    System.setErr(consoleLogger);
+    // System.setOut(consoleLogger);
+    // System.setErr(consoleLogger);
     Logger.logClassValues("Constants", this, Constants.class);
     if (RobotBase.isReal()) {
       DataLogManager.start();

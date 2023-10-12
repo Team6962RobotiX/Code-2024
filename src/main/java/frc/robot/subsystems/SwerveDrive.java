@@ -117,8 +117,8 @@ public class SwerveDrive extends SubsystemBase {
   
   /** 
    * Drive the robot relative to the field
-   * @param xVelocity left-right velocity relative to the driver (measured in m/s)
-   * @param yVelocity forward-backward velocity relative to the driver (measured in m/s)
+   * @param xVelocity forward-backward velocity relative to the driver (measured in m/s)
+   * @param yVelocity left-right velocity relative to the driver (measured in m/s)
    * @param angularVelocity rotational velocity (rad/s)
    */
   public void fieldOrientedDrive(double xVelocity, double yVelocity, double angularVelocity) { // m/s and rad/s    
@@ -128,10 +128,8 @@ public class SwerveDrive extends SubsystemBase {
     
     boolean moving = false;
     for (SwerveModuleState moduleState : moduleStates) {
-      if (Math.abs(moduleState.speedMetersPerSecond) > 0.0) {
+      if (Math.abs(moduleState.speedMetersPerSecond) > 0.05) {
         moving = true;
-      } else {
-        moduleState.speedMetersPerSecond = 0.0;
       }
     }
 

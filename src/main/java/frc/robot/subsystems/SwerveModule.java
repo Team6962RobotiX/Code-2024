@@ -83,7 +83,7 @@ public class SwerveModule {
     Logger.REV(driveController.setFF(                                DRIVE_MOTOR_MOTION_PROFILE.kFF, 0), "driveController.setFF");
     Logger.REV(driveMotor.     setClosedLoopRampRate(                DRIVE_MOTOR_MOTION_PROFILE.kRR), "driveMotor.setClosedLoopRampRate");
     Logger.REV(driveMotor.     setOpenLoopRampRate(                  DRIVE_MOTOR_MOTION_PROFILE.kRR), "driveMotor.setOpenLoopRampRate");
-    Logger.REV(driveController.setSmartMotionAllowedClosedLoopError( DRIVE_MOTOR_MOTION_PROFILE.kE,  0), "driveController.setSmartMotionAllowedClosedLoopError");
+    // Logger.REV(driveController.setSmartMotionAllowedClosedLoopError( DRIVE_MOTOR_MOTION_PROFILE.kE,  0), "driveController.setSmartMotionAllowedClosedLoopError");
 
     Logger.REV(driveController.setOutputRange(-SWERVE_DRIVE.MOTOR_POWER_HARD_CAP, SWERVE_DRIVE.MOTOR_POWER_HARD_CAP, 0), "driveController.setOutputRange");
     Logger.REV(driveController.setFeedbackDevice(driveEncoder), "driveController.setFeedbackDevice");
@@ -123,8 +123,8 @@ public class SwerveModule {
     this.state = state;
     
     // Use onboard motion profiling controllers
-    driveController.setReference(state.speedMetersPerSecond, CANSparkMax.ControlType.kSmartVelocity);
-    steerController.setReference(state.angle.getRadians(), CANSparkMax.ControlType.kSmartMotion);
+    driveController.setReference(state.speedMetersPerSecond, CANSparkMax.ControlType.kVelocity);
+    steerController.setReference(state.angle.getRadians(), CANSparkMax.ControlType.kPosition);
   }
 
   /**

@@ -5,7 +5,10 @@ public class Vector2D {
   public double x;
   public double y;
   
-  public Vector2D() { }
+  public Vector2D() {
+    this.x = 0.0;
+    this.y = 0.0;
+  }
 
   public Vector2D(double x, double y) {
       this.x = x;
@@ -42,6 +45,11 @@ public class Vector2D {
   }
 
   public Vector2D setMagnitude(double magnitude) {
+    if (getMagnitude() == 0.0) {
+        x = 0.0;
+        y = 0.0;
+        return this;
+    }
     x = x / getMagnitude() * magnitude;
     y = y / getMagnitude() * magnitude;
     return this;
