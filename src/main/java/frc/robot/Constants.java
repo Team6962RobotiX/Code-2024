@@ -6,7 +6,9 @@ package frc.robot;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
+import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.util.Units;
 import frc.robot.subsystems.SwerveDrive;
 
@@ -28,10 +30,10 @@ public final class Constants {
   }
 
   public static final class LOGGING {
-    public static final boolean ENABLE_SWERVE_DRIVE     = false;
+    public static final boolean ENABLE_SWERVE_DRIVE     = true;
     public static final boolean ENABLE_PDH              = false;
-    public static final boolean ENABLE_ROBOT_CONTROLLER = false;
-    public static final boolean ENABLE_DRIVER_STATION   = false;
+    public static final boolean ENABLE_ROBOT_CONTROLLER = true;
+    public static final boolean ENABLE_DRIVER_STATION   = true;
   }
 
   // DEVICES
@@ -62,17 +64,17 @@ public final class Constants {
     public static final double   COEFFICIENT_OF_FRICTION            = 1.0; // 1.0 when on carpet 0.5 on KLS flooring
 
     // TELEOPERATED POWER
-    public static final double   TELEOPERATED_DRIVE_POWER           = 0.5; // Percent driving power (0.2  = 20%)
+    public static final double   TELEOPERATED_DRIVE_POWER           = 1.0; // Percent driving power (0.2  = 20%)
     public static final double   TELEOPERATED_SLOW_DRIVE_POWER      = 0.1; // Percent driving power when using the DPad
-    public static final double   TELEOPERATED_ROTATE_POWER          = 0.25; // Percent rotating power (0.4 = 40%)
+    public static final double   TELEOPERATED_ROTATE_POWER          = 0.5; // Percent rotating power (0.4 = 40%)
     
     // TELEOPERATED ACCELERATION
-    public static final double   TELEOPERATED_ACCELERATION          = 15.0; // Measured in m/s^2
-    public static final double   TELEOPERATED_ANGULAR_ACCELERATION  = SwerveDrive.wheelVelocityToRotationalVelocity(TELEOPERATED_ACCELERATION); // Measured in rad/s^2
+    public static final double   TELEOPERATED_ACCELERATION          = 20.0; // Measured in m/s^2
+    public static final double   TELEOPERATED_ANGULAR_ACCELERATION  = Math.PI * 4.0; // Measured in rad/s^2
     
     // INPUT TUNING
     public static final double   JOYSTICK_DEADBAND                  = 0.05; // Inputs that we read zero at
-    public static final double   VELOCITY_DEADBAND                  = 0.05; // Velocity we stop moving at
+    public static final double   VELOCITY_DEADBAND                  = 0.15; // Velocity we stop moving at
 
     // AUTONOMOUS
     public static final double   AUTONOMOUS_VELOCITY                = 3.0; // [TODO] measured in meters/sec
@@ -81,14 +83,14 @@ public final class Constants {
     public static final double   AUTONOMOUS_ANGULAR_ACCELERATION    = Math.PI; // [TODO] measured in rad/sec^2
 
     // BROWNOUT PREVENTION
-    public static final int      DRIVE_MOTOR_CURRENT_LIMIT          = 40;
-    public static final int      STEER_MOTOR_CURRENT_LIMIT          = 20;
+    public static final int      DRIVE_MOTOR_CURRENT_LIMIT          = 60;
+    public static final int      STEER_MOTOR_CURRENT_LIMIT          = 30;
     public static final double   DRIVE_MOTOR_RAMP_RATE              = 0.1;
     public static final double   STEER_MOTOR_RAMP_RATE              = 0.05;
     
     // ODOMETER
-    public static final Pose2d   STARTING_POSE                      = new Pose2d(0.0, 0.0, Rotation2d.fromDegrees(0.0));
-    public static final double   STARTING_ANGLE_OFFSET              = 0.0;
+    public static final Pose2d   STARTING_POSE                      = new Pose2d(5.0, 5.0, Rotation2d.fromDegrees(0.0));
+    public static final Rotation2d STARTING_ANGLE_OFFSET            = Rotation2d.fromDegrees(0.0);
     
     // TESTING
     public static final double   MOTOR_POWER_HARD_CAP               = 1.0; // Only use for testing, otherwise set to 1.0
@@ -106,6 +108,8 @@ public final class Constants {
     public static final double   TRACKWIDTH                         = CHASSIS_WIDTH - WHEEL_FRAME_DISTANCE * 2.0; // left-to-right distance between the drivetrain wheels
     public static final double   WHEELBASE                          = CHASSIS_LENGTH - WHEEL_FRAME_DISTANCE * 2.0; // front-to-back distance between the drivetrain wheels
     public static final double   WHEEL_DIAMETER                     = Units.inchesToMeters(4.0); // measured in meters
+    public static final double   WHEEL_WIDTH                        = Units.inchesToMeters(2.0); // measured in meters
+    public static final double   WHEEL_MASS                         = Units.lbsToKilograms(0.55); // kg
     public static final double   DRIVE_MOTOR_GEAR_REDUCTION         = 1.0 / 6.75;
     public static final double   STEER_MOTOR_GEAR_REDUCTION         = 7.0 / 150.0;
     public static final double[] STEER_ENCODER_OFFSETS              = { -124.805, -303.047, -101.602, -65.215 };
@@ -119,6 +123,7 @@ public final class Constants {
 
     // REDUCE DRIVE VELOCITY WHEN FAR FROM ANGLE
     public static final boolean  DO_ANGLE_ERROR_SPEED_REDUCTION     = true;
+    public static final double   ROTATION_ERROR_COMPENSATION        = 0.015; // Keeps movement in straight lines when rotating
 
     /*
      * MOTION PROFILING
@@ -134,12 +139,12 @@ public final class Constants {
       public static final double kD  = 0.0;
     }
     public static final class STEER_MOTOR_MOTION_PROFILE {
-      public static final double kP  = 0.005;
+      public static final double kP  = 1.0;
       public static final double kI  = 0.0;
       public static final double kD  = 0.0;
     }
     public static final class ABSOLUTE_ROTATION_GAINS {
-      public static final double kP  = 3.0;
+      public static final double kP  = 4.0;
       public static final double kI  = 0.0;
       public static final double kD  = 0.0;
     }
@@ -202,6 +207,27 @@ public final class Constants {
     public static double angleDistance(double alpha, double beta) {
       double phi = Math.abs(beta - alpha) % (2.0 * Math.PI);
       return phi > Math.PI ? (2.0 * Math.PI) - phi : phi;
+    }
+
+      /**
+     * Logical inverse of the Pose exponential from 254. Taken from team 3181.
+     *
+     * @param transform Pose to perform the log on.
+     * @return {@link Twist2d} of the transformed pose.
+     */
+    public static Twist2d PoseLog(final Pose2d transform) {
+      final double kEps          = 1E-9;
+      final double dtheta        = transform.getRotation().getRadians();
+      final double half_dtheta   = 0.5 * dtheta;
+      final double cos_minus_one = transform.getRotation().getCos() - 1.0;
+      double       halftheta_by_tan_of_halfdtheta;
+      if (Math.abs(cos_minus_one) < kEps) {
+        halftheta_by_tan_of_halfdtheta = 1.0 - 1.0 / 12.0 * dtheta * dtheta;
+      } else {
+        halftheta_by_tan_of_halfdtheta = -(half_dtheta * transform.getRotation().getSin()) / cos_minus_one;
+      }
+      final Translation2d translation_part = transform.getTranslation().rotateBy(new Rotation2d(halftheta_by_tan_of_halfdtheta, -half_dtheta));
+      return new Twist2d(translation_part.getX(), translation_part.getY(), dtheta);
     }
   }
 

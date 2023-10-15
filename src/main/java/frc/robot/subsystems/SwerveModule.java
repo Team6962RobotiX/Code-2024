@@ -13,11 +13,13 @@ import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkMaxPIDController;
 
-import edu.wpi.first.wpilibj.MotorSafety;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.MotorSafety;
 import frc.robot.Constants.CAN;
 import frc.robot.Constants.NEO;
 import frc.robot.Constants.SWERVE_DRIVE;
@@ -33,9 +35,17 @@ public class SwerveModule extends MotorSafety {
   private SparkMaxPIDController driveController, steerController;
   private SwerveModuleState state = new SwerveModuleState();
   private String name;
+  public int id;
 
   public SwerveModule(int id) {
+    this(id, false);
+  }
+
+  public SwerveModule(int id, boolean sim) {
+    this.id = id;
     name = SWERVE_DRIVE.MODULE_NAMES[id];
+
+    if (sim) return;
     
     // MOTOR SETUP
     driveMotor = new CANSparkMax(CAN.SWERVE_DRIVE_SPARK_MAX[id], MotorType.kBrushless);
@@ -121,6 +131,9 @@ public class SwerveModule extends MotorSafety {
     steerController.setReference(state.angle.getRadians(), CANSparkMax.ControlType.kPosition);
     
     feed();
+  }
+  
+  public void execute() {
   }
 
   /**
@@ -250,5 +263,37 @@ public class SwerveModule extends MotorSafety {
 
   public double getTargetAngle() {
     return state.angle.getRadians();
+  }
+
+  public Pose2d getPose(Pose2d robotPose) {
+    Pose2d relativePose = new Pose2d();
+    if (id == 0) relativePose = new Pose2d(
+      SWERVE_DRIVE.WHEELBASE / 2.0,
+      SWERVE_DRIVE.TRACKWIDTH / 2.0,
+      getSteerRotation2d()
+    );
+    if (id == 1) relativePose = new Pose2d(
+      SWERVE_DRIVE.WHEELBASE / 2.0,
+      -SWERVE_DRIVE.TRACKWIDTH / 2.0,
+      getSteerRotation2d()
+    );
+    if (id == 2) relativePose = new Pose2d(
+      -SWERVE_DRIVE.WHEELBASE / 2.0,
+      SWERVE_DRIVE.TRACKWIDTH / 2.0,
+      getSteerRotation2d()
+    );
+    if (id == 3) relativePose = new Pose2d(
+      -SWERVE_DRIVE.WHEELBASE / 2.0,
+      -SWERVE_DRIVE.TRACKWIDTH / 2.0,
+      getSteerRotation2d()
+    );
+    return relativePose.relativeTo(new Pose2d(
+      new Translation2d(),
+      robotPose.getRotation().times(-1.0)
+    )).relativeTo( new Pose2d(
+      -robotPose.getX(),
+      -robotPose.getY(),
+      new Rotation2d()
+    ));
   }
 }

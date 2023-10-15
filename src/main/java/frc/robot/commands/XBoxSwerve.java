@@ -17,6 +17,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.NetworkTableValue;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
+import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.Constants.INPUT_MATH;
@@ -35,7 +36,7 @@ public class XBoxSwerve extends CommandBase {
   public XBoxSwerve(SwerveController swerveController, Supplier<XboxController> xboxSupplier) {
     this.swerveController = swerveController;
     controller = xboxSupplier.get();
-    addRequirements(swerveController);
+    addRequirements(swerveController, swerveController.getSwerveDrive());
   }
 
   // Called when the command is initially scheduled.
@@ -58,8 +59,15 @@ public class XBoxSwerve extends CommandBase {
     Translation2d leftStick = new Translation2d(controller.getLeftX(), controller.getLeftY());
     Translation2d rightStick = new Translation2d(controller.getRightX(), controller.getRightY());
     
+    if (RobotBase.isSimulation()) {
+      leftTrigger = (controller.getRawAxis(5) + 1.0) / 2.0;
+      rightTrigger = (controller.getRawAxis(4) + 1.0) / 2.0;
+      leftStick = new Translation2d(controller.getRawAxis(0), controller.getRawAxis(1));
+      rightStick = new Translation2d(controller.getRawAxis(2), controller.getRawAxis(3));
+    }
+
     // Deadbands
-    leftStick = INPUT_MATH.circular(leftStick, 0.0, Math.PI / 8);
+    leftStick = INPUT_MATH.circular(leftStick, 0.0, Math.PI / 4);
     rightStick = INPUT_MATH.circular(rightStick, 0.0, Math.PI / 8);
 
     
@@ -81,11 +89,11 @@ public class XBoxSwerve extends CommandBase {
     }
         
     // Left stick field oriented drive
-    swerveController.addVelocity(leftStick.times(swerveController.MAX_DRIVE_VELOCITY));
-    swerveController.addVelocity(new Translation2d(
-      Math.sin(Units.degreesToRadians(controller.getPOV())) * swerveController.SLOW_DRIVE_VELOCITY,
-      -Math.cos(Units.degreesToRadians(controller.getPOV())) * swerveController.SLOW_DRIVE_VELOCITY
-    ));
+    swerveController.addVelocity(swerveController.joystickToFieldMovement(leftStick.times(swerveController.MAX_DRIVE_VELOCITY)));
+    // swerveController.addVelocity(swerveController.joystickToFieldMovement(new Translation2d(
+    //   Math.sin(Units.degreesToRadians(controller.getPOV())) * swerveController.SLOW_DRIVE_VELOCITY,
+    //   -Math.cos(Units.degreesToRadians(controller.getPOV())) * swerveController.SLOW_DRIVE_VELOCITY
+    // )));
 
     // Zero heading when Y is pressed
     if (controller.getYButton()) {

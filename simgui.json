@@ -11,11 +11,20 @@
       "window": {
         "visible": true
       }
+    },
+    "RoboRIO": {
+      "RoboRIO Input": {
+        "open": true
+      },
+      "window": {
+        "visible": true
+      }
     }
   },
   "NTProvider": {
     "types": {
       "/FMSInfo": "FMSInfo",
+      "/SmartDashboard/Field": "Field2d",
       "/SmartDashboard/PIDController[1]": "PIDController",
       "/SmartDashboard/PIDController[2]": "PIDController",
       "/SmartDashboard/PIDController[3]": "PIDController",
@@ -24,16 +33,17 @@
       "/SmartDashboard/PIDController[6]": "PIDController",
       "/SmartDashboard/PIDController[7]": "PIDController",
       "/SmartDashboard/PIDController[8]": "PIDController"
+    },
+    "windows": {
+      "/SmartDashboard/Field": {
+        "window": {
+          "visible": true
+        }
+      }
     }
   },
   "NetworkTables": {
     "Persistent Values": {
-      "open": false
-    },
-    "Retained Values": {
-      "open": false
-    },
-    "Transitory Values": {
       "open": false
     },
     "transitory": {
@@ -55,9 +65,28 @@
         }
       },
       "Logs": {
+        "open": true,
         "robotController": {
           "open": true
+        },
+        "swerveDrive": {
+          "modules": {
+            "BL": {
+              "open": true
+            },
+            "BR": {
+              "open": true
+            },
+            "open": true
+          },
+          "open": true
         }
+      },
+      "Shuffleboard": {
+        ".metadata": {
+          "open": true
+        },
+        "open": true
       },
       "SmartDashboard": {
         "Constants": {

@@ -13,13 +13,17 @@ import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.NetworkTableValue;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.CommandBase;
@@ -33,7 +37,7 @@ import frc.robot.subsystems.SwerveModule;
 /** An example command that uses an example subsystem. */
 
 public class SwerveController extends SubsystemBase {
-  private final SwerveDrive swerveDrive;
+  private SwerveDrive swerveDrive;
   
   public final double MAX_DRIVE_VELOCITY = SwerveModule.motorPowerToDriveVelocity(SWERVE_DRIVE.TELEOPERATED_DRIVE_POWER);
   public final double SLOW_DRIVE_VELOCITY = SwerveModule.motorPowerToDriveVelocity(SWERVE_DRIVE.TELEOPERATED_SLOW_DRIVE_POWER);
@@ -41,7 +45,7 @@ public class SwerveController extends SubsystemBase {
   public final double MAX_ANGULAR_VELOCITY = SwerveDrive.wheelVelocityToRotationalVelocity(SwerveModule.motorPowerToDriveVelocity(SWERVE_DRIVE.TELEOPERATED_ROTATE_POWER));
   public final double MAX_ANGULAR_ACCELERATION = SWERVE_DRIVE.TELEOPERATED_ANGULAR_ACCELERATION;
 
-  private final ProfiledPIDController rotateController = new ProfiledPIDController(
+  private ProfiledPIDController rotateController = new ProfiledPIDController(
     SWERVE_DRIVE.ABSOLUTE_ROTATION_GAINS.kP,
     SWERVE_DRIVE.ABSOLUTE_ROTATION_GAINS.kI,
     SWERVE_DRIVE.ABSOLUTE_ROTATION_GAINS.kD,
@@ -53,48 +57,67 @@ public class SwerveController extends SubsystemBase {
 
   private double targetRobotAngle = 0.0;
   private boolean doAbsoluteRotation = true;
+  private int absoluteRotationCounter = 0;
   
   private Translation2d velocity = new Translation2d();
+  private Translation2d oldVelocity = new Translation2d();
   private double angularVelocity = 0.0;
 
-  private SlewRateLimiter angularAccelerationLimiter = new SlewRateLimiter(SWERVE_DRIVE.TELEOPERATED_ANGULAR_ACCELERATION);
+  private SlewRateLimiter angularAccelerationLimiter = new SlewRateLimiter(MAX_ANGULAR_ACCELERATION);
 
   private double lastTimestamp = Timer.getFPGATimestamp();
 
   public SwerveController(SwerveDrive swerveDrive) {
     this.swerveDrive = swerveDrive;
     rotateController.enableContinuousInput(-Math.PI, Math.PI);
+    rotateController.setTolerance(Units.degreesToRadians(1.0));
   }
 
   @Override
   public void periodic() {
+    if (DriverStation.isAutonomous()) {
+      return;
+    }
+
+    double currentAngularVelocity = swerveDrive.getMeasuredChassisSpeeds().omegaRadiansPerSecond;    
     if (doAbsoluteRotation) {
       angularVelocity = rotateController.calculate(swerveDrive.getHeading(), targetRobotAngle);
     } else {
-      double currentAngularVelocity = Math.abs(Units.degreesToRadians(swerveDrive.getGyro().getRawGyroZ()));
-      if (currentAngularVelocity < SwerveDrive.wheelVelocityToRotationalVelocity(SWERVE_DRIVE.VELOCITY_DEADBAND)) {
+      if (Math.abs(currentAngularVelocity) < SwerveDrive.wheelVelocityToRotationalVelocity(SWERVE_DRIVE.VELOCITY_DEADBAND) && ++absoluteRotationCounter > 10) {
         doAbsoluteRotation = true;
+        absoluteRotationCounter = 0;
       }
       targetRobotAngle = swerveDrive.getHeading();
+      rotateController.calculate(targetRobotAngle, new TrapezoidProfile.State(targetRobotAngle, currentAngularVelocity));
     }
-    limitAcceleration();
+    
+    if (SwerveDrive.rotationalVelocityToWheelVelocity(Math.abs(angularVelocity)) < SWERVE_DRIVE.VELOCITY_DEADBAND) angularVelocity = 0.0;
+    if (velocity.getNorm() < SWERVE_DRIVE.VELOCITY_DEADBAND) velocity = new Translation2d();
 
+    limitAcceleration();
+    
     boolean moving = false;
+    moving = moving || SwerveDrive.rotationalVelocityToWheelVelocity(Math.abs(angularVelocity)) > SWERVE_DRIVE.VELOCITY_DEADBAND;
+    moving = moving || velocity.getNorm() > SWERVE_DRIVE.VELOCITY_DEADBAND;
+
     for (SwerveModuleState moduleState : swerveDrive.getTargetModuleStates()) if (Math.abs(moduleState.speedMetersPerSecond) > SWERVE_DRIVE.VELOCITY_DEADBAND) moving = true;
+    for (SwerveModuleState moduleState : swerveDrive.getMeasuredModuleStates()) if (Math.abs(moduleState.speedMetersPerSecond) > SWERVE_DRIVE.VELOCITY_DEADBAND) moving = true;
     if (!moving) {
       swerveDrive.parkModules();
       return;
     }
     swerveDrive.fieldOrientedDrive(velocity.getX(), velocity.getY(), angularVelocity);
+    
+    angularVelocity = 0.0;
+    oldVelocity = new Translation2d(velocity.getX(), velocity.getY());
+    velocity = new Translation2d();
   }
 
   private void limitAcceleration() {
     double timeDelta = Timer.getFPGATimestamp() - lastTimestamp;
-    ChassisSpeeds currentSpeeds = swerveDrive.getTargetChassisSpeeds();
-    Translation2d currentVelocity = new Translation2d(currentSpeeds.vxMetersPerSecond, currentSpeeds.vyMetersPerSecond);
-    Translation2d velocityDelta = velocity.minus(currentVelocity);
-    if (velocityDelta.getNorm() > MAX_DRIVE_ACCELERATION * timeDelta) velocityDelta = velocityDelta.div(velocityDelta.getNorm()).times(MAX_DRIVE_ACCELERATION * timeDelta);
-    velocity = currentVelocity.plus(velocityDelta);
+    Translation2d acceleration = velocity.minus(oldVelocity).div(timeDelta);
+    if (acceleration.getNorm() > MAX_DRIVE_ACCELERATION) acceleration = acceleration.div(acceleration.getNorm()).times(MAX_DRIVE_ACCELERATION);
+    velocity = oldVelocity.plus(acceleration.times(timeDelta));
     angularVelocity = angularAccelerationLimiter.calculate(angularVelocity);
     lastTimestamp += timeDelta;
   }
@@ -138,5 +161,9 @@ public class SwerveController extends SubsystemBase {
   public void zeroHeading() {
     swerveDrive.zeroHeading();
     targetRobotAngle = swerveDrive.getHeading();
+  }
+
+  public SwerveDrive getSwerveDrive() {
+    return swerveDrive;
   }
 }

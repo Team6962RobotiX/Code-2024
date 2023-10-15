@@ -14,6 +14,7 @@ import com.pathplanner.lib.auto.PIDConstants;
 import com.pathplanner.lib.auto.SwerveAutoBuilder;
 
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.Constants.SWERVE_DRIVE;
 import frc.robot.Constants.SWERVE_MATH;
 import frc.robot.subsystems.SwerveDrive;
@@ -44,6 +45,6 @@ public final class SwerveAutonomous {
         swerveDrive // The drive subsystem. Used to properly set the requirements of path following commands
     );
 
-    return autoBuilder.fullAuto(pathGroup);
+    return autoBuilder.fullAuto(pathGroup).andThen(swerveDrive::stopModules, swerveDrive);
   }
 }
