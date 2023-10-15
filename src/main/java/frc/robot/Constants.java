@@ -64,12 +64,13 @@ public final class Constants {
     public static final double   COEFFICIENT_OF_FRICTION            = 1.0; // 1.0 when on carpet 0.5 on KLS flooring
 
     // TELEOPERATED POWER
-    public static final double   TELEOPERATED_DRIVE_POWER           = 1.0; // Percent driving power (0.2  = 20%)
+    public static final double   TELEOPERATED_DRIVE_POWER           = 0.5; // Percent driving power (0.2  = 20%)
     public static final double   TELEOPERATED_SLOW_DRIVE_POWER      = 0.1; // Percent driving power when using the DPad
+    public static final double   TELEOPERATED_BOOST_DRIVE_POWER     = 1.0; // Percent driving power when using the DPad
     public static final double   TELEOPERATED_ROTATE_POWER          = 0.5; // Percent rotating power (0.4 = 40%)
     
     // TELEOPERATED ACCELERATION
-    public static final double   TELEOPERATED_ACCELERATION          = 20.0; // Measured in m/s^2
+    public static final double   TELEOPERATED_ACCELERATION          = 15.0; // Measured in m/s^2
     public static final double   TELEOPERATED_ANGULAR_ACCELERATION  = Math.PI * 4.0; // Measured in rad/s^2
     
     // INPUT TUNING
@@ -110,20 +111,20 @@ public final class Constants {
     public static final double   WHEEL_DIAMETER                     = Units.inchesToMeters(4.0); // measured in meters
     public static final double   WHEEL_WIDTH                        = Units.inchesToMeters(2.0); // measured in meters
     public static final double   WHEEL_MASS                         = Units.lbsToKilograms(0.55); // kg
-    public static final double   DRIVE_MOTOR_GEAR_REDUCTION         = 1.0 / 6.75;
-    public static final double   STEER_MOTOR_GEAR_REDUCTION         = 7.0 / 150.0;
+    public static final double   DRIVE_MOTOR_GEAR_RATIO         = 1.0 / 6.75;
+    public static final double   STEER_MOTOR_GEAR_RATIO         = 7.0 / 150.0;
     public static final double[] STEER_ENCODER_OFFSETS              = { -124.805, -303.047, -101.602, -65.215 };
     
     // GEAR AND WHEEL RATIOS
-    public static final double   DRIVE_MOTOR_METERS_PER_REVOLUTION  = DRIVE_MOTOR_GEAR_REDUCTION * WHEEL_DIAMETER * Math.PI;
-    public static final double   STEER_MOTOR_RADIANS_PER_REVOLUTION = STEER_MOTOR_GEAR_REDUCTION * Math.PI * 2.0;
+    public static final double   DRIVE_MOTOR_METERS_PER_REVOLUTION  = DRIVE_MOTOR_GEAR_RATIO * WHEEL_DIAMETER * Math.PI;
+    public static final double   STEER_MOTOR_RADIANS_PER_REVOLUTION = STEER_MOTOR_GEAR_RATIO * Math.PI * 2.0;
     
     // TIP COMPENSATION
     public static final double   TIP_COMPENSATION_MIN_TILT          = 5.0;
 
     // REDUCE DRIVE VELOCITY WHEN FAR FROM ANGLE
     public static final boolean  DO_ANGLE_ERROR_SPEED_REDUCTION     = true;
-    public static final double   ROTATION_ERROR_COMPENSATION        = 0.015; // Keeps movement in straight lines when rotating
+    public static final double   ROTATION_ERROR_COMPENSATION        = 0.011; // Keeps movement in straight lines when rotating
 
     /*
      * MOTION PROFILING
@@ -175,13 +176,11 @@ public final class Constants {
   }
 
   public static final class NEO {
-    public static final double kV               = 493.5; // rpm / V
-    public static final double kT               = 0.0181; // Nm / A
-    public static final double STALL_TORQUE     = 3.28; // Nm
-    public static final double STALL_CURRENT    = 181; // A
-    public static final double FREE_CURRENT     = 1.3; // A
-    public static final double FREE_SPEED       = 5880; // rpm
-    public static final double RESISTANCE       = 0.066; // Ω
+    public static final double kV               = 473; // rpm / V
+    public static final double STALL_TORQUE     = 2.6; // Nm
+    public static final double STALL_CURRENT    = 105; // A
+    public static final double FREE_CURRENT     = 1.8; // A
+    public static final double FREE_SPEED       = 5676; // rpm
     public static final int SAFE_STALL_CURRENT  = 40; // A
     public static final double SAFE_TEMPERATURE = 65.0; // °C
   }

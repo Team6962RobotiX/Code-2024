@@ -107,6 +107,8 @@ public class SwerveDrive extends SubsystemBase {
     double timeDelta = Timer.getFPGATimestamp() - lastTimestamp;
     lastTimestamp += timeDelta;
     simRobotAngle = simRobotAngle.plus(new Rotation2d(getMeasuredChassisSpeeds().omegaRadiansPerSecond * timeDelta));
+
+    System.out.println(getPose().getY());
   }
 
   

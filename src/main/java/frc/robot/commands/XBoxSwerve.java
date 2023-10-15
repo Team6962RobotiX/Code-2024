@@ -20,6 +20,7 @@ import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.CommandBase;
+import frc.robot.Constants;
 import frc.robot.Constants.INPUT_MATH;
 import frc.robot.Constants.SWERVE_DRIVE;
 import frc.robot.Constants.SWERVE_MATH;
@@ -67,13 +68,13 @@ public class XBoxSwerve extends CommandBase {
     }
 
     // Deadbands
-    leftStick = INPUT_MATH.circular(leftStick, 0.0, Math.PI / 4);
+    leftStick = INPUT_MATH.circular(leftStick, 0.0, Constants.map(leftTrigger, 0, 1, Math.PI / 8.0, Math.PI / 4.0));
     rightStick = INPUT_MATH.circular(rightStick, 0.0, Math.PI / 8);
 
     
-    if (leftTrigger + rightTrigger > 0.0) {
+    if (rightTrigger > 0.0) {
       // Angular movement for each trigger
-      swerveController.addAngularVelocity((leftTrigger - rightTrigger) * swerveController.MAX_ANGULAR_VELOCITY);
+      swerveController.addAngularVelocity((-rightTrigger) * swerveController.MAX_ANGULAR_VELOCITY);
     }
 
     // Some shenanigans to calculate the right stick angle
@@ -89,13 +90,14 @@ public class XBoxSwerve extends CommandBase {
     }
         
     // Left stick field oriented drive
-    swerveController.addVelocity(swerveController.joystickToFieldMovement(leftStick.times(swerveController.MAX_DRIVE_VELOCITY)));
+    swerveController.addVelocity(swerveController.joystickToFieldMovement(leftStick.times(Constants.map(leftTrigger, 0.0, 1.0, swerveController.NOMINAL_DRIVE_VELOCITY, swerveController.MAX_DRIVE_VELOCITY))));
     // swerveController.addVelocity(swerveController.joystickToFieldMovement(new Translation2d(
     //   Math.sin(Units.degreesToRadians(controller.getPOV())) * swerveController.SLOW_DRIVE_VELOCITY,
     //   -Math.cos(Units.degreesToRadians(controller.getPOV())) * swerveController.SLOW_DRIVE_VELOCITY
     // )));
 
     // Zero heading when Y is pressed
+
     if (controller.getYButton()) {
       swerveController.zeroHeading();
     }
