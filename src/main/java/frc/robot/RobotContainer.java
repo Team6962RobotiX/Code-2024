@@ -18,7 +18,6 @@ import edu.wpi.first.wpilibj2.command.PrintCommand;
 import frc.robot.Constants.DEVICES;
 import frc.robot.commands.XBoxSwerve;
 import frc.robot.subsystems.SwerveDrive;
-import frc.robot.utils.ConsoleLogger;
 import frc.robot.utils.Logger;
 import frc.robot.utils.SwerveAutonomous;
 
@@ -32,23 +31,20 @@ public class RobotContainer {
 
   // The robot's subsystems and commands are defined here...
 
-  private final XboxController controller = new XboxController(DEVICES.USB_XBOX_CONTROLLER);
-  private final SwerveDrive drive = new SwerveDrive();
-  ConsoleLogger consoleLogger = new ConsoleLogger(System.out);
+  private final XboxController XboxController = new XboxController(DEVICES.USB_XBOX_CONTROLLER);
+  private final SwerveDrive swerveDrive = new SwerveDrive();
   // private final Limelight limelight = new Limelight(LimelightConfig.NAME);
-  // private final Testing tesing = new Testing();
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
-    // System.setOut(consoleLogger);
-    // System.setErr(consoleLogger);
+    
     Logger.logClassValues("Constants", this, Constants.class);
     if (RobotBase.isReal()) {
       DataLogManager.start();
       if (Constants.LOGGING.ENABLE_DRIVER_STATION) Logger.logDriverStation("/driverStation");
     }
 
-    drive.setDefaultCommand(new XBoxSwerve(drive, () -> controller));
+    swerveDrive.setDefaultCommand(new XBoxSwerve(swerveDrive.getTeleopController(), () -> XboxController));
     
     // Configure the trigger bindings
     configureBindings();
@@ -61,7 +57,7 @@ public class RobotContainer {
   public Command getAutonomousCommand() {
     HashMap<String, Command> eventMap = new HashMap<>();
     eventMap.put("marker1", new PrintCommand("Passed marker 1"));
-    return SwerveAutonomous.fullAuto("Test Path", eventMap, drive);
+    return SwerveAutonomous.fullAuto("Test Path", eventMap, swerveDrive);
   }
 
   public void disabledPeriodic() {

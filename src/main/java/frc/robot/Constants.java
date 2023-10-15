@@ -9,7 +9,6 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.util.Units;
 import frc.robot.subsystems.SwerveDrive;
-import frc.robot.utils.Vector2D;
 
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide numerical or boolean
@@ -59,7 +58,6 @@ public final class Constants {
       -------------------------------------
     */
     
-    // COEFFICIENT OF FRICTION
     public static final double   ROBOT_MASS                         = 30; // kg
     public static final double   COEFFICIENT_OF_FRICTION            = 1.0; // 1.0 when on carpet 0.5 on KLS flooring
 
@@ -74,14 +72,19 @@ public final class Constants {
     
     // INPUT TUNING
     public static final double   JOYSTICK_DEADBAND                  = 0.05; // Inputs that we read zero at
+    public static final double   VELOCITY_DEADBAND                  = 0.05; // Velocity we stop moving at
 
     // AUTONOMOUS
-    public static final double   AUTONOMOUS_VELOCITY                = 4.0; // [TODO] measured in meters/sec
-    public static final double   AUTONOMOUS_ACCELERATION            = 1.5; // [TODO] measured in meters/sec^2
+    public static final double   AUTONOMOUS_VELOCITY                = 3.0; // [TODO] measured in meters/sec
+    public static final double   AUTONOMOUS_ACCELERATION            = 3.0; // [TODO] measured in meters/sec^2
+    public static final double   AUTONOMOUS_ANGULAR_VELOCITY        = Math.PI; // [TODO] measured in rad/sec
+    public static final double   AUTONOMOUS_ANGULAR_ACCELERATION    = Math.PI; // [TODO] measured in rad/sec^2
 
     // BROWNOUT PREVENTION
     public static final int      DRIVE_MOTOR_CURRENT_LIMIT          = 40;
     public static final int      STEER_MOTOR_CURRENT_LIMIT          = 20;
+    public static final double   DRIVE_MOTOR_RAMP_RATE              = 0.1;
+    public static final double   STEER_MOTOR_RAMP_RATE              = 0.05;
     
     // ODOMETER
     public static final Pose2d   STARTING_POSE                      = new Pose2d(0.0, 0.0, Rotation2d.fromDegrees(0.0));
@@ -123,27 +126,17 @@ public final class Constants {
      * kP -> Proportional term, multiplied by the measured error to get additional motor power
      * kI -> Integral term, uses the slope of the measured error. Essentially if the measured error isn't going away from just kP, the integral term will slowly build up additional motor power until it works out. Only really useful when there is external load on the system, like with an Arm.
      * kD -> Derivative term, essentially a damping factor to reduce oscillations produced by kP or kI
-     * kV -> Velocity term, is the maximum velocity it will run the motor at
-     * kA -> Acceleration term, is the maximum acceleration it will run the motor at
-     * kE -> Minimum error term, is the minimum error required to start calculating the motion profile
      */
     public static final class DRIVE_MOTOR_MOTION_PROFILE {
       public static final double kFF = 1.0 / (NEO.FREE_SPEED / 60 * DRIVE_MOTOR_METERS_PER_REVOLUTION);
-      public static final double kP  = 0.2;
+      public static final double kP  = 0.1;
       public static final double kI  = 0.0;
       public static final double kD  = 0.0;
-      public static final double kV  = NEO.FREE_SPEED / 60 * DRIVE_MOTOR_METERS_PER_REVOLUTION;
-      public static final double kA  = 10.0;
-      public static final double kE  = 0.1;
     }
     public static final class STEER_MOTOR_MOTION_PROFILE {
-      public static final double kFF = 0.0;
       public static final double kP  = 0.005;
       public static final double kI  = 0.0;
       public static final double kD  = 0.0;
-      public static final double kV  = NEO.FREE_SPEED / 60 * STEER_MOTOR_RADIANS_PER_REVOLUTION;
-      public static final double kA  = 250.0;
-      public static final double kE  = Units.degreesToRadians(1);
     }
     public static final class ABSOLUTE_ROTATION_GAINS {
       public static final double kP  = 3.0;
@@ -177,14 +170,14 @@ public final class Constants {
   }
 
   public static final class NEO {
-    public static final double kV              = 493.5; // rpm / V
-    public static final double kT              = 0.0181; // Nm / A
-    public static final double STALL_TORQUE    = 3.28; // Nm
-    public static final double STALL_CURRENT   = 181; // A
-    public static final double FREE_CURRENT    = 1.3; // A
-    public static final double FREE_SPEED      = 5880; // rpm
-    public static final double RESISTANCE      = 0.066; // Ω
-    public static final int SAFE_STALL_CURRENT = 40; // A
+    public static final double kV               = 493.5; // rpm / V
+    public static final double kT               = 0.0181; // Nm / A
+    public static final double STALL_TORQUE     = 3.28; // Nm
+    public static final double STALL_CURRENT    = 181; // A
+    public static final double FREE_CURRENT     = 1.3; // A
+    public static final double FREE_SPEED       = 5880; // rpm
+    public static final double RESISTANCE       = 0.066; // Ω
+    public static final int SAFE_STALL_CURRENT  = 40; // A
     public static final double SAFE_TEMPERATURE = 65.0; // °C
   }
 
@@ -210,24 +203,6 @@ public final class Constants {
       double phi = Math.abs(beta - alpha) % (2.0 * Math.PI);
       return phi > Math.PI ? (2.0 * Math.PI) - phi : phi;
     }
-
-    public static Vector2D circleCenter(Vector2D p1, Vector2D p2, Vector2D p3) {
-      double ax = (p1.x + p2.x) / 2;
-      double ay = (p1.y + p2.y) / 2;
-      double ux = (p1.y - p2.y);
-      double uy = (p2.x - p1.x);
-      double bx = (p2.x + p3.x) / 2;
-      double by = (p2.y + p3.y) / 2;
-      double vx = (p2.y - p3.y);
-      double vy = (p3.x - p2.x);
-      double dx = ax - bx;
-      double dy = ay - by;
-      double vu = vx * uy - vy * ux;
-      if (vu == 0)
-          return new Vector2D();
-      double g = (dx * uy - dy * ux) / vu;
-      return new Vector2D(bx + g * vx, by + g * vy);
-    }
   }
 
   public static final class INPUT_MATH {
@@ -243,13 +218,13 @@ public final class Constants {
       return 0.0;
     }
 
-    public static Vector2D circular(Vector2D input, double deadband, double snapRadians) { // input ranges from -1 to 1
-      double magnitude = input.getMagnitude();
-      double direction = input.getAngle();
+    public static Translation2d circular(Translation2d input, double deadband, double snapRadians) { // input ranges from -1 to 1
+      double magnitude = input.getNorm();
+      double direction = input.getAngle().getRadians();
       if (mod(direction, Math.PI / 2.0) <= snapRadians / 2.0 || mod(direction, Math.PI / 2.0) >= (Math.PI / 2.0) - (snapRadians / 2.0)) direction = Math.round(direction / (Math.PI / 2.0)) * (Math.PI / 2.0);
-      if (Math.abs(magnitude) <= deadband) return new Vector2D();
+      if (Math.abs(magnitude) <= deadband) return new Translation2d();
       magnitude = nonLinear(map(magnitude, deadband, 1.0, 0.0, 1.0));
-      return new Vector2D(magnitude * Math.cos(direction), magnitude * Math.sin(direction));
+      return new Translation2d(magnitude * Math.cos(direction), magnitude * Math.sin(direction));
     }
 
     public static double nonLinear(double x) {

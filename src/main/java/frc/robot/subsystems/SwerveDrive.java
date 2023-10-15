@@ -8,7 +8,6 @@ import com.kauailabs.navx.frc.AHRS;
 import com.revrobotics.SparkMaxPIDController;
 
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
-import edu.wpi.first.math.estimator.AngleStatistics;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -23,10 +22,10 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.CAN;
 import frc.robot.Constants.LOGGING;
+import frc.robot.Constants.NEO;
 import frc.robot.Constants.SWERVE_DRIVE;
 import frc.robot.Constants.SWERVE_MATH;
 import frc.robot.utils.Logger;
-import frc.robot.utils.SparkMaxPIDFTuner;
 
 public class SwerveDrive extends SubsystemBase {
 
@@ -35,10 +34,8 @@ public class SwerveDrive extends SubsystemBase {
   private SwerveDriveKinematics kinematics = SWERVE_MATH.getKinematics();
   private SwerveDrivePoseEstimator poseEstimator;
   private int moduleCount = SWERVE_DRIVE.MODULE_NAMES.length;
-  private PowerDistribution PDH = new PowerDistribution(CAN.PDH, ModuleType.kRev);;
-
-  private SparkMaxPIDFTuner drivePIDFTuner;
-  private SparkMaxPIDFTuner steerPIDFTuner;
+  private PowerDistribution PDH = new PowerDistribution(CAN.PDH, ModuleType.kRev);
+  private SwerveController teleopController;
 
   public SwerveDrive() {
     try {
@@ -52,7 +49,10 @@ public class SwerveDrive extends SubsystemBase {
         kinematics,
         getRotation2d(),
         getModulePositions(),
-        SWERVE_DRIVE.STARTING_POSE);
+        SWERVE_DRIVE.STARTING_POSE
+    );
+    
+    teleopController = new SwerveController(this);
 
     new Thread(() -> {
       try {
@@ -60,30 +60,6 @@ public class SwerveDrive extends SubsystemBase {
         zeroHeading();
       } catch (Exception e) {}
     }).start();
-
-    drivePIDFTuner = new SparkMaxPIDFTuner(
-      "Swerve Drive",
-      modules[0].getDrivePIDFController(),
-      new SparkMaxPIDController[] { 
-        modules[1].getDrivePIDFController(),
-        modules[2].getDrivePIDFController(),
-        modules[3].getDrivePIDFController()
-      }, 
-      modules[0]::getTargetVelocity, 
-      modules[0]::getVelocity
-    );
-
-    steerPIDFTuner = new SparkMaxPIDFTuner(
-      "Swerve Steer",
-      modules[0].getSteerPIDFController(),
-      new SparkMaxPIDController[] { 
-        modules[1].getSteerPIDFController(),
-        modules[2].getSteerPIDFController(),
-        modules[3].getSteerPIDFController()
-      }, 
-      modules[0]::getTargetAngle, 
-      modules[0]::getSteerRadians
-    );
   }
 
   @Override
@@ -117,27 +93,14 @@ public class SwerveDrive extends SubsystemBase {
   
   /** 
    * Drive the robot relative to the field
-   * @param xVelocity forward-backward velocity relative to the driver (measured in m/s)
-   * @param yVelocity left-right velocity relative to the driver (measured in m/s)
+   * @param xVelocity left-right velocity relative to the driver (measured in m/s)
+   * @param yVelocity forward-backward velocity relative to the driver (measured in m/s)
    * @param angularVelocity rotational velocity (rad/s)
    */
   public void fieldOrientedDrive(double xVelocity, double yVelocity, double angularVelocity) { // m/s and rad/s    
     Rotation2d robotAngle = getRotation2d();
     ChassisSpeeds speeds = ChassisSpeeds.fromFieldRelativeSpeeds(xVelocity, yVelocity, angularVelocity, robotAngle);
     SwerveModuleState moduleStates[] = kinematics.toSwerveModuleStates(speeds);
-    
-    boolean moving = false;
-    for (SwerveModuleState moduleState : moduleStates) {
-      if (Math.abs(moduleState.speedMetersPerSecond) > 0.05) {
-        moving = true;
-      }
-    }
-
-    if (!moving) {
-      parkModules();
-      return;
-    }
-      
     driveModules(moduleStates);
   }
 
@@ -147,7 +110,7 @@ public class SwerveDrive extends SubsystemBase {
    * @param moduleStates The target module states
    */
   public void driveModules(SwerveModuleState[] moduleStates) {
-    SwerveDriveKinematics.desaturateWheelSpeeds(moduleStates, SwerveModule.powerToDriveVelocity(SWERVE_DRIVE.MOTOR_POWER_HARD_CAP));
+    SwerveDriveKinematics.desaturateWheelSpeeds(moduleStates, SwerveModule.motorPowerToDriveVelocity(SWERVE_DRIVE.MOTOR_POWER_HARD_CAP));
     for (int i = 0; i < moduleCount; i++) modules[i].drive(moduleStates[i]);
   }
 
@@ -272,7 +235,7 @@ public class SwerveDrive extends SubsystemBase {
    * @return Get gyro heading in degrees (-180 - 180)
    */
   public double getHeading() {
-    return SWERVE_MATH.clampDegrees(getRotation2d().getDegrees());
+    return SWERVE_MATH.clampRadians(getRotation2d().getRadians());
   }
 
   /**
@@ -310,8 +273,11 @@ public class SwerveDrive extends SubsystemBase {
    * @param rotationalVelocity rotational velocity in rad/s
    * @return drive velocity in m/s
    */
-  // Convert rotation velocity in rad/s to wheel velocity in m/s
   public static double rotationalVelocityToWheelVelocity(double rotationalVelocity) {
     return rotationalVelocity * Math.hypot(SWERVE_DRIVE.TRACKWIDTH / 2.0, SWERVE_DRIVE.WHEELBASE / 2.0);
+  }
+
+  public SwerveController getTeleopController() {
+    return teleopController;
   }
 }
