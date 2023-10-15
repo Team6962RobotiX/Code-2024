@@ -97,12 +97,13 @@ public class SwerveModuleSim extends SwerveModule {
   public void execute() {
     double timeDelta = Timer.getFPGATimestamp() - lastTimestamp;
     lastTimestamp += timeDelta;
+    
+    driveMotor.update(timeDelta);
+    steerMotor.update(timeDelta);
+    
     steerRadians += steerMotor.getAngularVelocityRadPerSec() * timeDelta;
     drivePosition += getVelocity() * timeDelta;
     steerRadians = SWERVE_MATH.clampRadians(steerRadians);
-
-    driveMotor.update(timeDelta);
-    steerMotor.update(timeDelta);
   }
   
   /**
