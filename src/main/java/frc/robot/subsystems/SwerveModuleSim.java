@@ -14,6 +14,8 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.simulation.FlywheelSim;
+import edu.wpi.first.wpilibj.simulation.RoboRioSim;
+import frc.robot.Constants.NEO;
 import frc.robot.Constants.SWERVE_DRIVE;
 import frc.robot.Constants.SWERVE_DRIVE.DRIVE_MOTOR_MOTION_PROFILE;
 import frc.robot.Constants.SWERVE_DRIVE.STEER_MOTOR_MOTION_PROFILE;
@@ -74,8 +76,13 @@ public class SwerveModuleSim extends SwerveModule {
     if (SWERVE_DRIVE.DO_ANGLE_ERROR_SPEED_REDUCTION) state.speedMetersPerSecond *= Math.cos(SWERVE_MATH.angleDistance(state.angle.getRadians(), getSteerRadians()));
     this.state = state;
 
+    double availableVoltage = RoboRioSim.getVInVoltage();
+
     double driveVolts = MathUtil.clamp(12.0 * (DRIVE_MOTOR_MOTION_PROFILE.kFF * state.speedMetersPerSecond + driveController.calculate(getVelocity(), state.speedMetersPerSecond)), -12.0, 12.0);
     double steerVolts = MathUtil.clamp(12.0 * (steerController.calculate(getSteerRadians(), state.angle.getRadians())), -12.0, 12.0);
+    
+    driveVolts = MathUtil.clamp(driveVolts, -availableVoltage, availableVoltage);
+    steerVolts = MathUtil.clamp(steerVolts, -availableVoltage, availableVoltage);
     
     driveVolts = driveMotorRampRateLimiter.calculate(driveVolts);
     steerVolts = steerMotorRampRateLimiter.calculate(steerVolts);
@@ -83,18 +90,19 @@ public class SwerveModuleSim extends SwerveModule {
     driveMotor.setInputVoltage(driveVolts);
     steerMotor.setInputVoltage(steerVolts);
 
-    if (driveMotor.getCurrentDrawAmps() > SWERVE_DRIVE.DRIVE_MOTOR_CURRENT_LIMIT) {
-      driveMotor.setInputVoltage(driveVolts / driveMotor.getCurrentDrawAmps() * SWERVE_DRIVE.DRIVE_MOTOR_CURRENT_LIMIT);
-    }
+    double driveCurrentLimit = SWERVE_DRIVE.DRIVE_MOTOR_CURRENT_LIMIT;
+    double steerCurrentLimit = SWERVE_DRIVE.STEER_MOTOR_CURRENT_LIMIT;
 
-    if (steerMotor.getCurrentDrawAmps() > SWERVE_DRIVE.STEER_MOTOR_CURRENT_LIMIT) {
-      steerMotor.setInputVoltage(steerVolts / steerMotor.getCurrentDrawAmps() * SWERVE_DRIVE.STEER_MOTOR_CURRENT_LIMIT);
-    }
+    if (Math.abs(driveMotor.getAngularVelocityRadPerSec()) < 0.001) driveCurrentLimit = NEO.SAFE_STALL_CURRENT;
+    if (Math.abs(steerMotor.getAngularVelocityRadPerSec()) < 0.001) steerCurrentLimit = NEO.SAFE_STALL_CURRENT;
+    if (driveMotor.getCurrentDrawAmps() > driveCurrentLimit) driveMotor.setInputVoltage(driveVolts / driveMotor.getCurrentDrawAmps() * driveCurrentLimit);
+    if (steerMotor.getCurrentDrawAmps() > steerCurrentLimit) steerMotor.setInputVoltage(steerVolts / steerMotor.getCurrentDrawAmps() * steerCurrentLimit);
 
     feed();
   }
 
-  public void execute() {
+  @Override
+  public void update() {
     double timeDelta = Timer.getFPGATimestamp() - lastTimestamp;
     lastTimestamp += timeDelta;
     

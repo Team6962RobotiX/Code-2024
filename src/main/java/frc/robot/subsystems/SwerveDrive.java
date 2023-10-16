@@ -4,37 +4,43 @@
 
 package frc.robot.subsystems;
 
-import com.kauailabs.navx.frc.AHRS;
-import com.revrobotics.SparkMaxPIDController;
+import java.util.HashMap;
+import java.util.List;
 
-import edu.wpi.first.hal.SimDouble;
-import edu.wpi.first.hal.simulation.SimDeviceDataJNI;
+import com.kauailabs.navx.frc.AHRS;
+import com.pathplanner.lib.PathConstraints;
+import com.pathplanner.lib.PathPlanner;
+import com.pathplanner.lib.PathPlannerTrajectory;
+import com.pathplanner.lib.PathPoint;
+import com.pathplanner.lib.auto.PIDConstants;
+import com.pathplanner.lib.auto.SwerveAutoBuilder;
+import com.pathplanner.lib.commands.PPSwerveControllerCommand;
+
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution;
-import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
-import edu.wpi.first.wpilibj.simulation.AnalogGyroSim;
+import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.SPI;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.simulation.BatterySim;
 import edu.wpi.first.wpilibj.simulation.RoboRioSim;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.FieldObject2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj.SPI;
-import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.CAN;
 import frc.robot.Constants.LOGGING;
-import frc.robot.Constants.NEO;
 import frc.robot.Constants.SWERVE_DRIVE;
 import frc.robot.Constants.SWERVE_MATH;
 import frc.robot.utils.Logger;
@@ -50,7 +56,7 @@ public class SwerveDrive extends SubsystemBase {
   private PowerDistribution PDH = new PowerDistribution(CAN.PDH, ModuleType.kRev);
   private Field2d field = new Field2d();
   private double lastTimestamp = Timer.getFPGATimestamp();
-  public Rotation2d simRobotAngle = Rotation2d.fromDegrees(-90);
+  public Rotation2d heading = Rotation2d.fromDegrees(-90);
 
   public SwerveDrive() {
     try {
@@ -59,28 +65,36 @@ public class SwerveDrive extends SubsystemBase {
       DriverStation.reportError("Error instantiating navX-MXP:  " + ex.getMessage(), false);
     }
 
-    for (int i = 0; i < moduleCount; i++) modules[i] = new SwerveModule(i);
-    for (int i = 0; i < moduleCount; i++) simulatedModules[i] = new SwerveModuleSim(i);
-    poseEstimator = new SwerveDrivePoseEstimator(
-        kinematics,
-        getRotation2d(),
-        getModulePositions(),
-        SWERVE_DRIVE.STARTING_POSE
-    );
-    
+    for (int i = 0; i < moduleCount; i++)
+      modules[i] = new SwerveModule(i);
+    for (int i = 0; i < moduleCount; i++)
+      simulatedModules[i] = new SwerveModuleSim(i);
+    poseEstimator = new SwerveDrivePoseEstimator(kinematics, getRotation2d(), getModulePositions(), SWERVE_DRIVE.STARTING_POSE);
+
     SmartDashboard.putData("Field", field);
 
     new Thread(() -> {
       try {
         Thread.sleep(1000);
         zeroHeading();
-      } catch (Exception e) {}
+      } catch (Exception e) {
+      }
     }).start();
   }
 
   @Override
   public void periodic() {
-    for (SwerveModule module: modules) module.execute();
+    double simBatteryVoltage = BatterySim.calculateDefaultBatteryLoadedVoltage(getCurrent());
+    RoboRioSim.setVInVoltage(simBatteryVoltage);
+    if (simBatteryVoltage < RoboRioSim.getBrownoutVoltage()) {
+      System.out.println("BROWNOUT!");
+    }
+
+    double timeDelta = Timer.getFPGATimestamp() - lastTimestamp;
+    lastTimestamp += timeDelta;
+
+    for (SwerveModule module : modules)
+      module.update();
     poseEstimator.update(getRotation2d(), getModulePositions());
     FieldObject2d modulesObject = field.getObject("Swerve Modules");
     Pose2d[] modulePoses = new Pose2d[4];
@@ -89,29 +103,25 @@ public class SwerveDrive extends SubsystemBase {
     }
     modulesObject.setPoses(modulePoses);
     field.setRobotPose(getPose());
-    if (LOGGING.ENABLE_SWERVE_DRIVE) log("/swerveDrive");
-    if (LOGGING.ENABLE_PDH) Logger.logPDH("/powerDistribution", PDH);
-    if (LOGGING.ENABLE_ROBOT_CONTROLLER) Logger.logRobotController("/robotController");
+    if (LOGGING.ENABLE_SWERVE_DRIVE)
+      log("/swerveDrive");
+    if (LOGGING.ENABLE_PDH)
+      Logger.logPDH("/powerDistribution", PDH);
+    if (LOGGING.ENABLE_ROBOT_CONTROLLER)
+      Logger.logRobotController("/robotController");
+
+    if (gyro.isConnected() && !RobotBase.isSimulation()) {
+      heading = gyro.getRotation2d();
+    } else {
+      heading = heading.plus(new Rotation2d(getMeasuredChassisSpeeds().omegaRadiansPerSecond * timeDelta));
+    }
   }
 
   @Override
   public void simulationPeriodic() {
-    double batteryVoltage = BatterySim.calculateDefaultBatteryLoadedVoltage(getCurrent());
-    RoboRioSim.setVInVoltage(batteryVoltage);
-    
-    if (batteryVoltage < RoboRioSim.getBrownoutVoltage()) {
-      System.out.println("BROWNOUT!!");
-    }
     modules = simulatedModules;
-
-    double timeDelta = Timer.getFPGATimestamp() - lastTimestamp;
-    lastTimestamp += timeDelta;
-    simRobotAngle = simRobotAngle.plus(new Rotation2d(getMeasuredChassisSpeeds().omegaRadiansPerSecond * timeDelta));
-
-    System.out.println(getPose().getY());
   }
 
-  
   /**
    * Drive the robot relative to itself
    * @param forwardVelocity (measured in m/s)
@@ -120,13 +130,9 @@ public class SwerveDrive extends SubsystemBase {
    */
   public void robotOrientedDrive(double forwardVelocity, double strafeVelocity, double angularVelocity) {
     Rotation2d robotAngle = getRotation2d();
-    fieldOrientedDrive(
-        forwardVelocity * robotAngle.getCos() - strafeVelocity * robotAngle.getSin(),
-        forwardVelocity * robotAngle.getSin() + strafeVelocity * robotAngle.getCos(),
-        angularVelocity);
+    fieldOrientedDrive(forwardVelocity * robotAngle.getCos() - strafeVelocity * robotAngle.getSin(), forwardVelocity * robotAngle.getSin() + strafeVelocity * robotAngle.getCos(), angularVelocity);
   }
 
-  
   /** 
    * Drive the robot relative to the field
    * @param xVelocity left-right velocity relative to the driver (measured in m/s)
@@ -140,7 +146,6 @@ public class SwerveDrive extends SubsystemBase {
     driveModules(moduleStates);
   }
 
-  
   /**
    * Tells the modules what speed and direction to run at
    * @param moduleStates The target module states
@@ -155,7 +160,8 @@ public class SwerveDrive extends SubsystemBase {
     moduleStates = kinematics.toSwerveModuleStates(velocity);
 
     SwerveDriveKinematics.desaturateWheelSpeeds(moduleStates, SwerveModule.motorPowerToDriveVelocity(SWERVE_DRIVE.MOTOR_POWER_HARD_CAP));
-    for (int i = 0; i < moduleCount; i++) modules[i].drive(moduleStates[i]);
+    for (int i = 0; i < moduleCount; i++)
+      modules[i].drive(moduleStates[i]);
   }
 
   /**
@@ -168,7 +174,6 @@ public class SwerveDrive extends SubsystemBase {
     modules[3].drive(new SwerveModuleState(0.0, Rotation2d.fromDegrees(45.0)));
   }
 
-  
   /**
    * Resets the odometer position to a given position
    * @param pose Desired position
@@ -185,10 +190,10 @@ public class SwerveDrive extends SubsystemBase {
    * Stops all motors on all modules
    */
   public void stopModules() {
-    for (SwerveModule module : modules) module.stop();
+    for (SwerveModule module : modules)
+      module.stop();
   }
 
-  
   /**
    * @return Target chassis x, y, and rotational velocity
    */
@@ -248,7 +253,8 @@ public class SwerveDrive extends SubsystemBase {
    */
   public double getCurrent() {
     double totalCurrent = 0.0;
-    for (SwerveModule module : modules) totalCurrent += module.getCurrent();
+    for (SwerveModule module : modules)
+      totalCurrent += module.getCurrent();
     return totalCurrent;
   }
 
@@ -262,21 +268,23 @@ public class SwerveDrive extends SubsystemBase {
   /**
    * @return Resets gyro heading
    */
-  public void zeroHeading() {
-    if (RobotBase.isSimulation()) simRobotAngle = SWERVE_DRIVE.STARTING_ANGLE_OFFSET;
+  public void setHeading(Rotation2d newHeading) {
+    heading = newHeading;
     gyro.reset();
-    gyro.setAngleAdjustment(SWERVE_DRIVE.STARTING_ANGLE_OFFSET.getDegrees());
+    gyro.setAngleAdjustment(newHeading.getDegrees());
+  }
+
+  public void zeroHeading() {
+    setHeading(SWERVE_DRIVE.STARTING_ANGLE_OFFSET);
   }
 
   /**
    * @return Returns gyro heading as a Rotation2d
    */
   public Rotation2d getRotation2d() {
-    if (RobotBase.isSimulation()) return simRobotAngle;
-    if (!gyro.isConnected()) return new Rotation2d();
-    return gyro.getRotation2d();
+    return heading;
   }
-  
+
   /**
    * @return Get gyro heading in radians (-pi - pi)
    */
@@ -306,7 +314,6 @@ public class SwerveDrive extends SubsystemBase {
     }
   }
 
-  
   /**
    * @param driveVelocity drive velocity in m/s
    * @return rotational velocity in rad/s
@@ -321,5 +328,63 @@ public class SwerveDrive extends SubsystemBase {
    */
   public static double rotationalVelocityToWheelVelocity(double rotationalVelocity) {
     return rotationalVelocity * Math.hypot(SWERVE_DRIVE.TRACKWIDTH / 2.0, SWERVE_DRIVE.WHEELBASE / 2.0);
+  }
+
+  public Command fullAuto(String pathName, HashMap<String, Command> eventMap) {
+    // This will load the file "FullAuto.path" and generate it with a max velocity of 4 m/s and a max acceleration of 3 m/s^2
+    // for every path in the group
+    List<PathPlannerTrajectory> pathGroup = PathPlanner.loadPathGroup(pathName, new PathConstraints(SWERVE_DRIVE.AUTONOMOUS_VELOCITY, SWERVE_DRIVE.AUTONOMOUS_ACCELERATION));
+
+    // Create the AutoBuilder. This only needs to be created once when robot code starts, not every time you want to create an auto command. A good place to put this is in RobotContainer along with your subsystems.
+    SwerveAutoBuilder autoBuilder = new SwerveAutoBuilder(this::getPose, // Pose2d supplier
+        this::resetPose, // Pose2d consumer, used to reset odometry at the beginning of auto
+        SWERVE_MATH.getKinematics(), // SwerveDriveKinematics
+        new PIDConstants(
+          SWERVE_DRIVE.AUTONOMOUS_TRANSLATION_GAINS.kP,
+          SWERVE_DRIVE.AUTONOMOUS_TRANSLATION_GAINS.kI,
+          SWERVE_DRIVE.AUTONOMOUS_TRANSLATION_GAINS.kD
+        ), // PID constants to correct for translation error (used to create the X and Y PID controllers)
+        new PIDConstants(
+          SWERVE_DRIVE.AUTONOMOUS_ROTATION_GAINS.kP,
+          SWERVE_DRIVE.AUTONOMOUS_ROTATION_GAINS.kI,
+          SWERVE_DRIVE.AUTONOMOUS_ROTATION_GAINS.kD
+        ), // PID constants to correct for rotation error (used to create the rotation controller)
+        this::driveModules, // Module states consumer used to output to the drive subsystem
+        eventMap, true, // Should the path be automatically mirrored depending on alliance color. Optional, defaults to true
+        this // The drive subsystem. Used to properly set the requirements of path following commands
+    );
+
+    return autoBuilder.fullAuto(pathGroup).andThen(this::stopModules, this);
+  }
+
+  public Command followTrajectoryCommand(PathPlannerTrajectory traj) {
+    return new SequentialCommandGroup(new PPSwerveControllerCommand(traj, this::getPose, // Pose supplier
+        SWERVE_MATH.getKinematics(), // SwerveDriveKinematics
+        new PIDController(
+          SWERVE_DRIVE.AUTONOMOUS_TRANSLATION_GAINS.kP,
+          SWERVE_DRIVE.AUTONOMOUS_TRANSLATION_GAINS.kI,
+          SWERVE_DRIVE.AUTONOMOUS_TRANSLATION_GAINS.kD
+        ), // X controller. Tune these values for your robot. Leaving them 0 will only use feedforwards.
+        new PIDController(
+          SWERVE_DRIVE.AUTONOMOUS_TRANSLATION_GAINS.kP,
+          SWERVE_DRIVE.AUTONOMOUS_TRANSLATION_GAINS.kI,
+          SWERVE_DRIVE.AUTONOMOUS_TRANSLATION_GAINS.kD
+        ), // Y controller (usually the same values as X controller)
+        new PIDController(
+          SWERVE_DRIVE.AUTONOMOUS_ROTATION_GAINS.kP,
+          SWERVE_DRIVE.AUTONOMOUS_ROTATION_GAINS.kI,
+          SWERVE_DRIVE.AUTONOMOUS_ROTATION_GAINS.kD
+        ), // Rotation controller. Tune these values for your robot. Leaving them 0 will only use feedforwards.
+        this::driveModules, // Module states consumer
+        true, // Should the path be automatically mirrored depending on alliance color. Optional, defaults to true
+        this // Requires this drive subsystem
+    ));
+  }
+
+  public PathPlannerTrajectory generateTrajectory(List<PathPoint> pathPoints) {
+    return PathPlanner.generatePath(
+      new PathConstraints(SWERVE_DRIVE.AUTONOMOUS_VELOCITY, SWERVE_DRIVE.AUTONOMOUS_ACCELERATION), 
+      pathPoints
+    );
   }
 }

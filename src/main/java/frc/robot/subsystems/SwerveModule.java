@@ -133,7 +133,7 @@ public class SwerveModule extends MotorSafety {
     feed();
   }
   
-  public void execute() {
+  public void update() {
   }
 
   /**

@@ -64,13 +64,13 @@ public final class Constants {
     public static final double   COEFFICIENT_OF_FRICTION            = 1.0; // 1.0 when on carpet 0.5 on KLS flooring
 
     // TELEOPERATED POWER
-    public static final double   TELEOPERATED_DRIVE_POWER           = 0.5; // Percent driving power (0.2  = 20%)
+    public static final double   TELEOPERATED_DRIVE_POWER           = 1.0; // Percent driving power (0.2  = 20%)
     public static final double   TELEOPERATED_SLOW_DRIVE_POWER      = 0.1; // Percent driving power when using the DPad
     public static final double   TELEOPERATED_BOOST_DRIVE_POWER     = 1.0; // Percent driving power when using the DPad
     public static final double   TELEOPERATED_ROTATE_POWER          = 0.5; // Percent rotating power (0.4 = 40%)
     
     // TELEOPERATED ACCELERATION
-    public static final double   TELEOPERATED_ACCELERATION          = 15.0; // Measured in m/s^2
+    public static final double   TELEOPERATED_ACCELERATION          = 25.0; // Measured in m/s^2
     public static final double   TELEOPERATED_ANGULAR_ACCELERATION  = Math.PI * 4.0; // Measured in rad/s^2
     
     // INPUT TUNING
@@ -86,8 +86,8 @@ public final class Constants {
     // BROWNOUT PREVENTION
     public static final int      DRIVE_MOTOR_CURRENT_LIMIT          = 60;
     public static final int      STEER_MOTOR_CURRENT_LIMIT          = 30;
-    public static final double   DRIVE_MOTOR_RAMP_RATE              = 0.1;
-    public static final double   STEER_MOTOR_RAMP_RATE              = 0.05;
+    public static final double   DRIVE_MOTOR_RAMP_RATE              = 0.25;
+    public static final double   STEER_MOTOR_RAMP_RATE              = 0.1;
     
     // ODOMETER
     public static final Pose2d   STARTING_POSE                      = new Pose2d(5.0, 5.0, Rotation2d.fromDegrees(0.0));

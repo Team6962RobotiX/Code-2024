@@ -20,7 +20,6 @@ import frc.robot.commands.XBoxSwerve;
 import frc.robot.subsystems.SwerveController;
 import frc.robot.subsystems.SwerveDrive;
 import frc.robot.utils.Logger;
-import frc.robot.utils.SwerveAutonomous;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -59,7 +58,7 @@ public class RobotContainer {
   public Command getAutonomousCommand() {
     HashMap<String, Command> eventMap = new HashMap<>();
     eventMap.put("marker1", new PrintCommand("Passed marker 1"));
-    return SwerveAutonomous.fullAuto("Test Path", eventMap, swerveDrive);
+    return swerveDrive.fullAuto("Test Path", eventMap);
   }
 
   public void disabledPeriodic() {
