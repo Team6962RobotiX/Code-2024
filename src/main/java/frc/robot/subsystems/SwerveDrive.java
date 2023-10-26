@@ -94,8 +94,7 @@ public class SwerveDrive extends SubsystemBase {
     double timeDelta = Timer.getFPGATimestamp() - lastTimestamp;
     lastTimestamp += timeDelta;
 
-    for (SwerveModule module : modules)
-      module.update();
+    for (SwerveModule module : modules) module.update();
     poseEstimator.update(getRotation2d(), getModulePositions());
     FieldObject2d modulesObject = field.getObject("Swerve Modules");
     Pose2d[] modulePoses = new Pose2d[4];
