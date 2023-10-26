@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Supplier;
 
 import com.ctre.phoenix.sensors.CANCoder;
 import com.ctre.phoenix.sensors.CANCoderFaults;
@@ -28,11 +29,13 @@ import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.RobotController;
+import edu.wpi.first.wpilibj.Timer;
 import frc.robot.Constants;
+import frc.robot.Constants.LOGGING;
 
 public final class Logger {
   private static NetworkTable table = NetworkTableInstance.getDefault().getTable("Logs");
-  private static Map<String, Object> logEntries = new HashMap<String, Object>();
+  private static Map<String, Double> logTimings = new HashMap<String, Double>();
 
   public static void logDriverStation(String path) {
     DriverStation.startDataLog(DataLogManager.getLog(), true);
@@ -40,27 +43,27 @@ public final class Logger {
 
   public static void logSparkMax(String path, CANSparkMax sparkMax) {
     logValue(path + "/power", sparkMax.get());
-    logValue(path + "/inputVoltage", sparkMax.getBusVoltage());
-    logValue(path + "/outputVoltage", sparkMax.getBusVoltage() * sparkMax.getAppliedOutput());
-    logValue(path + "/motorTemperature", sparkMax.getMotorTemperature());
-    logValue(path + "/outputCurrent", sparkMax.getOutputCurrent());
-    logValue(path + "/faults", sparkMax.getFaults());
-    logValue(path + "/stickyFaults", sparkMax.getStickyFaults());
+    logValue(path + "/inputVoltage", () -> sparkMax.getBusVoltage());
+    logValue(path + "/outputVoltage", () -> sparkMax.getBusVoltage() * sparkMax.getAppliedOutput());
+    logValue(path + "/motorTemperature", () -> sparkMax.getMotorTemperature());
+    logValue(path + "/outputCurrent", () -> sparkMax.getOutputCurrent());
+    logValue(path + "/faults", () -> sparkMax.getFaults());
+    logValue(path + "/stickyFaults", () -> sparkMax.getStickyFaults());
     logRelativeEncoder(path + "/relativeEncoder", sparkMax.getEncoder());
     checkSparkMaxStatus(sparkMax);
   }
 
   public static void logRelativeEncoder(String path, RelativeEncoder encoder) {
-    logValue(path + "/position", encoder.getPosition());
-    logValue(path + "/velocity", encoder.getVelocity());
+    logValue(path + "/position", () -> encoder.getPosition());
+    logValue(path + "/velocity", () -> encoder.getVelocity());
   }
 
   public static void logCANCoder(String path, CANCoder encoder) {
-    logValue(path + "/absolutePosition", encoder.getAbsolutePosition());
-    logValue(path + "/busVoltage", encoder.getBusVoltage());
-    logValue(path + "/magnetFieldStrength", encoder.getMagnetFieldStrength().value);
-    logValue(path + "/position", encoder.getPosition());
-    logValue(path + "/velocity", encoder.getVelocity());
+    logValue(path + "/absolutePosition", () -> encoder.getAbsolutePosition());
+    logValue(path + "/busVoltage", () -> encoder.getBusVoltage());
+    logValue(path + "/magnetFieldStrength", () -> encoder.getMagnetFieldStrength().value);
+    logValue(path + "/position", () -> encoder.getPosition());
+    logValue(path + "/velocity", () -> encoder.getVelocity());
 
     CANCoderFaults faults = new CANCoderFaults();
     encoder.getFaults(new CANCoderFaults());
@@ -112,7 +115,7 @@ public final class Logger {
   }
 
   public static void logModuleStates(String path, SwerveModuleState[] targetModuleStates, SwerveModuleState[] measuredModuleStates, SwerveModulePosition[] modulePositions) {
-        logValue(path + "/modulePositions", new double[] {
+    logValue(path + "/modulePositions", new double[] {
       modulePositions[0].angle.getRadians(), 
       modulePositions[0].distanceMeters, 
       modulePositions[1].angle.getRadians(), 
@@ -180,16 +183,16 @@ public final class Logger {
   public static void logPDH(String path, PowerDistribution PDH) {
     logPDHFaults(path + "/faults", PDH.getFaults());
 
-    logValue(path + "/canId", PDH.getModule());
+    logValue(path + "/canId", () -> PDH.getModule());
     for (int i = 0; i <= 23; i++) {
       logValue(path + "/channels/channel" + i + "Current", PDH.getCurrent(i));
     }
-    logValue(path + "/isSwitchableChannelOn", PDH.getSwitchableChannel());
-    logValue(path + "/temperature", PDH.getTemperature());
-    logValue(path + "/totalCurrent", PDH.getTotalCurrent());
-    logValue(path + "/totalJoules", PDH.getTotalEnergy());
-    logValue(path + "/totalWatts", PDH.getTotalPower());
-    logValue(path + "/voltage", PDH.getVoltage());
+    logValue(path + "/isSwitchableChannelOn", () -> PDH.getSwitchableChannel());
+    logValue(path + "/temperature", () -> PDH.getTemperature());
+    logValue(path + "/totalCurrent", () -> PDH.getTotalCurrent());
+    logValue(path + "/totalJoules", () -> PDH.getTotalEnergy());
+    logValue(path + "/totalWatts", () -> PDH.getTotalPower());
+    logValue(path + "/voltage", () -> PDH.getVoltage());
   }
 
   public static void logPDHFaults(String path, PowerDistributionFaults faults) {
@@ -223,11 +226,19 @@ public final class Logger {
   }
 
   public static void logValue(String key, Object value) {
+    logToTable(key, value);
+  }
+
+  public static void logValue(String key, Supplier<Object> supplier) {
+    double time = Timer.getFPGATimestamp();
+    if (time - logTimings.get(key) < LOGGING.CAN_LOGGING_PERIOD) return;
+    logTimings.put(key, time);
+    Object value = supplier.get();
+    logToTable(key, value);
+  }
+
+  public static void logToTable(String key, Object value) {
     if (value instanceof Pose2d) logPose(key, (Pose2d) value);
-    if (logEntries.containsKey(key) && logEntries.get(key).equals(value)) {
-      return;
-    }
-    logEntries.put(key, value);
     NetworkTableEntry entry = getEntry(key);
     entry.setValue(value);
   }
@@ -258,7 +269,7 @@ public final class Logger {
     }
   }
 
-  public static void logClassValues(String path, Object self, Class clazz) {
+  public static void logClassValues(String path, Object self, Class clazz) {    
     for (Class c: clazz.getDeclaredClasses()) {
       try {
         logClassValues(path + "/" + c.getSimpleName(), self, c);

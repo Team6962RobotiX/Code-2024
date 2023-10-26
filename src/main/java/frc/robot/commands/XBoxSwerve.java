@@ -91,13 +91,8 @@ public class XBoxSwerve extends CommandBase {
         
     // Left stick field oriented drive
     swerveController.addVelocity(swerveController.joystickToFieldMovement(leftStick.times(Constants.map(leftTrigger, 0.0, 1.0, swerveController.NOMINAL_DRIVE_VELOCITY, swerveController.MAX_DRIVE_VELOCITY))));
-    // swerveController.addVelocity(swerveController.joystickToFieldMovement(new Translation2d(
-    //   Math.sin(Units.degreesToRadians(controller.getPOV())) * swerveController.SLOW_DRIVE_VELOCITY,
-    //   -Math.cos(Units.degreesToRadians(controller.getPOV())) * swerveController.SLOW_DRIVE_VELOCITY
-    // )));
 
     // Zero heading when Y is pressed
-
     if (controller.getYButton()) {
       swerveController.zeroHeading();
     }

@@ -4,6 +4,7 @@
 
 package frc.robot.subsystems;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -120,6 +121,7 @@ public class SwerveDrive extends SubsystemBase {
   @Override
   public void simulationPeriodic() {
     modules = simulatedModules;
+    System.out.println(SWERVE_DRIVE.DRIVE_MOTOR_MOTION_PROFILE.kFF * SWERVE_DRIVE.DRIVE_MOTOR_METERS_PER_REVOLUTION * (60 / 12));
   }
 
   /**
@@ -381,10 +383,28 @@ public class SwerveDrive extends SubsystemBase {
     ));
   }
 
-  public PathPlannerTrajectory generateTrajectory(List<PathPoint> pathPoints) {
+  public PathPlannerTrajectory generateTrajectoryFieldRelative(List<PathPoint> pathPoints) {
     return PathPlanner.generatePath(
       new PathConstraints(SWERVE_DRIVE.AUTONOMOUS_VELOCITY, SWERVE_DRIVE.AUTONOMOUS_ACCELERATION), 
       pathPoints
+    );
+  }
+
+  public PathPlannerTrajectory generateTrajectoryRobotRelative(List<PathPoint> pathPoints) {
+    List<PathPoint> newPoints = new ArrayList<>();
+    for (PathPoint point : pathPoints) {
+      newPoints.add(
+        new PathPoint(
+          point.position.plus(getPose().getTranslation()),
+          point.heading,
+          point.holonomicRotation,
+          point.velocityOverride
+        )
+      );
+    }
+    return PathPlanner.generatePath(
+      new PathConstraints(SWERVE_DRIVE.AUTONOMOUS_VELOCITY, SWERVE_DRIVE.AUTONOMOUS_ACCELERATION), 
+      newPoints
     );
   }
 }

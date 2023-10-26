@@ -30,6 +30,7 @@ public final class Constants {
   }
 
   public static final class LOGGING {
+    public static final double  CAN_LOGGING_PERIOD      = 0.1;
     public static final boolean ENABLE_SWERVE_DRIVE     = true;
     public static final boolean ENABLE_PDH              = false;
     public static final boolean ENABLE_ROBOT_CONTROLLER = true;
@@ -67,7 +68,7 @@ public final class Constants {
     public static final double   TELEOPERATED_DRIVE_POWER           = 1.0; // Percent driving power (0.2  = 20%)
     public static final double   TELEOPERATED_SLOW_DRIVE_POWER      = 0.1; // Percent driving power when using the DPad
     public static final double   TELEOPERATED_BOOST_DRIVE_POWER     = 1.0; // Percent driving power when using the DPad
-    public static final double   TELEOPERATED_ROTATE_POWER          = 0.5; // Percent rotating power (0.4 = 40%)
+    public static final double   TELEOPERATED_ROTATE_POWER          = 1.0; // Percent rotating power (0.4 = 40%)
     
     // TELEOPERATED ACCELERATION
     public static final double   TELEOPERATED_ACCELERATION          = 25.0; // Measured in m/s^2
@@ -84,10 +85,10 @@ public final class Constants {
     public static final double   AUTONOMOUS_ANGULAR_ACCELERATION    = Math.PI; // [TODO] measured in rad/sec^2
 
     // BROWNOUT PREVENTION
-    public static final int      DRIVE_MOTOR_CURRENT_LIMIT          = 60;
+    public static final int      DRIVE_MOTOR_CURRENT_LIMIT          = 40;
     public static final int      STEER_MOTOR_CURRENT_LIMIT          = 30;
     public static final double   DRIVE_MOTOR_RAMP_RATE              = 0.25;
-    public static final double   STEER_MOTOR_RAMP_RATE              = 0.1;
+    public static final double   STEER_MOTOR_RAMP_RATE              = 0.05;
     
     // ODOMETER
     public static final Pose2d   STARTING_POSE                      = new Pose2d(5.0, 5.0, Rotation2d.fromDegrees(0.0));
@@ -140,9 +141,9 @@ public final class Constants {
       public static final double kD  = 0.0;
     }
     public static final class STEER_MOTOR_MOTION_PROFILE {
-      public static final double kP  = 1.0;
+      public static final double kP  = 2.0;
       public static final double kI  = 0.0;
-      public static final double kD  = 0.0;
+      public static final double kD  = 0.1;
     }
     public static final class ABSOLUTE_ROTATION_GAINS {
       public static final double kP  = 4.0;
