@@ -1,5 +1,6 @@
 package frc.robot.util;
 
+import com.revrobotics.CANSparkMax;
 import com.revrobotics.SparkMaxPIDController;
 import com.revrobotics.CANSparkMax.ControlType;
 import com.revrobotics.SparkMaxPIDController.AccelStrategy;
@@ -11,8 +12,8 @@ public class SparkMaxPID {
 
   public SparkMaxPID(SparkMax sparkMax) {
     this.sparkMax = sparkMax;
-    this.controller = sparkMax.getPIDController();
-    controller.setFeedbackDevice(sparkMax.getEncoder());
+    this.controller = ((CANSparkMax) sparkMax).getPIDController();
+    controller.setFeedbackDevice(((CANSparkMax) sparkMax).getEncoder());
   }
 
   public void setPID(double P, double I, double D) {
