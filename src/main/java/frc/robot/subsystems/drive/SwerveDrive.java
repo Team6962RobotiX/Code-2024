@@ -2,11 +2,12 @@
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
 
-package frc.robot.subsystems;
+package frc.robot.subsystems.drive;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.kauailabs.navx.frc.AHRS;
 import com.pathplanner.lib.PathConstraints;
@@ -18,6 +19,7 @@ import com.pathplanner.lib.auto.SwerveAutoBuilder;
 import com.pathplanner.lib.commands.PPSwerveControllerCommand;
 
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -27,8 +29,6 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.PowerDistribution;
-import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.Timer;
@@ -40,25 +40,20 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Constants.CAN;
-import frc.robot.Constants.LOGGING;
 import frc.robot.Constants.SWERVE_DRIVE;
 import frc.robot.Constants.SWERVE_MATH;
-import frc.robot.utils.Logger;
 
 public class SwerveDrive extends SubsystemBase {
 
   private SwerveModule[] modules = new SwerveModule[4];
-  private SwerveModuleSim[] simulatedModules = new SwerveModuleSim[4];
   private AHRS gyro;
   private SwerveDriveKinematics kinematics = SWERVE_MATH.getKinematics();
   private SwerveDrivePoseEstimator poseEstimator;
   private int moduleCount = SWERVE_DRIVE.MODULE_NAMES.length;
-  private PowerDistribution PDH = new PowerDistribution(CAN.PDH, ModuleType.kRev);
   private Field2d field = new Field2d();
   private double lastTimestamp = Timer.getFPGATimestamp();
   public Rotation2d heading = Rotation2d.fromDegrees(-90);
-
+  
   public SwerveDrive() {
     try {
       gyro = new AHRS(SPI.Port.kMXP, (byte) 200);
@@ -66,10 +61,14 @@ public class SwerveDrive extends SubsystemBase {
       DriverStation.reportError("Error instantiating navX-MXP:  " + ex.getMessage(), false);
     }
 
-    for (int i = 0; i < moduleCount; i++)
-      modules[i] = new SwerveModule(i);
-    for (int i = 0; i < moduleCount; i++)
-      simulatedModules[i] = new SwerveModuleSim(i);
+    if (RobotBase.isSimulation()) {
+      // for (int i = 0; i < moduleCount; i++)
+      // modules[i] = new SwerveModuleSim(i);
+    } else {
+      for (int i = 0; i < moduleCount; i++)
+        modules[i] = new SwerveModule(i);
+    }
+    
     poseEstimator = new SwerveDrivePoseEstimator(kinematics, getRotation2d(), getModulePositions(), SWERVE_DRIVE.STARTING_POSE);
 
     SmartDashboard.putData("Field", field);
@@ -103,13 +102,6 @@ public class SwerveDrive extends SubsystemBase {
     }
     modulesObject.setPoses(modulePoses);
     field.setRobotPose(getPose());
-    if (LOGGING.ENABLE_SWERVE_DRIVE)
-      log("/swerveDrive");
-    if (LOGGING.ENABLE_PDH)
-      Logger.logPDH("/powerDistribution", PDH);
-    if (LOGGING.ENABLE_ROBOT_CONTROLLER)
-      Logger.logRobotController("/robotController");
-
     if (gyro.isConnected() && !RobotBase.isSimulation()) {
       heading = gyro.getRotation2d();
     } else {
@@ -119,8 +111,6 @@ public class SwerveDrive extends SubsystemBase {
 
   @Override
   public void simulationPeriodic() {
-    modules = simulatedModules;
-    System.out.println(SWERVE_DRIVE.DRIVE_MOTOR_MOTION_PROFILE.kFF * SWERVE_DRIVE.DRIVE_MOTOR_METERS_PER_REVOLUTION * (60 / 12));
   }
 
   /**
@@ -301,21 +291,6 @@ public class SwerveDrive extends SubsystemBase {
   }
 
   /**
-   * Logs all modules and module states to network tables for saving later
-   */
-  public void log(String path) {
-    Logger.logNavX(path + "/gyro", getGyro());
-    Logger.logValue(path + "/heading", getRotation2d().getRadians());
-    Logger.logValue(path + "/totalCurrent", getCurrent());
-    Logger.logPose(path + "/pose", getPose());
-    Logger.logModuleStates(path + "/moduleStates", getTargetModuleStates(), getMeasuredModuleStates(), getModulePositions());
-
-    for (SwerveModule module : modules) {
-      module.log(path + "/modules/" + module.getName());
-    }
-  }
-
-  /**
    * @param driveVelocity drive velocity in m/s
    * @return rotational velocity in rad/s
    */
@@ -329,6 +304,17 @@ public class SwerveDrive extends SubsystemBase {
    */
   public static double rotationalVelocityToWheelVelocity(double rotationalVelocity) {
     return rotationalVelocity * Math.hypot(SWERVE_DRIVE.TRACKWIDTH / 2.0, SWERVE_DRIVE.WHEELBASE / 2.0);
+  }
+
+  
+  public void runCharacterization(double volts) {
+    for (SwerveModule module : modules) {
+      module.runCharacterization(volts);
+    }
+  }
+
+  public double getCharacterizationVelocity() {
+    return Math.hypot(getMeasuredChassisSpeeds().vxMetersPerSecond, getMeasuredChassisSpeeds().vyMetersPerSecond);
   }
 
   public Command fullAuto(String pathName, HashMap<String, Command> eventMap) {

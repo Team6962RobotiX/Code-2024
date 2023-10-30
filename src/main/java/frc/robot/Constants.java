@@ -10,7 +10,7 @@ import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.util.Units;
-import frc.robot.subsystems.SwerveDrive;
+import frc.robot.subsystems.drive.SwerveDrive;
 
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide numerical or boolean
@@ -30,11 +30,7 @@ public final class Constants {
   }
 
   public static final class LOGGING {
-    public static final double  CAN_LOGGING_PERIOD      = 0.1;
-    public static final boolean ENABLE_SWERVE_DRIVE     = true;
-    public static final boolean ENABLE_PDH              = false;
-    public static final boolean ENABLE_ROBOT_CONTROLLER = true;
-    public static final boolean ENABLE_DRIVER_STATION   = true;
+    public static final int LOGGING_PERIOD_MS = 100;
   }
 
   // DEVICES
@@ -61,21 +57,20 @@ public final class Constants {
       -------------------------------------
     */
     
-    public static final double   ROBOT_MASS                         = 30; // kg
+    public static final double   ROBOT_MASS                         = 50; // kg
     public static final double   COEFFICIENT_OF_FRICTION            = 1.0; // 1.0 when on carpet 0.5 on KLS flooring
 
     // TELEOPERATED POWER
     public static final double   TELEOPERATED_DRIVE_POWER           = 1.0; // Percent driving power (0.2  = 20%)
     public static final double   TELEOPERATED_SLOW_DRIVE_POWER      = 0.1; // Percent driving power when using the DPad
     public static final double   TELEOPERATED_BOOST_DRIVE_POWER     = 1.0; // Percent driving power when using the DPad
-    public static final double   TELEOPERATED_ROTATE_POWER          = 1.0; // Percent rotating power (0.4 = 40%)
+    public static final double   TELEOPERATED_ROTATE_POWER          = 0.5; // Percent rotating power (0.4 = 40%)
     
     // TELEOPERATED ACCELERATION
     public static final double   TELEOPERATED_ACCELERATION          = 25.0; // Measured in m/s^2
-    public static final double   TELEOPERATED_ANGULAR_ACCELERATION  = Math.PI * 4.0; // Measured in rad/s^2
+    public static final double   TELEOPERATED_ANGULAR_ACCELERATION  = Math.PI * 20.0; // Measured in rad/s^2
     
     // INPUT TUNING
-    public static final double   JOYSTICK_DEADBAND                  = 0.05; // Inputs that we read zero at
     public static final double   VELOCITY_DEADBAND                  = 0.15; // Velocity we stop moving at
 
     // AUTONOMOUS
@@ -83,12 +78,6 @@ public final class Constants {
     public static final double   AUTONOMOUS_ACCELERATION            = 3.0; // [TODO] measured in meters/sec^2
     public static final double   AUTONOMOUS_ANGULAR_VELOCITY        = Math.PI; // [TODO] measured in rad/sec
     public static final double   AUTONOMOUS_ANGULAR_ACCELERATION    = Math.PI; // [TODO] measured in rad/sec^2
-
-    // BROWNOUT PREVENTION
-    public static final int      DRIVE_MOTOR_CURRENT_LIMIT          = 40;
-    public static final int      STEER_MOTOR_CURRENT_LIMIT          = 30;
-    public static final double   DRIVE_MOTOR_RAMP_RATE              = 0.25;
-    public static final double   STEER_MOTOR_RAMP_RATE              = 0.05;
     
     // ODOMETER
     public static final Pose2d   STARTING_POSE                      = new Pose2d(5.0, 5.0, Rotation2d.fromDegrees(0.0));
@@ -96,14 +85,15 @@ public final class Constants {
     
     // TESTING
     public static final double   MOTOR_POWER_HARD_CAP               = 1.0; // Only use for testing, otherwise set to 1.0
-
+    
     /*
-      -------------------------------------------------------------------
-      | ADVANCED CONFIG, DO NOT EDIT UNLESS YOU KNOW WHAT YOU'RE DOING! |
-      -------------------------------------------------------------------
+    -------------------------------------------------------------------
+    | ADVANCED CONFIG, DO NOT EDIT UNLESS YOU KNOW WHAT YOU'RE DOING! |
+    -------------------------------------------------------------------
     */
-
+    
     // PHYSICAL
+    public static final double   MODULE_COUNT                       = 4;
     public static final double   CHASSIS_WIDTH                      = Units.inchesToMeters(30);
     public static final double   CHASSIS_LENGTH                     = Units.inchesToMeters(30);
     public static final double   WHEEL_FRAME_DISTANCE               = Units.inchesToMeters(2.625);
@@ -112,8 +102,9 @@ public final class Constants {
     public static final double   WHEEL_DIAMETER                     = Units.inchesToMeters(4.0); // measured in meters
     public static final double   WHEEL_WIDTH                        = Units.inchesToMeters(2.0); // measured in meters
     public static final double   WHEEL_MASS                         = Units.lbsToKilograms(0.55); // kg
-    public static final double   DRIVE_MOTOR_GEAR_RATIO         = 1.0 / 6.75;
-    public static final double   STEER_MOTOR_GEAR_RATIO         = 7.0 / 150.0;
+    public static final double   DRIVE_MOTOR_GEAR_RATIO             = 1.0 / 6.75;
+    public static final double   STEER_MOTOR_GEAR_RATIO             = 7.0 / 150.0;
+    public static final double   GEARBOX_EFFICIENCY                 = 0.8;
     public static final double[] STEER_ENCODER_OFFSETS              = { -124.805, -303.047, -101.602, -65.215 };
     
     // GEAR AND WHEEL RATIOS
@@ -122,10 +113,16 @@ public final class Constants {
     
     // TIP COMPENSATION
     public static final double   TIP_COMPENSATION_MIN_TILT          = 5.0;
-
+    
     // REDUCE DRIVE VELOCITY WHEN FAR FROM ANGLE
     public static final boolean  DO_ANGLE_ERROR_SPEED_REDUCTION     = true;
     public static final double   ROTATION_ERROR_COMPENSATION        = 0.011; // Keeps movement in straight lines when rotating
+    
+    // SLIP PREVENTION
+    public static final boolean  DO_SLIP_PREVENTION = true;
+    public static final double   SLIP_CURRENT = ((9.80 * ROBOT_MASS * COEFFICIENT_OF_FRICTION * (WHEEL_DIAMETER / 2.0)) / (1 / DRIVE_MOTOR_GEAR_RATIO) / (((NEO.STALL_TORQUE * MODULE_COUNT) / ((NEO.STALL_CURRENT * MODULE_COUNT) - (NEO.FREE_CURRENT * MODULE_COUNT))) * GEARBOX_EFFICIENCY) + (NEO.FREE_CURRENT * MODULE_COUNT)) / MODULE_COUNT;
+    
+    // ((9.8*ROBOT_MASS*COEFFICIENT_OF_FRICTION*(WHEEL_DIAMETER / 2.0))/(1.0 / DRIVE_MOTOR_GEAR_RATIO) / ((Ts/((NEO.STALL_CURRENT * num)-(NEO.FREE_CURRENT * num)))*eff) + (NEO.FREE_CURRENT * num)) / num;
 
     /*
      * MOTION PROFILING
@@ -134,16 +131,25 @@ public final class Constants {
      * kI -> Integral term, uses the slope of the measured error. Essentially if the measured error isn't going away from just kP, the integral term will slowly build up additional motor power until it works out. Only really useful when there is external load on the system, like with an Arm.
      * kD -> Derivative term, essentially a damping factor to reduce oscillations produced by kP or kI
      */
-    public static final class DRIVE_MOTOR_MOTION_PROFILE {
-      public static final double kFF = 1.0 / (NEO.FREE_SPEED / 60 * DRIVE_MOTOR_METERS_PER_REVOLUTION);
-      public static final double kP  = 0.1;
-      public static final double kI  = 0.0;
-      public static final double kD  = 0.0;
+    public static final class DRIVE_MOTOR_CONFIG {
+      public static final double maxVelocity        = NEO.FREE_SPEED / 60 * DRIVE_MOTOR_METERS_PER_REVOLUTION; // Trapezoidal Velocity Gain
+      public static final double maxAcceleration    = 9.80; // Trapezoidal Acceleration Gain
+      public static final double kP                 = 0.1; // PID Proportion Gain
+      public static final double kI                 = 0.0; // PID Integral Gain
+      public static final double kD                 = 0.0; // PID Derivative Gain
+      public static final double kFF                = 1.0 / maxVelocity; // FF Velocity Gain
+      public static final int    currentLimit       = 40; // Amps
+      public static final int[]  statusFramePeriods = { 20, 10, 10, 1000, 1000, 1000, 1000 };
     }
-    public static final class STEER_MOTOR_MOTION_PROFILE {
-      public static final double kP  = 2.0;
-      public static final double kI  = 0.0;
-      public static final double kD  = 0.1;
+    public static final class STEER_MOTOR_CONFIG {
+      public static final double maxVelocity        = NEO.FREE_SPEED / 60 * STEER_MOTOR_RADIANS_PER_REVOLUTION; // Trapezoidal Velocity Gain
+      public static final double maxAcceleration    = Math.PI * 20; // Trapezoidal Acceleration Gain
+      public static final double kP                 = 0.05; // PID Proportion Gain
+      public static final double kI                 = 0.0; // PID Integral Gain
+      public static final double kD                 = 0.00; // PID Derivative Gain
+      public static final double kFF                = 1.0 / maxVelocity; // FF Velocity Gain
+      public static final int    currentLimit       = 20; // Amps
+      public static final int[] statusFramePeriods  = { 20, 10, 10, 1000, 1000, 1000, 1000 };
     }
     public static final class ABSOLUTE_ROTATION_GAINS {
       public static final double kP  = 4.0;
