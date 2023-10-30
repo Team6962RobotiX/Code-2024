@@ -143,10 +143,10 @@ public final class Constants {
     }
     public static final class STEER_MOTOR_CONFIG {
       public static final double maxVelocity        = NEO.FREE_SPEED / 60 * STEER_MOTOR_RADIANS_PER_REVOLUTION; // Trapezoidal Velocity Gain
-      public static final double maxAcceleration    = Math.PI * 20; // Trapezoidal Acceleration Gain
-      public static final double kP                 = 0.05; // PID Proportion Gain
+      public static final double maxAcceleration    = Math.PI * 100.0; // Trapezoidal Acceleration Gain
+      public static final double kP                 = 0.0; // PID Proportion Gain
       public static final double kI                 = 0.0; // PID Integral Gain
-      public static final double kD                 = 0.00; // PID Derivative Gain
+      public static final double kD                 = 0.0; // PID Derivative Gain
       public static final double kFF                = 1.0 / maxVelocity; // FF Velocity Gain
       public static final int    currentLimit       = 20; // Amps
       public static final int[] statusFramePeriods  = { 20, 10, 10, 1000, 1000, 1000, 1000 };

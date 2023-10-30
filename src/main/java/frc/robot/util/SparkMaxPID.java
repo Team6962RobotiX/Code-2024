@@ -13,7 +13,6 @@ public class SparkMaxPID {
   public SparkMaxPID(SparkMax sparkMax) {
     this.sparkMax = sparkMax;
     this.controller = ((CANSparkMax) sparkMax).getPIDController();
-    controller.setFeedbackDevice(((CANSparkMax) sparkMax).getEncoder());
   }
 
   public void setPID(double P, double I, double D) {
