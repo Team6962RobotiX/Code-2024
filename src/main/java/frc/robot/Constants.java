@@ -57,7 +57,7 @@ public final class Constants {
       -------------------------------------
     */
     
-    public static final double   ROBOT_MASS                         = 50; // kg
+    public static final double   ROBOT_MASS                         = 25; // kg
     public static final double   COEFFICIENT_OF_FRICTION            = 1.0; // 1.0 when on carpet 0.5 on KLS flooring
 
     // TELEOPERATED POWER
@@ -71,7 +71,7 @@ public final class Constants {
     public static final double   TELEOPERATED_ANGULAR_ACCELERATION  = Math.PI * 20.0; // Measured in rad/s^2
     
     // INPUT TUNING
-    public static final double   VELOCITY_DEADBAND                  = 0.15; // Velocity we stop moving at
+    public static final double   VELOCITY_DEADBAND                  = 0.1; // Velocity we stop moving at
 
     // AUTONOMOUS
     public static final double   AUTONOMOUS_VELOCITY                = 3.0; // [TODO] measured in meters/sec
@@ -132,23 +132,20 @@ public final class Constants {
      * kD -> Derivative term, essentially a damping factor to reduce oscillations produced by kP or kI
      */
     public static final class DRIVE_MOTOR_CONFIG {
-      public static final double maxRPM             = NEO.FREE_SPEED; // Trapezoidal Velocity Gain
-      public static final double maxAccel           = 9.80 / (SWERVE_DRIVE.DRIVE_MOTOR_METERS_PER_REVOLUTION / 60.0); // Trapezoidal Acceleration Gain
       public static final double kP                 = 0.0; // PID Proportion Gain
       public static final double kI                 = 0.0; // PID Integral Gain
       public static final double kD                 = 0.0; // PID Derivative Gain
-      public static final double kFF                = 1.0 / maxRPM; // FF Velocity Gain
-      public static final int    currentLimit       = 40; // Amps
+      public static final double kFF                = 1.0 / (NEO.FREE_SPEED / 60.0 * SWERVE_DRIVE.DRIVE_MOTOR_METERS_PER_REVOLUTION);
+      public static final int    CURRENT_LIMIT      = 40; // Amps
+      public static final double RAMP_RATE          = 0.25;
       public static final int[]  statusFramePeriods = { 20, 10, 10, 1000, 1000, 1000, 1000 };
     }
     public static final class STEER_MOTOR_CONFIG {
-      public static final double maxRPM             = NEO.FREE_SPEED; // Trapezoidal Velocity Gain
-      public static final double maxAccel           = Math.PI * 100.0; // Trapezoidal Acceleration Gain
-      public static final double kP                 = 0.0; // PID Proportion Gain
+      public static final double kP                 = 0.75; // PID Proportion Gain
       public static final double kI                 = 0.0; // PID Integral Gain
       public static final double kD                 = 0.0; // PID Derivative Gain
-      public static final double kFF                = 1.0 / maxRPM; // FF Velocity Gain
-      public static final int    currentLimit       = 20; // Amps
+      public static final int    CURRENT_LIMIT      = 20; // Amps
+      public static final double RAMP_RATE          = 0.1;
       public static final int[] statusFramePeriods  = { 20, 10, 10, 1000, 1000, 1000, 1000 };
     }
     public static final class ABSOLUTE_ROTATION_GAINS {

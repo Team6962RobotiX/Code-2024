@@ -15,13 +15,19 @@ import com.revrobotics.REVPhysicsSim;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkMaxPIDController;
 import com.revrobotics.SparkMaxPIDController.AccelStrategy;
+import com.revrobotics.SparkMaxPIDController.ArbFFUnits;
 
+import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
+import edu.wpi.first.math.trajectory.TrapezoidProfile.State;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.MotorSafety;
 import edu.wpi.first.wpilibj.RobotBase;
@@ -39,7 +45,7 @@ public class SwerveModule extends MotorSafety {
   private CANCoder absoluteSteerEncoder;
   private SparkMaxPIDController driveController, steerController;
   private SwerveModuleState state = new SwerveModuleState();
-  private String name;  
+  private String name;
   public int id;
 
   public SwerveModule(int id) {
@@ -71,8 +77,15 @@ public class SwerveModule extends MotorSafety {
 
     steerMotor.setInverted(true);
 
-    driveMotor.setSmartCurrentLimit(NEO.SAFE_STALL_CURRENT, DRIVE_MOTOR_CONFIG.currentLimit);
-    steerMotor.setSmartCurrentLimit(NEO.SAFE_STALL_CURRENT, STEER_MOTOR_CONFIG.currentLimit);
+    if (SWERVE_DRIVE.DO_SLIP_PREVENTION) {
+      driveMotor.setSmartCurrentLimit(Math.min((int) SWERVE_DRIVE.SLIP_CURRENT, Math.min(DRIVE_MOTOR_CONFIG.CURRENT_LIMIT, NEO.SAFE_STALL_CURRENT)), Math.min((int) SWERVE_DRIVE.SLIP_CURRENT, DRIVE_MOTOR_CONFIG.CURRENT_LIMIT));
+      driveMotor.setClosedLoopRampRate(Math.max((NEO.FREE_SPEED / 60.0) / (9.80 / SWERVE_DRIVE.DRIVE_MOTOR_METERS_PER_REVOLUTION), DRIVE_MOTOR_CONFIG.RAMP_RATE));
+    } else {
+      driveMotor.setSmartCurrentLimit(Math.min(DRIVE_MOTOR_CONFIG.CURRENT_LIMIT, NEO.SAFE_STALL_CURRENT), DRIVE_MOTOR_CONFIG.CURRENT_LIMIT);
+      driveMotor.setClosedLoopRampRate(DRIVE_MOTOR_CONFIG.RAMP_RATE);
+    }
+    steerMotor.setSmartCurrentLimit(Math.min(STEER_MOTOR_CONFIG.CURRENT_LIMIT, NEO.SAFE_STALL_CURRENT), STEER_MOTOR_CONFIG.CURRENT_LIMIT);
+    steerMotor.setClosedLoopRampRate(STEER_MOTOR_CONFIG.RAMP_RATE);
 
     driveMotor.enableVoltageCompensation(12.0);
     steerMotor.enableVoltageCompensation(12.0);
@@ -99,28 +112,18 @@ public class SwerveModule extends MotorSafety {
     driveController.setI (DRIVE_MOTOR_CONFIG.kI,  0);
     driveController.setD (DRIVE_MOTOR_CONFIG.kD,  0);
     driveController.setFF(DRIVE_MOTOR_CONFIG.kFF, 0);
-    driveController.setSmartMotionMaxVelocity(DRIVE_MOTOR_CONFIG.maxRPM, 0);
-    driveController.setSmartMotionMaxAccel(DRIVE_MOTOR_CONFIG.maxAccel, 0);
-    driveController.setSmartMotionAllowedClosedLoopError(0.05, 0);
-
     driveController.setOutputRange(-SWERVE_DRIVE.MOTOR_POWER_HARD_CAP, SWERVE_DRIVE.MOTOR_POWER_HARD_CAP, 0);
-    driveController.setFeedbackDevice(driveEncoder);
 
     // STEER MOTION PROFILING
     steerController = steerMotor.getPIDController();
     steerController.setP (STEER_MOTOR_CONFIG.kP,  0);
     steerController.setI (STEER_MOTOR_CONFIG.kI,  0);
     steerController.setD (STEER_MOTOR_CONFIG.kD,  0);
-    steerController.setFF(STEER_MOTOR_CONFIG.kFF, 0);
-
-    steerController.setSmartMotionMaxVelocity(STEER_MOTOR_CONFIG.maxRPM, 0);
-    steerController.setSmartMotionMaxAccel(STEER_MOTOR_CONFIG.maxAccel, 0);
-    steerController.setSmartMotionAccelStrategy(AccelStrategy.kSCurve, 0);
-    steerController.setSmartMotionAllowedClosedLoopError(0.05, 0);
-
+    steerController.setPositionPIDWrappingEnabled(true);
+    steerController.setPositionPIDWrappingMinInput(-Math.PI);
+    steerController.setPositionPIDWrappingMinInput(Math.PI);
     steerController.setOutputRange(-SWERVE_DRIVE.MOTOR_POWER_HARD_CAP, SWERVE_DRIVE.MOTOR_POWER_HARD_CAP, 0);
-    steerController.setFeedbackDevice(steerEncoder);
-
+    
     // SAVE SETTINGS
     driveMotor.burnFlash();
     steerMotor.burnFlash();
@@ -138,33 +141,9 @@ public class SwerveModule extends MotorSafety {
     this.state = state;
     
     // Use onboard motion profiling controllers
-    // driveController.setReference(state.speedMetersPerSecond, ControlType.kSmartVelocity);
-    
-    steerController.setReference(getClosestSteerPosition(state.angle.getRadians()), ControlType.kSmartMotion);
-    // steerMotor.set(0.75);
-    REVPhysicsSim.getInstance().run();
-    // System.out.println(steerMotor.getAppliedOutput());
+    driveController.setReference(state.speedMetersPerSecond, ControlType.kVelocity);
+    steerController.setReference(state.angle.getRadians(), ControlType.kPosition);
     feed();
-  }
-
-  public double getClosestSteerPosition(double targetSteerRadians) {
-    double baseAngle = steerEncoder.getPosition() - getSteerRadians();
-    double angle1 = baseAngle + targetSteerRadians;
-    double angle2 = baseAngle + (targetSteerRadians - Math.PI * 2.0);
-    double angle3 = baseAngle + (targetSteerRadians + Math.PI * 2.0);
-    double angle1Dist = Math.abs(angle1 - steerEncoder.getPosition());
-    double angle2Dist = Math.abs(angle2 - steerEncoder.getPosition());
-    double angle3Dist = Math.abs(angle3 - steerEncoder.getPosition());
-    if (angle1Dist == Math.min(Math.min(angle1Dist, angle2Dist), angle3Dist)) {
-      return angle1;
-    }
-    if (angle2Dist == Math.min(Math.min(angle1Dist, angle2Dist), angle3Dist)) {
-      return angle2;
-    }
-    if (angle3Dist == Math.min(Math.min(angle1Dist, angle2Dist), angle3Dist)) {
-      return angle3;
-    }
-    return angle1;
   }
 
   public void drive(SwerveModuleState state) {
@@ -279,7 +258,7 @@ public class SwerveModule extends MotorSafety {
    * @return Drive velocity
    */
   public static double motorPowerToDriveVelocity(double power) {
-    return (power / DRIVE_MOTOR_CONFIG.kFF) * (SWERVE_DRIVE.DRIVE_MOTOR_METERS_PER_REVOLUTION / 60.0);
+    return power / DRIVE_MOTOR_CONFIG.kFF;
   }
 
   public double getTargetVelocity() {

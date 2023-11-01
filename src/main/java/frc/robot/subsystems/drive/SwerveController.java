@@ -73,10 +73,10 @@ public class SwerveController extends SubsystemBase {
       targetRobotAngle = swerveDrive.getHeading();
       rotateController.calculate(targetRobotAngle, new TrapezoidProfile.State(targetRobotAngle, currentAngularVelocity));
     }
-    
+
     if (SwerveDrive.rotationalVelocityToWheelVelocity(Math.abs(angularVelocity)) < SWERVE_DRIVE.VELOCITY_DEADBAND) angularVelocity = 0.0;
     if (velocity.getNorm() < SWERVE_DRIVE.VELOCITY_DEADBAND) velocity = new Translation2d();
-
+    
     limitAcceleration();
     
     boolean moving = false;
@@ -89,6 +89,7 @@ public class SwerveController extends SubsystemBase {
       swerveDrive.parkModules();
       return;
     }
+
     swerveDrive.fieldOrientedDrive(velocity.getX(), velocity.getY(), angularVelocity);
     
     angularVelocity = 0.0;
