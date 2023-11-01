@@ -59,7 +59,7 @@ public class XBoxSwerve extends CommandBase {
     
     if (rightTrigger + leftTrigger > 0.0) {
       // Angular movement for each trigger
-      swerveController.addAngularVelocity((-rightTrigger - leftTrigger) * swerveController.MAX_ANGULAR_VELOCITY);
+      swerveController.addAngularVelocity((-rightTrigger + leftTrigger) * swerveController.MAX_ANGULAR_VELOCITY);
     }
 
     // Some shenanigans to calculate the right stick angle
@@ -76,6 +76,7 @@ public class XBoxSwerve extends CommandBase {
         
     // Left stick field oriented drive
     swerveController.addVelocity(swerveController.joystickToFieldMovement(leftStick.times(swerveController.MAX_DRIVE_VELOCITY)));
+
 
     // Zero heading when Y is pressed
     if (controller.getYButton()) {

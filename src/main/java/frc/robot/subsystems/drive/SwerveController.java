@@ -61,7 +61,6 @@ public class SwerveController extends SubsystemBase {
     if (DriverStation.isAutonomous()) {
       return;
     }
-
     double currentAngularVelocity = swerveDrive.getMeasuredChassisSpeeds().omegaRadiansPerSecond;    
     if (doAbsoluteRotation) {
       angularVelocity = rotateController.calculate(swerveDrive.getHeading(), targetRobotAngle);
@@ -145,6 +144,7 @@ public class SwerveController extends SubsystemBase {
   public void zeroHeading() {
     swerveDrive.zeroHeading();
     targetRobotAngle = swerveDrive.getHeading();
+    rotateController.reset(targetRobotAngle, 0.0);
   }
 
   public SwerveDrive getSwerveDrive() {

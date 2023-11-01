@@ -59,10 +59,10 @@ public class RobotContainer {
   }
 
   public Command getAutonomousCommand() {
-    return new FeedForwardCharacterization(swerveDrive, swerveDrive::runCharacterization, swerveDrive::getCharacterizationVelocity);
-    // HashMap<String, Command> eventMap = new HashMap<>();
-    // eventMap.put("marker1", new PrintCommand("Passed marker 1"));
-    // return swerveDrive.fullAuto("Test Path", eventMap);
+    // return new FeedForwardCharacterization(swerveDrive, swerveDrive::runCharacterization, swerveDrive::getCharacterizationVelocity);
+    HashMap<String, Command> eventMap = new HashMap<>();
+    eventMap.put("marker1", new PrintCommand("Passed marker 1"));
+    return swerveDrive.fullAuto("Test Path", eventMap);
   }
 
   public void disabledPeriodic() {

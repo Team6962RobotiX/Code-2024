@@ -58,20 +58,20 @@ public final class Constants {
     */
     
     public static final double   ROBOT_MASS                         = 25; // kg
-    public static final double   COEFFICIENT_OF_FRICTION            = 1.0; // 1.0 when on carpet 0.5 on KLS flooring
+    public static final double   COEFFICIENT_OF_FRICTION            = 0.5; // 1.0 when on carpet 0.5 on KLS flooring
 
     // TELEOPERATED POWER
     public static final double   TELEOPERATED_DRIVE_POWER           = 1.0; // Percent driving power (0.2  = 20%)
-    public static final double   TELEOPERATED_SLOW_DRIVE_POWER      = 0.1; // Percent driving power when using the DPad
+    public static final double   TELEOPERATED_SLOW_DRIVE_POWER      = 0.2; // Percent driving power when using the DPad
     public static final double   TELEOPERATED_BOOST_DRIVE_POWER     = 1.0; // Percent driving power when using the DPad
     public static final double   TELEOPERATED_ROTATE_POWER          = 0.5; // Percent rotating power (0.4 = 40%)
     
     // TELEOPERATED ACCELERATION
     public static final double   TELEOPERATED_ACCELERATION          = 25.0; // Measured in m/s^2
-    public static final double   TELEOPERATED_ANGULAR_ACCELERATION  = Math.PI * 20.0; // Measured in rad/s^2
+    public static final double   TELEOPERATED_ANGULAR_ACCELERATION  = Math.PI * 10.0; // Measured in rad/s^2
     
     // INPUT TUNING
-    public static final double   VELOCITY_DEADBAND                  = 0.1; // Velocity we stop moving at
+    public static final double   VELOCITY_DEADBAND                  = 0.15; // Velocity we stop moving at
 
     // AUTONOMOUS
     public static final double   AUTONOMOUS_VELOCITY                = 3.0; // [TODO] measured in meters/sec
@@ -119,7 +119,7 @@ public final class Constants {
     public static final double   ROTATION_ERROR_COMPENSATION        = 0.011; // Keeps movement in straight lines when rotating
     
     // SLIP PREVENTION
-    public static final boolean  DO_SLIP_PREVENTION = true;
+    public static final boolean  DO_SLIP_PREVENTION = false;
     public static final double   SLIP_CURRENT = ((9.80 * ROBOT_MASS * COEFFICIENT_OF_FRICTION * (WHEEL_DIAMETER / 2.0)) / (1 / DRIVE_MOTOR_GEAR_RATIO) / (((NEO.STALL_TORQUE * MODULE_COUNT) / ((NEO.STALL_CURRENT * MODULE_COUNT) - (NEO.FREE_CURRENT * MODULE_COUNT))) * GEARBOX_EFFICIENCY) + (NEO.FREE_CURRENT * MODULE_COUNT)) / MODULE_COUNT;
     
     // ((9.8*ROBOT_MASS*COEFFICIENT_OF_FRICTION*(WHEEL_DIAMETER / 2.0))/(1.0 / DRIVE_MOTOR_GEAR_RATIO) / ((Ts/((NEO.STALL_CURRENT * num)-(NEO.FREE_CURRENT * num)))*eff) + (NEO.FREE_CURRENT * num)) / num;
