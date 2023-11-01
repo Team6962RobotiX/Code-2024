@@ -17,6 +17,7 @@ import com.pathplanner.lib.PathPoint;
 import com.pathplanner.lib.auto.PIDConstants;
 import com.pathplanner.lib.auto.SwerveAutoBuilder;
 import com.pathplanner.lib.commands.PPSwerveControllerCommand;
+import com.revrobotics.REVPhysicsSim;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
@@ -61,13 +62,8 @@ public class SwerveDrive extends SubsystemBase {
       DriverStation.reportError("Error instantiating navX-MXP:  " + ex.getMessage(), false);
     }
 
-    if (RobotBase.isSimulation()) {
-      // for (int i = 0; i < moduleCount; i++)
-      // modules[i] = new SwerveModuleSim(i);
-    } else {
-      for (int i = 0; i < moduleCount; i++)
-        modules[i] = new SwerveModule(i);
-    }
+    for (int i = 0; i < moduleCount; i++)
+      modules[i] = new SwerveModule(i);
     
     poseEstimator = new SwerveDrivePoseEstimator(kinematics, getRotation2d(), getModulePositions(), SWERVE_DRIVE.STARTING_POSE);
 
@@ -111,6 +107,7 @@ public class SwerveDrive extends SubsystemBase {
 
   @Override
   public void simulationPeriodic() {
+    REVPhysicsSim.getInstance().run();
   }
 
   /**

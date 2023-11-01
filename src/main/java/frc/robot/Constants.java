@@ -132,22 +132,22 @@ public final class Constants {
      * kD -> Derivative term, essentially a damping factor to reduce oscillations produced by kP or kI
      */
     public static final class DRIVE_MOTOR_CONFIG {
-      public static final double maxVelocity        = NEO.FREE_SPEED / 60 * DRIVE_MOTOR_METERS_PER_REVOLUTION; // Trapezoidal Velocity Gain
-      public static final double maxAcceleration    = 9.80; // Trapezoidal Acceleration Gain
-      public static final double kP                 = 0.1; // PID Proportion Gain
+      public static final double maxRPM             = NEO.FREE_SPEED; // Trapezoidal Velocity Gain
+      public static final double maxAccel           = 9.80 / (SWERVE_DRIVE.DRIVE_MOTOR_METERS_PER_REVOLUTION / 60.0); // Trapezoidal Acceleration Gain
+      public static final double kP                 = 0.0; // PID Proportion Gain
       public static final double kI                 = 0.0; // PID Integral Gain
       public static final double kD                 = 0.0; // PID Derivative Gain
-      public static final double kFF                = 1.0 / maxVelocity; // FF Velocity Gain
+      public static final double kFF                = 1.0 / maxRPM; // FF Velocity Gain
       public static final int    currentLimit       = 40; // Amps
       public static final int[]  statusFramePeriods = { 20, 10, 10, 1000, 1000, 1000, 1000 };
     }
     public static final class STEER_MOTOR_CONFIG {
-      public static final double maxVelocity        = NEO.FREE_SPEED / 60 * STEER_MOTOR_RADIANS_PER_REVOLUTION; // Trapezoidal Velocity Gain
-      public static final double maxAcceleration    = Math.PI * 100.0; // Trapezoidal Acceleration Gain
+      public static final double maxRPM             = NEO.FREE_SPEED; // Trapezoidal Velocity Gain
+      public static final double maxAccel           = Math.PI * 100.0; // Trapezoidal Acceleration Gain
       public static final double kP                 = 0.0; // PID Proportion Gain
       public static final double kI                 = 0.0; // PID Integral Gain
       public static final double kD                 = 0.0; // PID Derivative Gain
-      public static final double kFF                = 1.0 / maxVelocity; // FF Velocity Gain
+      public static final double kFF                = 1.0 / maxRPM; // FF Velocity Gain
       public static final int    currentLimit       = 20; // Amps
       public static final int[] statusFramePeriods  = { 20, 10, 10, 1000, 1000, 1000, 1000 };
     }

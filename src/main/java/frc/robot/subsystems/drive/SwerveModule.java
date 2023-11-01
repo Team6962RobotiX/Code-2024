@@ -7,12 +7,13 @@ package frc.robot.subsystems.drive;
 import com.ctre.phoenix.sensors.AbsoluteSensorRange;
 import com.ctre.phoenix.sensors.CANCoder;
 import com.ctre.phoenix.sensors.CANCoderConfiguration;
-import com.ctre.phoenix.sensors.CANCoderStatusFrame;
-import com.revrobotics.RelativeEncoder;
-import com.revrobotics.SparkMaxPIDController;
+import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMax.ControlType;
 import com.revrobotics.CANSparkMax.IdleMode;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
+import com.revrobotics.REVPhysicsSim;
+import com.revrobotics.RelativeEncoder;
+import com.revrobotics.SparkMaxPIDController;
 import com.revrobotics.SparkMaxPIDController.AccelStrategy;
 
 import edu.wpi.first.math.geometry.Pose2d;
@@ -20,36 +21,35 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.MotorSafety;
 import edu.wpi.first.wpilibj.RobotBase;
-import edu.wpi.first.wpilibj.motorcontrol.Spark;
 import frc.robot.Constants.CAN;
-import frc.robot.Constants.LOGGING;
 import frc.robot.Constants.NEO;
 import frc.robot.Constants.SWERVE_DRIVE;
 import frc.robot.Constants.SWERVE_DRIVE.DRIVE_MOTOR_CONFIG;
 import frc.robot.Constants.SWERVE_DRIVE.STEER_MOTOR_CONFIG;
 import frc.robot.Constants.SWERVE_MATH;
-import frc.robot.util.SparkMax;
-import frc.robot.util.SparkMaxEncoder;
-import frc.robot.util.SparkMaxPID;
-import frc.robot.util.Logging.ErrorLogging;
 import frc.robot.util.Logging.Logger;
 
 public class SwerveModule extends MotorSafety {
-  private SparkMax driveMotor, steerMotor;
+  private CANSparkMax driveMotor, steerMotor;
   private RelativeEncoder driveEncoder, steerEncoder;
   private CANCoder absoluteSteerEncoder;
   private SparkMaxPIDController driveController, steerController;
   private SwerveModuleState state = new SwerveModuleState();
-  private String name;
-  
+  private String name;  
   public int id;
 
   public SwerveModule(int id) {
     this.id = id;
     name = SWERVE_DRIVE.MODULE_NAMES[id];
+
+    if (RobotBase.isSimulation()) {
+      REVPhysicsSim.getInstance().addSparkMax(driveMotor, DCMotor.getNEO(1));
+      REVPhysicsSim.getInstance().addSparkMax(steerMotor, DCMotor.getNEO(1));
+    }
 
     Logger.autoLog("current", this::getCurrent);
     Logger.autoLog("measuredAngle", this::getSteerRadians);
@@ -59,11 +59,10 @@ public class SwerveModule extends MotorSafety {
     Logger.autoLog("getAbsoluteSteerRadians", this::getAbsoluteSteerRadians);
     Logger.autoLog("measuredState", this::getMeasuredState);
 
-    if (RobotBase.isSimulation()) return;
     // MOTOR SETUP
-    driveMotor = new SparkMax(CAN.SWERVE_DRIVE_SPARK_MAX[id], MotorType.kBrushless);
-    steerMotor = new SparkMax(CAN.SWERVE_STEER_SPARK_MAX[id], MotorType.kBrushless);
-
+    driveMotor = new CANSparkMax(CAN.SWERVE_DRIVE_SPARK_MAX[id], MotorType.kBrushless);
+    steerMotor = new CANSparkMax(CAN.SWERVE_STEER_SPARK_MAX[id], MotorType.kBrushless);
+    
     driveMotor.restoreFactoryDefaults();
     steerMotor.restoreFactoryDefaults();
 
@@ -99,9 +98,9 @@ public class SwerveModule extends MotorSafety {
     driveController.setP (DRIVE_MOTOR_CONFIG.kP,  0);
     driveController.setI (DRIVE_MOTOR_CONFIG.kI,  0);
     driveController.setD (DRIVE_MOTOR_CONFIG.kD,  0);
-    driveController.setFF(DRIVE_MOTOR_CONFIG.kFF * driveEncoder.getVelocityConversionFactor(), 0);
-    driveController.setSmartMotionMaxVelocity(DRIVE_MOTOR_CONFIG.maxVelocity / driveEncoder.getVelocityConversionFactor(), 0);
-    driveController.setSmartMotionMaxAccel(DRIVE_MOTOR_CONFIG.maxAcceleration / driveEncoder.getVelocityConversionFactor(), 0);
+    driveController.setFF(DRIVE_MOTOR_CONFIG.kFF, 0);
+    driveController.setSmartMotionMaxVelocity(DRIVE_MOTOR_CONFIG.maxRPM, 0);
+    driveController.setSmartMotionMaxAccel(DRIVE_MOTOR_CONFIG.maxAccel, 0);
     driveController.setSmartMotionAllowedClosedLoopError(0.05, 0);
 
     driveController.setOutputRange(-SWERVE_DRIVE.MOTOR_POWER_HARD_CAP, SWERVE_DRIVE.MOTOR_POWER_HARD_CAP, 0);
@@ -112,22 +111,19 @@ public class SwerveModule extends MotorSafety {
     steerController.setP (STEER_MOTOR_CONFIG.kP,  0);
     steerController.setI (STEER_MOTOR_CONFIG.kI,  0);
     steerController.setD (STEER_MOTOR_CONFIG.kD,  0);
-    steerController.setFF(STEER_MOTOR_CONFIG.kFF * steerEncoder.getVelocityConversionFactor(), 0);
-    steerController.setSmartMotionMaxVelocity(STEER_MOTOR_CONFIG.maxVelocity / steerEncoder.getVelocityConversionFactor(), 0);
-    steerController.setSmartMotionMaxAccel(STEER_MOTOR_CONFIG.maxAcceleration / steerEncoder.getVelocityConversionFactor(), 0);
+    steerController.setFF(STEER_MOTOR_CONFIG.kFF, 0);
+
+    steerController.setSmartMotionMaxVelocity(STEER_MOTOR_CONFIG.maxRPM, 0);
+    steerController.setSmartMotionMaxAccel(STEER_MOTOR_CONFIG.maxAccel, 0);
     steerController.setSmartMotionAccelStrategy(AccelStrategy.kSCurve, 0);
     steerController.setSmartMotionAllowedClosedLoopError(0.05, 0);
 
     steerController.setOutputRange(-SWERVE_DRIVE.MOTOR_POWER_HARD_CAP, SWERVE_DRIVE.MOTOR_POWER_HARD_CAP, 0);
     steerController.setFeedbackDevice(steerEncoder);
 
-    // steerController.setPositionPIDWrappingEnabled(true);
-    // steerController.setPositionPIDWrappingMaxInput(Math.PI / steerEncoder.getPositionConversionFactor());
-    // steerController.setPositionPIDWrappingMinInput(-Math.PI / steerEncoder.getPositionConversionFactor());
-
     // SAVE SETTINGS
     driveMotor.burnFlash();
-    steerMotor.burnFlash(); 
+    steerMotor.burnFlash();
 
     seedSteerEncoder();
   }
@@ -142,10 +138,33 @@ public class SwerveModule extends MotorSafety {
     this.state = state;
     
     // Use onboard motion profiling controllers
-    // driveController.setReference(state.speedMetersPerSecond, ControlType.kVelocity);
-    steerController.setReference(state.angle.getRadians(), ControlType.kSmartMotion);
-
+    // driveController.setReference(state.speedMetersPerSecond, ControlType.kSmartVelocity);
+    
+    steerController.setReference(getClosestSteerPosition(state.angle.getRadians()), ControlType.kSmartMotion);
+    // steerMotor.set(0.75);
+    REVPhysicsSim.getInstance().run();
+    // System.out.println(steerMotor.getAppliedOutput());
     feed();
+  }
+
+  public double getClosestSteerPosition(double targetSteerRadians) {
+    double baseAngle = steerEncoder.getPosition() - getSteerRadians();
+    double angle1 = baseAngle + targetSteerRadians;
+    double angle2 = baseAngle + (targetSteerRadians - Math.PI * 2.0);
+    double angle3 = baseAngle + (targetSteerRadians + Math.PI * 2.0);
+    double angle1Dist = Math.abs(angle1 - steerEncoder.getPosition());
+    double angle2Dist = Math.abs(angle2 - steerEncoder.getPosition());
+    double angle3Dist = Math.abs(angle3 - steerEncoder.getPosition());
+    if (angle1Dist == Math.min(Math.min(angle1Dist, angle2Dist), angle3Dist)) {
+      return angle1;
+    }
+    if (angle2Dist == Math.min(Math.min(angle1Dist, angle2Dist), angle3Dist)) {
+      return angle2;
+    }
+    if (angle3Dist == Math.min(Math.min(angle1Dist, angle2Dist), angle3Dist)) {
+      return angle3;
+    }
+    return angle1;
   }
 
   public void drive(SwerveModuleState state) {
@@ -161,22 +180,29 @@ public class SwerveModule extends MotorSafety {
    * Also the built-in SparkMaxPIDControllers require a compatible encoder to run the faster 1kHz closed loop 
    */
   public void seedSteerEncoder() {
-    // steerEncoder.setPosition(getAbsoluteSteerRadians());
+    steerEncoder.setPosition(getAbsoluteSteerRadians());
   }
 
   /**
    * @return Steering direction in radians (-PI - PI)
    */
   public double getSteerRadians() {
-    // if (Math.abs(steerEncoder.getVelocity()) < SWERVE_DRIVE.VELOCITY_DEADBAND && SWERVE_MATH.angleDistance(this.state.angle.getRadians(), steerEncoder.getPosition()) < Units.degreesToRadians(1.0)) seedSteerEncoder();
+    if (
+        Math.abs(getVelocity()) < SWERVE_DRIVE.VELOCITY_DEADBAND && 
+        SWERVE_MATH.angleDistance(this.state.angle.getRadians(), steerEncoder.getPosition()) < Units.degreesToRadians(1.0)
+      ) {
+      seedSteerEncoder();
+    }
+      
     // if (Math.abs(steerEncoder.getPosition()) > Math.PI) steerEncoder.setPosition(SWERVE_MATH.clampRadians(steerEncoder.getPosition()));
-    return steerEncoder.getPosition();
+    return SWERVE_MATH.clampRadians(steerEncoder.getPosition());
   }
 
   /**
    * @return Steering direction from absolute encoder (CANCoder) in radians (-PI - PI)
    */
   public double getAbsoluteSteerRadians() {
+    if (RobotBase.isSimulation()) return SWERVE_MATH.clampRadians(steerEncoder.getPosition());
     return Units.degreesToRadians(absoluteSteerEncoder.getAbsolutePosition());
   }
 
@@ -253,7 +279,7 @@ public class SwerveModule extends MotorSafety {
    * @return Drive velocity
    */
   public static double motorPowerToDriveVelocity(double power) {
-    return power / DRIVE_MOTOR_CONFIG.kFF;
+    return (power / DRIVE_MOTOR_CONFIG.kFF) * (SWERVE_DRIVE.DRIVE_MOTOR_METERS_PER_REVOLUTION / 60.0);
   }
 
   public double getTargetVelocity() {
