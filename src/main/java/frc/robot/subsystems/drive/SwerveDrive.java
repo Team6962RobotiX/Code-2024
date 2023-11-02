@@ -61,9 +61,14 @@ public class SwerveDrive extends SubsystemBase {
     } catch (RuntimeException ex) {
       DriverStation.reportError("Error instantiating navX-MXP:  " + ex.getMessage(), false);
     }
-
-    for (int i = 0; i < moduleCount; i++)
+    
+    if (RobotBase.isSimulation()) {
+      for (int i = 0; i < moduleCount; i++)
+      modules[i] = new SwerveModuleSim(i, this);
+    } else {
+      for (int i = 0; i < moduleCount; i++)
       modules[i] = new SwerveModule(i);
+    }
     
     poseEstimator = new SwerveDrivePoseEstimator(kinematics, getRotation2d(), getModulePositions(), SWERVE_DRIVE.STARTING_POSE);
 
@@ -89,7 +94,6 @@ public class SwerveDrive extends SubsystemBase {
     double timeDelta = Timer.getFPGATimestamp() - lastTimestamp;
     lastTimestamp += timeDelta;
 
-    for (SwerveModule module : modules) module.update();
     poseEstimator.update(getRotation2d(), getModulePositions());
     FieldObject2d modulesObject = field.getObject("Swerve Modules");
     Pose2d[] modulePoses = new Pose2d[4];
@@ -147,7 +151,7 @@ public class SwerveDrive extends SubsystemBase {
     velocity = new ChassisSpeeds(twistVel.dx / dtConstant, twistVel.dy / dtConstant, twistVel.dtheta / dtConstant);
     moduleStates = kinematics.toSwerveModuleStates(velocity);
 
-    SwerveDriveKinematics.desaturateWheelSpeeds(moduleStates, SwerveModule.motorPowerToDriveVelocity(SWERVE_DRIVE.MOTOR_POWER_HARD_CAP));
+    SwerveDriveKinematics.desaturateWheelSpeeds(moduleStates, SwerveModule.calcDriveVelocity(SWERVE_DRIVE.MOTOR_POWER_HARD_CAP));
     for (int i = 0; i < moduleCount; i++)
       modules[i].drive(moduleStates[i]);
   }
@@ -242,7 +246,7 @@ public class SwerveDrive extends SubsystemBase {
   public double getCurrent() {
     double totalCurrent = 0.0;
     for (SwerveModule module : modules)
-      totalCurrent += module.getCurrent();
+      totalCurrent += module.getTotalCurrent();
     return totalCurrent;
   }
 

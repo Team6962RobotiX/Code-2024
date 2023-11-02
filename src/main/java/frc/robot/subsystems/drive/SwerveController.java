@@ -21,11 +21,11 @@ import frc.robot.Constants.SWERVE_DRIVE;
 public class SwerveController extends SubsystemBase {
   private SwerveDrive swerveDrive;
   
-  public final double MAX_DRIVE_VELOCITY = SwerveModule.motorPowerToDriveVelocity(SWERVE_DRIVE.TELEOPERATED_BOOST_DRIVE_POWER);
-  public final double NOMINAL_DRIVE_VELOCITY = SwerveModule.motorPowerToDriveVelocity(SWERVE_DRIVE.TELEOPERATED_DRIVE_POWER);
-  public final double SLOW_DRIVE_VELOCITY = SwerveModule.motorPowerToDriveVelocity(SWERVE_DRIVE.TELEOPERATED_SLOW_DRIVE_POWER);
+  public final double MAX_DRIVE_VELOCITY = SwerveModule.calcDriveVelocity(SWERVE_DRIVE.TELEOPERATED_BOOST_DRIVE_POWER);
+  public final double NOMINAL_DRIVE_VELOCITY = SwerveModule.calcDriveVelocity(SWERVE_DRIVE.TELEOPERATED_DRIVE_POWER);
+  public final double SLOW_DRIVE_VELOCITY = SwerveModule.calcDriveVelocity(SWERVE_DRIVE.TELEOPERATED_SLOW_DRIVE_POWER);
   public final double MAX_DRIVE_ACCELERATION = SWERVE_DRIVE.TELEOPERATED_ACCELERATION;
-  public final double MAX_ANGULAR_VELOCITY = SwerveDrive.wheelVelocityToRotationalVelocity(SwerveModule.motorPowerToDriveVelocity(SWERVE_DRIVE.TELEOPERATED_ROTATE_POWER));
+  public final double MAX_ANGULAR_VELOCITY = SwerveDrive.wheelVelocityToRotationalVelocity(SwerveModule.calcDriveVelocity(SWERVE_DRIVE.TELEOPERATED_ROTATE_POWER));
   public final double MAX_ANGULAR_ACCELERATION = SWERVE_DRIVE.TELEOPERATED_ANGULAR_ACCELERATION;
 
   private ProfiledPIDController rotateController = new ProfiledPIDController(

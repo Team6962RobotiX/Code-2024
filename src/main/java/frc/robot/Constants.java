@@ -58,7 +58,8 @@ public final class Constants {
     */
     
     public static final double   ROBOT_MASS                         = 25; // kg
-    public static final double   COEFFICIENT_OF_FRICTION            = 0.5; // 1.0 when on carpet 0.5 on KLS flooring
+    public static final double   STATIC_FRICTION                    = 0.5; // 1.0 when on carpet 0.5 on KLS flooring
+    public static final double   KINETIC_FRICTION                   = 0.5;
 
     // TELEOPERATED POWER
     public static final double   TELEOPERATED_DRIVE_POWER           = 1.0; // Percent driving power (0.2  = 20%)
@@ -120,7 +121,7 @@ public final class Constants {
     
     // SLIP PREVENTION
     public static final boolean  DO_SLIP_PREVENTION = false;
-    public static final double   SLIP_CURRENT = ((9.80 * ROBOT_MASS * COEFFICIENT_OF_FRICTION * (WHEEL_DIAMETER / 2.0)) / (1 / DRIVE_MOTOR_GEAR_RATIO) / (((NEO.STALL_TORQUE * MODULE_COUNT) / ((NEO.STALL_CURRENT * MODULE_COUNT) - (NEO.FREE_CURRENT * MODULE_COUNT))) * GEARBOX_EFFICIENCY) + (NEO.FREE_CURRENT * MODULE_COUNT)) / MODULE_COUNT;
+    public static final double   SLIP_CURRENT = ((9.80 * ROBOT_MASS * STATIC_FRICTION * (WHEEL_DIAMETER / 2.0)) / (1 / DRIVE_MOTOR_GEAR_RATIO) / (((NEO.STALL_TORQUE * MODULE_COUNT) / ((NEO.STALL_CURRENT * MODULE_COUNT) - (NEO.FREE_CURRENT * MODULE_COUNT))) * GEARBOX_EFFICIENCY) + (NEO.FREE_CURRENT * MODULE_COUNT)) / MODULE_COUNT;
     
     // ((9.8*ROBOT_MASS*COEFFICIENT_OF_FRICTION*(WHEEL_DIAMETER / 2.0))/(1.0 / DRIVE_MOTOR_GEAR_RATIO) / ((Ts/((NEO.STALL_CURRENT * num)-(NEO.FREE_CURRENT * num)))*eff) + (NEO.FREE_CURRENT * num)) / num;
 
@@ -137,8 +138,8 @@ public final class Constants {
       public static final double kD                 = 0.0; // PID Derivative Gain
       public static final double kFF                = 1.0 / (NEO.FREE_SPEED / 60.0 * SWERVE_DRIVE.DRIVE_MOTOR_METERS_PER_REVOLUTION);
       public static final int    CURRENT_LIMIT      = (int) SLIP_CURRENT; // Amps
-      public static final double RAMP_RATE          = 0.25;
-      public static final int[]  statusFramePeriods = { 20, 10, 10, 1000, 1000, 1000, 1000 };
+      public static final double RAMP_RATE          = 0.1;
+      public static final int[]  statusFramePeriods = { 20, 10, 10, 500, 500, 500, 500 };
     }
     public static final class STEER_MOTOR_CONFIG {
       public static final double kP                 = 0.75; // PID Proportion Gain
@@ -146,7 +147,7 @@ public final class Constants {
       public static final double kD                 = 0.0; // PID Derivative Gain
       public static final int    CURRENT_LIMIT      = 20; // Amps
       public static final double RAMP_RATE          = 0.1;
-      public static final int[] statusFramePeriods  = { 20, 10, 10, 1000, 1000, 1000, 1000 };
+      public static final int[] statusFramePeriods  = { 20, 10, 10, 500, 500, 500, 500 };
     }
     public static final class ABSOLUTE_ROTATION_GAINS {
       public static final double kP  = 4.0;
