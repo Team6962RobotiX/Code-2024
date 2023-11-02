@@ -4,6 +4,8 @@
 
 package frc.robot.subsystems.drive;
 
+import java.util.List;
+
 import com.ctre.phoenix.sensors.AbsoluteSensorRange;
 import com.ctre.phoenix.sensors.CANCoder;
 import com.ctre.phoenix.sensors.CANCoderConfiguration;
@@ -14,20 +16,14 @@ import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import com.revrobotics.REVPhysicsSim;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkMaxPIDController;
-import com.revrobotics.SparkMaxPIDController.AccelStrategy;
-import com.revrobotics.SparkMaxPIDController.ArbFFUnits;
 
 import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.system.plant.DCMotor;
-import edu.wpi.first.math.trajectory.TrapezoidProfile;
-import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
-import edu.wpi.first.math.trajectory.TrapezoidProfile.State;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.MotorSafety;
 import edu.wpi.first.wpilibj.RobotBase;
@@ -37,6 +33,7 @@ import frc.robot.Constants.SWERVE_DRIVE;
 import frc.robot.Constants.SWERVE_DRIVE.DRIVE_MOTOR_CONFIG;
 import frc.robot.Constants.SWERVE_DRIVE.STEER_MOTOR_CONFIG;
 import frc.robot.Constants.SWERVE_MATH;
+import frc.robot.util.SparkMaxUtils;
 import frc.robot.util.Logging.Logger;
 
 public class SwerveModule extends MotorSafety {
@@ -69,25 +66,24 @@ public class SwerveModule extends MotorSafety {
     driveMotor = new CANSparkMax(CAN.SWERVE_DRIVE_SPARK_MAX[id], MotorType.kBrushless);
     steerMotor = new CANSparkMax(CAN.SWERVE_STEER_SPARK_MAX[id], MotorType.kBrushless);
     
-    driveMotor.restoreFactoryDefaults();
+    SparkMaxUtils.configure(driveMotor, List.of(
+      () -> driveMotor.restoreFactoryDefaults(),
+      () -> driveMotor.setIdleMode(IdleMode.kBrake),
+      () -> driveMotor.enableVoltageCompensation(12.0),
+      () -> driveMotor.setSmartCurrentLimit(Math.min(DRIVE_MOTOR_CONFIG.CURRENT_LIMIT, NEO.SAFE_STALL_CURRENT), DRIVE_MOTOR_CONFIG.CURRENT_LIMIT),
+      () -> driveMotor.setClosedLoopRampRate(DRIVE_MOTOR_CONFIG.RAMP_RATE),
+      () -> driveMotor.setClosedLoopRampRate(Math.max((NEO.FREE_SPEED / 60.0) / (9.80 / SWERVE_DRIVE.DRIVE_MOTOR_METERS_PER_REVOLUTION), DRIVE_MOTOR_CONFIG.RAMP_RATE));
+    ));
+
     steerMotor.restoreFactoryDefaults();
 
-    driveMotor.setIdleMode(IdleMode.kBrake);
     steerMotor.setIdleMode(IdleMode.kBrake);
 
     steerMotor.setInverted(true);
 
-    if (SWERVE_DRIVE.DO_SLIP_PREVENTION) {
-      driveMotor.setSmartCurrentLimit(Math.min((int) SWERVE_DRIVE.SLIP_CURRENT, Math.min(DRIVE_MOTOR_CONFIG.CURRENT_LIMIT, NEO.SAFE_STALL_CURRENT)), Math.min((int) SWERVE_DRIVE.SLIP_CURRENT, DRIVE_MOTOR_CONFIG.CURRENT_LIMIT));
-      driveMotor.setClosedLoopRampRate(Math.max((NEO.FREE_SPEED / 60.0) / ((9.80 * SWERVE_DRIVE.COEFFICIENT_OF_FRICTION) / SWERVE_DRIVE.DRIVE_MOTOR_METERS_PER_REVOLUTION), DRIVE_MOTOR_CONFIG.RAMP_RATE));
-    } else {
-      driveMotor.setSmartCurrentLimit(Math.min(DRIVE_MOTOR_CONFIG.CURRENT_LIMIT, NEO.SAFE_STALL_CURRENT), DRIVE_MOTOR_CONFIG.CURRENT_LIMIT);
-      driveMotor.setClosedLoopRampRate(DRIVE_MOTOR_CONFIG.RAMP_RATE);
-    }
     steerMotor.setSmartCurrentLimit(Math.min(STEER_MOTOR_CONFIG.CURRENT_LIMIT, NEO.SAFE_STALL_CURRENT), STEER_MOTOR_CONFIG.CURRENT_LIMIT);
     steerMotor.setClosedLoopRampRate(STEER_MOTOR_CONFIG.RAMP_RATE);
 
-    driveMotor.enableVoltageCompensation(12.0);
     steerMotor.enableVoltageCompensation(12.0);
 
     // ENCODER SETUP
@@ -104,7 +100,6 @@ public class SwerveModule extends MotorSafety {
     CANCoderConfig.magnetOffsetDegrees = SWERVE_DRIVE.STEER_ENCODER_OFFSETS[id];
     CANCoderConfig.absoluteSensorRange = AbsoluteSensorRange.Signed_PlusMinus180;
     absoluteSteerEncoder.configAllSettings(CANCoderConfig);
-
 
     // DRIVE MOTION PROFILING
     driveController = driveMotor.getPIDController();
@@ -140,6 +135,13 @@ public class SwerveModule extends MotorSafety {
     if (SWERVE_DRIVE.DO_ANGLE_ERROR_SPEED_REDUCTION) state.speedMetersPerSecond *= Math.cos(SWERVE_MATH.angleDistance(state.angle.getRadians(), getSteerRadians()));
     this.state = state;
     
+    if (
+        Math.abs(getVelocity()) < SWERVE_DRIVE.VELOCITY_DEADBAND && 
+        SWERVE_MATH.angleDistance(this.state.angle.getRadians(), steerEncoder.getPosition()) < Units.degreesToRadians(1.0)
+      ) {
+      seedSteerEncoder();
+    }
+
     // Use onboard motion profiling controllers
     driveController.setReference(state.speedMetersPerSecond, ControlType.kVelocity);
     steerController.setReference(state.angle.getRadians(), ControlType.kPosition);
@@ -166,22 +168,14 @@ public class SwerveModule extends MotorSafety {
    * @return Steering direction in radians (-PI - PI)
    */
   public double getSteerRadians() {
-    if (
-        Math.abs(getVelocity()) < SWERVE_DRIVE.VELOCITY_DEADBAND && 
-        SWERVE_MATH.angleDistance(this.state.angle.getRadians(), steerEncoder.getPosition()) < Units.degreesToRadians(1.0)
-      ) {
-      seedSteerEncoder();
-    }
-      
-    // if (Math.abs(steerEncoder.getPosition()) > Math.PI) steerEncoder.setPosition(SWERVE_MATH.clampRadians(steerEncoder.getPosition()));
-    return SWERVE_MATH.clampRadians(steerEncoder.getPosition());
+    return MathUtil.angleModulus(steerEncoder.getPosition());
   }
 
   /**
    * @return Steering direction from absolute encoder (CANCoder) in radians (-PI - PI)
    */
   public double getAbsoluteSteerRadians() {
-    if (RobotBase.isSimulation()) return SWERVE_MATH.clampRadians(steerEncoder.getPosition());
+    if (RobotBase.isSimulation()) return MathUtil.angleModulus(steerEncoder.getPosition());
     return Units.degreesToRadians(absoluteSteerEncoder.getAbsolutePosition());
   }
 

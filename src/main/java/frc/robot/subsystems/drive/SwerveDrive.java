@@ -7,7 +7,6 @@ package frc.robot.subsystems.drive;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import com.kauailabs.navx.frc.AHRS;
 import com.pathplanner.lib.PathConstraints;
@@ -19,11 +18,12 @@ import com.pathplanner.lib.auto.SwerveAutoBuilder;
 import com.pathplanner.lib.commands.PPSwerveControllerCommand;
 import com.revrobotics.REVPhysicsSim;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
@@ -41,7 +41,6 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Constants.NEO;
 import frc.robot.Constants.SWERVE_DRIVE;
 import frc.robot.Constants.SWERVE_MATH;
 
@@ -49,7 +48,7 @@ public class SwerveDrive extends SubsystemBase {
 
   private SwerveModule[] modules = new SwerveModule[4];
   private AHRS gyro;
-  private SwerveDriveKinematics kinematics = SWERVE_MATH.getKinematics();
+  private SwerveDriveKinematics kinematics = getKinematics();
   private SwerveDrivePoseEstimator poseEstimator;
   private int moduleCount = SWERVE_DRIVE.MODULE_NAMES.length;
   private Field2d field = new Field2d();
@@ -278,7 +277,7 @@ public class SwerveDrive extends SubsystemBase {
    * @return Get gyro heading in radians (-pi - pi)
    */
   public double getHeading() {
-    return SWERVE_MATH.clampRadians(getRotation2d().getRadians());
+    return MathUtil.angleModulus(getRotation2d().getRadians());
   }
 
   /**
@@ -315,6 +314,14 @@ public class SwerveDrive extends SubsystemBase {
     return Math.hypot(getMeasuredChassisSpeeds().vxMetersPerSecond, getMeasuredChassisSpeeds().vyMetersPerSecond);
   }
 
+  public static SwerveDriveKinematics getKinematics() {
+    return new SwerveDriveKinematics(
+      new Translation2d( SWERVE_DRIVE.TRACKWIDTH / 2.0, SWERVE_DRIVE.WHEELBASE  / 2.0), 
+      new Translation2d( SWERVE_DRIVE.TRACKWIDTH / 2.0, -SWERVE_DRIVE.WHEELBASE / 2.0), 
+      new Translation2d(-SWERVE_DRIVE.TRACKWIDTH / 2.0, SWERVE_DRIVE.WHEELBASE  / 2.0), 
+      new Translation2d(-SWERVE_DRIVE.TRACKWIDTH / 2.0, -SWERVE_DRIVE.WHEELBASE / 2.0));
+  }
+
   public Command fullAuto(String pathName, HashMap<String, Command> eventMap) {
     // This will load the file "FullAuto.path" and generate it with a max velocity of 4 m/s and a max acceleration of 3 m/s^2
     // for every path in the group
@@ -323,7 +330,7 @@ public class SwerveDrive extends SubsystemBase {
     // Create the AutoBuilder. This only needs to be created once when robot code starts, not every time you want to create an auto command. A good place to put this is in RobotContainer along with your subsystems.
     SwerveAutoBuilder autoBuilder = new SwerveAutoBuilder(this::getPose, // Pose2d supplier
         this::resetPose, // Pose2d consumer, used to reset odometry at the beginning of auto
-        SWERVE_MATH.getKinematics(), // SwerveDriveKinematics
+        getKinematics(), // SwerveDriveKinematics
         new PIDConstants(
           SWERVE_DRIVE.AUTONOMOUS_TRANSLATION_GAINS.kP,
           SWERVE_DRIVE.AUTONOMOUS_TRANSLATION_GAINS.kI,
@@ -344,7 +351,7 @@ public class SwerveDrive extends SubsystemBase {
 
   public Command followTrajectoryCommand(PathPlannerTrajectory traj) {
     return new SequentialCommandGroup(new PPSwerveControllerCommand(traj, this::getPose, // Pose supplier
-        SWERVE_MATH.getKinematics(), // SwerveDriveKinematics
+        getKinematics(), // SwerveDriveKinematics
         new PIDController(
           SWERVE_DRIVE.AUTONOMOUS_TRANSLATION_GAINS.kP,
           SWERVE_DRIVE.AUTONOMOUS_TRANSLATION_GAINS.kI,

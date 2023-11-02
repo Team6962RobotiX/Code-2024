@@ -136,7 +136,7 @@ public final class Constants {
       public static final double kI                 = 0.0; // PID Integral Gain
       public static final double kD                 = 0.0; // PID Derivative Gain
       public static final double kFF                = 1.0 / (NEO.FREE_SPEED / 60.0 * SWERVE_DRIVE.DRIVE_MOTOR_METERS_PER_REVOLUTION);
-      public static final int    CURRENT_LIMIT      = 40; // Amps
+      public static final int    CURRENT_LIMIT      = (int) SLIP_CURRENT; // Amps
       public static final double RAMP_RATE          = 0.25;
       public static final int[]  statusFramePeriods = { 20, 10, 10, 1000, 1000, 1000, 1000 };
     }
@@ -190,23 +190,6 @@ public final class Constants {
   }
 
   public static final class SWERVE_MATH {
-    // Calculate swerve drive kinematics
-    public static SwerveDriveKinematics getKinematics() {
-      return new SwerveDriveKinematics(
-        new Translation2d( SWERVE_DRIVE.TRACKWIDTH / 2.0, SWERVE_DRIVE.WHEELBASE  / 2.0), 
-        new Translation2d( SWERVE_DRIVE.TRACKWIDTH / 2.0, -SWERVE_DRIVE.WHEELBASE / 2.0), 
-        new Translation2d(-SWERVE_DRIVE.TRACKWIDTH / 2.0, SWERVE_DRIVE.WHEELBASE  / 2.0), 
-        new Translation2d(-SWERVE_DRIVE.TRACKWIDTH / 2.0, -SWERVE_DRIVE.WHEELBASE / 2.0));
-    }
-
-    public static double clampRadians(double radians) {
-      return Units.degreesToRadians(clampDegrees(Units.radiansToDegrees(radians)));
-    }
-
-    public static double clampDegrees(double degrees) {
-      return mod(degrees + 180.0, 360.0) - 180.0;
-    }
-
     public static double angleDistance(double alpha, double beta) {
       double phi = Math.abs(beta - alpha) % (2.0 * Math.PI);
       return phi > Math.PI ? (2.0 * Math.PI) - phi : phi;
