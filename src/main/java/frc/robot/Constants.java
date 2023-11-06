@@ -7,10 +7,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Twist2d;
-import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
-import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.util.Units;
-import frc.robot.subsystems.drive.SwerveDrive;
 
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide numerical or boolean
@@ -30,7 +27,7 @@ public final class Constants {
   }
 
   public static final class LOGGING {
-    public static final int LOGGING_PERIOD_MS = 100;
+    public static final int LOGGING_PERIOD_MS = 20;
   }
 
   // DEVICES
@@ -58,31 +55,26 @@ public final class Constants {
     */
     
     public static final double   ROBOT_MASS                         = 25; // kg
-    public static final double   STATIC_FRICTION                    = 0.5; // 1.0 when on carpet 0.5 on KLS flooring
-    public static final double   KINETIC_FRICTION                   = 0.5;
+    public static final double   FRICTION_COEFFICIENT               = 1.0; // 1.0 when on carpet 0.5 on KLS flooring
 
     // TELEOPERATED POWER
-    public static final double   TELEOPERATED_DRIVE_POWER           = 1.0; // Percent driving power (0.2  = 20%)
+    public static final double   TELEOPERATED_DRIVE_POWER           = 0.4; // Percent driving power (0.2  = 20%)
     public static final double   TELEOPERATED_SLOW_DRIVE_POWER      = 0.2; // Percent driving power when using the DPad
     public static final double   TELEOPERATED_BOOST_DRIVE_POWER     = 1.0; // Percent driving power when using the DPad
-    public static final double   TELEOPERATED_ROTATE_POWER          = 0.5; // Percent rotating power (0.4 = 40%)
+    public static final double   TELEOPERATED_ROTATE_POWER          = 0.4; // Percent rotating power (0.4 = 40%)
     
-    // TELEOPERATED ACCELERATION
-    public static final double   TELEOPERATED_ACCELERATION          = 25.0; // Measured in m/s^2
-    public static final double   TELEOPERATED_ANGULAR_ACCELERATION  = Math.PI * 10.0; // Measured in rad/s^2
+    // ACCELERATION
+    public static final double   ACCELERATION                       = 9.8 * FRICTION_COEFFICIENT; // Measured in m/s^2
     
     // INPUT TUNING
     public static final double   VELOCITY_DEADBAND                  = 0.15; // Velocity we stop moving at
 
     // AUTONOMOUS
-    public static final double   AUTONOMOUS_VELOCITY                = 3.0; // [TODO] measured in meters/sec
-    public static final double   AUTONOMOUS_ACCELERATION            = 3.0; // [TODO] measured in meters/sec^2
-    public static final double   AUTONOMOUS_ANGULAR_VELOCITY        = Math.PI; // [TODO] measured in rad/sec
-    public static final double   AUTONOMOUS_ANGULAR_ACCELERATION    = Math.PI; // [TODO] measured in rad/sec^2
+    public static final double   AUTONOMOUS_VELOCITY                = 4.4; // [TODO] measured in meters/sec
+    public static final double   AUTONOMOUS_ACCELERATION            = ACCELERATION / 2.0; // [TODO] measured in meters/sec^2
     
     // ODOMETER
-    public static final Pose2d   STARTING_POSE                      = new Pose2d(5.0, 5.0, Rotation2d.fromDegrees(0.0));
-    public static final Rotation2d STARTING_ANGLE_OFFSET            = Rotation2d.fromDegrees(0.0);
+    public static final Pose2d   STARTING_POSE                      = new Pose2d(0.0, 0.0, Rotation2d.fromDegrees(0.0));
     
     // TESTING
     public static final double   MOTOR_POWER_HARD_CAP               = 1.0; // Only use for testing, otherwise set to 1.0
@@ -117,11 +109,11 @@ public final class Constants {
     
     // REDUCE DRIVE VELOCITY WHEN FAR FROM ANGLE
     public static final boolean  DO_ANGLE_ERROR_SPEED_REDUCTION     = true;
-    public static final double   ROTATION_ERROR_COMPENSATION        = 0.011; // Keeps movement in straight lines when rotating
+    public static final double   ROTATION_ERROR_COMPENSATION        = 0.09; // Keeps movement in straight lines when rotating
     
     // SLIP PREVENTION
     public static final boolean  DO_SLIP_PREVENTION = false;
-    public static final double   SLIP_CURRENT = ((9.80 * ROBOT_MASS * STATIC_FRICTION * (WHEEL_DIAMETER / 2.0)) / (1 / DRIVE_MOTOR_GEAR_RATIO) / (((NEO.STALL_TORQUE * MODULE_COUNT) / ((NEO.STALL_CURRENT * MODULE_COUNT) - (NEO.FREE_CURRENT * MODULE_COUNT))) * GEARBOX_EFFICIENCY) + (NEO.FREE_CURRENT * MODULE_COUNT)) / MODULE_COUNT;
+    public static final double   SLIP_CURRENT = ((9.80 * ROBOT_MASS * FRICTION_COEFFICIENT * (WHEEL_DIAMETER / 2.0)) / (1 / DRIVE_MOTOR_GEAR_RATIO) / (((NEO.STALL_TORQUE * MODULE_COUNT) / ((NEO.STALL_CURRENT * MODULE_COUNT) - (NEO.FREE_CURRENT * MODULE_COUNT))) * GEARBOX_EFFICIENCY) + (NEO.FREE_CURRENT * MODULE_COUNT)) / MODULE_COUNT;
     
     // ((9.8*ROBOT_MASS*COEFFICIENT_OF_FRICTION*(WHEEL_DIAMETER / 2.0))/(1.0 / DRIVE_MOTOR_GEAR_RATIO) / ((Ts/((NEO.STALL_CURRENT * num)-(NEO.FREE_CURRENT * num)))*eff) + (NEO.FREE_CURRENT * num)) / num;
 
@@ -157,12 +149,12 @@ public final class Constants {
 
     // AUTONOMOUS
     public static final class AUTONOMOUS_TRANSLATION_GAINS {
-      public static final double kP = 1.0;
+      public static final double kP = 3.0;
       public static final double kI = 0.0;
       public static final double kD = 0.0;
     }
     public static final class AUTONOMOUS_ROTATION_GAINS {
-      public static final double kP = 1.0;
+      public static final double kP = 3.0;
       public static final double kI = 0.0;
       public static final double kD = 0.0;
     }
@@ -196,7 +188,7 @@ public final class Constants {
       return phi > Math.PI ? (2.0 * Math.PI) - phi : phi;
     }
 
-      /**
+    /**
      * Logical inverse of the Pose exponential from 254. Taken from team 3181.
      *
      * @param transform Pose to perform the log on.
@@ -231,10 +223,12 @@ public final class Constants {
       return 0.0;
     }
 
-    public static Translation2d circular(Translation2d input, double deadband, double snapRadians) { // input ranges from -1 to 1
+    public static Translation2d circular(Translation2d input, double deadband, double snapRadians) {
       double magnitude = input.getNorm();
       double direction = input.getAngle().getRadians();
-      if (mod(direction, Math.PI / 2.0) <= snapRadians / 2.0 || mod(direction, Math.PI / 2.0) >= (Math.PI / 2.0) - (snapRadians / 2.0)) direction = Math.round(direction / (Math.PI / 2.0)) * (Math.PI / 2.0);
+      if (mod(direction, Math.PI / 2.0) <= snapRadians / 2.0 || mod(direction, Math.PI / 2.0) >= (Math.PI / 2.0) - (snapRadians / 2.0)) {
+        direction = Math.round(direction / (Math.PI / 2.0)) * (Math.PI / 2.0);
+      }
       if (Math.abs(magnitude) <= deadband) return new Translation2d();
       magnitude = nonLinear(map(magnitude, deadband, 1.0, 0.0, 1.0));
       return new Translation2d(magnitude * Math.cos(direction), magnitude * Math.sin(direction));

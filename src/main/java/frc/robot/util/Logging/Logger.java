@@ -2,17 +2,13 @@ package frc.robot.util.Logging;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.TimerTask;
 import java.util.function.Supplier;
 
 import com.ctre.phoenix.sensors.CANCoder;
-import com.ctre.phoenix.sensors.CANCoderFaults;
 import com.kauailabs.navx.frc.AHRS;
 import com.revrobotics.CANSparkMax;
-import com.revrobotics.REVLibError;
 import com.revrobotics.RelativeEncoder;
 
 import edu.wpi.first.hal.PowerDistributionFaults;
@@ -20,16 +16,10 @@ import edu.wpi.first.hal.can.CANStatus;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.networktables.NetworkTable;
-import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.wpilibj.DataLogManager;
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.RobotController;
-import edu.wpi.first.wpilibj.Timer;
-import frc.robot.Constants;
 import frc.robot.Constants.LOGGING;
 
 public final class Logger extends TimerTask {
@@ -41,9 +31,9 @@ public final class Logger extends TimerTask {
     logAll();
   }
 
-  public void startLog() {
+  public static void startLog() {
     java.util.Timer timer = new java.util.Timer();
-    timer.schedule(this, 0, (long) (LOGGING.LOGGING_PERIOD_MS));
+    timer.schedule(new Logger(), 0, (long) (LOGGING.LOGGING_PERIOD_MS));
   }
 
   private static void logAll() {
@@ -71,10 +61,11 @@ public final class Logger extends TimerTask {
     else if (obj instanceof RelativeEncoder) log(key, (RelativeEncoder) obj);
     else if (obj instanceof AHRS) log(key, (AHRS) obj);
     else if (obj instanceof Pose2d) log(key, (Pose2d) obj);
+    else if (obj instanceof SwerveModuleState) log(key, (SwerveModuleState) obj);
     else if (obj instanceof SwerveModuleState[]) log(key, (SwerveModuleState[]) obj);
     else if (obj instanceof SwerveModulePosition[]) log(key, (SwerveModulePosition[]) obj);
     else if (obj instanceof CANStatus) log(key, (CANStatus) obj);
-    else if (obj instanceof PowerDistribution) log(key, (PowerDistributionFaults) obj);
+    else if (obj instanceof PowerDistribution) log(key, (PowerDistribution) obj);
     else table.getEntry(key).setValue(obj);
   }
 
@@ -130,7 +121,16 @@ public final class Logger extends TimerTask {
   }
 
   public static void log(String path, Pose2d pose) {
-    log(path, new double[] { pose.getX(), pose.getY(), pose.getRotation().getRadians() });
+    log(path + "_radians", new double[] { pose.getX(), pose.getY(), pose.getRotation().getRadians() });
+    log(path + "_degrees", new double[] { pose.getX(), pose.getY(), pose.getRotation().getDegrees() });
+  }
+
+
+  public static void log(String path, SwerveModuleState swerveModuleState) {
+    log(path + "/state", new double[] {
+      swerveModuleState.angle.getRadians(), 
+      swerveModuleState.speedMetersPerSecond
+    });
   }
 
   public static void log(String path, SwerveModuleState[] swerveModuleStates) {
