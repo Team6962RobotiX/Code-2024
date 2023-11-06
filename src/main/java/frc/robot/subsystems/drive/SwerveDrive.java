@@ -163,7 +163,8 @@ public class SwerveDrive extends SubsystemBase {
    */
   public void driveModules(SwerveModuleState[] moduleStates) {
     ChassisSpeeds velocity = kinematics.toChassisSpeeds(moduleStates);
-    if (Math.abs(velocity.omegaRadiansPerSecond) < SWERVE_DRIVE.VELOCITY_DEADBAND && Math.abs(getMeasuredChassisSpeeds().omegaRadiansPerSecond) < SWERVE_DRIVE.VELOCITY_DEADBAND) {
+    
+    if (rotationalVelocityToWheelVelocity(Math.abs(velocity.omegaRadiansPerSecond)) < SWERVE_DRIVE.VELOCITY_DEADBAND && Math.abs(getMeasuredChassisSpeeds().omegaRadiansPerSecond) < SWERVE_DRIVE.VELOCITY_DEADBAND) {
       velocity.omegaRadiansPerSecond = rotateController.calculate(getHeading().getRadians());
     } else {
       rotateController.setGoal(getHeading().getRadians());

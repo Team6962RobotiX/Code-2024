@@ -77,6 +77,7 @@ public class SwerveModule extends SubsystemBase {
       () -> driveMotor.burnFlash(),
       
       () -> steerMotor.restoreFactoryDefaults(),
+      () -> { steerMotor.setInverted(true); return true; },
       () -> steerMotor.setIdleMode(IdleMode.kBrake),
       () -> steerMotor.enableVoltageCompensation(12.0),
       () -> steerMotor.setSmartCurrentLimit(Math.min(STEER_MOTOR_CONFIG.CURRENT_LIMIT, NEO.SAFE_STALL_CURRENT), STEER_MOTOR_CONFIG.CURRENT_LIMIT),
@@ -111,7 +112,7 @@ public class SwerveModule extends SubsystemBase {
   }
 
   public void periodic() {
-    if (Math.abs(getMeasuredState().speedMetersPerSecond) < SWERVE_DRIVE.VELOCITY_DEADBAND && SWERVE_MATH.angleDistance(targetState.angle.getRadians(), getMeasuredState().angle.getRadians()) < Units.degreesToRadians(1.0)) {
+    if (Math.abs(getMeasuredState().speedMetersPerSecond) < SWERVE_DRIVE.VELOCITY_DEADBAND && Math.abs(steerEncoder.getVelocity()) < Units.degreesToRadians(1.0)) {
       seedSteerEncoder();
     }
 
