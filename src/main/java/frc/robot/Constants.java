@@ -125,18 +125,23 @@ public final class Constants {
      * kD -> Derivative term, essentially a damping factor to reduce oscillations produced by kP or kI
      */
     public static final class DRIVE_MOTOR_CONFIG {
-      public static final double kP                 = 0.0; // PID Proportion Gain
+      public static final double kP                 = 0.0001; // PID Proportion Gain
       public static final double kI                 = 0.0; // PID Integral Gain
       public static final double kD                 = 0.0; // PID Derivative Gain
-      public static final double kFF                = 1.0 / (NEO.FREE_SPEED / 60.0 * SWERVE_DRIVE.DRIVE_MOTOR_METERS_PER_REVOLUTION);
+      public static final double kS                 = 0.0;
+      public static final double kV                 = 0.2217; // 1.0 / (NEO.FREE_SPEED / 60.0 * SWERVE_DRIVE.DRIVE_MOTOR_METERS_PER_REVOLUTION); 
+      public static final double kA                 = 0.0231;
       public static final int    CURRENT_LIMIT      = (int) SLIP_CURRENT; // Amps
       public static final double RAMP_RATE          = 0.1;
       public static final int[]  statusFramePeriods = { 20, 10, 10, 500, 500, 500, 500 };
     }
     public static final class STEER_MOTOR_CONFIG {
-      public static final double kP                 = 0.75; // PID Proportion Gain
+      public static final double kP                 = 0.72775; // PID Proportion Gain
       public static final double kI                 = 0.0; // PID Integral Gain
-      public static final double kD                 = 0.0; // PID Derivative Gain
+      public static final double kD                 = 0.06514; // PID Derivative Gain
+      public static final double kS                 = 0.00558;
+      public static final double kV                 = 0.03485; // 1.0 / (NEO.FREE_SPEED / 60.0 * SWERVE_DRIVE.STEER_MOTOR_RADIANS_PER_REVOLUTION);
+      public static final double kA                 = 0.00167;
       public static final int    CURRENT_LIMIT      = 20; // Amps
       public static final double RAMP_RATE          = 0.1;
       public static final int[] statusFramePeriods  = { 20, 10, 10, 500, 500, 500, 500 };

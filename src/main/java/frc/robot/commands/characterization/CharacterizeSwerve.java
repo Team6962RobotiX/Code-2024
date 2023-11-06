@@ -43,7 +43,7 @@ public class CharacterizeSwerve extends CommandBase {
         double deltaAngle = angularPosition - m_prevAngle;
         double now = Timer.getFPGATimestamp();
         double deltaTime = now - m_prevTime;
-        double angularRate = m_prevTime==0 || deltaTime==0 ? 0.0 : deltaAngle/deltaTime;
+        double angularRate = m_prevTime == 0 || deltaTime == 0 ? 0.0 : deltaAngle / deltaTime;
         m_prevAngle = angularPosition;
         m_prevTime = now;
 
@@ -53,7 +53,6 @@ public class CharacterizeSwerve extends CommandBase {
             if (leftPosition > 0.01 || rightPosition > 0.01) return;
             m_resetComplete = true;
         }
-        System.out.println(leftPosition);
         m_logger.log(leftPosition, rightPosition, leftRate, rightRate, angularPosition, angularRate);
         m_swerve.tankDriveVolts(m_logger.getLeftMotorVoltage(), m_logger.getRightMotorVoltage());
     }

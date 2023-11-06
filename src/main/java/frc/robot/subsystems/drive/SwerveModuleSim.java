@@ -12,6 +12,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.math.system.plant.LinearSystemId;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.simulation.FlywheelSim;
 import frc.robot.Constants.NEO;
@@ -21,22 +22,16 @@ import frc.robot.Constants.SWERVE_DRIVE.STEER_MOTOR_CONFIG;
 import frc.robot.Constants.SWERVE_MATH;
 
 public class SwerveModuleSim extends SwerveModule {
-  private double steerMOI = 
-    steerWheelMOI(SWERVE_DRIVE.WHEEL_DIAMETER / 2.0, SWERVE_DRIVE.WHEEL_MASS, SWERVE_DRIVE.WHEEL_WIDTH) + 
-    0.0001593192 + // Base Pulley
-    0.0001163526; // Wheel Mounts
-  private double driveMOI = wheelMOI(SWERVE_DRIVE.WHEEL_DIAMETER / 2.0, SWERVE_DRIVE.WHEEL_MASS);
-
   private FlywheelSim driveMotor = new FlywheelSim(
+    LinearSystemId.identifyVelocitySystem(DRIVE_MOTOR_CONFIG.kV * 12.0 * (SWERVE_DRIVE.WHEEL_DIAMETER / 2.0), DRIVE_MOTOR_CONFIG.kA * 12.0 * (SWERVE_DRIVE.WHEEL_DIAMETER / 2.0)),
     DCMotor.getNEO(1),
-    1.0 / SWERVE_DRIVE.DRIVE_MOTOR_GEAR_RATIO,
-    driveMOI
+    1.0 / SWERVE_DRIVE.DRIVE_MOTOR_GEAR_RATIO
   );
   
   private FlywheelSim steerMotor = new FlywheelSim(
+    LinearSystemId.identifyVelocitySystem(STEER_MOTOR_CONFIG.kV * 12.0, STEER_MOTOR_CONFIG.kA * 12.0),
     DCMotor.getNEO(1),
-    1.0 / SWERVE_DRIVE.STEER_MOTOR_GEAR_RATIO,
-    steerMOI
+    1.0 / SWERVE_DRIVE.STEER_MOTOR_GEAR_RATIO
   );
 
   private PIDController drivePID = new PIDController(
@@ -45,8 +40,8 @@ public class SwerveModuleSim extends SwerveModule {
     DRIVE_MOTOR_CONFIG.kD
   );
   private SimpleMotorFeedforward driveFF = new SimpleMotorFeedforward(
-    0.0,
-    DRIVE_MOTOR_CONFIG.kFF
+    DRIVE_MOTOR_CONFIG.kS,
+    DRIVE_MOTOR_CONFIG.kV
   );
   private PIDController steerPID = new PIDController(
     STEER_MOTOR_CONFIG.kP, 
@@ -73,10 +68,17 @@ public class SwerveModuleSim extends SwerveModule {
       speedMultiple = Math.cos(SWERVE_MATH.angleDistance(drivenState.angle.getRadians(), getMeasuredState().angle.getRadians()));
     }
     speedMetersPerSecond *= speedMultiple;
+
+    double acceleration = (super.getTargetState().speedMetersPerSecond - drivenState.speedMetersPerSecond) / 0.02;
+    if (Math.abs(acceleration) > SWERVE_DRIVE.ACCELERATION) {
+      acceleration = SWERVE_DRIVE.ACCELERATION * Math.signum(acceleration);
+    }
+
     double volts = MathUtil.clamp(
-      12.0 * (driveFF.calculate(speedMetersPerSecond) + drivePID.calculate(getMeasuredState().speedMetersPerSecond, speedMetersPerSecond)), 
+      12.0 * (driveFF.calculate(speedMetersPerSecond) + drivePID.calculate(getMeasuredState().speedMetersPerSecond, speedMetersPerSecond) + acceleration * DRIVE_MOTOR_CONFIG.kA), 
       -12.0, 12.0
     );
+    
     double availableVoltage = RobotController.getBatteryVoltage();
     volts = MathUtil.clamp(volts, -availableVoltage, availableVoltage);
     double currentLimit = DRIVE_MOTOR_CONFIG.CURRENT_LIMIT;

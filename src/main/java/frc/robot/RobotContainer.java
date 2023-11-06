@@ -66,7 +66,7 @@ public class RobotContainer {
   }
 
   public Command getAutonomousCommand() {
-    return new CharacterizeSwerve(swerveDrive);
+    // return new CharacterizeSwerve(swerveDrive);
     
     // return new FeedForwardCharacterization(swerveDrive, swerveDrive::runCharacterization, swerveDrive::getCharacterizationVelocity);
     
@@ -74,17 +74,17 @@ public class RobotContainer {
     // eventMap.put("marker1", new PrintCommand("Passed marker 1"));
     // return swerveDrive.fullAuto("Test Path", eventMap);
     
-    // int numPoints = 6;
-    // List<Twist2d> randomPoints = new ArrayList<Twist2d>();
-    // Random rand = new Random();
-    // for (int i = 0; i < numPoints; i++) {
-    //   randomPoints.add(new Twist2d(
-    //     rand.nextDouble() * 16.0,
-    //     rand.nextDouble() * 8.0,
-    //     (rand.nextDouble() - 0.5) * Math.PI * 2.0
-    //   ));
-    // }
-    // return swerveDrive.followTrajectoryCommand(swerveDrive.generateTrajectoryFieldRelativeBasic(randomPoints));
+    int numPoints = 6;
+    List<Twist2d> randomPoints = new ArrayList<Twist2d>();
+    Random rand = new Random();
+    for (int i = 0; i < numPoints; i++) {
+      randomPoints.add(new Twist2d(
+        rand.nextDouble() * 16.0,
+        rand.nextDouble() * 8.0,
+        (rand.nextDouble() - 0.5) * Math.PI * 2.0
+      ));
+    }
+    return swerveDrive.followTrajectoryCommand(swerveDrive.generateTrajectoryFieldRelativeBasic(randomPoints));
   }
 
   public void disabledPeriodic() {

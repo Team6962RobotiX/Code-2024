@@ -12,6 +12,7 @@ import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMax.ControlType;
 import com.revrobotics.CANSparkMax.IdleMode;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
+import com.revrobotics.SparkMaxPIDController.ArbFFUnits;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkMaxPIDController;
 
@@ -71,7 +72,7 @@ public class SwerveModule extends SubsystemBase {
       () -> drivePID.setP(DRIVE_MOTOR_CONFIG.kP, 0),
       () -> drivePID.setI(DRIVE_MOTOR_CONFIG.kI, 0),
       () -> drivePID.setD(DRIVE_MOTOR_CONFIG.kD, 0),
-      () -> drivePID.setFF(DRIVE_MOTOR_CONFIG.kFF, 0),
+      () -> drivePID.setFF(DRIVE_MOTOR_CONFIG.kV, 0),
       () -> drivePID.setOutputRange(-SWERVE_DRIVE.MOTOR_POWER_HARD_CAP, SWERVE_DRIVE.MOTOR_POWER_HARD_CAP, 0),
       () -> driveMotor.burnFlash(),
       
@@ -85,6 +86,7 @@ public class SwerveModule extends SubsystemBase {
       () -> steerPID.setP(STEER_MOTOR_CONFIG.kP, 0),
       () -> steerPID.setI(STEER_MOTOR_CONFIG.kI, 0),
       () -> steerPID.setD(STEER_MOTOR_CONFIG.kD, 0),
+      () -> steerPID.setFF(STEER_MOTOR_CONFIG.kV, 0),
       () -> steerPID.setPositionPIDWrappingEnabled(true),
       () -> steerPID.setPositionPIDWrappingMinInput(-Math.PI),
       () -> steerPID.setPositionPIDWrappingMaxInput(Math.PI),
@@ -141,7 +143,11 @@ public class SwerveModule extends SubsystemBase {
     if (SWERVE_DRIVE.DO_ANGLE_ERROR_SPEED_REDUCTION) {
       speedMultiple = Math.cos(SWERVE_MATH.angleDistance(drivenState.angle.getRadians(), getMeasuredState().angle.getRadians()));
     }
-    drivePID.setReference(speedMetersPerSecond * speedMultiple, ControlType.kVelocity);
+    double acceleration = (targetState.speedMetersPerSecond - drivenState.speedMetersPerSecond) / 0.02;
+    if (Math.abs(acceleration) > SWERVE_DRIVE.ACCELERATION) {
+      acceleration = SWERVE_DRIVE.ACCELERATION * Math.signum(acceleration);
+    }
+    drivePID.setReference(speedMetersPerSecond * speedMultiple, ControlType.kVelocity, 0, acceleration * DRIVE_MOTOR_CONFIG.kA, ArbFFUnits.kPercentOut);
   }
 
   public void setWheelAngle(double radians) {

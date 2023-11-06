@@ -34,7 +34,7 @@ public class SysIdLogger {
 
     public void initLogging() {
         m_mechanism = SmartDashboard.getString("SysIdTest", "");
-      
+        
         if (isWrongMechanism()) {
           SmartDashboard.putBoolean("SysIdWrongMech", true);
         }
@@ -51,9 +51,9 @@ public class SysIdLogger {
         
         SmartDashboard.putBoolean("SysIdOverflow", false); // can't overflow a java ArrayList
         String ss = m_data.toString();
-      
+        
         SmartDashboard.putString("SysIdTelemetry", ss.substring(1, ss.length() - 1));
-      
+        
         reset();
       }
       
@@ -68,6 +68,8 @@ public class SysIdLogger {
       
       public SysIdLogger() {
         System.out.println("Initializing logger\n");
+        SmartDashboard.putBoolean("SysIdOverflow", false);
+        SmartDashboard.putString("SysIdTelemetry", "");
         m_data.ensureCapacity(kDataVectorSize);
         LiveWindow.disableAllTelemetry();
       }
@@ -87,10 +89,9 @@ public class SysIdLogger {
         } else {
           m_motorVoltage = 0.0;
         }
-        // System.out.println(m_data.size());
 
-        String ss = m_data.toString();
-        SmartDashboard.putString("SysIdTelemetry", ss.substring(1, ss.length() - 1));
+        
+
       }
       
       void reset() {
