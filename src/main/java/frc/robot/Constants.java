@@ -8,6 +8,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.util.Units;
+import frc.robot.subsystems.drive.SwerveModule;
 
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide numerical or boolean
@@ -70,8 +71,7 @@ public final class Constants {
     public static final double   VELOCITY_DEADBAND                  = 0.15; // Velocity we stop moving at
 
     // AUTONOMOUS
-    public static final double   AUTONOMOUS_VELOCITY                = 4.4; // [TODO] measured in meters/sec
-    public static final double   AUTONOMOUS_ACCELERATION            = ACCELERATION / 2.0; // [TODO] measured in meters/sec^2
+    public static final double   AUTONOMOUS_ACCELERATION            = 3.0; // [TODO] measured in meters/sec^2
     
     // ODOMETER
     public static final Pose2d   STARTING_POSE                      = new Pose2d(0.0, 0.0, Rotation2d.fromDegrees(0.0));
@@ -86,7 +86,7 @@ public final class Constants {
     */
     
     // PHYSICAL
-    public static final double   MODULE_COUNT                       = 4;
+    public static final int      MODULE_COUNT                       = 4;
     public static final double   CHASSIS_WIDTH                      = Units.inchesToMeters(30);
     public static final double   CHASSIS_LENGTH                     = Units.inchesToMeters(30);
     public static final double   WHEEL_FRAME_DISTANCE               = Units.inchesToMeters(2.625);
@@ -104,48 +104,49 @@ public final class Constants {
     public static final double   DRIVE_MOTOR_METERS_PER_REVOLUTION  = DRIVE_MOTOR_GEAR_RATIO * WHEEL_DIAMETER * Math.PI;
     public static final double   STEER_MOTOR_RADIANS_PER_REVOLUTION = STEER_MOTOR_GEAR_RATIO * Math.PI * 2.0;
     
-    // TIP COMPENSATION
-    public static final double   TIP_COMPENSATION_MIN_TILT          = 5.0;
-    
     // REDUCE DRIVE VELOCITY WHEN FAR FROM ANGLE
     public static final boolean  DO_ANGLE_ERROR_SPEED_REDUCTION     = true;
-    public static final double   ROTATION_ERROR_COMPENSATION        = 0.09; // Keeps movement in straight lines when rotating
+    public static final double   DISCRETIZED_TIME_STEP              = 0.1; // Keeps movement in straight lines when rotating
     
-    // SLIP PREVENTION
-    public static final boolean  DO_SLIP_PREVENTION = false;
-    public static final double   SLIP_CURRENT = ((9.80 * ROBOT_MASS * FRICTION_COEFFICIENT * (WHEEL_DIAMETER / 2.0)) / (1 / DRIVE_MOTOR_GEAR_RATIO) / (((NEO.STALL_TORQUE * MODULE_COUNT) / ((NEO.STALL_CURRENT * MODULE_COUNT) - (NEO.FREE_CURRENT * MODULE_COUNT))) * GEARBOX_EFFICIENCY) + (NEO.FREE_CURRENT * MODULE_COUNT)) / MODULE_COUNT;
-    
-    // ((9.8*ROBOT_MASS*COEFFICIENT_OF_FRICTION*(WHEEL_DIAMETER / 2.0))/(1.0 / DRIVE_MOTOR_GEAR_RATIO) / ((Ts/((NEO.STALL_CURRENT * num)-(NEO.FREE_CURRENT * num)))*eff) + (NEO.FREE_CURRENT * num)) / num;
+    public static final double   AUTONOMOUS_VELOCITY                = SwerveModule.calcWheelVelocity(1.0) / 2.0;
 
-    /*
-     * MOTION PROFILING
-     * kFF -> FeedForward term, multiplied by desired velocity to get an approximate motor power
-     * kP -> Proportional term, multiplied by the measured error to get additional motor power
-     * kI -> Integral term, uses the slope of the measured error. Essentially if the measured error isn't going away from just kP, the integral term will slowly build up additional motor power until it works out. Only really useful when there is external load on the system, like with an Arm.
-     * kD -> Derivative term, essentially a damping factor to reduce oscillations produced by kP or kI
-     */
-    public static final class DRIVE_MOTOR_CONFIG {
-      public static final double kP                 = 0.0001; // PID Proportion Gain
-      public static final double kI                 = 0.0; // PID Integral Gain
-      public static final double kD                 = 0.0; // PID Derivative Gain
-      public static final double kS                 = 0.0;
-      public static final double kV                 = 0.2217; // 1.0 / (NEO.FREE_SPEED / 60.0 * SWERVE_DRIVE.DRIVE_MOTOR_METERS_PER_REVOLUTION); 
-      public static final double kA                 = 0.0231;
-      public static final int    CURRENT_LIMIT      = (int) SLIP_CURRENT; // Amps
-      public static final double RAMP_RATE          = 0.1;
-      public static final int[]  statusFramePeriods = { 20, 10, 10, 500, 500, 500, 500 };
+    public static final class DRIVE_MOTOR_PROFILE {
+      // FROM WPILIB SYSTEM IDENTIFICATION, FREE SPINNING
+      public static final double kP                 = 0.00010; // Proportion Gain
+      public static final double kI                 = 0.00000; // Integral Gain
+      public static final double kD                 = 0.00000; // Derivative Gain
+      public static final double kS                 = 0.00000; // volts
+      public static final double kA                 = 0.27734; // volts per m/s^2, free spinning
+      
+      // CALCULATED
+      public static final double kV                 = 12.0 / (NEO.FREE_SPEED / 60.0 * DRIVE_MOTOR_METERS_PER_REVOLUTION); // volts per m/s
+      public static final int    CURRENT_LIMIT      = (int) ((ACCELERATION * ROBOT_MASS * WHEEL_DIAMETER * DRIVE_MOTOR_GEAR_RATIO * (0.5 * NEO.STALL_CURRENT - 0.5 * NEO.FREE_CURRENT)) / (NEO.STALL_TORQUE * (double) MODULE_COUNT * GEARBOX_EFFICIENCY) + NEO.FREE_CURRENT); // Amps
+      public static final double RAMP_RATE          = (12.0 / kV) / ACCELERATION; // Seconds it takes to reach full power
+      // public static final double MOI                = (DCMotor.getNEO(1).KtNMPerAmp * (kA * (SWERVE_DRIVE.WHEEL_DIAMETER / 2.0)) * (1.0 / DRIVE_MOTOR_GEAR_RATIO)) / DCMotor.getNEO(1).rOhms;
+      
+      // PREFERENCE
+      public static final int[]  STATUS_FRAMES      = { 10, 10, 10, 500, 500, 500, 500 }; // ms
     }
-    public static final class STEER_MOTOR_CONFIG {
-      public static final double kP                 = 0.72775; // PID Proportion Gain
-      public static final double kI                 = 0.0; // PID Integral Gain
-      public static final double kD                 = 0.06514; // PID Derivative Gain
-      public static final double kS                 = 0.00558;
-      public static final double kV                 = 0.03485; // 1.0 / (NEO.FREE_SPEED / 60.0 * SWERVE_DRIVE.STEER_MOTOR_RADIANS_PER_REVOLUTION);
-      public static final double kA                 = 0.00167;
-      public static final int    CURRENT_LIMIT      = 20; // Amps
-      public static final double RAMP_RATE          = 0.1;
-      public static final int[] statusFramePeriods  = { 20, 10, 10, 500, 500, 500, 500 };
+
+    public static final class STEER_MOTOR_PROFILE {
+      // FROM WPILIB SYSTEM IDENTIFICATION
+      public static final double kP                 = 0.72776; // Proportion Gain
+      public static final double kI                 = 0.00000; // Integral Gain
+      public static final double kD                 = 0.06514; // Derivative Gain
+      public static final double kS                 = 0.06684; // volts
+      public static final double kA                 = 0.01968; // volts per rad/s^2
+
+      // CALCULATED
+      public static final double kV                 = 12.0 / (NEO.FREE_SPEED / 60.0 * STEER_MOTOR_RADIANS_PER_REVOLUTION);
+      public static final int    CURRENT_LIMIT      = 30; // Amps
+      public static final double RAMP_RATE          = 0.1; // Seconds it takes to reach full power
+      // public static final double MOI                = (DCMotor.getNEO(1).KtNMPerAmp * kA * (1.0 / STEER_MOTOR_GEAR_RATIO)) / DCMotor.getNEO(1).rOhms;
+      
+      // PREFERENCE
+      public static final int[]  STATUS_FRAMES      = { 10, 10, 10, 500, 500, 500, 500 }; // ms
     }
+
+    // TELEOPERATED
     public static final class ABSOLUTE_ROTATION_GAINS {
       public static final double kP  = 4.0;
       public static final double kI  = 0.0;
@@ -154,12 +155,12 @@ public final class Constants {
 
     // AUTONOMOUS
     public static final class AUTONOMOUS_TRANSLATION_GAINS {
-      public static final double kP = 3.0;
+      public static final double kP = 10.0;
       public static final double kI = 0.0;
       public static final double kD = 0.0;
     }
     public static final class AUTONOMOUS_ROTATION_GAINS {
-      public static final double kP = 3.0;
+      public static final double kP = 2.0;
       public static final double kI = 0.0;
       public static final double kD = 0.0;
     }
@@ -176,15 +177,15 @@ public final class Constants {
     public static final int[] SWERVE_STEER_CANCODERS = { 12, 22, 32, 42 };
     public static final int PDH = 5;
   }
-
+  
   public static final class NEO {
-    public static final double kV               = 473; // rpm / V
-    public static final double STALL_TORQUE     = 2.6; // Nm
-    public static final double STALL_CURRENT    = 105; // A
-    public static final double FREE_CURRENT     = 1.8; // A
-    public static final double FREE_SPEED       = 5676; // rpm
-    public static final int SAFE_STALL_CURRENT  = 40; // A
-    public static final double SAFE_TEMPERATURE = 65.0; // °C
+    public static final double kV                  = 473; // rpm / V
+    public static final double STALL_TORQUE        = 2.6; // Nm
+    public static final double STALL_CURRENT       = 105; // A
+    public static final double FREE_CURRENT        = 1.8; // A
+    public static final double FREE_SPEED          = 5676; // rpm
+    public static final int    SAFE_STALL_CURRENT  = 40; // A
+    public static final double SAFE_TEMPERATURE    = 65.0; // °C
   }
 
   public static final class SWERVE_MATH {

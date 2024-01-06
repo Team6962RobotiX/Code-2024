@@ -6,17 +6,13 @@ package frc.robot.commands.drive;
 
 import java.util.function.Supplier;
 
-import javax.xml.namespace.QName;
-
-import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
-import edu.wpi.first.wpilibj2.command.CommandBase;
+import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants;
 import frc.robot.Constants.INPUT_MATH;
 import frc.robot.Constants.SWERVE_DRIVE;
@@ -25,14 +21,14 @@ import frc.robot.subsystems.drive.SwerveModule;
 
 /** An example command that uses an example subsystem. */
 
-public class XBoxSwerve extends CommandBase {
+public class XBoxSwerve extends Command {
   private XboxController controller;
   private SwerveDrive swerveDrive;
   
-  public final double MAX_DRIVE_VELOCITY = SwerveModule.calcDriveVelocity(SWERVE_DRIVE.TELEOPERATED_BOOST_DRIVE_POWER);
-  public final double NOMINAL_DRIVE_VELOCITY = SwerveModule.calcDriveVelocity(SWERVE_DRIVE.TELEOPERATED_DRIVE_POWER);
-  public final double SLOW_DRIVE_VELOCITY = SwerveModule.calcDriveVelocity(SWERVE_DRIVE.TELEOPERATED_SLOW_DRIVE_POWER);
-  public final double MAX_ANGULAR_VELOCITY = SwerveDrive.wheelVelocityToRotationalVelocity(SwerveModule.calcDriveVelocity(SWERVE_DRIVE.TELEOPERATED_ROTATE_POWER));
+  public final double MAX_DRIVE_VELOCITY = SwerveModule.calcWheelVelocity(SWERVE_DRIVE.TELEOPERATED_BOOST_DRIVE_POWER);
+  public final double NOMINAL_DRIVE_VELOCITY = SwerveModule.calcWheelVelocity(SWERVE_DRIVE.TELEOPERATED_DRIVE_POWER);
+  public final double SLOW_DRIVE_VELOCITY = SwerveModule.calcWheelVelocity(SWERVE_DRIVE.TELEOPERATED_SLOW_DRIVE_POWER);
+  public final double MAX_ANGULAR_VELOCITY = SwerveDrive.toAngular(SwerveModule.calcWheelVelocity(SWERVE_DRIVE.TELEOPERATED_ROTATE_POWER));
 
   private double targetRobotAngle = 0.0;
   
@@ -42,6 +38,7 @@ public class XBoxSwerve extends CommandBase {
   public XBoxSwerve(SwerveDrive swerveDrive, Supplier<XboxController> xboxSupplier) {
     this.swerveDrive = swerveDrive;
     controller = xboxSupplier.get();
+    controller.setRumble(RumbleType.kBothRumble, 1.0);
     addRequirements(swerveDrive);
   }
 
@@ -54,7 +51,6 @@ public class XBoxSwerve extends CommandBase {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    controller.setRumble(RumbleType.kBothRumble, 0.000001);
     // Disable drive if the controller disconnects
     if (!controller.isConnected()) {
       swerveDrive.stopModules();
@@ -74,7 +70,7 @@ public class XBoxSwerve extends CommandBase {
     }
 
     // Deadbands
-    leftStick = INPUT_MATH.circular(leftStick, 0.0, Math.PI / 8.0);
+    leftStick = INPUT_MATH.circular(leftStick, 0.0, Constants.map(Math.max(leftTrigger, rightTrigger), 0, 1, Math.PI / 8.0, Math.PI / 4.0));
     rightStick = INPUT_MATH.circular(rightStick, 0.0, Math.PI / 8.0);
     
     angularVelocity += rightStick.getY() * MAX_ANGULAR_VELOCITY;
@@ -88,10 +84,10 @@ public class XBoxSwerve extends CommandBase {
 
     // Zero heading when Y is pressed
     if (controller.getYButton()) {
-      swerveDrive.zeroHeading();
+      swerveDrive.setHeading(new Rotation2d());
     }
 
-    if (SwerveDrive.rotationalVelocityToWheelVelocity(Math.abs(angularVelocity)) < SWERVE_DRIVE.VELOCITY_DEADBAND) {
+    if (SwerveDrive.toLinear(Math.abs(angularVelocity)) < SWERVE_DRIVE.VELOCITY_DEADBAND) {
       angularVelocity = 0.0;
     }
     if (velocity.getNorm() < SWERVE_DRIVE.VELOCITY_DEADBAND) {
@@ -100,7 +96,7 @@ public class XBoxSwerve extends CommandBase {
 
     
     boolean moving = false;
-    moving = moving || SwerveDrive.rotationalVelocityToWheelVelocity(Math.abs(angularVelocity)) > SWERVE_DRIVE.VELOCITY_DEADBAND;
+    moving = moving || SwerveDrive.toLinear(Math.abs(angularVelocity)) > SWERVE_DRIVE.VELOCITY_DEADBAND;
     moving = moving || velocity.getNorm() > SWERVE_DRIVE.VELOCITY_DEADBAND;
     for (SwerveModuleState moduleState : swerveDrive.getTargetModuleStates()) if (Math.abs(moduleState.speedMetersPerSecond) > SWERVE_DRIVE.VELOCITY_DEADBAND) moving = true;
     for (SwerveModuleState moduleState : swerveDrive.getMeasuredModuleStates()) if (Math.abs(moduleState.speedMetersPerSecond) > SWERVE_DRIVE.VELOCITY_DEADBAND) moving = true;
@@ -109,7 +105,7 @@ public class XBoxSwerve extends CommandBase {
       return;
     }
 
-    swerveDrive.fieldOrientedDrive(velocity.getX(), velocity.getY(), angularVelocity);
+    swerveDrive.drive(velocity.getX(), velocity.getY(), angularVelocity);
     
     angularVelocity = 0.0;
     velocity = new Translation2d();

@@ -5,34 +5,27 @@
 package frc.robot;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-
-import com.pathplanner.lib.PathPoint;
-
 import java.util.Random;
 
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.geometry.Twist2d;
-import edu.wpi.first.util.datalog.DataLog;
+import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution;
-import edu.wpi.first.wpilibj.RobotBase;
-import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
-import edu.wpi.first.wpilibj.livewindow.LiveWindow;
+import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.PrintCommand;
 import frc.robot.Constants.CAN;
 import frc.robot.Constants.DEVICES;
+import frc.robot.Constants.NEO;
 import frc.robot.Constants.SWERVE_DRIVE;
-import frc.robot.commands.characterization.CharacterizeSwerve;
-import frc.robot.commands.drive.FeedForwardCharacterization;
+import frc.robot.Constants.SWERVE_DRIVE.DRIVE_MOTOR_PROFILE;
 import frc.robot.commands.drive.XBoxSwerve;
 import frc.robot.subsystems.drive.SwerveDrive;
+import frc.robot.subsystems.drive.SwerveModule;
 import frc.robot.util.Logging.Logger;
 
 /**
@@ -59,6 +52,28 @@ public class RobotContainer {
     swerveDrive.setDefaultCommand(new XBoxSwerve(swerveDrive, () -> XboxController));
     // Configure the trigger bindings
     configureBindings();
+
+    // MOI = (DRIVE_MOTOR_CONFIG.kA * G * DCMotor.getNEO(1).KtNMPerAmp) / DCMotor.getNEO(1).rOhms;
+    
+    DCMotor motor = DCMotor.getNEO(1);
+    // // torque
+    // motor.getTorque(motor.getCurrent(0, 12.0));
+    // double t = (NEO.STALL_TORQUE * (1.0 / SWERVE_DRIVE.DRIVE_MOTOR_GEAR_RATIO) * SWERVE_DRIVE.MODULE_COUNT) / (SWERVE_DRIVE.WHEEL_DIAMETER / 2.0) * SWERVE_DRIVE.ROBOT_MASS;
+    // double f = t / r;
+    // double a = f * n / m;
+
+    // ((a * motor.KtNMPerAmp * g) / r) * n / m
+
+    // double kV = (SWERVE_DRIVE.ROBOT_MASS * motor.rOhms * (SWERVE_DRIVE.WHEEL_DIAMETER / 2.0) * SWERVE_DRIVE.DRIVE_MOTOR_GEAR_RATIO) / (SWERVE_DRIVE.MODULE_COUNT * motor.KtNMPerAmp);
+
+    // double t = 1 / o * v * q;
+    // double f = (1 / o * v * q) / r;
+    // double a = ((1 / o * v * q) / r) * n / m;
+
+    // System.out.println(1.0 / motor.getTorque(motor.getCurrent(0, 12.0)) / (SWERVE_DRIVE.WHEEL_DIAMETER / 2.0) * 4.0 / SWERVE_DRIVE.ROBOT_MASS);
+    // System.out.println(SwerveModule.calcAcceleration(NEO.STALL_CURRENT));
+    // System.out.println((NEO.STALL_TORQUE * (1.0 / SWERVE_DRIVE.DRIVE_MOTOR_GEAR_RATIO) * SWERVE_DRIVE.MODULE_COUNT) / (SWERVE_DRIVE.WHEEL_DIAMETER / 2.0) / SWERVE_DRIVE.ROBOT_MASS);
+    System.out.println(1.0 / SWERVE_DRIVE.DRIVE_MOTOR_PROFILE.RAMP_RATE);
   }
 
   private void configureBindings() {
@@ -66,25 +81,49 @@ public class RobotContainer {
   }
 
   public Command getAutonomousCommand() {
+    // return null;
     // return new CharacterizeSwerve(swerveDrive);
     
     // return new FeedForwardCharacterization(swerveDrive, swerveDrive::runCharacterization, swerveDrive::getCharacterizationVelocity);
+    // return swerveDrive.followPathCommand("Test Path");
     
-    // HashMap<String, Command> eventMap = new HashMap<>();
-    // eventMap.put("marker1", new PrintCommand("Passed marker 1"));
-    // return swerveDrive.fullAuto("Test Path", eventMap);
-    
-    int numPoints = 6;
-    List<Twist2d> randomPoints = new ArrayList<Twist2d>();
+    int numPoints = 3;
+    List<Pose2d> randomPoints = new ArrayList<Pose2d>();
     Random rand = new Random();
     for (int i = 0; i < numPoints; i++) {
-      randomPoints.add(new Twist2d(
-        rand.nextDouble() * 16.0,
-        rand.nextDouble() * 8.0,
-        (rand.nextDouble() - 0.5) * Math.PI * 2.0
+      randomPoints.add(new Pose2d(
+        new Translation2d(
+          rand.nextDouble() * 16.0,
+          rand.nextDouble() * 8.0
+        ),
+        Rotation2d.fromRadians(
+          0.0
+        )
       ));
     }
-    return swerveDrive.followTrajectoryCommand(swerveDrive.generateTrajectoryFieldRelativeBasic(randomPoints));
+    return swerveDrive.followPathCommand(randomPoints);
+
+    // List<Translation2d> bezierPoints = PathPlannerPath.bezierFromPoses(
+    //     new Pose2d(rand.nextDouble() * 16.0, rand.nextDouble() * 8.0, Rotation2d.fromDegrees(0)),
+    //     new Pose2d(rand.nextDouble() * 16.0, rand.nextDouble() * 8.0, Rotation2d.fromDegrees(0)),
+    //     new Pose2d(rand.nextDouble() * 16.0, rand.nextDouble() * 8.0, Rotation2d.fromDegrees(0)),
+    //     new Pose2d(rand.nextDouble() * 16.0, rand.nextDouble() * 8.0, Rotation2d.fromDegrees(0)),
+    //     new Pose2d(rand.nextDouble() * 16.0, rand.nextDouble() * 8.0, Rotation2d.fromDegrees(0)),
+    //     new Pose2d(rand.nextDouble() * 16.0, rand.nextDouble() * 8.0, Rotation2d.fromDegrees(0)),
+    //     new Pose2d(rand.nextDouble() * 16.0, rand.nextDouble() * 8.0, Rotation2d.fromDegrees(0)),
+    //     new Pose2d(rand.nextDouble() * 16.0, rand.nextDouble() * 8.0, Rotation2d.fromDegrees(0)),
+    //     new Pose2d(rand.nextDouble() * 16.0, rand.nextDouble() * 8.0, Rotation2d.fromDegrees(0)),
+    //     new Pose2d(rand.nextDouble() * 16.0, rand.nextDouble() * 8.0, Rotation2d.fromDegrees(0)),
+    //     new Pose2d(rand.nextDouble() * 16.0, rand.nextDouble() * 8.0, Rotation2d.fromDegrees(0))
+    // );
+
+    // PathPlannerPath path = new PathPlannerPath(
+    //     bezierPoints,
+    //     new PathConstraints(3.0, 3.0, 2 * Math.PI, 4 * Math.PI), // The constraints for this path. If using a differential drivetrain, the angular constraints have no effect.
+    //     new GoalEndState(0.0, Rotation2d.fromDegrees(-90)) // Goal end state. You can set a holonomic rotation here. If using a differential drivetrain, the rotation will have no effect.
+    // );
+
+    // return swerveDrive.followPathCommand(path);
   }
 
   public void disabledPeriodic() {

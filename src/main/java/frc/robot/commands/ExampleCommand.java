@@ -10,10 +10,10 @@ import frc.robot.Robot;
 import frc.robot.RobotContainer;
 
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.CommandBase;
+import edu.wpi.first.wpilibj2.command.Command;
 
 /** An example command that uses an example subsystem. */
-public class ExampleCommand extends CommandBase {
+public class ExampleCommand extends Command {
   private final ExampleSubsystem m_subsystem;
 
   public ExampleCommand(ExampleSubsystem subsystem) {

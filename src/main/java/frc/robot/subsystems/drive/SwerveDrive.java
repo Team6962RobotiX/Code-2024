@@ -5,36 +5,30 @@
 package frc.robot.subsystems.drive;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 import com.kauailabs.navx.frc.AHRS;
-import com.pathplanner.lib.PathConstraints;
-import com.pathplanner.lib.PathPlanner;
-import com.pathplanner.lib.PathPlannerTrajectory;
-import com.pathplanner.lib.PathPoint;
-import com.pathplanner.lib.auto.PIDConstants;
-import com.pathplanner.lib.auto.SwerveAutoBuilder;
-import com.pathplanner.lib.commands.PPSwerveControllerCommand;
-import com.revrobotics.REVPhysicsSim;
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.commands.PathPlannerAuto;
+import com.pathplanner.lib.path.GoalEndState;
+import com.pathplanner.lib.path.PathConstraints;
+import com.pathplanner.lib.path.PathPlannerPath;
+import com.pathplanner.lib.path.PathPoint;
+import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
+import com.pathplanner.lib.util.PIDConstants;
+import com.pathplanner.lib.util.ReplanningConfig;
 
 import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.controller.DifferentialDriveAccelerationLimiter;
-import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
-import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
-import edu.wpi.first.math.trajectory.TrapezoidProfile.State;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.SPI;
@@ -45,10 +39,8 @@ import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.FieldObject2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.SWERVE_DRIVE;
-import frc.robot.Constants.SWERVE_MATH;
 import frc.robot.util.Logging.Logger;
 
 public class SwerveDrive extends SubsystemBase {
@@ -57,7 +49,6 @@ public class SwerveDrive extends SubsystemBase {
   private AHRS gyro;
   private SwerveDriveKinematics kinematics = getKinematics();
   private SwerveDrivePoseEstimator poseEstimator;
-  private int moduleCount = SWERVE_DRIVE.MODULE_NAMES.length;
   private Field2d field = new Field2d();
   public Rotation2d heading = Rotation2d.fromDegrees(0);
 
@@ -66,19 +57,17 @@ public class SwerveDrive extends SubsystemBase {
     SWERVE_DRIVE.ABSOLUTE_ROTATION_GAINS.kI,
     SWERVE_DRIVE.ABSOLUTE_ROTATION_GAINS.kD,
     new Constraints(
-      SwerveDrive.wheelVelocityToRotationalVelocity(SwerveModule.calcDriveVelocity(1.0)),
-      SwerveDrive.wheelVelocityToRotationalVelocity(SWERVE_DRIVE.ACCELERATION)
+      SwerveDrive.toAngular(SwerveModule.calcWheelVelocity(1.0)),
+      SwerveDrive.toAngular(SWERVE_DRIVE.ACCELERATION)
     )
   );
-
-  private SlewRateLimiter rotationAccelerationLimiter = new SlewRateLimiter(SwerveDrive.wheelVelocityToRotationalVelocity(SWERVE_DRIVE.ACCELERATION));
   
   public SwerveDrive() {
-    for (int i = 0; i < moduleCount; i++) {
+    for (int i = 0; i < SWERVE_DRIVE.MODULE_COUNT; i++) {
       if (RobotBase.isSimulation()) {
-        modules[i] = new SwerveModuleSim(i, this);
+        modules[i] = new SwerveModuleSim(i);
       } else {
-        modules[i] = new SwerveModule(i, this);
+        modules[i] = new SwerveModule(i);
       }
     }
     
@@ -93,12 +82,27 @@ public class SwerveDrive extends SubsystemBase {
     new Thread(() -> {
       try {
         Thread.sleep(1000);
-        zeroHeading();
+        setHeading(new Rotation2d());
       } catch (Exception e) {}
     }).start();
     
     SmartDashboard.putData("Field", field);
     Logger.autoLog("SwerveDrive/pose", () -> this.getPose());
+
+    AutoBuilder.configureHolonomic(
+      this::getPose, // Robot pose supplier
+      this::resetPose, // Method to reset odometry (will be called if your auto has a starting pose)
+      this::getTargetChassisSpeeds, // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
+      this::drive, // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds
+      new HolonomicPathFollowerConfig( // HolonomicPathFollowerConfig, this should likely live in your Constants class
+        new PIDConstants(SWERVE_DRIVE.AUTONOMOUS_TRANSLATION_GAINS.kP, SWERVE_DRIVE.AUTONOMOUS_TRANSLATION_GAINS.kI, SWERVE_DRIVE.AUTONOMOUS_TRANSLATION_GAINS.kD),
+        new PIDConstants(SWERVE_DRIVE.AUTONOMOUS_ROTATION_GAINS.kP,    SWERVE_DRIVE.AUTONOMOUS_ROTATION_GAINS.kI,    SWERVE_DRIVE.AUTONOMOUS_ROTATION_GAINS.kD),
+        SWERVE_DRIVE.AUTONOMOUS_VELOCITY,
+        Math.hypot(SWERVE_DRIVE.TRACKWIDTH / 2.0, SWERVE_DRIVE.WHEELBASE / 2.0),
+        new ReplanningConfig() // Default path replanning config. See the API for the options here
+      ),
+      this // Reference to this subsystem to set requirements
+    );
   }
 
   @Override
@@ -114,7 +118,6 @@ public class SwerveDrive extends SubsystemBase {
     // Update pose
     poseEstimator.update(getHeading(), getModulePositions());
 
-
     // Update field
     FieldObject2d modulesObject = field.getObject("Swerve Modules");
     Pose2d[] modulePoses = new Pose2d[4];
@@ -127,62 +130,38 @@ public class SwerveDrive extends SubsystemBase {
 
   @Override
   public void simulationPeriodic() {
+    RoboRioSim.setVInVoltage(BatterySim.calculateDefaultBatteryLoadedVoltage(getCurrent()));
   }
 
-  /**
-   * Drive the robot relative to itself
-   * @param forwardVelocity (measured in m/s)
-   * @param strafeVelocity (measured in m/s)
-   * @param angularVelocity (measured in rad/s)
-   */
-  public void robotOrientedDrive(double forwardVelocity, double strafeVelocity, double angularVelocity) {
-    Rotation2d robotAngle = getHeading();
-    fieldOrientedDrive(
-      forwardVelocity * robotAngle.getCos() - strafeVelocity * robotAngle.getSin(),
-      forwardVelocity * robotAngle.getSin() + strafeVelocity * robotAngle.getCos(),
-      angularVelocity
-    );
+  public void drive(ChassisSpeeds speeds) {
+    driveModules(kinematics.toSwerveModuleStates(speeds));
   }
 
-  /** 
-   * Drive the robot relative to the field
-   * @param xVelocity left-right velocity relative to the driver (measured in m/s)
-   * @param yVelocity forward-backward velocity relative to the driver (measured in m/s)
-   * @param angularVelocity rotational velocity (rad/s)
-   */
-  public void fieldOrientedDrive(double xVelocity, double yVelocity, double angularVelocity) {
-    Rotation2d robotAngle = getHeading();
-    ChassisSpeeds speeds = ChassisSpeeds.fromFieldRelativeSpeeds(xVelocity, yVelocity, angularVelocity, robotAngle);
-    SwerveModuleState moduleStates[] = kinematics.toSwerveModuleStates(speeds);
-    driveModules(moduleStates);
+  public void drive(double xVelocity, double yVelocity, double angularVelocity) {
+    drive(ChassisSpeeds.fromFieldRelativeSpeeds(xVelocity, yVelocity, angularVelocity, getHeading()));
   }
 
   /**
    * Tells the modules what speed and direction to run at
    * @param moduleStates The target module states
    */
-  public void driveModules(SwerveModuleState[] moduleStates) {
+  private void driveModules(SwerveModuleState[] moduleStates) {
     ChassisSpeeds velocity = kinematics.toChassisSpeeds(moduleStates);
     
-    if (rotationalVelocityToWheelVelocity(Math.abs(velocity.omegaRadiansPerSecond)) < SWERVE_DRIVE.VELOCITY_DEADBAND && Math.abs(getMeasuredChassisSpeeds().omegaRadiansPerSecond) < SWERVE_DRIVE.VELOCITY_DEADBAND) {
-      velocity.omegaRadiansPerSecond = rotateController.calculate(getHeading().getRadians());
+    if (toLinear(Math.abs(velocity.omegaRadiansPerSecond)) < SWERVE_DRIVE.VELOCITY_DEADBAND && toLinear(Math.abs(getMeasuredChassisSpeeds().omegaRadiansPerSecond)) < SWERVE_DRIVE.VELOCITY_DEADBAND) {
+      velocity.omegaRadiansPerSecond += rotateController.calculate(getHeading().getRadians());
     } else {
       rotateController.setGoal(getHeading().getRadians());
       rotateController.calculate(getHeading().getRadians());
     }
-    // limit acceleration
-    velocity.omegaRadiansPerSecond = rotationAccelerationLimiter.calculate(velocity.omegaRadiansPerSecond);
 
-    // Account for turning while moving not being straight
-    double dtConstant = SWERVE_DRIVE.ROTATION_ERROR_COMPENSATION;
-    Pose2d robotPoseVel = new Pose2d(velocity.vxMetersPerSecond * dtConstant, velocity.vyMetersPerSecond * dtConstant, Rotation2d.fromRadians(velocity.omegaRadiansPerSecond * dtConstant));
-    Twist2d twistVel = SWERVE_MATH.PoseLog(robotPoseVel);
-    velocity = new ChassisSpeeds(twistVel.dx / dtConstant, twistVel.dy / dtConstant, twistVel.dtheta / dtConstant);
-    moduleStates = kinematics.toSwerveModuleStates(velocity);
+    velocity = ChassisSpeeds.discretize(velocity, SWERVE_DRIVE.DISCRETIZED_TIME_STEP);
     
-    SwerveDriveKinematics.desaturateWheelSpeeds(moduleStates, SwerveModule.calcDriveVelocity(SWERVE_DRIVE.MOTOR_POWER_HARD_CAP));
-    for (int i = 0; i < moduleCount; i++)
+    moduleStates = kinematics.toSwerveModuleStates(velocity);
+    SwerveDriveKinematics.desaturateWheelSpeeds(moduleStates, SwerveModule.calcWheelVelocity(SWERVE_DRIVE.MOTOR_POWER_HARD_CAP));
+    for (int i = 0; i < SWERVE_DRIVE.MODULE_COUNT; i++) {
       modules[i].setTargetState(moduleStates[i]);
+    }
   }
 
   public void setTargetHeading(Rotation2d heading) {
@@ -241,8 +220,8 @@ public class SwerveDrive extends SubsystemBase {
    * @return Measured module positions
    */
   public SwerveModulePosition[] getModulePositions() {
-    SwerveModulePosition[] positions = new SwerveModulePosition[moduleCount];
-    for (int i = 0; i < moduleCount; i++) {
+    SwerveModulePosition[] positions = new SwerveModulePosition[SWERVE_DRIVE.MODULE_COUNT];
+    for (int i = 0; i < SWERVE_DRIVE.MODULE_COUNT; i++) {
       positions[i] = modules[i].getModulePosition();
     }
     return positions;
@@ -252,8 +231,8 @@ public class SwerveDrive extends SubsystemBase {
    * @return Target module states (speed and direction)
    */
   public SwerveModuleState[] getTargetModuleStates() {
-    SwerveModuleState[] targetStates = new SwerveModuleState[moduleCount];
-    for (int i = 0; i < moduleCount; i++) {
+    SwerveModuleState[] targetStates = new SwerveModuleState[SWERVE_DRIVE.MODULE_COUNT];
+    for (int i = 0; i < SWERVE_DRIVE.MODULE_COUNT; i++) {
       targetStates[i] = modules[i].getTargetState();
     }
     return targetStates;
@@ -263,8 +242,8 @@ public class SwerveDrive extends SubsystemBase {
    * @return Measured module states (speed and direction)
    */
   public SwerveModuleState[] getMeasuredModuleStates() {
-    SwerveModuleState[] measuredStates = new SwerveModuleState[moduleCount];
-    for (int i = 0; i < moduleCount; i++) {
+    SwerveModuleState[] measuredStates = new SwerveModuleState[SWERVE_DRIVE.MODULE_COUNT];
+    for (int i = 0; i < SWERVE_DRIVE.MODULE_COUNT; i++) {
       measuredStates[i] = modules[i].getMeasuredState();
     }
     return measuredStates;
@@ -274,18 +253,11 @@ public class SwerveDrive extends SubsystemBase {
    * @return Measured module states (speed and direction)
    */
   public SwerveModuleState[] getDrivenModuleStates() {
-    SwerveModuleState[] measuredStates = new SwerveModuleState[moduleCount];
-    for (int i = 0; i < moduleCount; i++) {
+    SwerveModuleState[] measuredStates = new SwerveModuleState[SWERVE_DRIVE.MODULE_COUNT];
+    for (int i = 0; i < SWERVE_DRIVE.MODULE_COUNT; i++) {
       measuredStates[i] = modules[i].getDrivenState();
     }
     return measuredStates;
-  }
-
-  /**
-   * @return All SwerveModule objects
-   */
-  public SwerveModule[] getModules() {
-    return modules;
   }
 
   /**
@@ -314,10 +286,6 @@ public class SwerveDrive extends SubsystemBase {
     gyro.setAngleAdjustment(newHeading.getDegrees());
   }
 
-  public void zeroHeading() {
-    setHeading(new Rotation2d());
-  }
-
   /**
    * @return Returns gyro heading as a Rotation2d
    */
@@ -333,47 +301,21 @@ public class SwerveDrive extends SubsystemBase {
   }
 
   /**
-   * @param driveVelocity drive velocity in m/s
+   * @param wheelSpeed drive velocity in m/s
    * @return rotational velocity in rad/s
    */
-  public static double wheelVelocityToRotationalVelocity(double driveVelocity) {
-    return driveVelocity / Math.hypot(SWERVE_DRIVE.TRACKWIDTH / 2.0, SWERVE_DRIVE.WHEELBASE / 2.0);
+  public static double toAngular(double wheelSpeed) {
+    return wheelSpeed / Math.hypot(SWERVE_DRIVE.TRACKWIDTH / 2.0, SWERVE_DRIVE.WHEELBASE / 2.0);
   }
 
   /**
-   * @param rotationalVelocity rotational velocity in rad/s
+   * @param angularVelocity rotational velocity in rad/s
    * @return drive velocity in m/s
    */
-  public static double rotationalVelocityToWheelVelocity(double rotationalVelocity) {
-    return rotationalVelocity * Math.hypot(SWERVE_DRIVE.TRACKWIDTH / 2.0, SWERVE_DRIVE.WHEELBASE / 2.0);
-  }
-  
-  public void tankDriveVolts(double leftVolts, double rightVolts) {
-    modules[0].setVolts(leftVolts);
-    modules[1].setVolts(rightVolts);
-    modules[2].setVolts(leftVolts);
-    modules[3].setVolts(rightVolts);
+  public static double toLinear(double angularVelocity) {
+    return angularVelocity * Math.hypot(SWERVE_DRIVE.TRACKWIDTH / 2.0, SWERVE_DRIVE.WHEELBASE / 2.0);
   }
 
-  public double getMeasuredVelocity() {
-    return Math.hypot(getMeasuredChassisSpeeds().vxMetersPerSecond, getMeasuredChassisSpeeds().vyMetersPerSecond);
-  }
-
-  public double getLeftPositionMeters() {
-    return modules[0].getModulePosition().distanceMeters;
-  }
-
-  public double getRightPositionMeters() {
-    return modules[1].getModulePosition().distanceMeters;
-  }
-
-  public double getLeftMetersPerSec() {
-    return modules[0].getMeasuredState().speedMetersPerSecond;
-  }
-
-  public double getRightMetersPerSec() {
-    return modules[1].getMeasuredState().speedMetersPerSecond;
-  }
 
   public static SwerveDriveKinematics getKinematics() {
     return new SwerveDriveKinematics(
@@ -383,125 +325,111 @@ public class SwerveDrive extends SubsystemBase {
       new Translation2d(-SWERVE_DRIVE.TRACKWIDTH / 2.0, -SWERVE_DRIVE.WHEELBASE / 2.0));
   }
 
-  public Command fullAuto(String pathName, HashMap<String, Command> eventMap) {
-    // This will load the file "FullAuto.path" and generate it with a max velocity of 4 m/s and a max acceleration of 3 m/s^2
-    // for every path in the group
-    List<PathPlannerTrajectory> pathGroup = PathPlanner.loadPathGroup(pathName, new PathConstraints(SWERVE_DRIVE.AUTONOMOUS_VELOCITY, SWERVE_DRIVE.AUTONOMOUS_ACCELERATION));
-
-    // Create the AutoBuilder. This only needs to be created once when robot code starts, not every time you want to create an auto command. A good place to put this is in RobotContainer along with your subsystems.
-    SwerveAutoBuilder autoBuilder = new SwerveAutoBuilder(
-        this::getPose, // Pose2d supplier
-        this::resetPose, // Pose2d consumer, used to reset odometry at the beginning of auto
-        getKinematics(), // SwerveDriveKinematics
-        new PIDConstants(
-          SWERVE_DRIVE.AUTONOMOUS_TRANSLATION_GAINS.kP,
-          SWERVE_DRIVE.AUTONOMOUS_TRANSLATION_GAINS.kI,
-          SWERVE_DRIVE.AUTONOMOUS_TRANSLATION_GAINS.kD
-        ), // PID constants to correct for translation error (used to create the X and Y PID controllers)
-        new PIDConstants(
-          SWERVE_DRIVE.AUTONOMOUS_ROTATION_GAINS.kP,
-          SWERVE_DRIVE.AUTONOMOUS_ROTATION_GAINS.kI,
-          SWERVE_DRIVE.AUTONOMOUS_ROTATION_GAINS.kD
-        ), // PID constants to correct for rotation error (used to create the rotation controller)
-        this::driveModules, // Module states consumer used to output to the drive subsystem
-        eventMap, true, // Should the path be automatically mirrored depending on alliance color. Optional, defaults to true
-        this // The drive subsystem. Used to properly set the requirements of path following commands
+  public Command followPathCommand(List<Pose2d> poses) {
+    PathConstraints constraints = new PathConstraints(
+      SWERVE_DRIVE.AUTONOMOUS_VELOCITY,
+      SWERVE_DRIVE.AUTONOMOUS_ACCELERATION,
+      toAngular(SWERVE_DRIVE.AUTONOMOUS_VELOCITY),
+      toAngular(SWERVE_DRIVE.AUTONOMOUS_ACCELERATION)
     );
-
-    return autoBuilder.fullAuto(pathGroup).andThen(this::stopModules, this);
-  }
-
-  public Command followTrajectoryCommand(PathPlannerTrajectory traj) {
-    return new SequentialCommandGroup(new PPSwerveControllerCommand(
-        traj,
-        this::getPose, // Pose supplier
-        getKinematics(), // SwerveDriveKinematics
-        new PIDController(
-          SWERVE_DRIVE.AUTONOMOUS_TRANSLATION_GAINS.kP,
-          SWERVE_DRIVE.AUTONOMOUS_TRANSLATION_GAINS.kI,
-          SWERVE_DRIVE.AUTONOMOUS_TRANSLATION_GAINS.kD
-        ), // X controller. Tune these values for your robot. Leaving them 0 will only use feedforwards.
-        new PIDController(
-          SWERVE_DRIVE.AUTONOMOUS_TRANSLATION_GAINS.kP,
-          SWERVE_DRIVE.AUTONOMOUS_TRANSLATION_GAINS.kI,
-          SWERVE_DRIVE.AUTONOMOUS_TRANSLATION_GAINS.kD
-        ), // Y controller (usually the same values as X controller)
-        new PIDController(
-          SWERVE_DRIVE.AUTONOMOUS_ROTATION_GAINS.kP,
-          SWERVE_DRIVE.AUTONOMOUS_ROTATION_GAINS.kI,
-          SWERVE_DRIVE.AUTONOMOUS_ROTATION_GAINS.kD
-        ), // Rotation controller. Tune these values for your robot. Leaving them 0 will only use feedforwards.
-        this::driveModules, // Module states consumer
-        true, // Should the path be automatically mirrored depending on alliance color. Optional, defaults to true
-        this // Requires this drive subsystem
-    ));
-  }
-
-  public PathPlannerTrajectory generateTrajectoryFieldRelative(List<PathPoint> pathPoints) {
-    List<PathPoint> points = new ArrayList<PathPoint>(pathPoints);
-    Rotation2d startingDirection = points.get(0).position.minus(getPose().getTranslation()).getAngle();
-    points.add(0, new PathPoint(getPose().getTranslation(), startingDirection, getHeading()));
-
-    FieldObject2d pathObject = field.getObject("PathPoints");
-    List<Pose2d> pathPoses = new ArrayList<Pose2d>();
-    for (PathPoint point : pathPoints) {
-      pathPoses.add(new Pose2d(point.position, point.holonomicRotation));
-    }
-    pathObject.setPoses(pathPoses);
-
-    return PathPlanner.generatePath(
-      new PathConstraints(SWERVE_DRIVE.AUTONOMOUS_VELOCITY, SWERVE_DRIVE.AUTONOMOUS_ACCELERATION), 
-      points
-    );
-  }
-
-  public PathPlannerTrajectory generateTrajectoryFieldRelativeBasic(List<Twist2d> pathPoints) {
-    List<Twist2d> twists = new ArrayList<Twist2d>(pathPoints);
-    twists.add(0, new Twist2d(getPose().getTranslation().getX(), getPose().getTranslation().getY(), getHeading().getRadians()));
+    // List<Pose2d> points = new ArrayList<Pose2d>();
+    // for (int i = 0; i < poses.size(); i++) {
+      // Translation2d currentPosition = poses.get(i).getTranslation();
+      // Translation2d prevPosition = currentPosition;
+      // Translation2d nextPosition = currentPosition;
+      // if (i > 0) {
+      //   prevPosition = poses.get(i - 1).getTranslation();
+      // }
+      // if (i < poses.size() - 1) {
+      //   nextPosition = poses.get(i + 1).getTranslation();
+      // }
+      // Rotation2d angle = nextPosition.minus(currentPosition).minus(prevPosition.minus(currentPosition)).getAngle();
+      // points.add(
+      //   new Pose2d(currentPosition, new Rotation2d())
+      // );
+    // }
     List<PathPoint> points = new ArrayList<PathPoint>();
-    for (int i = 0; i < twists.size(); i++) {
-      Translation2d currentPosition = new Translation2d(twists.get(i).dx, twists.get(i).dy);
-      Translation2d prevPosition = currentPosition;
-      Translation2d nextPosition = currentPosition;
-      if (i > 0) {
-        prevPosition = new Translation2d(twists.get(i - 1).dx, twists.get(i - 1).dy);
-      }
-      if (i < twists.size() - 1) {
-        nextPosition = new Translation2d(twists.get(i + 1).dx, twists.get(i + 1).dy);
-      }
-
-      Rotation2d angle = nextPosition.minus(currentPosition).minus(prevPosition.minus(currentPosition)).getAngle();
-
-      points.add(
-        new PathPoint(currentPosition, angle, Rotation2d.fromRadians(twists.get(i).dtheta))
-      );
+    for (Pose2d pose: poses) {
+      points.add(new PathPoint(pose.getTranslation(), new Rotation2d()));
     }
-
     FieldObject2d pathObject = field.getObject("PathPoints");
-    List<Pose2d> pathPoses = new ArrayList<Pose2d>();
-    for (PathPoint point : points) {
-      pathPoses.add(new Pose2d(point.position, point.holonomicRotation));
-    }
-    pathObject.setPoses(pathPoses);
+    pathObject.setPoses(poses);
+    
+    List<Translation2d> bezierPoints = PathPlannerPath.bezierFromPoses(poses);
 
-    return PathPlanner.generatePath(
-      new PathConstraints(SWERVE_DRIVE.AUTONOMOUS_VELOCITY, SWERVE_DRIVE.AUTONOMOUS_ACCELERATION), 
-      points
+    return AutoBuilder.followPathWithEvents(
+      new PathPlannerPath(
+        bezierPoints,
+        constraints,
+        new GoalEndState(0.0, new Rotation2d())
+      )
+      // PathPlannerPath.fromPathPoints(points, constraints, new GoalEndState(0.0, new Rotation2d()))
     );
+
+  //   FieldObject2d pathObject = field.getObject("PathPoints");
+  //   List<Pose2d> pathPoses = new ArrayList<Pose2d>();
+  //   for (PathPoint point : points) {
+      
+  //     pathPoses.add(new Pose2d(point.position, point.holonomicRotation));
+  //   }
+  //   pathObject.setPoses(pathPoses);
+
+  //   return AutoBuilder.pathfindThenFollowPath(
+  //     PathPlannerPath.fromPathPoints(
+  //       points, 
+  //       new PathConstraints(
+  //         SWERVE_DRIVE.AUTONOMOUS_VELOCITY,
+  //         SWERVE_DRIVE.AUTONOMOUS_ACCELERATION,
+  //         wheelVelocityToRotationalVelocity(SWERVE_DRIVE.AUTONOMOUS_VELOCITY),
+  //         wheelVelocityToRotationalVelocity(SWERVE_DRIVE.AUTONOMOUS_ACCELERATION)
+  //       ),
+  //       new GoalEndState(0.0, new Rotation2d())
+  //     ),
+  //   new PathConstraints(
+  //     SWERVE_DRIVE.AUTONOMOUS_VELOCITY,
+  //     SWERVE_DRIVE.AUTONOMOUS_ACCELERATION,
+  //     wheelVelocityToRotationalVelocity(SWERVE_DRIVE.AUTONOMOUS_VELOCITY),
+  //     wheelVelocityToRotationalVelocity(SWERVE_DRIVE.AUTONOMOUS_ACCELERATION)
+  //   )
+  // );
+
+
+    // FieldObject2d pathObject = field.getObject("PathPoints");
+    // List<Pose2d> pathPoses = new ArrayList<Pose2d>();
+    // SequentialCommandGroup commandGroup = new SequentialCommandGroup();
+    // for (Pose2d pose : poses) {
+    //   commandGroup.addCommands(
+    //     AutoBuilder.pathfindToPose(
+    //       pose,
+    //       new PathConstraints(
+    //         SWERVE_DRIVE.AUTONOMOUS_VELOCITY,
+    //         SWERVE_DRIVE.AUTONOMOUS_ACCELERATION,
+    //         wheelVelocityToRotationalVelocity(SWERVE_DRIVE.AUTONOMOUS_VELOCITY),
+    //         wheelVelocityToRotationalVelocity(SWERVE_DRIVE.AUTONOMOUS_ACCELERATION)
+    //       )
+    //     )
+    //   );
+    //   pathPoses.add(pose);
+    // }
+    // pathObject.setPoses(pathPoses);
+    
+    // return commandGroup;
+
   }
 
-  public PathPlannerTrajectory generateTrajectoryRobotRelative(List<PathPoint> pathPoints) {
-    List<PathPoint> newPoints = new ArrayList<>();
-    for (PathPoint point : pathPoints) {
-      newPoints.add(
-        new PathPoint(
-          point.position.plus(getPose().getTranslation()),
-          point.heading,
-          point.holonomicRotation,
-          point.velocityOverride
-        )
-      );
-    }
-    return generateTrajectoryFieldRelative(newPoints);
+  // Assuming this is a method in your drive subsystem
+  public Command followPathCommand(PathPlannerPath path) {
+    // return AutoBuilder.pathfindThenFollowPath(path, 
+    //   new PathConstraints(
+    //     SWERVE_DRIVE.AUTONOMOUS_VELOCITY,
+    //     SWERVE_DRIVE.AUTONOMOUS_ACCELERATION,
+    //     calcAngularVelocity(SWERVE_DRIVE.AUTONOMOUS_VELOCITY),
+    //     calcAngularVelocity(SWERVE_DRIVE.AUTONOMOUS_ACCELERATION)
+    //   ), 0.0);
+    return AutoBuilder.followPathWithEvents(path);
+  }
+
+  public Command followAutoPathCommand(String autoName) {
+    return new PathPlannerAuto(autoName);
   }
 }
