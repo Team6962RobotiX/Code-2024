@@ -57,8 +57,8 @@ public class SwerveDrive extends SubsystemBase {
     SWERVE_DRIVE.ABSOLUTE_ROTATION_GAINS.kI,
     SWERVE_DRIVE.ABSOLUTE_ROTATION_GAINS.kD,
     new Constraints(
-      SwerveDrive.toAngular(SwerveModule.calcWheelVelocity(1.0)),
-      SwerveDrive.toAngular(SWERVE_DRIVE.ACCELERATION)
+      SWERVE_DRIVE.PHYSICS.MAX_ANGULAR_VELOCITY,
+      SWERVE_DRIVE.PHYSICS.MAX_ANGULAR_ACCELERATION
     )
   );
   
@@ -89,20 +89,20 @@ public class SwerveDrive extends SubsystemBase {
     SmartDashboard.putData("Field", field);
     Logger.autoLog("SwerveDrive/pose", () -> this.getPose());
 
-    AutoBuilder.configureHolonomic(
-      this::getPose, // Robot pose supplier
-      this::resetPose, // Method to reset odometry (will be called if your auto has a starting pose)
-      this::getTargetChassisSpeeds, // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
-      this::drive, // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds
-      new HolonomicPathFollowerConfig( // HolonomicPathFollowerConfig, this should likely live in your Constants class
-        new PIDConstants(SWERVE_DRIVE.AUTONOMOUS_TRANSLATION_GAINS.kP, SWERVE_DRIVE.AUTONOMOUS_TRANSLATION_GAINS.kI, SWERVE_DRIVE.AUTONOMOUS_TRANSLATION_GAINS.kD),
-        new PIDConstants(SWERVE_DRIVE.AUTONOMOUS_ROTATION_GAINS.kP,    SWERVE_DRIVE.AUTONOMOUS_ROTATION_GAINS.kI,    SWERVE_DRIVE.AUTONOMOUS_ROTATION_GAINS.kD),
-        SWERVE_DRIVE.AUTONOMOUS_VELOCITY,
-        Math.hypot(SWERVE_DRIVE.TRACKWIDTH / 2.0, SWERVE_DRIVE.WHEELBASE / 2.0),
-        new ReplanningConfig() // Default path replanning config. See the API for the options here
-      ),
-      this // Reference to this subsystem to set requirements
-    );
+    // AutoBuilder.configureHolonomic(
+    //   this::getPose, // Robot pose supplier
+    //   this::resetPose, // Method to reset odometry (will be called if your auto has a starting pose)
+    //   this::getTargetChassisSpeeds, // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
+    //   this::drive, // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds
+    //   new HolonomicPathFollowerConfig( // HolonomicPathFollowerConfig, this should likely live in your Constants class
+    //     new PIDConstants(SWERVE_DRIVE.AUTONOMOUS.TRANSLATION_GAINS.kP, SWERVE_DRIVE.AUTONOMOUS.TRANSLATION_GAINS.kI, SWERVE_DRIVE.AUTONOMOUS.TRANSLATION_GAINS.kD),
+    //     new PIDConstants(SWERVE_DRIVE.AUTONOMOUS.ROTATION_GAINS.kP,    SWERVE_DRIVE.AUTONOMOUS.ROTATION_GAINS.kI,    SWERVE_DRIVE.AUTONOMOUS.ROTATION_GAINS.kD),
+    //     SWERVE_DRIVE.AUTONOMOUS.MAX_LINEAR_VELOCITY,
+    //     SWERVE_DRIVE.PHYSICS.DRIVE_RADIUS,
+    //     new ReplanningConfig() // Default path replanning config. See the API for the options here
+    //   ),
+    //   this // Reference to this subsystem to set requirements
+    // );
   }
 
   @Override
@@ -305,7 +305,7 @@ public class SwerveDrive extends SubsystemBase {
    * @return rotational velocity in rad/s
    */
   public static double toAngular(double wheelSpeed) {
-    return wheelSpeed / Math.hypot(SWERVE_DRIVE.TRACKWIDTH / 2.0, SWERVE_DRIVE.WHEELBASE / 2.0);
+    return wheelSpeed / SWERVE_DRIVE.PHYSICS.DRIVE_RADIUS;
   }
 
   /**
@@ -313,7 +313,7 @@ public class SwerveDrive extends SubsystemBase {
    * @return drive velocity in m/s
    */
   public static double toLinear(double angularVelocity) {
-    return angularVelocity * Math.hypot(SWERVE_DRIVE.TRACKWIDTH / 2.0, SWERVE_DRIVE.WHEELBASE / 2.0);
+    return angularVelocity * SWERVE_DRIVE.PHYSICS.DRIVE_RADIUS;
   }
 
 
@@ -327,10 +327,10 @@ public class SwerveDrive extends SubsystemBase {
 
   public Command followPathCommand(List<Pose2d> poses) {
     PathConstraints constraints = new PathConstraints(
-      SWERVE_DRIVE.AUTONOMOUS_VELOCITY,
-      SWERVE_DRIVE.AUTONOMOUS_ACCELERATION,
-      toAngular(SWERVE_DRIVE.AUTONOMOUS_VELOCITY),
-      toAngular(SWERVE_DRIVE.AUTONOMOUS_ACCELERATION)
+      SWERVE_DRIVE.AUTONOMOUS.MAX_LINEAR_VELOCITY,
+      SWERVE_DRIVE.AUTONOMOUS.MAX_LINEAR_ACCELERATION,
+      SWERVE_DRIVE.AUTONOMOUS.MAX_ANGULAR_VELOCITY,
+      SWERVE_DRIVE.AUTONOMOUS.MAX_ANGULAR_ACCELERATION
     );
     // List<Pose2d> points = new ArrayList<Pose2d>();
     // for (int i = 0; i < poses.size(); i++) {
@@ -350,7 +350,7 @@ public class SwerveDrive extends SubsystemBase {
     // }
     List<PathPoint> points = new ArrayList<PathPoint>();
     for (Pose2d pose: poses) {
-      points.add(new PathPoint(pose.getTranslation(), new Rotation2d()));
+      // points.add(new PathPoint(pose.getTranslation(), new Rotation2d()));
     }
     FieldObject2d pathObject = field.getObject("PathPoints");
     pathObject.setPoses(poses);

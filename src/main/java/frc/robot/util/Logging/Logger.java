@@ -6,7 +6,7 @@ import java.util.Map;
 import java.util.TimerTask;
 import java.util.function.Supplier;
 
-import com.ctre.phoenix.sensors.CANCoder;
+import com.ctre.phoenix6.hardware.CANcoder;
 import com.kauailabs.navx.frc.AHRS;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
@@ -83,7 +83,7 @@ public final class Logger extends TimerTask {
     log(path + "/velocity", encoder.getVelocity());
   }
 
-  public static void log(String path, CANCoder encoder) {
+  public static void log(String path, CANcoder encoder) {
     log(path + "/absolutePosition", encoder.getAbsolutePosition());
     log(path + "/position", encoder.getPosition());
     log(path + "/velocity", encoder.getVelocity());

@@ -3,7 +3,7 @@ package frc.robot.util;
 import java.util.List;
 import java.util.function.Supplier;
 
-import com.ctre.phoenix.ErrorCode;
+import com.ctre.phoenix6.StatusCode;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMaxLowLevel.PeriodicFrame;
 import com.revrobotics.REVLibError;
@@ -31,8 +31,8 @@ public final class ConfigUtils {
         if (status == REVLibError.kOk) {
           return;
         }
-      } else if (status instanceof ErrorCode) {
-        if (status == ErrorCode.OK) {
+      } else if (status instanceof StatusCode) {
+        if (status == StatusCode.OK) {
           return;
         }
       } else {

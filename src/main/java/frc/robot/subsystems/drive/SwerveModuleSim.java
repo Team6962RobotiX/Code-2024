@@ -22,15 +22,15 @@ import frc.robot.util.Logging.Logger;
 
 public class SwerveModuleSim extends SwerveModule {
   private FlywheelSim driveMotor = new FlywheelSim(
-    LinearSystemId.identifyVelocitySystem(DRIVE_MOTOR_PROFILE.kV * (SWERVE_DRIVE.WHEEL_DIAMETER / 2.0), DRIVE_MOTOR_PROFILE.kA * (SWERVE_DRIVE.WHEEL_DIAMETER / 2.0)),
+    LinearSystemId.identifyVelocitySystem(DRIVE_MOTOR_PROFILE.kV * (SWERVE_DRIVE.WHEEL_RADIUS), DRIVE_MOTOR_PROFILE.kA * (SWERVE_DRIVE.WHEEL_RADIUS)),
     DCMotor.getNEO(1),
-    1.0 / SWERVE_DRIVE.DRIVE_MOTOR_GEAR_RATIO
+    SWERVE_DRIVE.DRIVE_MOTOR_GEARING
   );
   
   private FlywheelSim steerMotor = new FlywheelSim(
     LinearSystemId.identifyVelocitySystem(STEER_MOTOR_PROFILE.kV, STEER_MOTOR_PROFILE.kA),
     DCMotor.getNEO(1),
-    1.0 / SWERVE_DRIVE.STEER_MOTOR_GEAR_RATIO
+    SWERVE_DRIVE.STEER_MOTOR_GEARING
   );
 
   private PIDController drivePID = new PIDController(
@@ -133,7 +133,7 @@ public class SwerveModuleSim extends SwerveModule {
 
   @Override
   public SwerveModuleState getMeasuredState() {
-    return new SwerveModuleState(driveMotor.getAngularVelocityRadPerSec() * (SWERVE_DRIVE.WHEEL_DIAMETER / 2.0), Rotation2d.fromRadians(steerRadians));
+    return new SwerveModuleState(driveMotor.getAngularVelocityRadPerSec() * (SWERVE_DRIVE.WHEEL_RADIUS), Rotation2d.fromRadians(steerRadians));
   }
 
   @Override

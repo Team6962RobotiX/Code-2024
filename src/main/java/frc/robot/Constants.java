@@ -49,66 +49,82 @@ public final class Constants {
   // SWERVE DRIVE
   public static final class SWERVE_DRIVE {
 
-    /*
-      -------------------------------------
-      | SIMPLE CONFIG, FEEL FREE TO EDIT! |
-      -------------------------------------
-    */
-    
+    ///////////////////////// CONFIG /////////////////////////
+  
     public static final double   ROBOT_MASS                         = 25; // kg
     public static final double   FRICTION_COEFFICIENT               = 1.0; // 1.0 when on carpet 0.5 on KLS flooring
+    public static final int      MODULE_COUNT                       = 4;
+    public static final double   CHASSIS_WIDTH                      = Units.inchesToMeters(28);
+    public static final double   CHASSIS_LENGTH                     = Units.inchesToMeters(28);
+    public static final double   WHEEL_FRAME_DISTANCE               = Units.inchesToMeters(2.625);
+    public static final double   WHEEL_RADIUS                       = Units.inchesToMeters(2.0); // measured in meters
+    public static final double   WHEEL_WIDTH                        = Units.inchesToMeters(2.0); // measured in meters
+    public static final double   DRIVE_MOTOR_GEARING                = 6.75;
+    public static final double   STEER_MOTOR_GEARING                = 150.0 / 7.0;
+    public static final double   GEARBOX_EFFICIENCY                 = 0.8;
+    public static final double[] STEER_ENCODER_OFFSETS              = { -124.805, -303.047, -101.602, -65.215 };
 
-    // TELEOPERATED POWER
+    // DRIVING OPTIONS
     public static final double   TELEOPERATED_DRIVE_POWER           = 0.4; // Percent driving power (0.2  = 20%)
     public static final double   TELEOPERATED_SLOW_DRIVE_POWER      = 0.2; // Percent driving power when using the DPad
     public static final double   TELEOPERATED_BOOST_DRIVE_POWER     = 1.0; // Percent driving power when using the DPad
     public static final double   TELEOPERATED_ROTATE_POWER          = 0.4; // Percent rotating power (0.4 = 40%)
-    
-    // ACCELERATION
-    public static final double   ACCELERATION                       = 9.8 * FRICTION_COEFFICIENT; // Measured in m/s^2
-    
-    // INPUT TUNING
     public static final double   VELOCITY_DEADBAND                  = 0.15; // Velocity we stop moving at
-
-    // AUTONOMOUS
-    public static final double   AUTONOMOUS_ACCELERATION            = 3.0; // [TODO] measured in meters/sec^2
     
     // ODOMETER
     public static final Pose2d   STARTING_POSE                      = new Pose2d(0.0, 0.0, Rotation2d.fromDegrees(0.0));
-    
+
     // TESTING
     public static final double   MOTOR_POWER_HARD_CAP               = 1.0; // Only use for testing, otherwise set to 1.0
-    
-    /*
-    -------------------------------------------------------------------
-    | ADVANCED CONFIG, DO NOT EDIT UNLESS YOU KNOW WHAT YOU'RE DOING! |
-    -------------------------------------------------------------------
-    */
-    
-    // PHYSICAL
-    public static final int      MODULE_COUNT                       = 4;
-    public static final double   CHASSIS_WIDTH                      = Units.inchesToMeters(30);
-    public static final double   CHASSIS_LENGTH                     = Units.inchesToMeters(30);
-    public static final double   WHEEL_FRAME_DISTANCE               = Units.inchesToMeters(2.625);
-    public static final double   TRACKWIDTH                         = CHASSIS_WIDTH - WHEEL_FRAME_DISTANCE * 2.0; // left-to-right distance between the drivetrain wheels
-    public static final double   WHEELBASE                          = CHASSIS_LENGTH - WHEEL_FRAME_DISTANCE * 2.0; // front-to-back distance between the drivetrain wheels
-    public static final double   WHEEL_DIAMETER                     = Units.inchesToMeters(4.0); // measured in meters
-    public static final double   WHEEL_WIDTH                        = Units.inchesToMeters(2.0); // measured in meters
-    public static final double   WHEEL_MASS                         = Units.lbsToKilograms(0.55); // kg
-    public static final double   DRIVE_MOTOR_GEAR_RATIO             = 1.0 / 6.75;
-    public static final double   STEER_MOTOR_GEAR_RATIO             = 7.0 / 150.0;
-    public static final double   GEARBOX_EFFICIENCY                 = 0.8;
-    public static final double[] STEER_ENCODER_OFFSETS              = { -124.805, -303.047, -101.602, -65.215 };
-    
-    // GEAR AND WHEEL RATIOS
-    public static final double   DRIVE_MOTOR_METERS_PER_REVOLUTION  = DRIVE_MOTOR_GEAR_RATIO * WHEEL_DIAMETER * Math.PI;
-    public static final double   STEER_MOTOR_RADIANS_PER_REVOLUTION = STEER_MOTOR_GEAR_RATIO * Math.PI * 2.0;
     
     // REDUCE DRIVE VELOCITY WHEN FAR FROM ANGLE
     public static final boolean  DO_ANGLE_ERROR_SPEED_REDUCTION     = true;
     public static final double   DISCRETIZED_TIME_STEP              = 0.1; // Keeps movement in straight lines when rotating
     
-    public static final double   AUTONOMOUS_VELOCITY                = SwerveModule.calcWheelVelocity(1.0) / 2.0;
+
+    ///////////////////////// CALCUALTED /////////////////////////
+
+    // PHYSICAL
+    public static final double   TRACKWIDTH                         = CHASSIS_WIDTH - WHEEL_FRAME_DISTANCE * 2.0; // left-to-right distance between the drivetrain wheels
+    public static final double   WHEELBASE                          = CHASSIS_LENGTH - WHEEL_FRAME_DISTANCE * 2.0; // front-to-back distance between the drivetrain wheels
+    
+    // GEAR AND WHEEL RATIOS
+    public static final double   DRIVE_ENCODER_CONVERSION_FACTOR  = (WHEEL_RADIUS * 2.0 * Math.PI) / DRIVE_MOTOR_GEARING;
+    public static final double   STEER_ENCODER_CONVERSION_FACTOR = (Math.PI * 2.0) / DRIVE_MOTOR_GEARING;
+    
+    public static class PHYSICS {
+      public static final double ROTATIONAL_INERTIA = (1.0 / 12.0) * ROBOT_MASS * (Math.pow(CHASSIS_WIDTH, 2.0) + Math.pow(CHASSIS_LENGTH, 2.0));
+      public static final double SLIPLESS_ACCELERATION = 9.80 * FRICTION_COEFFICIENT;
+      public static final double SLIPLESS_CURRENT_LIMIT = (SLIPLESS_ACCELERATION * NEO.STALL_CURRENT * ROBOT_MASS * WHEEL_RADIUS) / (4 * DRIVE_MOTOR_GEARING * NEO.STALL_TORQUE);
+      
+      public static final double DRIVE_RADIUS = Math.hypot(WHEELBASE / 2.0, TRACKWIDTH / 2.0);
+      
+      public static final double MAX_WHEEL_VELOCITY = (NEO.FREE_SPEED * GEARBOX_EFFICIENCY * (Math.PI * 2.0)) / 60 / DRIVE_MOTOR_GEARING;
+      public static final double MAX_LINEAR_VELOCITY = MAX_WHEEL_VELOCITY * WHEEL_RADIUS;
+      public static final double MAX_LINEAR_FORCE = (4.0 * NEO.maxTorqueCurrentLimited((int) SLIPLESS_CURRENT_LIMIT) * DRIVE_MOTOR_GEARING) / WHEEL_RADIUS; // N
+      public static final double MAX_LINEAR_ACCELERATION = MAX_LINEAR_FORCE / ROBOT_MASS;
+      public static final double MAX_CHASSIS_TORQUE = MAX_LINEAR_FORCE * DRIVE_RADIUS;
+      public static final double MAX_ANGULAR_ACCELERATION = MAX_CHASSIS_TORQUE / ROTATIONAL_INERTIA;
+      public static final double MAX_ANGULAR_VELOCITY = (MAX_WHEEL_VELOCITY * WHEEL_RADIUS) / DRIVE_RADIUS;
+    }
+
+    public static final class AUTONOMOUS {
+      public static final double MAX_LINEAR_VELOCITY = PHYSICS.MAX_LINEAR_VELOCITY;
+      public static final double MAX_LINEAR_ACCELERATION = PHYSICS.MAX_LINEAR_ACCELERATION;
+      public static final double MAX_ANGULAR_VELOCITY = PHYSICS.MAX_ANGULAR_VELOCITY;
+      public static final double MAX_ANGULAR_ACCELERATION = PHYSICS.MAX_ANGULAR_ACCELERATION;
+
+      public static final class TRANSLATION_GAINS {
+        public static final double kP = 10.0;
+        public static final double kI = 0.0;
+        public static final double kD = 0.0;
+      }
+      public static final class ROTATION_GAINS {
+        public static final double kP = 2.0;
+        public static final double kI = 0.0;
+        public static final double kD = 0.0;
+      }
+    }
 
     public static final class DRIVE_MOTOR_PROFILE {
       // FROM WPILIB SYSTEM IDENTIFICATION, FREE SPINNING
@@ -119,10 +135,9 @@ public final class Constants {
       public static final double kA                 = 0.27734; // volts per m/s^2, free spinning
       
       // CALCULATED
-      public static final double kV                 = 12.0 / (NEO.FREE_SPEED / 60.0 * DRIVE_MOTOR_METERS_PER_REVOLUTION); // volts per m/s
-      public static final int    CURRENT_LIMIT      = (int) ((ACCELERATION * ROBOT_MASS * WHEEL_DIAMETER * DRIVE_MOTOR_GEAR_RATIO * (0.5 * NEO.STALL_CURRENT - 0.5 * NEO.FREE_CURRENT)) / (NEO.STALL_TORQUE * (double) MODULE_COUNT * GEARBOX_EFFICIENCY) + NEO.FREE_CURRENT); // Amps
-      public static final double RAMP_RATE          = (12.0 / kV) / ACCELERATION; // Seconds it takes to reach full power
-      // public static final double MOI                = (DCMotor.getNEO(1).KtNMPerAmp * (kA * (SWERVE_DRIVE.WHEEL_DIAMETER / 2.0)) * (1.0 / DRIVE_MOTOR_GEAR_RATIO)) / DCMotor.getNEO(1).rOhms;
+      public static final double kV                 = 12.0 / (PHYSICS.MAX_LINEAR_VELOCITY); // volts per m/s
+      public static final int    CURRENT_LIMIT      = (int) (PHYSICS.SLIPLESS_CURRENT_LIMIT); // Amps
+      public static final double RAMP_RATE          = (12.0 / kV) / PHYSICS.SLIPLESS_ACCELERATION; // Seconds it takes to reach full power
       
       // PREFERENCE
       public static final int[]  STATUS_FRAMES      = { 10, 10, 10, 500, 500, 500, 500 }; // ms
@@ -137,10 +152,9 @@ public final class Constants {
       public static final double kA                 = 0.01968; // volts per rad/s^2
 
       // CALCULATED
-      public static final double kV                 = 12.0 / (NEO.FREE_SPEED / 60.0 * STEER_MOTOR_RADIANS_PER_REVOLUTION);
+      public static final double kV                 = 12.0 / (NEO.FREE_SPEED / 60.0 * (1.0 / STEER_MOTOR_GEARING) * Math.PI * 2.0);
       public static final int    CURRENT_LIMIT      = 30; // Amps
       public static final double RAMP_RATE          = 0.1; // Seconds it takes to reach full power
-      // public static final double MOI                = (DCMotor.getNEO(1).KtNMPerAmp * kA * (1.0 / STEER_MOTOR_GEAR_RATIO)) / DCMotor.getNEO(1).rOhms;
       
       // PREFERENCE
       public static final int[]  STATUS_FRAMES      = { 10, 10, 10, 500, 500, 500, 500 }; // ms
@@ -151,18 +165,6 @@ public final class Constants {
       public static final double kP  = 4.0;
       public static final double kI  = 0.0;
       public static final double kD  = 0.0;
-    }
-
-    // AUTONOMOUS
-    public static final class AUTONOMOUS_TRANSLATION_GAINS {
-      public static final double kP = 10.0;
-      public static final double kI = 0.0;
-      public static final double kD = 0.0;
-    }
-    public static final class AUTONOMOUS_ROTATION_GAINS {
-      public static final double kP = 2.0;
-      public static final double kI = 0.0;
-      public static final double kD = 0.0;
     }
     
     // MODULES
@@ -179,13 +181,15 @@ public final class Constants {
   }
   
   public static final class NEO {
-    public static final double kV                  = 473; // rpm / V
-    public static final double STALL_TORQUE        = 2.6; // Nm
-    public static final double STALL_CURRENT       = 105; // A
-    public static final double FREE_CURRENT        = 1.8; // A
-    public static final double FREE_SPEED          = 5676; // rpm
-    public static final int    SAFE_STALL_CURRENT  = 40; // A
-    public static final double SAFE_TEMPERATURE    = 65.0; // °C
+    public static final double FREE_SPEED          = 5880;
+    public static final double STALL_TORQUE        = 3.28;
+    public static final double STALL_CURRENT       = 181;
+    public static final double SAFE_TEMPERATURE    = 60;
+    public static final int SAFE_STALL_CURRENT     = 60;
+
+    public static double maxTorqueCurrentLimited(int currentLimit) {
+      return STALL_TORQUE / STALL_CURRENT * currentLimit;
+    }
   }
 
   public static final class SWERVE_MATH {

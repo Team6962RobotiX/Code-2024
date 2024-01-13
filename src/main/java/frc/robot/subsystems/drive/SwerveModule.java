@@ -6,15 +6,16 @@ package frc.robot.subsystems.drive;
 
 import java.util.List;
 
-import com.ctre.phoenix.sensors.AbsoluteSensorRange;
-import com.ctre.phoenix.sensors.CANCoder;
 import com.revrobotics.CANSparkMax;
-import com.revrobotics.CANSparkMax.ControlType;
-import com.revrobotics.CANSparkMax.IdleMode;
-import com.revrobotics.CANSparkMaxLowLevel.MotorType;
+import com.revrobotics.CANSparkLowLevel.MotorType;
+import com.revrobotics.SparkPIDController.ArbFFUnits;
 import com.revrobotics.RelativeEncoder;
-import com.revrobotics.SparkMaxPIDController;
-import com.revrobotics.SparkMaxPIDController.ArbFFUnits;
+import com.revrobotics.SparkPIDController;
+import com.revrobotics.CANSparkBase.ControlType;
+import com.revrobotics.CANSparkBase.IdleMode;
+import com.ctre.phoenix6.configs.MagnetSensorConfigs;
+import com.ctre.phoenix6.hardware.CANcoder;
+import com.ctre.phoenix6.signals.AbsoluteSensorRangeValue;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
@@ -38,8 +39,8 @@ import frc.robot.util.Logging.Logger;
 public class SwerveModule extends SubsystemBase {
   private CANSparkMax driveMotor, steerMotor;
   private RelativeEncoder driveEncoder, steerEncoder;
-  private CANCoder absoluteSteerEncoder;
-  private SparkMaxPIDController drivePID, steerPID;
+  private CANcoder absoluteSteerEncoder;
+  private SparkPIDController drivePID, steerPID;
   private SwerveModuleState targetState = new SwerveModuleState();
   private SwerveModuleState drivenState = new SwerveModuleState();
   private double wheelAcceleration = 0.0;
@@ -58,7 +59,7 @@ public class SwerveModule extends SubsystemBase {
 
     driveMotor           = new CANSparkMax(CAN.SWERVE_DRIVE_SPARK_MAX[id], MotorType.kBrushless);
     steerMotor           = new CANSparkMax(CAN.SWERVE_STEER_SPARK_MAX[id], MotorType.kBrushless);
-    absoluteSteerEncoder = new CANCoder(CAN.SWERVE_STEER_CANCODERS[id]);
+    absoluteSteerEncoder = new CANcoder(CAN.SWERVE_STEER_CANCODERS[id]);
     steerEncoder         = steerMotor.getEncoder();
     driveEncoder         = driveMotor.getEncoder();
     drivePID             = driveMotor.getPIDController();
@@ -70,8 +71,8 @@ public class SwerveModule extends SubsystemBase {
       () -> driveMotor.enableVoltageCompensation(12.0),
       () -> driveMotor.setSmartCurrentLimit(Math.min(DRIVE_MOTOR_PROFILE.CURRENT_LIMIT, NEO.SAFE_STALL_CURRENT), DRIVE_MOTOR_PROFILE.CURRENT_LIMIT),
       () -> driveMotor.setClosedLoopRampRate(DRIVE_MOTOR_PROFILE.RAMP_RATE),
-      () -> driveEncoder.setPositionConversionFactor(SWERVE_DRIVE.DRIVE_MOTOR_METERS_PER_REVOLUTION),
-      () -> driveEncoder.setVelocityConversionFactor(SWERVE_DRIVE.DRIVE_MOTOR_METERS_PER_REVOLUTION / 60.0),
+      () -> driveEncoder.setPositionConversionFactor(SWERVE_DRIVE.DRIVE_ENCODER_CONVERSION_FACTOR),
+      () -> driveEncoder.setVelocityConversionFactor(SWERVE_DRIVE.DRIVE_ENCODER_CONVERSION_FACTOR / 60.0),
       () -> drivePID.setP(DRIVE_MOTOR_PROFILE.kP, 0),
       () -> drivePID.setI(DRIVE_MOTOR_PROFILE.kI, 0),
       () -> drivePID.setD(DRIVE_MOTOR_PROFILE.kD, 0),
@@ -84,8 +85,8 @@ public class SwerveModule extends SubsystemBase {
       () -> steerMotor.enableVoltageCompensation(12.0),
       () -> steerMotor.setSmartCurrentLimit(Math.min(STEER_MOTOR_PROFILE.CURRENT_LIMIT, NEO.SAFE_STALL_CURRENT), STEER_MOTOR_PROFILE.CURRENT_LIMIT),
       () -> steerMotor.setClosedLoopRampRate(STEER_MOTOR_PROFILE.RAMP_RATE),
-      () -> steerEncoder.setPositionConversionFactor(SWERVE_DRIVE.STEER_MOTOR_RADIANS_PER_REVOLUTION),
-      () -> steerEncoder.setVelocityConversionFactor(SWERVE_DRIVE.STEER_MOTOR_RADIANS_PER_REVOLUTION / 60.0),
+      () -> steerEncoder.setPositionConversionFactor(SWERVE_DRIVE.STEER_ENCODER_CONVERSION_FACTOR),
+      () -> steerEncoder.setVelocityConversionFactor(SWERVE_DRIVE.STEER_ENCODER_CONVERSION_FACTOR / 60.0),
       () -> steerPID.setP(STEER_MOTOR_PROFILE.kP, 0),
       () -> steerPID.setI(STEER_MOTOR_PROFILE.kI, 0),
       () -> steerPID.setD(STEER_MOTOR_PROFILE.kD, 0),
@@ -95,8 +96,7 @@ public class SwerveModule extends SubsystemBase {
       () -> steerPID.setOutputRange(-SWERVE_DRIVE.MOTOR_POWER_HARD_CAP, SWERVE_DRIVE.MOTOR_POWER_HARD_CAP, 0),
       () -> steerMotor.burnFlash(),
 
-      () -> absoluteSteerEncoder.configMagnetOffset(SWERVE_DRIVE.STEER_ENCODER_OFFSETS[id]),
-      () -> absoluteSteerEncoder.configAbsoluteSensorRange(AbsoluteSensorRange.Signed_PlusMinus180)
+      () -> absoluteSteerEncoder.getConfigurator().apply(new MagnetSensorConfigs().withMagnetOffset(SWERVE_DRIVE.STEER_ENCODER_OFFSETS[id]).withAbsoluteSensorRange(AbsoluteSensorRangeValue.Signed_PlusMinusHalf))
     ));
     // driveMotor.setClosedLoopRampRate(Math.max((NEO.FREE_SPEED / 60.0) / ((9.80 * SWERVE_DRIVE.COEFFICIENT_OF_FRICTION) / SWERVE_DRIVE.DRIVE_MOTOR_METERS_PER_REVOLUTION), DRIVE_MOTOR_CONFIG.RAMP_RATE))
 
@@ -156,8 +156,8 @@ public class SwerveModule extends SubsystemBase {
     Translation2d currentVelocity = new Translation2d(oldState.speedMetersPerSecond, oldState.angle);
     Translation2d targetVelocity = new Translation2d(targetState.speedMetersPerSecond, targetState.angle);
     Translation2d acceleration = (targetVelocity).minus(currentVelocity).div(0.02);
-    if (acceleration.getNorm() > SWERVE_DRIVE.ACCELERATION) {
-      acceleration = new Translation2d(SWERVE_DRIVE.ACCELERATION, acceleration.getAngle());
+    if (acceleration.getNorm() > SWERVE_DRIVE.PHYSICS.MAX_LINEAR_ACCELERATION) {
+      acceleration = new Translation2d(SWERVE_DRIVE.PHYSICS.MAX_LINEAR_ACCELERATION, acceleration.getAngle());
     }
     Translation2d newVelocity = currentVelocity.plus(acceleration.times(0.02));
     drivenState = new SwerveModuleState(newVelocity.getNorm(), newVelocity.getAngle());
@@ -183,7 +183,7 @@ public class SwerveModule extends SubsystemBase {
   }
   
   private Rotation2d getTrueSteerDirection() {
-    return Rotation2d.fromDegrees(absoluteSteerEncoder.getAbsolutePosition());
+    return Rotation2d.fromDegrees(absoluteSteerEncoder.getAbsolutePosition().getValueAsDouble());
   }
 
   public SwerveModuleState getTargetState() {
@@ -206,9 +206,9 @@ public class SwerveModule extends SubsystemBase {
     return (power * 12.0) / DRIVE_MOTOR_PROFILE.kV;
   }
 
-  public static double calcCurrent(double acceleration) {
-    return (acceleration * SWERVE_DRIVE.ROBOT_MASS * SWERVE_DRIVE.FRICTION_COEFFICIENT * SWERVE_DRIVE.WHEEL_DIAMETER * SWERVE_DRIVE.DRIVE_MOTOR_GEAR_RATIO * (0.5 * NEO.STALL_CURRENT - 0.5 * NEO.FREE_CURRENT)) / (NEO.STALL_TORQUE * SWERVE_DRIVE.MODULE_COUNT * SWERVE_DRIVE.GEARBOX_EFFICIENCY) + NEO.FREE_CURRENT;
-  }
+  // public static double calcCurrent(double acceleration) {
+  //   return (acceleration * SWERVE_DRIVE.ROBOT_MASS * SWERVE_DRIVE.FRICTION_COEFFICIENT * SWERVE_DRIVE.WHEEL_RADIUS * 2.0 * SWERVE_DRIVE.DRIVE_MOTOR_GEAR_RATIO * (0.5 * NEO.STALL_CURRENT - 0.5 * NEO.FREE_CURRENT)) / (NEO.STALL_TORQUE * SWERVE_DRIVE.MODULE_COUNT * SWERVE_DRIVE.GEARBOX_EFFICIENCY) + NEO.FREE_CURRENT;
+  // }
 
   // public static double calcAcceleration(double current) {
   //   return (2.0 * NEO.STALL_TORQUE * SWERVE_DRIVE.MODULE_COUNT * SWERVE_DRIVE.GEARBOX_EFFICIENCY * current - NEO.STALL_TORQUE * SWERVE_DRIVE.MODULE_COUNT * NEO.FREE_CURRENT * SWERVE_DRIVE.GEARBOX_EFFICIENCY) / (SWERVE_DRIVE.ROBOT_MASS * SWERVE_DRIVE.FRICTION_COEFFICIENT * SWERVE_DRIVE.WHEEL_DIAMETER * SWERVE_DRIVE.DRIVE_MOTOR_GEAR_RATIO * NEO.STALL_CURRENT - SWERVE_DRIVE.ROBOT_MASS * SWERVE_DRIVE.FRICTION_COEFFICIENT * SWERVE_DRIVE.WHEEL_DIAMETER * SWERVE_DRIVE.DRIVE_MOTOR_GEAR_RATIO * NEO.FREE_CURRENT);

@@ -3,7 +3,7 @@ package frc.robot.util.Logging;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.ctre.phoenix.ErrorCode;
+import com.ctre.phoenix6.StatusCode;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.REVLibError;
 
@@ -17,8 +17,8 @@ public final class ErrorLogging {
     }
   }
 
-  public static void CTRE(ErrorCode error, String message) {
-    if (error != ErrorCode.OK) {
+  public static void CTRE(StatusCode error, String message) {
+    if (error != StatusCode.OK) {
       DriverStation.reportError(String.format("[FAILED] %s: %s", message, error.toString()), false);
     }
   }

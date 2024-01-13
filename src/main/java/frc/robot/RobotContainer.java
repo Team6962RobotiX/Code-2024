@@ -53,6 +53,9 @@ public class RobotContainer {
     // Configure the trigger bindings
     configureBindings();
 
+    System.out.println(Constants.SWERVE_DRIVE.PHYSICS.ROTATIONAL_INERTIA);
+
+
     // MOI = (DRIVE_MOTOR_CONFIG.kA * G * DCMotor.getNEO(1).KtNMPerAmp) / DCMotor.getNEO(1).rOhms;
     
     DCMotor motor = DCMotor.getNEO(1);
@@ -73,7 +76,7 @@ public class RobotContainer {
     // System.out.println(1.0 / motor.getTorque(motor.getCurrent(0, 12.0)) / (SWERVE_DRIVE.WHEEL_DIAMETER / 2.0) * 4.0 / SWERVE_DRIVE.ROBOT_MASS);
     // System.out.println(SwerveModule.calcAcceleration(NEO.STALL_CURRENT));
     // System.out.println((NEO.STALL_TORQUE * (1.0 / SWERVE_DRIVE.DRIVE_MOTOR_GEAR_RATIO) * SWERVE_DRIVE.MODULE_COUNT) / (SWERVE_DRIVE.WHEEL_DIAMETER / 2.0) / SWERVE_DRIVE.ROBOT_MASS);
-    System.out.println(1.0 / SWERVE_DRIVE.DRIVE_MOTOR_PROFILE.RAMP_RATE);
+    // System.out.println(1.0 / SWERVE_DRIVE.DRIVE_MOTOR_PROFILE.RAMP_RATE);
   }
 
   private void configureBindings() {
@@ -101,7 +104,9 @@ public class RobotContainer {
         )
       ));
     }
-    return swerveDrive.followPathCommand(randomPoints);
+
+    return null;
+    // return swerveDrive.followPathCommand(randomPoints);
 
     // List<Translation2d> bezierPoints = PathPlannerPath.bezierFromPoses(
     //     new Pose2d(rand.nextDouble() * 16.0, rand.nextDouble() * 8.0, Rotation2d.fromDegrees(0)),
