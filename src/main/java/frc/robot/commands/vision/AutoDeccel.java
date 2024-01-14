@@ -4,7 +4,7 @@ import java.util.function.Supplier;
 
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj2.command.CommandBase;
+import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants;
 import frc.robot.LimelightHelpers;
 import frc.robot.subsystems.drive.SwerveDrive;
@@ -14,14 +14,13 @@ import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj.shuffleboard.WidgetType;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
-public class AutoDeccel extends CommandBase {
+public class AutoDeccel extends Command {
   private SwerveDrive drive;
   private Limelight limelight;
 
   public AutoDeccel(SwerveDrive drive, Limelight limelight) {
     this.drive = drive;
     this.limelight = limelight;
-
     addRequirements();
   }
   

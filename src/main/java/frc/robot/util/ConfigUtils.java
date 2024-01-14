@@ -5,7 +5,7 @@ import java.util.function.Supplier;
 
 import com.ctre.phoenix6.StatusCode;
 import com.revrobotics.CANSparkMax;
-import com.revrobotics.CANSparkMaxLowLevel.PeriodicFrame;
+import com.revrobotics.CANSparkLowLevel.PeriodicFrame;
 import com.revrobotics.REVLibError;
 
 import edu.wpi.first.wpilibj.DriverStation;
