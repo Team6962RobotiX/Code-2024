@@ -7,6 +7,8 @@ package frc.robot.subsystems.drive;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.opencv.core.Mat;
+
 import com.kauailabs.navx.frc.AHRS;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.commands.PathPlannerAuto;
@@ -61,7 +63,9 @@ public class SwerveDrive extends SubsystemBase {
       SWERVE_DRIVE.PHYSICS.MAX_ANGULAR_ACCELERATION
     )
   );
-  
+
+  double speedCap = 1.0;
+
   public SwerveDrive() {
     for (int i = 0; i < SWERVE_DRIVE.MODULE_COUNT; i++) {
       if (RobotBase.isSimulation()) {
@@ -138,6 +142,11 @@ public class SwerveDrive extends SubsystemBase {
   }
 
   public void drive(double xVelocity, double yVelocity, double angularVelocity) {
+    double norm = Math.sqrt(Math.pow(xVelocity, 2) + Math.pow(yVelocity, 2));
+    if (norm > speedCap) {
+      xVelocity *= (speedCap/norm);
+      yVelocity *= (speedCap/norm);
+    }
     drive(ChassisSpeeds.fromFieldRelativeSpeeds(xVelocity, yVelocity, angularVelocity, getHeading()));
   }
 
@@ -215,6 +224,14 @@ public class SwerveDrive extends SubsystemBase {
   public ChassisSpeeds getDrivenChassisSpeeds() {
     return kinematics.toChassisSpeeds(getDrivenModuleStates());
   }
+
+  public void setSpeedCap(double cap) {
+    speedCap = cap;
+  }
+
+  public double getSpeedCap() {
+    return speedCap;
+  } 
 
   /**
    * @return Measured module positions
