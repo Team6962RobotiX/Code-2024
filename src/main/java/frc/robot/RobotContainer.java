@@ -4,20 +4,28 @@
 
 package frc.robot;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import com.choreo.lib.Choreo;
+import com.choreo.lib.ChoreoTrajectory;
+
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.Constants.CAN;
 import frc.robot.Constants.DEVICES;
 import frc.robot.Constants.NEO;
@@ -41,6 +49,8 @@ public class RobotContainer {
   private final XboxController XboxController = new XboxController(DEVICES.USB_XBOX_CONTROLLER);
   private final SwerveDrive swerveDrive = new SwerveDrive();
   // private final Limelight limelight = new Limelight(LimelightConfig.NAME);
+  private final ChoreoTrajectory traj;
+  private final Field2d field = new Field2d();
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
@@ -77,6 +87,16 @@ public class RobotContainer {
     // System.out.println(SwerveModule.calcAcceleration(NEO.STALL_CURRENT));
     // System.out.println((NEO.STALL_TORQUE * (1.0 / SWERVE_DRIVE.DRIVE_MOTOR_GEAR_RATIO) * SWERVE_DRIVE.MODULE_COUNT) / (SWERVE_DRIVE.WHEEL_DIAMETER / 2.0) / SWERVE_DRIVE.ROBOT_MASS);
     // System.out.println(1.0 / SWERVE_DRIVE.DRIVE_MOTOR_PROFILE.RAMP_RATE);
+
+    // auto stuff
+    traj = Choreo.getTrajectory("Trajectory");
+
+    field.getObject("traj").setPoses(
+      traj.getInitialPose(), traj.getFinalPose()
+    );
+    field.getObject("trajPoses").setPoses(
+      traj.getPoses()
+    );
   }
 
   private void configureBindings() {
@@ -84,13 +104,43 @@ public class RobotContainer {
   }
 
   public Command getAutonomousCommand() {
+    var thetaController = new PIDController(Constants.SWERVE_DRIVE.AUTONOMOUS.ROTATION_GAINS.kP, 0, 0);
+    thetaController.enableContinuousInput(-Math.PI, Math.PI);
+
+    swerveDrive.resetPose(traj.getInitialPose());
+
+    Command swerveCommand = Choreo.choreoSwerveCommand(
+        traj, // Choreo trajectory from above
+        swerveDrive.getPose(), // A function that returns the current field-relative pose of the robot: your
+                               // wheel or vision odometry
+        new PIDController(Constants.SWERVE_DRIVE.AUTONOMOUS.TRANSLATION_GAINS.kP, 0.0, 0.0), // PIDController for field-relative X
+                                                                                   // translation (input: X error in meters,
+                                                                                   // output: m/s).
+        new PIDController(Constants.SWERVE_DRIVE.AUTONOMOUS.TRANSLATION_GAINS.kP, 0.0, 0.0), // PIDController for field-relative Y
+                                                                                   // translation (input: Y error in meters,
+                                                                                   // output: m/s).
+        thetaController, // PID constants to correct for rotation
+                         // error
+        (ChassisSpeeds speeds) -> swerveDrive.drive( // needs to be robot-relative
+            speeds.vxMetersPerSecond,
+            speeds.vyMetersPerSecond,
+            speeds.omegaRadiansPerSecond),
+        true, // Whether or not to mirror the path based on alliance (this assumes the path is created for the blue alliance)
+        swerveDrive // The subsystem(s) to require, typically your drive subsystem only
+    );
+
+    return Commands.sequence(
+        Commands.runOnce(() -> swerveDrive.resetPose(traj.getInitialPose())),
+        swerveCommand,
+        swerveDrive.run(() -> swerveDrive.drive(0, 0, 0))
+    );
     // return null;
     // return new CharacterizeSwerve(swerveDrive);
     
     // return new FeedForwardCharacterization(swerveDrive, swerveDrive::runCharacterization, swerveDrive::getCharacterizationVelocity);
     // return swerveDrive.followPathCommand("Test Path");
     
-    int numPoints = 3;
+    /*int numPoints = 3;
     List<Pose2d> randomPoints = new ArrayList<Pose2d>();
     Random rand = new Random();
     for (int i = 0; i < numPoints; i++) {
@@ -105,7 +155,7 @@ public class RobotContainer {
       ));
     }
 
-    return null;
+    return null;*/
     // return swerveDrive.followPathCommand(randomPoints);
 
     // List<Translation2d> bezierPoints = PathPlannerPath.bezierFromPoses(
