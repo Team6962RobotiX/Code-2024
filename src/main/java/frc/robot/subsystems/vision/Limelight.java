@@ -25,19 +25,21 @@ public class Limelight extends SubsystemBase {
   public void periodic() {
     
     limelightData = LimelightHelpers.getLatestResults(name);
-    Pose3d targetSpaceTop = LimelightHelpers.getCameraPose3d_TargetSpace("top"); // change later
-    Pose3d targetSpaceBottom = LimelightHelpers.getCameraPose3d_TargetSpace("bottom");
+    Pose3d targetSpace = LimelightHelpers.getCameraPose3d_TargetSpace("light"); // change later
+    //Pose3d targetSpaceBottom = LimelightHelpers.getCameraPose3d_TargetSpace("bottom");
 
-    double z_top = Math.abs(targetSpaceTop.getZ());
-    double z_bottom = Math.abs(targetSpaceBottom.getZ());
+    double z = Math.abs(targetSpace.getZ());
+    //double z_bottom = Math.abs(targetSpaceBottom.getZ());
 
-    if (z_top != 0 && z_bottom != 0) {
-      lastKnownAprilTagZ = (z_top+z_bottom)/2;
-    }else if (z_top != 0){
-      lastKnownAprilTagZ = z_top;
-    }else if (z_bottom != 0){
-      lastKnownAprilTagZ = z_bottom;
-    }
+    // if (z_top != 0 && z_bottom != 0) {
+    //   lastKnownAprilTagZ = (z_top+z_bottom)/2;
+    // }else if (z_top != 0){
+    //   lastKnownAprilTagZ = z_top;
+    // }else if (z_bottom != 0){
+    //   lastKnownAprilTagZ = z_bottom;
+    // }
+
+    lastKnownAprilTagZ = z;
   }
 
   public double getLastKnownAprilTagZ() {
