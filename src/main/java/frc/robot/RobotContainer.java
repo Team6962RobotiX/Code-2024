@@ -89,7 +89,7 @@ public class RobotContainer {
     // System.out.println(1.0 / SWERVE_DRIVE.DRIVE_MOTOR_PROFILE.RAMP_RATE);
 
     // auto stuff
-    traj = Choreo.getTrajectory("Trajectory");
+    traj = Choreo.getTrajectory("speaker");
 
     field.getObject("traj").setPoses(
       traj.getInitialPose(), traj.getFinalPose()
@@ -111,7 +111,7 @@ public class RobotContainer {
 
     Command swerveCommand = Choreo.choreoSwerveCommand(
         traj, // Choreo trajectory from above
-        swerveDrive.getPose(), // A function that returns the current field-relative pose of the robot: your
+        () -> swerveDrive.getPose(), // A function that returns the current field-relative pose of the robot: your
                                // wheel or vision odometry
         new PIDController(Constants.SWERVE_DRIVE.AUTONOMOUS.TRANSLATION_GAINS.kP, 0.0, 0.0), // PIDController for field-relative X
                                                                                    // translation (input: X error in meters,
@@ -125,7 +125,7 @@ public class RobotContainer {
             speeds.vxMetersPerSecond,
             speeds.vyMetersPerSecond,
             speeds.omegaRadiansPerSecond),
-        true, // Whether or not to mirror the path based on alliance (this assumes the path is created for the blue alliance)
+        () -> true, // Whether or not to mirror the path based on alliance (this assumes the path is created for the blue alliance)
         swerveDrive // The subsystem(s) to require, typically your drive subsystem only
     );
 

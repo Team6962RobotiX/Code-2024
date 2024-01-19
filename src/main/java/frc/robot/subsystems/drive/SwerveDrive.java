@@ -342,7 +342,7 @@ public class SwerveDrive extends SubsystemBase {
       new Translation2d(-SWERVE_DRIVE.TRACKWIDTH / 2.0, -SWERVE_DRIVE.WHEELBASE / 2.0));
   }
 
-  public Command followPathCommand(List<Pose2d> poses) {
+  /*public Command followPathCommand(List<Pose2d> poses) {
     PathConstraints constraints = new PathConstraints(
       SWERVE_DRIVE.AUTONOMOUS.MAX_LINEAR_VELOCITY,
       SWERVE_DRIVE.AUTONOMOUS.MAX_LINEAR_ACCELERATION,
@@ -448,5 +448,5 @@ public class SwerveDrive extends SubsystemBase {
 
   public Command followAutoPathCommand(String autoName) {
     return new PathPlannerAuto(autoName);
-  }
+  }*/
 }
