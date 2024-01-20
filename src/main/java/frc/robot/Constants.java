@@ -9,7 +9,6 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.util.Units;
 import frc.robot.subsystems.drive.SwerveDrive;
-import frc.robot.subsystems.drive.SwerveModule;
 
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide numerical or boolean
@@ -182,11 +181,11 @@ public final class Constants {
   }
   
   public static final class NEO {
-    public static final double FREE_SPEED          = 5880;
-    public static final double STALL_TORQUE        = 3.28;
-    public static final double STALL_CURRENT       = 181;
-    public static final double SAFE_TEMPERATURE    = 60;
-    public static final int SAFE_STALL_CURRENT     = 60;
+    public static final double FREE_SPEED = 5880;
+    public static final double STALL_TORQUE = 3.28;
+    public static final double STALL_CURRENT = 181;
+    public static final double SAFE_TEMPERATURE = 60;
+    public static final int SAFE_STALL_CURRENT = 60;
 
     public static double maxTorqueCurrentLimited(int currentLimit) {
       return STALL_TORQUE / STALL_CURRENT * currentLimit;
@@ -194,8 +193,16 @@ public final class Constants {
   }
 
   public static final class SWERVE_MATH {
+    /**
+     * Finds the distance in radians between specified angles.
+     * @return The number of radians between the two angles, from 0 to π.
+    */
     public static double angleDistance(double alpha, double beta) {
+      // Calculates the difference between the angles in a range from 0 to 2π.
       double phi = Math.abs(beta - alpha) % (2.0 * Math.PI);
+
+      // Returns the distance from phi to 0 or 2pi, whichever is smaller. Equivalent
+      // to min(phi, 2π - phi) and π - abs(phi - π).
       return phi > Math.PI ? (2.0 * Math.PI) - phi : phi;
     }
 
@@ -250,10 +257,26 @@ public final class Constants {
     }
   }
 
+  /**
+   * Maps a value from one range to another.
+   * @param X The value to map.
+   * @param A The lower bound of the value's current range.
+   * @param B The upper bound of the value's current range.
+   * @param C The lower bound of the value's target range.
+   * @param D The upper bound of the value's target range.
+   * @return X, mapped from [A, B] to [C, D].
+   */
   public static double map(double X, double A, double B, double C, double D) {
     return (X - A) / (B - A) * (D - C) + C;
   }
 
+  /**
+   * Computes the modulus of a number rounding down instead of towards 0.
+   * Also equivalent to x - floor(x / r) * r.
+   * @param x The number to mod.
+   * @param r The modulus.
+   * @return x mod r, rounded down.
+  */
   public static double mod(double x, double r) {
     return ((x % r) + r) % r;
   }

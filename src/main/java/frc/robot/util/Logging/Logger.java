@@ -207,30 +207,11 @@ public final class Logger extends TimerTask {
   public static void log(String path, PowerDistributionFaults faults) {
     log(path + "/brownout", faults.Brownout);
     log(path + "/canWarning", faults.CanWarning);
-    log(path + "/channel0BreakerFault", faults.Channel0BreakerFault);
-    log(path + "/channel1BreakerFault", faults.Channel1BreakerFault);
-    log(path + "/channel2BreakerFault", faults.Channel2BreakerFault);
-    log(path + "/channel3BreakerFault", faults.Channel3BreakerFault);
-    log(path + "/channel4BreakerFault", faults.Channel4BreakerFault);
-    log(path + "/channel5BreakerFault", faults.Channel5BreakerFault);
-    log(path + "/channel6BreakerFault", faults.Channel6BreakerFault);
-    log(path + "/channel7BreakerFault", faults.Channel7BreakerFault);
-    log(path + "/channel8BreakerFault", faults.Channel8BreakerFault);
-    log(path + "/channel9BreakerFault", faults.Channel9BreakerFault);
-    log(path + "/channel10BreakerFault", faults.Channel10BreakerFault);
-    log(path + "/channel11BreakerFault", faults.Channel11BreakerFault);
-    log(path + "/channel12BreakerFault", faults.Channel12BreakerFault);
-    log(path + "/channel13BreakerFault", faults.Channel13BreakerFault);
-    log(path + "/channel14BreakerFault", faults.Channel14BreakerFault);
-    log(path + "/channel15BreakerFault", faults.Channel15BreakerFault);
-    log(path + "/channel16BreakerFault", faults.Channel16BreakerFault);
-    log(path + "/channel17BreakerFault", faults.Channel17BreakerFault);
-    log(path + "/channel18BreakerFault", faults.Channel18BreakerFault);
-    log(path + "/channel19BreakerFault", faults.Channel19BreakerFault);
-    log(path + "/channel20BreakerFault", faults.Channel20BreakerFault);
-    log(path + "/channel21BreakerFault", faults.Channel21BreakerFault);
-    log(path + "/channel22BreakerFault", faults.Channel22BreakerFault);
-    log(path + "/channel23BreakerFault", faults.Channel23BreakerFault);
+
+    for (int i = 0; i < 24; i++) {
+      log(path + "/channel" + i + "BreakerFault", faults.getBreakerFault(i));
+    }
+    
     log(path + "/hardwareFault", faults.HardwareFault);
   }
 
