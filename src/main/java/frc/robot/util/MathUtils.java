@@ -5,7 +5,13 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Twist2d;
 
+/**
+ * Some math utility functions for the swerve drive and input processing.
+*/
 public final class MathUtils {
+    /**
+     * Math for controlling the swerve drive.
+    */
     public static final class SwerveMath {
     /**
      * Finds the distance in radians between specified angles.
@@ -42,6 +48,9 @@ public final class MathUtils {
     }
   }
 
+  /**
+     * Math for taking input from the controller.
+    */
   public static final class InputMath {
     public static double addLinearDeadband(double input, double deadband) { // input ranges from -1 to 1
       if (Math.abs(input) <= deadband) return 0.0;
