@@ -303,6 +303,7 @@ public class LimelightHelpers {
         public double[] camerapose_robotspace;
 
         public Pose3d getBotPose3d() {
+            System.out.println("botpose: " + botpose);
             return toPose3D(botpose);
         }
 
@@ -380,7 +381,8 @@ public class LimelightHelpers {
 
     private static Pose3d toPose3D(double[] inData) {
         if (inData.length < 6) {
-            System.err.println("Bad LL 3D Pose Data!");
+            System.out.println("from toPose3D(,) inData is: " + inData);
+            System.err.println("Bad LL 3D Pose Data because length is " + inData.length);
             return new Pose3d();
         }
         return new Pose3d(new Translation3d(inData[0], inData[1], inData[2]), new Rotation3d(Units.degreesToRadians(inData[3]), Units.degreesToRadians(inData[4]), Units.degreesToRadians(inData[5])));

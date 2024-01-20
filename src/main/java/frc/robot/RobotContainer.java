@@ -35,6 +35,7 @@ import frc.robot.commands.drive.XBoxSwerve;
 import frc.robot.subsystems.drive.SwerveDrive;
 import frc.robot.subsystems.drive.SwerveModule;
 import frc.robot.util.Logging.Logger;
+import frc.robot.subsystems.vision.Limelight;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -48,7 +49,7 @@ public class RobotContainer {
 
   private final XboxController XboxController = new XboxController(DEVICES.USB_XBOX_CONTROLLER);
   private final SwerveDrive swerveDrive = new SwerveDrive();
-  // private final Limelight limelight = new Limelight(LimelightConfig.NAME);
+  private final Limelight limelight = new Limelight("testone");
   private final ChoreoTrajectory traj;
   private final Field2d field = new Field2d();
 

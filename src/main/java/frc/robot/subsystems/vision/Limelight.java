@@ -5,16 +5,25 @@
 package frc.robot.subsystems.vision;
 
 import edu.wpi.first.math.geometry.Pose3d;
+
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.util.LimelightHelpers;
 
+
 public class Limelight extends SubsystemBase {
   private LimelightHelpers.LimelightResults limelightData;
   private String name;
   private ShuffleboardTab dashboard = Shuffleboard.getTab("Dashboard");
-  private double lastKnownAprilTagZ = 0.0;
+  private Pose3d botPose; 
+  private Pose3d fieldSpace; 
+
+
+  // LimelightHelper Fiducial methods are not static so you need to make an instance of it
+  private LimelightHelpers.LimelightTarget_Fiducial LimelightHelperFidcuial = new LimelightHelpers.LimelightTarget_Fiducial();
+  //private double lastKnownAprilTagZ = 0.0;
 
   public Limelight(String name) {
     this.name = name;
@@ -24,11 +33,16 @@ public class Limelight extends SubsystemBase {
   @Override
   public void periodic() {
     
+
     limelightData = LimelightHelpers.getLatestResults(name);
-    Pose3d targetSpace = LimelightHelpers.getCameraPose3d_TargetSpace("light"); // change later
+    botPose = LimelightHelpers.getBotPose3d(name);
+    fieldSpace = LimelightHelperFidcuial.getRobotPose_FieldSpace();
+    
+
+    //Pose3d targetSpace = LimelightHelpers.getCameraPose3d_TargetSpace("light"); // change later
     //Pose3d targetSpaceBottom = LimelightHelpers.getCameraPose3d_TargetSpace("bottom");
 
-    double z = Math.abs(targetSpace.getZ());
+    //double z = Math.abs(targetSpace.getZ());
     //double z_bottom = Math.abs(targetSpaceBottom.getZ());
 
     // if (z_top != 0 && z_bottom != 0) {
@@ -39,12 +53,13 @@ public class Limelight extends SubsystemBase {
     //   lastKnownAprilTagZ = z_bottom;
     // }
 
-    lastKnownAprilTagZ = z;
+    //lastKnownAprilTagZ = z;
   }
 
-  public double getLastKnownAprilTagZ() {
+  /*public double getLastKnownAprilTagZ() {
     return lastKnownAprilTagZ;
   }
+  */
 
   public LimelightHelpers.Results getTargetingResults() {
     return limelightData.targetingResults;
