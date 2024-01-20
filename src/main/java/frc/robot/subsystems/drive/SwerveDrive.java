@@ -7,8 +7,6 @@ package frc.robot.subsystems.drive;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.opencv.core.Mat;
-
 import com.kauailabs.navx.frc.AHRS;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.commands.PathPlannerAuto;
@@ -142,11 +140,11 @@ public class SwerveDrive extends SubsystemBase {
   }
 
   public void drive(double xVelocity, double yVelocity, double angularVelocity) {
-    double norm = Math.sqrt(Math.pow(xVelocity, 2) + Math.pow(yVelocity, 2));
+    /*double norm = Math.sqrt(Math.pow(xVelocity, 2) + Math.pow(yVelocity, 2));
     if (norm > speedCap) {
       xVelocity *= (speedCap/norm);
       yVelocity *= (speedCap/norm);
-    }
+    }*/
     drive(ChassisSpeeds.fromFieldRelativeSpeeds(xVelocity, yVelocity, angularVelocity, getHeading()));
   }
 
@@ -192,7 +190,7 @@ public class SwerveDrive extends SubsystemBase {
    * @param pose Desired position
    */
   public void resetPose(Pose2d pose) {
-    // poseEstimator.resetPosition(getRotation2d(), getModulePositions(), pose);
+    poseEstimator.resetPosition(getHeading(), getModulePositions(), pose);
   }
 
   public void addVisionMeasurement(Pose2d visionMeasurement) {
@@ -315,6 +313,13 @@ public class SwerveDrive extends SubsystemBase {
    */
   public Pose2d getPose() {
     return poseEstimator.getEstimatedPosition();
+  }
+
+  /**
+   * @return Field2d object for SmartDashboard widget.
+   */
+  public Field2d getField() {
+    return field;
   }
 
   /**

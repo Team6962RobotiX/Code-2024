@@ -51,7 +51,7 @@ public class RobotContainer {
   private final SwerveDrive swerveDrive = new SwerveDrive();
   private final Limelight limelight = new Limelight("testone");
   private final ChoreoTrajectory traj;
-  private final Field2d field = new Field2d();
+  private Field2d field;
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
@@ -61,6 +61,7 @@ public class RobotContainer {
     Logger.autoLog("PDH", new PowerDistribution(CAN.PDH, ModuleType.kRev));
     Logger.startLog();
     swerveDrive.setDefaultCommand(new XBoxSwerve(swerveDrive, () -> XboxController));
+    field = swerveDrive.getField();
     // Configure the trigger bindings
     configureBindings();
 
@@ -90,7 +91,7 @@ public class RobotContainer {
     // System.out.println(1.0 / SWERVE_DRIVE.DRIVE_MOTOR_PROFILE.RAMP_RATE);
 
     // auto stuff
-    traj = Choreo.getTrajectory("speaker");
+    traj = Choreo.getTrajectory("simple");
 
     field.getObject("traj").setPoses(
       traj.getInitialPose(), traj.getFinalPose()
@@ -111,29 +112,24 @@ public class RobotContainer {
     swerveDrive.resetPose(traj.getInitialPose());
 
     Command swerveCommand = Choreo.choreoSwerveCommand(
-        traj, // Choreo trajectory from above
-        () -> swerveDrive.getPose(), // A function that returns the current field-relative pose of the robot: your
-                               // wheel or vision odometry
-        new PIDController(Constants.SWERVE_DRIVE.AUTONOMOUS.TRANSLATION_GAINS.kP, 0.0, 0.0), // PIDController for field-relative X
-                                                                                   // translation (input: X error in meters,
-                                                                                   // output: m/s).
-        new PIDController(Constants.SWERVE_DRIVE.AUTONOMOUS.TRANSLATION_GAINS.kP, 0.0, 0.0), // PIDController for field-relative Y
-                                                                                   // translation (input: Y error in meters,
-                                                                                   // output: m/s).
-        thetaController, // PID constants to correct for rotation
-                         // error
+        traj,
+        () -> swerveDrive.getPose(),
+        new PIDController(Constants.SWERVE_DRIVE.AUTONOMOUS.TRANSLATION_GAINS.kP, 0.0, 0.0), // x
+        new PIDController(Constants.SWERVE_DRIVE.AUTONOMOUS.TRANSLATION_GAINS.kP, 0.0, 0.0), // y
+        thetaController, // PID rotation
         (ChassisSpeeds speeds) -> swerveDrive.drive( // needs to be robot-relative
             speeds.vxMetersPerSecond,
             speeds.vyMetersPerSecond,
-            speeds.omegaRadiansPerSecond),
-        () -> true, // Whether or not to mirror the path based on alliance (this assumes the path is created for the blue alliance)
-        swerveDrive // The subsystem(s) to require, typically your drive subsystem only
+            speeds.omegaRadiansPerSecond
+        ),
+        () -> false, // Whether or not to mirror the path based on alliance (this assumes the path is created for the blue alliance)
+        swerveDrive
     );
 
     return Commands.sequence(
         Commands.runOnce(() -> swerveDrive.resetPose(traj.getInitialPose())),
-        swerveCommand,
-        swerveDrive.run(() -> swerveDrive.drive(0, 0, 0))
+        swerveCommand
+        //swerveDrive.run(() -> swerveDrive.drive(0, 0, 0))
     );
     // return null;
     // return new CharacterizeSwerve(swerveDrive);
