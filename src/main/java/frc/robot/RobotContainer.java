@@ -49,7 +49,7 @@ public class RobotContainer {
 
   private final XboxController XboxController = new XboxController(DEVICES.USB_XBOX_CONTROLLER);
   private final SwerveDrive swerveDrive = new SwerveDrive();
-  private final Limelight limelight = new Limelight("testone");
+  //private final Limelight limelight = new Limelight("testone");
   private final ChoreoTrajectory traj;
   private Field2d field;
 
@@ -91,7 +91,7 @@ public class RobotContainer {
     // System.out.println(1.0 / SWERVE_DRIVE.DRIVE_MOTOR_PROFILE.RAMP_RATE);
 
     // auto stuff
-    traj = Choreo.getTrajectory("simple");
+    traj = Choreo.getTrajectory("speaker");
 
     field.getObject("traj").setPoses(
       traj.getInitialPose(), traj.getFinalPose()
@@ -117,16 +117,13 @@ public class RobotContainer {
         new PIDController(Constants.SWERVE_DRIVE.AUTONOMOUS.TRANSLATION_GAINS.kP, 0.0, 0.0), // x
         new PIDController(Constants.SWERVE_DRIVE.AUTONOMOUS.TRANSLATION_GAINS.kP, 0.0, 0.0), // y
         thetaController, // PID rotation
-        (ChassisSpeeds speeds) -> swerveDrive.drive( // needs to be robot-relative
-            speeds.vxMetersPerSecond,
-            speeds.vyMetersPerSecond,
-            speeds.omegaRadiansPerSecond
-        ),
+        (ChassisSpeeds speeds) -> swerveDrive.drive(speeds),
         () -> false, // Whether or not to mirror the path based on alliance (this assumes the path is created for the blue alliance)
         swerveDrive
     );
 
     return Commands.sequence(
+        Commands.runOnce(() -> System.out.println("===== STARTING AUTO =====")),
         Commands.runOnce(() -> swerveDrive.resetPose(traj.getInitialPose())),
         swerveCommand
         //swerveDrive.run(() -> swerveDrive.drive(0, 0, 0))

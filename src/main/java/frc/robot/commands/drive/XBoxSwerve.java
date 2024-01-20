@@ -105,7 +105,7 @@ public class XBoxSwerve extends Command {
       return;
     }
 
-    swerveDrive.drive(velocity.getX(), velocity.getY(), angularVelocity);
+    swerveDrive.driveFieldRelative(velocity.getX(), velocity.getY(), angularVelocity);
     
     angularVelocity = 0.0;
     velocity = new Translation2d();

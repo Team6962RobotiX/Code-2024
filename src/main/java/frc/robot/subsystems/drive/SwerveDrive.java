@@ -139,13 +139,18 @@ public class SwerveDrive extends SubsystemBase {
     driveModules(kinematics.toSwerveModuleStates(speeds));
   }
 
-  public void drive(double xVelocity, double yVelocity, double angularVelocity) {
+  public void driveFieldRelative(double xVelocity, double yVelocity, double angularVelocity) {
     /*double norm = Math.sqrt(Math.pow(xVelocity, 2) + Math.pow(yVelocity, 2));
     if (norm > speedCap) {
       xVelocity *= (speedCap/norm);
       yVelocity *= (speedCap/norm);
     }*/
+    //System.out.println(String.format("%e, %e, %e", xVelocity, yVelocity, angularVelocity));
     drive(ChassisSpeeds.fromFieldRelativeSpeeds(xVelocity, yVelocity, angularVelocity, getHeading()));
+  }
+
+  public void driveRobotRelative(double xVelocity, double yVelocity, double angularVelocity) {
+    drive(ChassisSpeeds.fromRobotRelativeSpeeds(xVelocity, yVelocity, angularVelocity, getHeading()));
   }
 
   /**
