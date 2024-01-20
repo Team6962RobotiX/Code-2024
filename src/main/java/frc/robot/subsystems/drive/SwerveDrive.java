@@ -231,6 +231,7 @@ public class SwerveDrive extends SubsystemBase {
    * @param heading The target heading, expressed as a Rotation2d object
    * @deprecated Use {@link #setTargetHeading(double) setTargetHeading(double headingRadians)} instead
   */
+  @Deprecated
   public void setTargetHeading(Rotation2d heading) {
     setTargetHeading(heading.getRadians());
   }
