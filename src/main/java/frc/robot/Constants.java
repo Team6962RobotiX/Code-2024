@@ -8,6 +8,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.util.Units;
+import frc.robot.subsystems.drive.SwerveDrive;
 import frc.robot.subsystems.drive.SwerveModule;
 
 /**
@@ -104,7 +105,7 @@ public final class Constants {
       public static final double MAX_LINEAR_FORCE = (4.0 * NEO.maxTorqueCurrentLimited((int) SLIPLESS_CURRENT_LIMIT) * DRIVE_MOTOR_GEARING) / WHEEL_RADIUS; // N
       public static final double MAX_LINEAR_ACCELERATION = MAX_LINEAR_FORCE / ROBOT_MASS;
       public static final double MAX_CHASSIS_TORQUE = MAX_LINEAR_FORCE * DRIVE_RADIUS;
-      public static final double MAX_ANGULAR_ACCELERATION = MAX_CHASSIS_TORQUE / ROTATIONAL_INERTIA;
+      public static final double MAX_ANGULAR_ACCELERATION = SwerveDrive.toAngular(MAX_LINEAR_ACCELERATION); // MAX_CHASSIS_TORQUE / ROTATIONAL_INERTIA;
       public static final double MAX_ANGULAR_VELOCITY = (MAX_WHEEL_VELOCITY * WHEEL_RADIUS) / DRIVE_RADIUS;
     }
 
