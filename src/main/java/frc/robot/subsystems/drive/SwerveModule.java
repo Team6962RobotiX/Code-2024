@@ -32,9 +32,9 @@ import frc.robot.Constants.NEO;
 import frc.robot.Constants.SWERVE_DRIVE;
 import frc.robot.Constants.SWERVE_DRIVE.DRIVE_MOTOR_PROFILE;
 import frc.robot.Constants.SWERVE_DRIVE.STEER_MOTOR_PROFILE;
-import frc.robot.Constants.SWERVE_MATH;
 import frc.robot.util.ConfigUtils;
 import frc.robot.util.Logging.Logger;
+import frc.robot.util.MathUtils.SwerveMath;
 
 public class SwerveModule extends SubsystemBase {
   private CANSparkMax driveMotor, steerMotor;
@@ -139,7 +139,7 @@ public class SwerveModule extends SubsystemBase {
   }
 
   public void periodic() {
-    if (Math.abs(getMeasuredState().speedMetersPerSecond) < SWERVE_DRIVE.VELOCITY_DEADBAND && SWERVE_MATH.angleDistance(getMeasuredState().angle.getRadians(), getTargetState().angle.getRadians()) < Units.degreesToRadians(1.0)) {
+    if (Math.abs(getMeasuredState().speedMetersPerSecond) < SWERVE_DRIVE.VELOCITY_DEADBAND && SwerveMath.angleDistance(getMeasuredState().angle.getRadians(), getTargetState().angle.getRadians()) < Units.degreesToRadians(1.0)) {
       seedSteerEncoder();
     }
 
@@ -151,7 +151,7 @@ public class SwerveModule extends SubsystemBase {
     double radians = state.angle.getRadians();
     
     if (SWERVE_DRIVE.DO_ANGLE_ERROR_SPEED_REDUCTION) {
-      speedMetersPerSecond *= Math.cos(SWERVE_MATH.angleDistance(radians, getMeasuredState().angle.getRadians()));
+      speedMetersPerSecond *= Math.cos(SwerveMath.angleDistance(radians, getMeasuredState().angle.getRadians()));
     }
     
     drivePID.setReference(

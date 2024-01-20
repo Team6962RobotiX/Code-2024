@@ -9,15 +9,15 @@ import java.util.function.Supplier;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.XboxController;
-import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj2.command.Command;
-import frc.robot.Constants;
-import frc.robot.Constants.INPUT_MATH;
 import frc.robot.Constants.SWERVE_DRIVE;
 import frc.robot.subsystems.drive.SwerveDrive;
 import frc.robot.subsystems.drive.SwerveModule;
+import frc.robot.util.MathUtils;
+import frc.robot.util.MathUtils.InputMath;
 
 /** An example command that uses an example subsystem. */
 
@@ -70,8 +70,8 @@ public class XBoxSwerve extends Command {
     }
 
     // Deadbands
-    leftStick = INPUT_MATH.circular(leftStick, 0.0, Constants.map(Math.max(leftTrigger, rightTrigger), 0, 1, Math.PI / 8.0, Math.PI / 4.0));
-    rightStick = INPUT_MATH.circular(rightStick, 0.0, Math.PI / 8.0);
+    leftStick = InputMath.circular(leftStick, 0.0, MathUtils.map(Math.max(leftTrigger, rightTrigger), 0, 1, Math.PI / 8.0, Math.PI / 4.0));
+    rightStick = InputMath.circular(rightStick, 0.0, Math.PI / 8.0);
     
     angularVelocity += rightStick.getY() * MAX_ANGULAR_VELOCITY;
     
@@ -80,7 +80,7 @@ public class XBoxSwerve extends Command {
       swerveDrive.setTargetHeading(Math.round(targetRobotAngle / (Math.PI / 2)) * (Math.PI / 2));
     }
 
-    velocity = velocity.plus(leftStick.times(Constants.map(Math.max(leftTrigger, rightTrigger), 0, 1, NOMINAL_DRIVE_VELOCITY, MAX_DRIVE_VELOCITY)));
+    velocity = velocity.plus(leftStick.times(MathUtils.map(Math.max(leftTrigger, rightTrigger), 0, 1, NOMINAL_DRIVE_VELOCITY, MAX_DRIVE_VELOCITY)));
 
     // Zero heading when Y is pressed
     if (controller.getYButton()) {
