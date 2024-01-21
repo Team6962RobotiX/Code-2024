@@ -9,17 +9,15 @@ import java.util.function.Supplier;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.XboxController;
-import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj2.command.Command;
-import frc.robot.Constants;
-import frc.robot.Constants.INPUT_MATH;
 import frc.robot.Constants.SWERVE_DRIVE;
 import frc.robot.subsystems.drive.SwerveDrive;
 import frc.robot.subsystems.drive.SwerveModule;
-
-/** An example command that uses an example subsystem. */
+import frc.robot.util.MathUtils;
+import frc.robot.util.MathUtils.InputMath;
 
 public class XBoxSwerve extends Command {
   private XboxController controller;
@@ -70,17 +68,17 @@ public class XBoxSwerve extends Command {
     }
 
     // Deadbands
-    leftStick = INPUT_MATH.circular(leftStick, 0.0, Constants.map(Math.max(leftTrigger, rightTrigger), 0, 1, Math.PI / 8.0, Math.PI / 4.0));
-    rightStick = INPUT_MATH.circular(rightStick, 0.0, Math.PI / 8.0);
+    leftStick = InputMath.circular(leftStick, 0.0, MathUtils.map(Math.max(leftTrigger, rightTrigger), 0, 1, Math.PI / 8.0, Math.PI / 4.0));
+    rightStick = InputMath.circular(rightStick, 0.0, Math.PI / 8.0);
     
     angularVelocity += -rightStick.getX() * MAX_ANGULAR_VELOCITY;
     
     // Rotate to nearest 90 degrees when any bumpers are pressed
     if (controller.getLeftBumper() || controller.getRightBumper()) {
-      swerveDrive.setTargetHeading(Rotation2d.fromRadians(Math.round(targetRobotAngle / (Math.PI / 2)) * (Math.PI / 2)));
+      swerveDrive.setTargetHeading(Math.round(targetRobotAngle / (Math.PI / 2)) * (Math.PI / 2));
     }
 
-    velocity = velocity.plus(leftStick.times(Constants.map(Math.max(leftTrigger, rightTrigger), 0, 1, NOMINAL_DRIVE_VELOCITY, MAX_DRIVE_VELOCITY)));
+    velocity = velocity.plus(leftStick.times(MathUtils.map(Math.max(leftTrigger, rightTrigger), 0, 1, NOMINAL_DRIVE_VELOCITY, MAX_DRIVE_VELOCITY)));
 
     // Zero heading when Y is pressed
     if (controller.getYButton()) {
@@ -105,7 +103,7 @@ public class XBoxSwerve extends Command {
       return;
     }
 
-    swerveDrive.drive(velocity.getX(), velocity.getY(), angularVelocity);
+    swerveDrive.driveFieldRelative(velocity.getX(), velocity.getY(), angularVelocity);
     
     angularVelocity = 0.0;
     velocity = new Translation2d();

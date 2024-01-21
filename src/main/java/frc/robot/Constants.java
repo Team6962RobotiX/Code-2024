@@ -8,7 +8,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.util.Units;
-import frc.robot.subsystems.drive.SwerveModule;
+import frc.robot.subsystems.drive.SwerveDrive;
 
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide numerical or boolean
@@ -104,7 +104,7 @@ public final class Constants {
       public static final double MAX_LINEAR_FORCE = (4.0 * NEO.maxTorqueCurrentLimited((int) SLIPLESS_CURRENT_LIMIT) * DRIVE_MOTOR_GEARING) / WHEEL_RADIUS; // N
       public static final double MAX_LINEAR_ACCELERATION = MAX_LINEAR_FORCE / ROBOT_MASS;
       public static final double MAX_CHASSIS_TORQUE = MAX_LINEAR_FORCE * DRIVE_RADIUS;
-      public static final double MAX_ANGULAR_ACCELERATION = MAX_CHASSIS_TORQUE / ROTATIONAL_INERTIA;
+      public static final double MAX_ANGULAR_ACCELERATION = SwerveDrive.toAngular(MAX_LINEAR_ACCELERATION); // MAX_CHASSIS_TORQUE / ROTATIONAL_INERTIA;
       public static final double MAX_ANGULAR_VELOCITY = (MAX_WHEEL_VELOCITY * WHEEL_RADIUS) / DRIVE_RADIUS;
     }
 
@@ -181,79 +181,14 @@ public final class Constants {
   }
   
   public static final class NEO {
-    public static final double FREE_SPEED          = 5880;
-    public static final double STALL_TORQUE        = 3.28;
-    public static final double STALL_CURRENT       = 181;
-    public static final double SAFE_TEMPERATURE    = 60;
-    public static final int SAFE_STALL_CURRENT     = 60;
+    public static final double FREE_SPEED = 5880;
+    public static final double STALL_TORQUE = 3.28;
+    public static final double STALL_CURRENT = 181;
+    public static final double SAFE_TEMPERATURE = 60;
+    public static final int SAFE_STALL_CURRENT = 60;
 
     public static double maxTorqueCurrentLimited(int currentLimit) {
       return STALL_TORQUE / STALL_CURRENT * currentLimit;
     }
-  }
-
-  public static final class SWERVE_MATH {
-    public static double angleDistance(double alpha, double beta) {
-      double phi = Math.abs(beta - alpha) % (2.0 * Math.PI);
-      return phi > Math.PI ? (2.0 * Math.PI) - phi : phi;
-    }
-
-    /**
-     * Logical inverse of the Pose exponential from 254. Taken from team 3181.
-     *
-     * @param transform Pose to perform the log on.
-     * @return {@link Twist2d} of the transformed pose.
-     */
-    public static Twist2d PoseLog(final Pose2d transform) {
-      final double kEps          = 1E-9;
-      final double dtheta        = transform.getRotation().getRadians();
-      final double half_dtheta   = 0.5 * dtheta;
-      final double cos_minus_one = transform.getRotation().getCos() - 1.0;
-      double       halftheta_by_tan_of_halfdtheta;
-      if (Math.abs(cos_minus_one) < kEps) {
-        halftheta_by_tan_of_halfdtheta = 1.0 - 1.0 / 12.0 * dtheta * dtheta;
-      } else {
-        halftheta_by_tan_of_halfdtheta = -(half_dtheta * transform.getRotation().getSin()) / cos_minus_one;
-      }
-      final Translation2d translation_part = transform.getTranslation().rotateBy(new Rotation2d(halftheta_by_tan_of_halfdtheta, -half_dtheta));
-      return new Twist2d(translation_part.getX(), translation_part.getY(), dtheta);
-    }
-  }
-
-  public static final class INPUT_MATH {
-    public static double addLinearDeadband(double input, double deadband) { // input ranges from -1 to 1
-      if (Math.abs(input) <= deadband) return 0.0;
-      if (input > 0) return map(input, deadband, 1.0, 0.0, 1.0);
-      return map(input, -deadband, -1.0, 0.0, -1.0);
-    }
-
-    public static double mapBothSides(double X, double A, double B, double C, double D) {
-      if (X > 0.0) return map(X, A, B, C, D);
-      if (X < 0.0) return map(X, -A, -B, -C, -D);
-      return 0.0;
-    }
-
-    public static Translation2d circular(Translation2d input, double deadband, double snapRadians) {
-      double magnitude = input.getNorm();
-      double direction = input.getAngle().getRadians();
-      if (mod(direction, Math.PI / 2.0) <= snapRadians / 2.0 || mod(direction, Math.PI / 2.0) >= (Math.PI / 2.0) - (snapRadians / 2.0)) {
-        direction = Math.round(direction / (Math.PI / 2.0)) * (Math.PI / 2.0);
-      }
-      if (Math.abs(magnitude) <= deadband) return new Translation2d();
-      magnitude = nonLinear(map(magnitude, deadband, 1.0, 0.0, 1.0));
-      return new Translation2d(magnitude * Math.cos(direction), magnitude * Math.sin(direction));
-    }
-
-    public static double nonLinear(double x) {
-      return (1 - Math.cos(Math.abs(x) * Math.PI / 2.0)) * Math.signum(x);
-    }
-  }
-
-  public static double map(double X, double A, double B, double C, double D) {
-    return (X - A) / (B - A) * (D - C) + C;
-  }
-
-  public static double mod(double x, double r) {
-    return ((x % r) + r) % r;
   }
 }

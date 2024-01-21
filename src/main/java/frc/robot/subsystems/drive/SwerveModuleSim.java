@@ -17,7 +17,7 @@ import edu.wpi.first.wpilibj.simulation.FlywheelSim;
 import frc.robot.Constants.SWERVE_DRIVE;
 import frc.robot.Constants.SWERVE_DRIVE.DRIVE_MOTOR_PROFILE;
 import frc.robot.Constants.SWERVE_DRIVE.STEER_MOTOR_PROFILE;
-import frc.robot.Constants.SWERVE_MATH;
+import frc.robot.util.MathUtils.SwerveMath;
 import frc.robot.util.Logging.Logger;
 
 public class SwerveModuleSim extends SwerveModule {
@@ -57,7 +57,6 @@ public class SwerveModuleSim extends SwerveModule {
   public SwerveModuleSim(int id) {
     super(id);
     steerPID.enableContinuousInput(-Math.PI, Math.PI);
-    System.out.println(DRIVE_MOTOR_PROFILE.RAMP_RATE);
 
     String logPath = "module_" + SWERVE_DRIVE.MODULE_NAMES[id] + "/";
     Logger.autoLog(logPath + "current",                 () -> getTotalCurrent());
@@ -80,7 +79,7 @@ public class SwerveModuleSim extends SwerveModule {
     
     double speedMultiple = 1.0;
     if (SWERVE_DRIVE.DO_ANGLE_ERROR_SPEED_REDUCTION) {
-      speedMultiple = Math.cos(SWERVE_MATH.angleDistance(getDrivenState().angle.getRadians(), getMeasuredState().angle.getRadians()));
+      speedMultiple = Math.cos(SwerveMath.angleDistance(getDrivenState().angle.getRadians(), getMeasuredState().angle.getRadians()));
     }
     speedMetersPerSecond *= speedMultiple;
 
