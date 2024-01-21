@@ -115,7 +115,9 @@ public class SwerveModuleSim extends SwerveModule {
   
   @Override
   public double getTotalCurrent() {
-    return driveMotor.getCurrentDrawAmps() + steerMotor.getCurrentDrawAmps();
+    return 
+      MathUtil.clamp(driveMotor.getCurrentDrawAmps(), -SWERVE_DRIVE.DRIVE_MOTOR_PROFILE.CURRENT_LIMIT, SWERVE_DRIVE.DRIVE_MOTOR_PROFILE.CURRENT_LIMIT) + 
+      MathUtil.clamp(steerMotor.getCurrentDrawAmps(), -SWERVE_DRIVE.STEER_MOTOR_PROFILE.CURRENT_LIMIT, SWERVE_DRIVE.STEER_MOTOR_PROFILE.CURRENT_LIMIT);
   }
   
   @Override
