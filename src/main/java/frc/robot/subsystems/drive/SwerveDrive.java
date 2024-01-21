@@ -7,6 +7,8 @@ package frc.robot.subsystems.drive;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.choreo.lib.Choreo;
+import com.choreo.lib.ChoreoTrajectory;
 import com.kauailabs.navx.frc.AHRS;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.commands.PathPlannerAuto;
@@ -16,6 +18,7 @@ import com.pathplanner.lib.path.PathPlannerPath;
 import com.pathplanner.lib.path.PathPoint;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.filter.SlewRateLimiter;
@@ -37,6 +40,7 @@ import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.FieldObject2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.SWERVE_DRIVE;
 import frc.robot.Constants.SWERVE_DRIVE.PHYSICS;
@@ -476,112 +480,68 @@ public class SwerveDrive extends SubsystemBase {
       )
     );
   }
+  public Command followChoreoTrajectory(String pathName, boolean first) {
 
-  /*public Command followPathCommand(List<Pose2d> poses) {
-    PathConstraints constraints = new PathConstraints(
-      SWERVE_DRIVE.AUTONOMOUS.MAX_LINEAR_VELOCITY,
-      SWERVE_DRIVE.AUTONOMOUS.MAX_LINEAR_ACCELERATION,
-      SWERVE_DRIVE.AUTONOMOUS.MAX_ANGULAR_VELOCITY,
-      SWERVE_DRIVE.AUTONOMOUS.MAX_ANGULAR_ACCELERATION
+    ChoreoTrajectory trajectory = Choreo.getTrajectory(pathName);
+
+    field.getObject("traj").setPoses(
+      trajectory.getInitialPose(), trajectory.getFinalPose()
     );
-    // List<Pose2d> points = new ArrayList<Pose2d>();
-    // for (int i = 0; i < poses.size(); i++) {
-      // Translation2d currentPosition = poses.get(i).getTranslation();
-      // Translation2d prevPosition = currentPosition;
-      // Translation2d nextPosition = currentPosition;
-      // if (i > 0) {
-      //   prevPosition = poses.get(i - 1).getTranslation();
-      // }
-      // if (i < poses.size() - 1) {
-      //   nextPosition = poses.get(i + 1).getTranslation();
-      // }
-      // Rotation2d angle = nextPosition.minus(currentPosition).minus(prevPosition.minus(currentPosition)).getAngle();
-      // points.add(
-      //   new Pose2d(currentPosition, new Rotation2d())
-      // );
-    // }
-    List<PathPoint> points = new ArrayList<PathPoint>();
-    for (Pose2d pose: poses) {
-      // points.add(new PathPoint(pose.getTranslation(), new Rotation2d()));
+    field.getObject("trajPoses").setPoses(
+      trajectory.getPoses()
+    );
+
+    Command swerveCommand = Choreo.choreoSwerveCommand(
+        // Choreo trajectory to follow
+        trajectory,
+
+        // A supplier that returns the current field-relative pose of the robot based on the wheel
+        // and vision odometry
+        this::getPose,
+
+        // PIDControllers for correcting errors in field-relative translation (input: X or Y error in
+        // meters, output: m/s).
+        new PIDController(
+          SWERVE_DRIVE.AUTONOMOUS.TRANSLATION_GAINS.kP,
+          SWERVE_DRIVE.AUTONOMOUS.TRANSLATION_GAINS.kI, 
+          SWERVE_DRIVE.AUTONOMOUS.TRANSLATION_GAINS.kD
+        ),
+        new PIDController(
+          SWERVE_DRIVE.AUTONOMOUS.TRANSLATION_GAINS.kP,
+          SWERVE_DRIVE.AUTONOMOUS.TRANSLATION_GAINS.kI, 
+          SWERVE_DRIVE.AUTONOMOUS.TRANSLATION_GAINS.kD
+        ),
+
+        // PIDController to correct for rotation error (input: heading error in radians, output: rad/s)
+        new PIDController(
+          SWERVE_DRIVE.AUTONOMOUS.ROTATION_GAINS.kP,
+          SWERVE_DRIVE.AUTONOMOUS.ROTATION_GAINS.kI,
+          SWERVE_DRIVE.AUTONOMOUS.ROTATION_GAINS.kD
+        ),
+
+        // A consumer which drives the robot in robot-relative coordinates
+        this::driveRobotRelative,
+        
+        // A supplier which returns whether or not to mirror the path based on alliance (this assumes
+        // the path is created for the blue alliance)
+        () -> false,
+
+        // The subsystem(s) to require, typically your drive subsystem only
+        this
+    );
+    
+    if (first) {
+      return Commands.sequence(
+        Commands.runOnce(() -> System.out.println("===== STARTING AUTO =====")),
+        Commands.runOnce(() -> this.resetPose(trajectory.getInitialPose())),
+        swerveCommand
+      );
+    } else {
+      return Commands.sequence(
+        Commands.runOnce(() -> System.out.println("===== STARTING AUTO =====")),
+        swerveCommand
+      );
     }
-    FieldObject2d pathObject = field.getObject("PathPoints");
-    pathObject.setPoses(poses);
-    
-    List<Translation2d> bezierPoints = PathPlannerPath.bezierFromPoses(poses);
-
-    return AutoBuilder.followPath(
-      new PathPlannerPath(
-        bezierPoints,
-        constraints,
-        new GoalEndState(0.0, new Rotation2d())
-      )
-      // PathPlannerPath.fromPathPoints(points, constraints, new GoalEndState(0.0, new Rotation2d()))
-    );
-
-  //   FieldObject2d pathObject = field.getObject("PathPoints");
-  //   List<Pose2d> pathPoses = new ArrayList<Pose2d>();
-  //   for (PathPoint point : points) {
-      
-  //     pathPoses.add(new Pose2d(point.position, point.holonomicRotation));
-  //   }
-  //   pathObject.setPoses(pathPoses);
-
-  //   return AutoBuilder.pathfindThenFollowPath(
-  //     PathPlannerPath.fromPathPoints(
-  //       points, 
-  //       new PathConstraints(
-  //         SWERVE_DRIVE.AUTONOMOUS_VELOCITY,
-  //         SWERVE_DRIVE.AUTONOMOUS_ACCELERATION,
-  //         wheelVelocityToRotationalVelocity(SWERVE_DRIVE.AUTONOMOUS_VELOCITY),
-  //         wheelVelocityToRotationalVelocity(SWERVE_DRIVE.AUTONOMOUS_ACCELERATION)
-  //       ),
-  //       new GoalEndState(0.0, new Rotation2d())
-  //     ),
-  //   new PathConstraints(
-  //     SWERVE_DRIVE.AUTONOMOUS_VELOCITY,
-  //     SWERVE_DRIVE.AUTONOMOUS_ACCELERATION,
-  //     wheelVelocityToRotationalVelocity(SWERVE_DRIVE.AUTONOMOUS_VELOCITY),
-  //     wheelVelocityToRotationalVelocity(SWERVE_DRIVE.AUTONOMOUS_ACCELERATION)
-  //   )
-  // );
-
-
-    // FieldObject2d pathObject = field.getObject("PathPoints");
-    // List<Pose2d> pathPoses = new ArrayList<Pose2d>();
-    // SequentialCommandGroup commandGroup = new SequentialCommandGroup();
-    // for (Pose2d pose : poses) {
-    //   commandGroup.addCommands(
-    //     AutoBuilder.pathfindToPose(
-    //       pose,
-    //       new PathConstraints(
-    //         SWERVE_DRIVE.AUTONOMOUS_VELOCITY,
-    //         SWERVE_DRIVE.AUTONOMOUS_ACCELERATION,
-    //         wheelVelocityToRotationalVelocity(SWERVE_DRIVE.AUTONOMOUS_VELOCITY),
-    //         wheelVelocityToRotationalVelocity(SWERVE_DRIVE.AUTONOMOUS_ACCELERATION)
-    //       )
-    //     )
-    //   );
-    //   pathPoses.add(pose);
-    // }
-    // pathObject.setPoses(pathPoses);
-    
-    // return commandGroup;
 
   }
-
-  // Assuming this is a method in your drive subsystem
-  public Command followPathCommand(PathPlannerPath path) {
-    // return AutoBuilder.pathfindThenFollowPath(path, 
-    //   new PathConstraints(
-    //     SWERVE_DRIVE.AUTONOMOUS_VELOCITY,
-    //     SWERVE_DRIVE.AUTONOMOUS_ACCELERATION,
-    //     calcAngularVelocity(SWERVE_DRIVE.AUTONOMOUS_VELOCITY),
-    //     calcAngularVelocity(SWERVE_DRIVE.AUTONOMOUS_ACCELERATION)
-    //   ), 0.0);
-    return AutoBuilder.followPath(path);
-  }
-
-  public Command followAutoPathCommand(String autoName) {
-    return new PathPlannerAuto(autoName);
-  }*/
 }

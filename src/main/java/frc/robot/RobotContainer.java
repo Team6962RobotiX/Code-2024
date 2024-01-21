@@ -49,8 +49,6 @@ public class RobotContainer {
   private final XboxController XboxController = new XboxController(DEVICES.USB_XBOX_CONTROLLER);
   private final SwerveDrive swerveDrive = new SwerveDrive();
   // private final Limelight limelight = new Limelight("testone");
-  private final ChoreoTrajectory traj;
-  private Field2d field;
   private final PhotonLib p_lib = new PhotonLib();
   // private final Limelight limelight = new Limelight(LimelightConfig.NAME);
 
@@ -63,47 +61,14 @@ public class RobotContainer {
     Logger.startLog();
     swerveDrive.setDefaultCommand(new XBoxSwerve(swerveDrive, () -> XboxController));
     p_lib.setDefaultCommand(new UpdateField(swerveDrive,p_lib));
-    field = swerveDrive.getField();
     //Positive y moves the camera left, Positive x moves the camera forward - TEMPORARY
     swerveDrive.resetPose(new Pose2d(new Translation2d(2, 2), new Rotation2d()));
 
     // Configure the trigger bindings
     configureBindings();
 
-    // MOI = (DRIVE_MOTOR_CONFIG.kA * G * DCMotor.getNEO(1).KtNMPerAmp) / DCMotor.getNEO(1).rOhms;
-    
-    DCMotor motor = DCMotor.getNEO(1);
-
     SwerveDrive.printChoreoConfig();
 
-    // // torque
-    // motor.getTorque(motor.getCurrent(0, 12.0));
-    // double t = (NEO.STALL_TORQUE * (1.0 / SWERVE_DRIVE.DRIVE_MOTOR_GEAR_RATIO) * SWERVE_DRIVE.MODULE_COUNT) / (SWERVE_DRIVE.WHEEL_DIAMETER / 2.0) * SWERVE_DRIVE.ROBOT_MASS;
-    // double f = t / r;
-    // double a = f * n / m;
-
-    // ((a * motor.KtNMPerAmp * g) / r) * n / m
-
-    // double kV = (SWERVE_DRIVE.ROBOT_MASS * motor.rOhms * (SWERVE_DRIVE.WHEEL_DIAMETER / 2.0) * SWERVE_DRIVE.DRIVE_MOTOR_GEAR_RATIO) / (SWERVE_DRIVE.MODULE_COUNT * motor.KtNMPerAmp);
-
-    // double t = 1 / o * v * q;
-    // double f = (1 / o * v * q) / r;
-    // double a = ((1 / o * v * q) / r) * n / m;
-
-    // System.out.println(1.0 / motor.getTorque(motor.getCurrent(0, 12.0)) / (SWERVE_DRIVE.WHEEL_DIAMETER / 2.0) * 4.0 / SWERVE_DRIVE.ROBOT_MASS);
-    // System.out.println(SwerveModule.calcAcceleration(NEO.STALL_CURRENT));
-    // System.out.println((NEO.STALL_TORQUE * (1.0 / SWERVE_DRIVE.DRIVE_MOTOR_GEAR_RATIO) * SWERVE_DRIVE.MODULE_COUNT) / (SWERVE_DRIVE.WHEEL_DIAMETER / 2.0) / SWERVE_DRIVE.ROBOT_MASS);
-    // System.out.println(1.0 / SWERVE_DRIVE.DRIVE_MOTOR_PROFILE.RAMP_RATE);
-
-    // auto stuff
-    traj = Choreo.getTrajectory("TestPath2");
-
-    field.getObject("traj").setPoses(
-      traj.getInitialPose(), traj.getFinalPose()
-    );
-    field.getObject("trajPoses").setPoses(
-      traj.getPoses()
-    );
   }
 
   private void configureBindings() {
@@ -111,102 +76,7 @@ public class RobotContainer {
   }
 
   public Command getAutonomousCommand() {
-    swerveDrive.resetPose(traj.getInitialPose());
-    Command swerveCommand = Choreo.choreoSwerveCommand(
-        // Choreo trajectory to follow
-        traj,
-
-        // A supplier that returns the current field-relative pose of the robot based on the wheel
-        // and vision odometry
-        swerveDrive::getPose,
-
-        // PIDControllers for correcting errors in field-relative translation (input: X or Y error in
-        // meters, output: m/s).
-        new PIDController(
-          SWERVE_DRIVE.AUTONOMOUS.TRANSLATION_GAINS.kP,
-          SWERVE_DRIVE.AUTONOMOUS.TRANSLATION_GAINS.kI, 
-          SWERVE_DRIVE.AUTONOMOUS.TRANSLATION_GAINS.kD
-        ),
-        new PIDController(
-          SWERVE_DRIVE.AUTONOMOUS.TRANSLATION_GAINS.kP,
-          SWERVE_DRIVE.AUTONOMOUS.TRANSLATION_GAINS.kI, 
-          SWERVE_DRIVE.AUTONOMOUS.TRANSLATION_GAINS.kD
-        ),
-
-        // PIDController to correct for rotation error (input: heading error in radians, output: rad/s)
-        new PIDController(
-          SWERVE_DRIVE.AUTONOMOUS.ROTATION_GAINS.kP,
-          SWERVE_DRIVE.AUTONOMOUS.ROTATION_GAINS.kI,
-          SWERVE_DRIVE.AUTONOMOUS.ROTATION_GAINS.kD
-        ),
-
-        // A consumer which drives the robot in robot-relative coordinates
-        swerveDrive::driveRobotRelative,
-        
-        // A supplier which returns whether or not to mirror the path based on alliance (this assumes
-        // the path is created for the blue alliance)
-        () -> false,
-
-        // The subsystem(s) to require, typically your drive subsystem only
-        swerveDrive
-    );
-
-    // Create a command sequence to follow the trajectory then stop the robot
-    return Commands.sequence(
-        Commands.runOnce(() -> System.out.println("===== STARTING AUTO =====")),
-        Commands.runOnce(() -> swerveDrive.resetPose(traj.getInitialPose())),
-        swerveCommand
-        //swerveDrive.run(() -> swerveDrive.drive(0, 0, 0))
-    );
-
-    // return null;
-    // return new CharacterizeSwerve(swerveDrive);
-    
-    // return new FeedForwardCharacterization(swerveDrive, swerveDrive::runCharacterization, swerveDrive::getCharacterizationVelocity);
-    // return swerveDrive.followPathCommand("Test Path");
-    
-    // TODO: Do we still need this random driving code? If we want to keep it, we could move it to another
-    // function instead of leaving it commented out
-
-    // int numPoints = 3;
-    // List<Pose2d> randomPoints = new ArrayList<Pose2d>();
-    // Random rand = new Random();
-    // for (int i = 0; i < numPoints; i++) {
-    //   randomPoints.add(new Pose2d(
-    //     new Translation2d(
-    //       rand.nextDouble() * 16.0,
-    //       rand.nextDouble() * 8.0
-    //     ),
-    //     Rotation2d.fromRadians(
-    //       0.0
-    //     )
-    //   ));
-    // }
-
-    // return null;
-    // return swerveDrive.followPathCommand(randomPoints);
-
-    // List<Translation2d> bezierPoints = PathPlannerPath.bezierFromPoses(
-    //     new Pose2d(rand.nextDouble() * 16.0, rand.nextDouble() * 8.0, Rotation2d.fromDegrees(0)),
-    //     new Pose2d(rand.nextDouble() * 16.0, rand.nextDouble() * 8.0, Rotation2d.fromDegrees(0)),
-    //     new Pose2d(rand.nextDouble() * 16.0, rand.nextDouble() * 8.0, Rotation2d.fromDegrees(0)),
-    //     new Pose2d(rand.nextDouble() * 16.0, rand.nextDouble() * 8.0, Rotation2d.fromDegrees(0)),
-    //     new Pose2d(rand.nextDouble() * 16.0, rand.nextDouble() * 8.0, Rotation2d.fromDegrees(0)),
-    //     new Pose2d(rand.nextDouble() * 16.0, rand.nextDouble() * 8.0, Rotation2d.fromDegrees(0)),
-    //     new Pose2d(rand.nextDouble() * 16.0, rand.nextDouble() * 8.0, Rotation2d.fromDegrees(0)),
-    //     new Pose2d(rand.nextDouble() * 16.0, rand.nextDouble() * 8.0, Rotation2d.fromDegrees(0)),
-    //     new Pose2d(rand.nextDouble() * 16.0, rand.nextDouble() * 8.0, Rotation2d.fromDegrees(0)),
-    //     new Pose2d(rand.nextDouble() * 16.0, rand.nextDouble() * 8.0, Rotation2d.fromDegrees(0)),
-    //     new Pose2d(rand.nextDouble() * 16.0, rand.nextDouble() * 8.0, Rotation2d.fromDegrees(0))
-    // );
-
-    // PathPlannerPath path = new PathPlannerPath(
-    //     bezierPoints,
-    //     new PathConstraints(3.0, 3.0, 2 * Math.PI, 4 * Math.PI), // The constraints for this path. If using a differential drivetrain, the angular constraints have no effect.
-    //     new GoalEndState(0.0, Rotation2d.fromDegrees(-90)) // Goal end state. You can set a holonomic rotation here. If using a differential drivetrain, the rotation will have no effect.
-    // );
-
-    // return swerveDrive.followPathCommand(path);
+    return swerveDrive.followChoreoTrajectory("TestPath2", true);
   }
 
   public void disabledPeriodic() {
