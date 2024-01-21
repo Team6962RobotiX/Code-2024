@@ -42,7 +42,6 @@ public class SwerveModule extends SubsystemBase {
   private CANcoder absoluteSteerEncoder;
   private SparkPIDController drivePID, steerPID;
   private SwerveModuleState targetState = new SwerveModuleState();
-  private SwerveModuleState drivenState = new SwerveModuleState();
   private double wheelAcceleration = 0.0;
   public final int id;
   
@@ -131,9 +130,6 @@ public class SwerveModule extends SubsystemBase {
     Logger.autoLog(logPath + "measuredState",           () -> getMeasuredState());
     Logger.autoLog(logPath + "measuredAngle",           () -> getMeasuredState().angle.getDegrees());
     Logger.autoLog(logPath + "measuredVelocity",        () -> getMeasuredState().speedMetersPerSecond);
-    Logger.autoLog(logPath + "drivenState",             () -> getDrivenState());
-    Logger.autoLog(logPath + "drivenAngle",             () -> getDrivenState().angle.getDegrees());
-    Logger.autoLog(logPath + "drivenVelocity",          () -> getDrivenState().speedMetersPerSecond);
     Logger.autoLog(logPath + "targetState",             () -> getTargetState());
     Logger.autoLog(logPath + "targetAngle",             () -> getTargetState().angle.getDegrees());
     Logger.autoLog(logPath + "targetVelocity",          () -> getTargetState().speedMetersPerSecond);
@@ -144,7 +140,7 @@ public class SwerveModule extends SubsystemBase {
       seedSteerEncoder();
     }
     
-    drive(calculateDrivenState());
+    drive(targetState);
   }
   
   public void drive(SwerveModuleState state) {
@@ -173,26 +169,6 @@ public class SwerveModule extends SubsystemBase {
   public void setTargetState(SwerveModuleState state) {
     targetState = SwerveModuleState.optimize(state, getMeasuredState().angle);
   }
-
-  public SwerveModuleState calculateDrivenState() {
-    SwerveModuleState oldState = new SwerveModuleState(getDrivenState().speedMetersPerSecond, getDrivenState().angle);
-    Translation2d currentVelocity = new Translation2d(oldState.speedMetersPerSecond, oldState.angle);
-    Translation2d targetVelocity = new Translation2d(targetState.speedMetersPerSecond, targetState.angle);
-    Translation2d acceleration = (targetVelocity).minus(currentVelocity).div(0.02);
-    if (acceleration.getNorm() > SWERVE_DRIVE.PHYSICS.MAX_LINEAR_ACCELERATION) {
-      acceleration = new Translation2d(SWERVE_DRIVE.PHYSICS.MAX_LINEAR_ACCELERATION, acceleration.getAngle());
-    }
-    Translation2d newVelocity = currentVelocity.plus(acceleration.times(0.02));
-    drivenState = new SwerveModuleState(newVelocity.getNorm(), newVelocity.getAngle());
-    drivenState = SwerveModuleState.optimize(drivenState, getMeasuredState().angle);
-    wheelAcceleration = (drivenState.speedMetersPerSecond - oldState.speedMetersPerSecond) / 0.02;
-
-    if (acceleration.getNorm() <= SWERVE_DRIVE.VELOCITY_DEADBAND) {
-      drivenState = targetState;
-    }
-    
-    return drivenState;
-  }
     
   public void stop() {
     targetState = new SwerveModuleState(0.0, getMeasuredState().angle);
@@ -219,10 +195,6 @@ public class SwerveModule extends SubsystemBase {
   
   public SwerveModuleState getMeasuredState() {
     return new SwerveModuleState(driveEncoder.getVelocity(), Rotation2d.fromRadians(MathUtil.angleModulus(steerEncoder.getPosition())));
-  }
-
-  public SwerveModuleState getDrivenState() {
-    return drivenState;
   }
 
   public SwerveModulePosition getModulePosition() {

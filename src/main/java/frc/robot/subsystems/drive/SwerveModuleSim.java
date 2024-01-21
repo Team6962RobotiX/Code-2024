@@ -64,9 +64,6 @@ public class SwerveModuleSim extends SwerveModule {
     Logger.autoLog(logPath + "measuredState",           () -> getMeasuredState());
     Logger.autoLog(logPath + "measuredAngle",           () -> getMeasuredState().angle.getDegrees());
     Logger.autoLog(logPath + "measuredVelocity",        () -> getMeasuredState().speedMetersPerSecond);
-    Logger.autoLog(logPath + "drivenState",             () -> getDrivenState());
-    Logger.autoLog(logPath + "drivenAngle",             () -> getDrivenState().angle.getDegrees());
-    Logger.autoLog(logPath + "drivenVelocity",          () -> getDrivenState().speedMetersPerSecond);
     Logger.autoLog(logPath + "targetState",             () -> getTargetState());
     Logger.autoLog(logPath + "targetAngle",             () -> getTargetState().angle.getDegrees());
     Logger.autoLog(logPath + "targetVelocity",          () -> getTargetState().speedMetersPerSecond);
@@ -79,7 +76,7 @@ public class SwerveModuleSim extends SwerveModule {
     
     double speedMultiple = 1.0;
     if (SWERVE_DRIVE.DO_ANGLE_ERROR_SPEED_REDUCTION) {
-      speedMultiple = Math.cos(SwerveMath.angleDistance(getDrivenState().angle.getRadians(), getMeasuredState().angle.getRadians()));
+      speedMultiple = Math.cos(SwerveMath.angleDistance(getMeasuredState().angle.getRadians(), getMeasuredState().angle.getRadians()));
     }
     speedMetersPerSecond *= speedMultiple;
 

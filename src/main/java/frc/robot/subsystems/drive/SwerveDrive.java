@@ -18,6 +18,7 @@ import com.pathplanner.lib.path.PathPoint;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
+import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -52,7 +53,9 @@ public class SwerveDrive extends SubsystemBase {
   private SwerveDriveKinematics kinematics = getKinematics();
   private SwerveDrivePoseEstimator poseEstimator;
   private Field2d field = new Field2d();
-  public Rotation2d heading = Rotation2d.fromDegrees(0);
+  private Rotation2d heading = Rotation2d.fromDegrees(0);
+
+  private ChassisSpeeds drivenChassisSpeeds = new ChassisSpeeds();
 
   private ProfiledPIDController rotateController = new ProfiledPIDController(
     SWERVE_DRIVE.ABSOLUTE_ROTATION_GAINS.kP,
@@ -149,7 +152,7 @@ public class SwerveDrive extends SubsystemBase {
   }
 
   public void driveFieldRelative(double xVelocity, double yVelocity, double angularVelocity) {
-    driveRobotRelative(ChassisSpeeds.fromFieldRelativeSpeeds(xVelocity, yVelocity, angularVelocity, getHeading()));
+    driveFieldRelative(new ChassisSpeeds(xVelocity, yVelocity, angularVelocity));
   }
 
   public void driveFieldRelative(ChassisSpeeds speeds) {
@@ -164,11 +167,33 @@ public class SwerveDrive extends SubsystemBase {
    * @param angularVelocity The angular speed to drive at
    */
   public void driveRobotRelative(double xVelocity, double yVelocity, double angularVelocity) {
-    driveRobotRelative(ChassisSpeeds.fromRobotRelativeSpeeds(xVelocity, yVelocity, angularVelocity, getHeading()));
+    driveRobotRelative(new ChassisSpeeds(xVelocity, yVelocity, angularVelocity));
   }
 
   public void driveRobotRelative(ChassisSpeeds speeds) {
-    driveModules(kinematics.toSwerveModuleStates(speeds));
+    driveAttainableSpeeds(speeds);
+  }
+
+
+  private void driveAttainableSpeeds(ChassisSpeeds speeds) {
+    // Limit translational acceleration
+    Translation2d targetLinearVelocity = new Translation2d(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond);
+    Translation2d currentLinearVelocity = new Translation2d(drivenChassisSpeeds.vxMetersPerSecond, drivenChassisSpeeds.vyMetersPerSecond);
+    Translation2d linearAcceleration = (targetLinearVelocity).minus(currentLinearVelocity).div(0.02);
+    if (linearAcceleration.getNorm() > SWERVE_DRIVE.PHYSICS.MAX_LINEAR_ACCELERATION) {
+      linearAcceleration = new Translation2d(SWERVE_DRIVE.PHYSICS.MAX_LINEAR_ACCELERATION, linearAcceleration.getAngle());
+    }
+    Translation2d attainableLinearVelocity = currentLinearVelocity.plus(linearAcceleration.times(0.02));
+    
+    // Limit rotational acceleration
+    double targetAngularVelocity = speeds.omegaRadiansPerSecond;
+    double currentAngularVelocity = drivenChassisSpeeds.omegaRadiansPerSecond;
+    double angularAcceleration = (targetAngularVelocity - currentAngularVelocity) / 0.02;
+    angularAcceleration = Math.max(Math.min(angularAcceleration, SWERVE_DRIVE.PHYSICS.MAX_ANGULAR_ACCELERATION), -SWERVE_DRIVE.PHYSICS.MAX_ANGULAR_ACCELERATION);
+    double attainableAngularVelocity = currentAngularVelocity + (angularAcceleration * 0.02);
+    
+    drivenChassisSpeeds = new ChassisSpeeds(attainableLinearVelocity.getX(), attainableLinearVelocity.getY(), attainableAngularVelocity);
+    driveModules(kinematics.toSwerveModuleStates(drivenChassisSpeeds));
   }
 
 
@@ -178,18 +203,18 @@ public class SwerveDrive extends SubsystemBase {
    * @param speeds The x, y, and angular speeds for the chassis to move at
    * @implNote This method does NOT currently prevent the robot from moving faster than the speed cap
    */
-  public void driveModules(SwerveModuleState[] moduleStates) {
+  private void driveModules(SwerveModuleState[] moduleStates) {
     ChassisSpeeds speeds = kinematics.toChassisSpeeds(moduleStates);
     // Find the speeds in meters per second that the robot is trying to turn at and the speeds the
     // robot is currently turning at
-    double targetWheelSpeed = toLinear(Math.abs(speeds.omegaRadiansPerSecond));
-    double measuredWheelSpeed = toLinear(Math.abs(getMeasuredChassisSpeeds().omegaRadiansPerSecond));
+    double targetWheelSpeeds = toLinear(Math.abs(speeds.omegaRadiansPerSecond));
+    double measuredWheelSpeeds = toLinear(Math.abs(getMeasuredChassisSpeeds().omegaRadiansPerSecond));
 
     // Get the current heading of the robot in radians
     double measuredHeading = getHeading().getRadians();
     
     // Continue to turn if the robot is not passing or going to be passing the velocity deadband
-    if (targetWheelSpeed < SWERVE_DRIVE.VELOCITY_DEADBAND && measuredWheelSpeed < SWERVE_DRIVE.VELOCITY_DEADBAND) {
+    if (targetWheelSpeeds < SWERVE_DRIVE.VELOCITY_DEADBAND && measuredWheelSpeeds < SWERVE_DRIVE.VELOCITY_DEADBAND) {
       speeds.omegaRadiansPerSecond += rotateController.calculate(measuredHeading);
     } else {
       // If the velocity deadband is reached, zero the angular velocity
@@ -280,7 +305,7 @@ public class SwerveDrive extends SubsystemBase {
    * @return Driven chassis x speed, y speed, and rotational speed
    */
   public ChassisSpeeds getDrivenChassisSpeeds() {
-    return kinematics.toChassisSpeeds(getDrivenModuleStates());
+    return drivenChassisSpeeds;
   }
 
   /**
@@ -315,18 +340,7 @@ public class SwerveDrive extends SubsystemBase {
     }
     return measuredStates;
   }
-
-  /**
-   * @return Measured module states (speed and direction)
-   */
-  public SwerveModuleState[] getDrivenModuleStates() {
-    SwerveModuleState[] measuredStates = new SwerveModuleState[SWERVE_DRIVE.MODULE_COUNT];
-    for (int i = 0; i < SWERVE_DRIVE.MODULE_COUNT; i++) {
-      measuredStates[i] = modules[i].getDrivenState();
-    }
-    return measuredStates;
-  }
-
+  
   /**
    * @return Total current through all modules
    */
@@ -448,9 +462,9 @@ public class SwerveDrive extends SubsystemBase {
 
         """,
         SWERVE_DRIVE.ROBOT_MASS,
-        SWERVE_DRIVE.PHYSICS.SIMULATED_MOI,
-        SWERVE_DRIVE.CHASSIS_WIDTH + SWERVE_DRIVE.BUMPER_THICKNESS * 2.0,
-        SWERVE_DRIVE.CHASSIS_LENGTH + SWERVE_DRIVE.BUMPER_THICKNESS * 2.0,
+        SWERVE_DRIVE.PHYSICS.ROTATIONAL_INERTIA,
+        SWERVE_DRIVE.BUMPER_WIDTH,
+        SWERVE_DRIVE.BUMPER_LENGTH,
         SWERVE_DRIVE.WHEELBASE,
         SWERVE_DRIVE.TRACKWIDTH,
         SWERVE_DRIVE.WHEEL_RADIUS,
