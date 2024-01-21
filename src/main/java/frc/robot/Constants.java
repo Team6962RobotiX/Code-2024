@@ -96,11 +96,11 @@ public final class Constants {
     public static class PHYSICS {
       public static final double ROTATIONAL_INERTIA = (1.0 / 12.0) * ROBOT_MASS * (Math.pow(CHASSIS_WIDTH, 2.0) + Math.pow(CHASSIS_LENGTH, 2.0));
       public static final double SLIPLESS_ACCELERATION = 9.80 * FRICTION_COEFFICIENT;
-      public static final double SLIPLESS_CURRENT_LIMIT = (SLIPLESS_ACCELERATION * NEO.STALL_CURRENT * ROBOT_MASS * WHEEL_RADIUS) / (4 * DRIVE_MOTOR_GEARING * NEO.STALL_TORQUE);
+      public static final int SLIPLESS_CURRENT_LIMIT = (int) ((SLIPLESS_ACCELERATION * NEO.STALL_CURRENT * ROBOT_MASS * WHEEL_RADIUS) / (4 * DRIVE_MOTOR_GEARING * NEO.STALL_TORQUE));
       
       public static final double DRIVE_RADIUS = Math.hypot(WHEELBASE / 2.0, TRACKWIDTH / 2.0);
       public static final double MAX_MOTOR_SPEED = NEO.FREE_SPEED * GEARBOX_EFFICIENCY;
-      public static final double MAX_MOTOR_TORQUE = NEO.maxTorqueCurrentLimited((int) SLIPLESS_CURRENT_LIMIT);
+      public static final double MAX_MOTOR_TORQUE = NEO.maxTorqueCurrentLimited(SLIPLESS_CURRENT_LIMIT);
       public static final double MAX_WHEEL_VELOCITY = (MAX_MOTOR_SPEED * (Math.PI * 2.0)) / 60.0 / DRIVE_MOTOR_GEARING;
       public static final double MAX_LINEAR_VELOCITY = MAX_WHEEL_VELOCITY * WHEEL_RADIUS;
       public static final double MAX_LINEAR_FORCE = (4.0 * MAX_MOTOR_TORQUE * DRIVE_MOTOR_GEARING) / WHEEL_RADIUS; // N

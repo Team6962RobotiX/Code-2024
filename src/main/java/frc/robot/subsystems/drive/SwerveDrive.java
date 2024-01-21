@@ -440,7 +440,7 @@ public class SwerveDrive extends SubsystemBase {
 
 ------- MOTOR CALCULATOR -------
   NEO
-  Current Limit: %.3f A
+  Current Limit: %s A
 
 (You've done it right when these all check out)
 ------ THEORETICAL -------
