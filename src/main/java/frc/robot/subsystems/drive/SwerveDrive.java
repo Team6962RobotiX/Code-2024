@@ -149,11 +149,11 @@ public class SwerveDrive extends SubsystemBase {
   }
 
   public void driveFieldRelative(double xVelocity, double yVelocity, double angularVelocity) {
-    driveChassisSpeeds(ChassisSpeeds.fromFieldRelativeSpeeds(xVelocity, yVelocity, angularVelocity, getHeading()));
+    driveRobotRelative(ChassisSpeeds.fromFieldRelativeSpeeds(xVelocity, yVelocity, angularVelocity, getHeading()));
   }
 
   public void driveFieldRelative(ChassisSpeeds speeds) {
-    driveChassisSpeeds(ChassisSpeeds.fromFieldRelativeSpeeds(speeds, getHeading()));
+    driveRobotRelative(ChassisSpeeds.fromFieldRelativeSpeeds(speeds, getHeading()));
   }
   
 
@@ -164,14 +164,10 @@ public class SwerveDrive extends SubsystemBase {
    * @param angularVelocity The angular speed to drive at
    */
   public void driveRobotRelative(double xVelocity, double yVelocity, double angularVelocity) {
-    driveChassisSpeeds(ChassisSpeeds.fromRobotRelativeSpeeds(xVelocity, yVelocity, angularVelocity, getHeading()));
+    driveRobotRelative(ChassisSpeeds.fromRobotRelativeSpeeds(xVelocity, yVelocity, angularVelocity, getHeading()));
   }
 
   public void driveRobotRelative(ChassisSpeeds speeds) {
-    driveChassisSpeeds(ChassisSpeeds.fromRobotRelativeSpeeds(speeds, getHeading()));
-  }
-
-  private void driveChassisSpeeds(ChassisSpeeds speeds) {
     driveModules(kinematics.toSwerveModuleStates(speeds));
   }
 

@@ -128,7 +128,7 @@ public final class Constants {
         public static final double kD = 0.0;
       }
       public static final class ROTATION_GAINS {
-        public static final double kP = 2.0;
+        public static final double kP = 4.0;
         public static final double kI = 0.0;
         public static final double kD = 0.0;
       }

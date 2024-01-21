@@ -97,7 +97,7 @@ public class RobotContainer {
     // System.out.println(1.0 / SWERVE_DRIVE.DRIVE_MOTOR_PROFILE.RAMP_RATE);
 
     // auto stuff
-    traj = Choreo.getTrajectory("speaker");
+    traj = Choreo.getTrajectory("TestPath");
 
     field.getObject("traj").setPoses(
       traj.getInitialPose(), traj.getFinalPose()
@@ -113,12 +113,7 @@ public class RobotContainer {
   }
 
   public Command getAutonomousCommand() {
-    // Create a proportional controller to correct errors in the robot's rotation
-    var rotationController = new PIDController(Constants.SWERVE_DRIVE.AUTONOMOUS.ROTATION_GAINS.kP, 0, 0);
-    rotationController.enableContinuousInput(-Math.PI, Math.PI);
-
     swerveDrive.resetPose(traj.getInitialPose());
-
     Command swerveCommand = Choreo.choreoSwerveCommand(
         // Choreo trajectory to follow
         traj,
@@ -129,11 +124,23 @@ public class RobotContainer {
 
         // PIDControllers for correcting errors in field-relative translation (input: X or Y error in
         // meters, output: m/s).
-        new PIDController(Constants.SWERVE_DRIVE.AUTONOMOUS.TRANSLATION_GAINS.kP, 0.0, 0.0),
-        new PIDController(Constants.SWERVE_DRIVE.AUTONOMOUS.TRANSLATION_GAINS.kP, 0.0, 0.0),
+        new PIDController(
+          SWERVE_DRIVE.AUTONOMOUS.TRANSLATION_GAINS.kP,
+          SWERVE_DRIVE.AUTONOMOUS.TRANSLATION_GAINS.kI, 
+          SWERVE_DRIVE.AUTONOMOUS.TRANSLATION_GAINS.kD
+        ),
+        new PIDController(
+          SWERVE_DRIVE.AUTONOMOUS.TRANSLATION_GAINS.kP,
+          SWERVE_DRIVE.AUTONOMOUS.TRANSLATION_GAINS.kI, 
+          SWERVE_DRIVE.AUTONOMOUS.TRANSLATION_GAINS.kD
+        ),
 
         // PIDController to correct for rotation error (input: heading error in radians, output: rad/s)
-        rotationController,
+        new PIDController(
+          SWERVE_DRIVE.AUTONOMOUS.ROTATION_GAINS.kP,
+          SWERVE_DRIVE.AUTONOMOUS.ROTATION_GAINS.kI,
+          SWERVE_DRIVE.AUTONOMOUS.ROTATION_GAINS.kD
+        ),
 
         // A consumer which drives the robot in robot-relative coordinates
         swerveDrive::driveRobotRelative,
