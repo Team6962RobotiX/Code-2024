@@ -29,7 +29,7 @@ import frc.robot.subsystems.drive.SwerveDrive;
 import frc.robot.Constants.NEO;
 import frc.robot.Constants.SWERVE_DRIVE;
 import frc.robot.Constants.SWERVE_DRIVE.DRIVE_MOTOR_PROFILE;
-import frc.robot.commands.UpdateField;
+//import frc.robot.commands.UpdateField;
 import frc.robot.commands.drive.XBoxSwerve;
 import frc.robot.subsystems.drive.SwerveDrive;
 import frc.robot.subsystems.vision.PhotonLib;
@@ -49,7 +49,7 @@ public class RobotContainer {
   private final XboxController XboxController = new XboxController(DEVICES.USB_XBOX_CONTROLLER);
   private final SwerveDrive swerveDrive = new SwerveDrive();
   // private final Limelight limelight = new Limelight("testone");
-  private final PhotonLib p_lib = new PhotonLib();
+  private final PhotonLib photonLib = new PhotonLib(swerveDrive::getPose);
   // private final Limelight limelight = new Limelight(LimelightConfig.NAME);
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
@@ -60,7 +60,6 @@ public class RobotContainer {
     Logger.autoLog("PDH", new PowerDistribution(CAN.PDH, ModuleType.kRev));
     Logger.startLog();
     swerveDrive.setDefaultCommand(new XBoxSwerve(swerveDrive, () -> XboxController));
-    p_lib.setDefaultCommand(new UpdateField(swerveDrive,p_lib));
     //Positive y moves the camera left, Positive x moves the camera forward - TEMPORARY
     swerveDrive.resetPose(new Pose2d(new Translation2d(2, 2), new Rotation2d()));
 

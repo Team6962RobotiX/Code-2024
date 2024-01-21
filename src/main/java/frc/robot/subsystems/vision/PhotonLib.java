@@ -6,6 +6,7 @@ package frc.robot.subsystems.vision;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.function.Supplier;
 
 import org.opencv.core.Mat;
 import org.photonvision.PhotonCamera;
@@ -37,12 +38,12 @@ import frc.robot.Constants;
 
 public class PhotonLib extends SubsystemBase {
 
-
-  VisionSystemSim visionSim;
+  VisionSystemSim visionSim = new VisionSystemSim("main");
   AprilTagFieldLayout tagLayout;
   SimCameraProperties cameraProp = new SimCameraProperties();
   PhotonCamera camera;
   PhotonCameraSim cameraSim;
+  Supplier<Pose2d> pose;
 
   public Pose3d translate(double[] pose){
 
@@ -67,8 +68,8 @@ public class PhotonLib extends SubsystemBase {
 
     }
   /** Creates a new ExampleSubsystem. */
-  public PhotonLib() {
-    visionSim = new VisionSystemSim("main");
+  public PhotonLib(Supplier<Pose2d> poseSupplier) {
+    pose = poseSupplier;
     Path aprilTagPath = Filesystem.getDeployDirectory().toPath().resolve("corrected_apriltags_coordinates.json");
 
     double[] nums = {-0.5,
@@ -122,26 +123,12 @@ public class PhotonLib extends SubsystemBase {
     // This is extremely resource-intensive and is disabled by default.
     cameraSim.enableDrawWireframe(false);
 
-    
   }
 
-  public void UpdateField(Pose2d RobotPose){
-    visionSim.update(RobotPose);
-  }
-
-  
-  /**
-   * An example method querying a boolean state of the subsystem (for example, a digital sensor).
-   *
-   * @return value of some boolean subsystem state, such as a digital sensor.
-   */
-  public boolean exampleCondition() {
-    // Query some boolean state, such as a digital sensor.
-    return false;
-  }
 
   @Override
   public void periodic() {
+    visionSim.update(pose.get());
   }
 
 
