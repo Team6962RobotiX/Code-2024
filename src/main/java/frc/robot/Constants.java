@@ -118,12 +118,12 @@ public final class Constants {
 
     public static final class AUTONOMOUS {
       public static final class TRANSLATION_GAINS {
-        public static final double kP = 2.0;
+        public static final double kP = 1.0;
         public static final double kI = 0.0;
         public static final double kD = 0.0;
       }
       public static final class ROTATION_GAINS {
-        public static final double kP = 4.0;
+        public static final double kP = 1.0;
         public static final double kI = 0.0;
         public static final double kD = 0.0;
       }

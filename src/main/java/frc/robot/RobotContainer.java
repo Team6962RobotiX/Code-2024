@@ -96,7 +96,7 @@ public class RobotContainer {
     // System.out.println(1.0 / SWERVE_DRIVE.DRIVE_MOTOR_PROFILE.RAMP_RATE);
 
     // auto stuff
-    traj = Choreo.getTrajectory("TestPath");
+    traj = Choreo.getTrajectory("TestPath2");
 
     field.getObject("traj").setPoses(
       traj.getInitialPose(), traj.getFinalPose()

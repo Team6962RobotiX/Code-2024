@@ -155,8 +155,8 @@ public class SwerveDrive extends SubsystemBase {
     driveFieldRelative(new ChassisSpeeds(xVelocity, yVelocity, angularVelocity));
   }
 
-  public void driveFieldRelative(ChassisSpeeds speeds) {
-    driveRobotRelative(ChassisSpeeds.fromFieldRelativeSpeeds(speeds, getHeading()));
+  public void driveFieldRelative(ChassisSpeeds fieldRelativeSpeeds) {
+    driveAttainableSpeeds(fieldRelativeSpeeds);
   }
   
 
@@ -170,20 +170,38 @@ public class SwerveDrive extends SubsystemBase {
     driveRobotRelative(new ChassisSpeeds(xVelocity, yVelocity, angularVelocity));
   }
 
-  public void driveRobotRelative(ChassisSpeeds speeds) {
-    driveAttainableSpeeds(speeds);
+  public void driveRobotRelative(ChassisSpeeds robotRelativeSpeeds) {
+    driveFieldRelative(ChassisSpeeds.fromRobotRelativeSpeeds(robotRelativeSpeeds, getHeading()));
   }
 
 
-  private void driveAttainableSpeeds(ChassisSpeeds speeds) {
+  private void driveAttainableSpeeds(ChassisSpeeds fieldRelativeSpeeds) {
+    // Find the speeds in meters per second that the robot is trying to turn at and the speeds the
+    // robot is currently turning at
+    double targetWheelSpeeds = toLinear(Math.abs(fieldRelativeSpeeds.omegaRadiansPerSecond));
+    double measuredWheelSpeeds = toLinear(Math.abs(getMeasuredChassisSpeeds().omegaRadiansPerSecond));
+
+    // Get the current heading of the robot in radians
+    double measuredHeading = getHeading().getRadians();
+    
+    // Continue to turn if the robot is not passing or going to be passing the velocity deadband
+    if (targetWheelSpeeds < SWERVE_DRIVE.VELOCITY_DEADBAND && measuredWheelSpeeds < SWERVE_DRIVE.VELOCITY_DEADBAND) {
+      fieldRelativeSpeeds.omegaRadiansPerSecond += rotateController.calculate(measuredHeading);
+    } else {
+      // If the velocity deadband is reached, zero the angular velocity
+      rotateController.calculate(measuredHeading, measuredHeading);
+    }
+
+    fieldRelativeSpeeds = ChassisSpeeds.discretize(fieldRelativeSpeeds, SWERVE_DRIVE.DISCRETIZED_TIME_STEP);
+
     // Limit translational acceleration
-    Translation2d targetLinearVelocity = new Translation2d(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond);
+    Translation2d targetLinearVelocity = new Translation2d(fieldRelativeSpeeds.vxMetersPerSecond, fieldRelativeSpeeds.vyMetersPerSecond);
     Translation2d currentLinearVelocity = new Translation2d(drivenChassisSpeeds.vxMetersPerSecond, drivenChassisSpeeds.vyMetersPerSecond);
     Translation2d linearAcceleration = (targetLinearVelocity).minus(currentLinearVelocity).div(0.02);
     double linearForce = linearAcceleration.getNorm() * SWERVE_DRIVE.ROBOT_MASS;
 
      // Limit rotational acceleration
-    double targetAngularVelocity = speeds.omegaRadiansPerSecond;
+    double targetAngularVelocity = fieldRelativeSpeeds.omegaRadiansPerSecond;
     double currentAngularVelocity = drivenChassisSpeeds.omegaRadiansPerSecond;
     double angularAcceleration = (targetAngularVelocity - currentAngularVelocity) / 0.02;
     double angularForce = Math.abs((SWERVE_DRIVE.PHYSICS.ROTATIONAL_INERTIA * angularAcceleration) / SWERVE_DRIVE.PHYSICS.DRIVE_RADIUS);
@@ -200,39 +218,11 @@ public class SwerveDrive extends SubsystemBase {
     double attainableAngularVelocity = currentAngularVelocity + (angularAcceleration * 0.02);
     
     drivenChassisSpeeds = new ChassisSpeeds(attainableLinearVelocity.getX(), attainableLinearVelocity.getY(), attainableAngularVelocity);
-    driveModules(kinematics.toSwerveModuleStates(drivenChassisSpeeds));
+    
+    driveModules(kinematics.toSwerveModuleStates(ChassisSpeeds.fromFieldRelativeSpeeds(drivenChassisSpeeds, getHeading())));
   }
 
-
-  /**
-   * Drives the robot based on chassis speeds, telling each swerve module what speed and direction to
-   * run at
-   * @param speeds The x, y, and angular speeds for the chassis to move at
-   * @implNote This method does NOT currently prevent the robot from moving faster than the speed cap
-   */
   private void driveModules(SwerveModuleState[] moduleStates) {
-    ChassisSpeeds speeds = kinematics.toChassisSpeeds(moduleStates);
-    // Find the speeds in meters per second that the robot is trying to turn at and the speeds the
-    // robot is currently turning at
-    double targetWheelSpeeds = toLinear(Math.abs(speeds.omegaRadiansPerSecond));
-    double measuredWheelSpeeds = toLinear(Math.abs(getMeasuredChassisSpeeds().omegaRadiansPerSecond));
-
-    // Get the current heading of the robot in radians
-    double measuredHeading = getHeading().getRadians();
-    
-    // Continue to turn if the robot is not passing or going to be passing the velocity deadband
-    if (targetWheelSpeeds < SWERVE_DRIVE.VELOCITY_DEADBAND && measuredWheelSpeeds < SWERVE_DRIVE.VELOCITY_DEADBAND) {
-      speeds.omegaRadiansPerSecond += rotateController.calculate(measuredHeading);
-    } else {
-      // If the velocity deadband is reached, zero the angular velocity
-      rotateController.setGoal(measuredHeading);
-      rotateController.calculate(measuredHeading);
-    }
-
-    speeds = ChassisSpeeds.discretize(speeds, SWERVE_DRIVE.DISCRETIZED_TIME_STEP);
-    
-    moduleStates = kinematics.toSwerveModuleStates(speeds);
-
     // Prevents wheels from going over the maximum velocity (based on the motor power cap)
     double maxWheelVelocity = SwerveModule.calcWheelVelocity(SWERVE_DRIVE.MOTOR_POWER_HARD_CAP);
     SwerveDriveKinematics.desaturateWheelSpeeds(moduleStates, maxWheelVelocity);
