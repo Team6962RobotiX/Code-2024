@@ -42,7 +42,7 @@ public class SwerveModule extends SubsystemBase {
   private CANcoder absoluteSteerEncoder;
   private SparkPIDController drivePID, steerPID;
   private SwerveModuleState targetState = new SwerveModuleState();
-  private double wheelAcceleration = 0.0;
+  private SwerveModuleState lastDrivenState = new SwerveModuleState();
   public final int id;
   
   private SimpleMotorFeedforward driveFF = new SimpleMotorFeedforward(
@@ -141,6 +141,7 @@ public class SwerveModule extends SubsystemBase {
     }
     
     drive(targetState);
+    setTargetState(new SwerveModuleState(0.0, getMeasuredState().angle));
   }
   
   public void drive(SwerveModuleState state) {
@@ -151,19 +152,23 @@ public class SwerveModule extends SubsystemBase {
       speedMetersPerSecond *= Math.cos(SwerveMath.angleDistance(radians, getMeasuredState().angle.getRadians()));
     }
     
+    double wheelAcceleration = (speedMetersPerSecond - lastDrivenState.speedMetersPerSecond) / 0.02;
+
     drivePID.setReference(
       speedMetersPerSecond,
       ControlType.kVelocity,
       0,
-      driveFF.calculate(speedMetersPerSecond, getWheelAcceleration()),
+      driveFF.calculate(speedMetersPerSecond, wheelAcceleration),
       ArbFFUnits.kVoltage
     );
-      
+    
     steerPID.setReference(
       radians,
       ControlType.kPosition,
       0
     );
+
+    lastDrivenState = new SwerveModuleState(speedMetersPerSecond, Rotation2d.fromRadians(radians));
   }
     
   public void setTargetState(SwerveModuleState state) {
@@ -205,20 +210,8 @@ public class SwerveModule extends SubsystemBase {
     return (power * 12.0) / DRIVE_MOTOR_PROFILE.kV;
   }
 
-  // public static double calcCurrent(double acceleration) {
-  //   return (acceleration * SWERVE_DRIVE.ROBOT_MASS * SWERVE_DRIVE.FRICTION_COEFFICIENT * SWERVE_DRIVE.WHEEL_RADIUS * 2.0 * SWERVE_DRIVE.DRIVE_MOTOR_GEAR_RATIO * (0.5 * NEO.STALL_CURRENT - 0.5 * NEO.FREE_CURRENT)) / (NEO.STALL_TORQUE * SWERVE_DRIVE.MODULE_COUNT * SWERVE_DRIVE.GEARBOX_EFFICIENCY) + NEO.FREE_CURRENT;
-  // }
-
-  // public static double calcAcceleration(double current) {
-  //   return (2.0 * NEO.STALL_TORQUE * SWERVE_DRIVE.MODULE_COUNT * SWERVE_DRIVE.GEARBOX_EFFICIENCY * current - NEO.STALL_TORQUE * SWERVE_DRIVE.MODULE_COUNT * NEO.FREE_CURRENT * SWERVE_DRIVE.GEARBOX_EFFICIENCY) / (SWERVE_DRIVE.ROBOT_MASS * SWERVE_DRIVE.FRICTION_COEFFICIENT * SWERVE_DRIVE.WHEEL_DIAMETER * SWERVE_DRIVE.DRIVE_MOTOR_GEAR_RATIO * NEO.STALL_CURRENT - SWERVE_DRIVE.ROBOT_MASS * SWERVE_DRIVE.FRICTION_COEFFICIENT * SWERVE_DRIVE.WHEEL_DIAMETER * SWERVE_DRIVE.DRIVE_MOTOR_GEAR_RATIO * NEO.FREE_CURRENT);
-  // }
-
   public double getTotalCurrent() {
     return driveMotor.getOutputCurrent() + steerMotor.getOutputCurrent();
-  }
-
-  public double getWheelAcceleration() {
-    return wheelAcceleration;
   }
 
   public void setVolts(double volts) {
