@@ -72,6 +72,11 @@ public class RobotContainer {
     // MOI = (DRIVE_MOTOR_CONFIG.kA * G * DCMotor.getNEO(1).KtNMPerAmp) / DCMotor.getNEO(1).rOhms;
     
     DCMotor motor = DCMotor.getNEO(1);
+
+    SwerveDrive.printChoreoConfig();
+    // 4.17388278125 moi
+    // System.out.println(SWERVE_DRIVE.PHYSICS.MAX_CHASSIS_TORQUE / SWERVE_DRIVE.PHYSICS.ROTATIONAL_INERTIA);
+    // 23.57193315926672 rad/s^2
     // // torque
     // motor.getTorque(motor.getCurrent(0, 12.0));
     // double t = (NEO.STALL_TORQUE * (1.0 / SWERVE_DRIVE.DRIVE_MOTOR_GEAR_RATIO) * SWERVE_DRIVE.MODULE_COUNT) / (SWERVE_DRIVE.WHEEL_DIAMETER / 2.0) * SWERVE_DRIVE.ROBOT_MASS;
@@ -120,7 +125,7 @@ public class RobotContainer {
 
         // A supplier that returns the current field-relative pose of the robot based on the wheel
         // and vision odometry
-        () -> swerveDrive.getPose(),
+        swerveDrive::getPose,
 
         // PIDControllers for correcting errors in field-relative translation (input: X or Y error in
         // meters, output: m/s).
@@ -131,7 +136,7 @@ public class RobotContainer {
         rotationController,
 
         // A consumer which drives the robot in robot-relative coordinates
-        (ChassisSpeeds speeds) -> swerveDrive.drive(speeds),
+        swerveDrive::driveRobotRelative,
         
         // A supplier which returns whether or not to mirror the path based on alliance (this assumes
         // the path is created for the blue alliance)

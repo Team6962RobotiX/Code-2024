@@ -38,6 +38,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.SWERVE_DRIVE;
+import frc.robot.Constants.SWERVE_DRIVE.PHYSICS;
 import frc.robot.util.Logging.Logger;
 
 /**
@@ -147,13 +148,14 @@ public class SwerveDrive extends SubsystemBase {
     RoboRioSim.setVInVoltage(BatterySim.calculateDefaultBatteryLoadedVoltage(getCurrent()));
   }
 
-  public void drive(ChassisSpeeds speeds) {
-    driveModules(kinematics.toSwerveModuleStates(speeds));
+  public void driveFieldRelative(double xVelocity, double yVelocity, double angularVelocity) {
+    driveChassisSpeeds(ChassisSpeeds.fromFieldRelativeSpeeds(xVelocity, yVelocity, angularVelocity, getHeading()));
   }
 
-  public void driveFieldRelative(double xVelocity, double yVelocity, double angularVelocity) {
-    drive(ChassisSpeeds.fromFieldRelativeSpeeds(xVelocity, yVelocity, angularVelocity, getHeading()));
+  public void driveFieldRelative(ChassisSpeeds speeds) {
+    driveChassisSpeeds(ChassisSpeeds.fromFieldRelativeSpeeds(speeds, getHeading()));
   }
+  
 
   /**
    * Drives the robot at a given robot-relative speed and direction
@@ -162,8 +164,17 @@ public class SwerveDrive extends SubsystemBase {
    * @param angularVelocity The angular speed to drive at
    */
   public void driveRobotRelative(double xVelocity, double yVelocity, double angularVelocity) {
-    drive(ChassisSpeeds.fromRobotRelativeSpeeds(xVelocity, yVelocity, angularVelocity, getHeading()));
+    driveChassisSpeeds(ChassisSpeeds.fromRobotRelativeSpeeds(xVelocity, yVelocity, angularVelocity, getHeading()));
   }
+
+  public void driveRobotRelative(ChassisSpeeds speeds) {
+    driveChassisSpeeds(ChassisSpeeds.fromRobotRelativeSpeeds(speeds, getHeading()));
+  }
+
+  private void driveChassisSpeeds(ChassisSpeeds speeds) {
+    driveModules(kinematics.toSwerveModuleStates(speeds));
+  }
+
 
   /**
    * Drives the robot based on chassis speeds, telling each swerve module what speed and direction to
@@ -401,6 +412,62 @@ public class SwerveDrive extends SubsystemBase {
       new Translation2d( SWERVE_DRIVE.TRACKWIDTH / 2.0, -SWERVE_DRIVE.WHEELBASE / 2.0), 
       new Translation2d(-SWERVE_DRIVE.TRACKWIDTH / 2.0, SWERVE_DRIVE.WHEELBASE  / 2.0), 
       new Translation2d(-SWERVE_DRIVE.TRACKWIDTH / 2.0, -SWERVE_DRIVE.WHEELBASE / 2.0));
+  }
+
+  public static void printChoreoConfig() {
+    System.out.println(
+      String.format(
+        """
+
+
+////////////////////////////////
+///// CHOREO ROBOT CONFIG //////
+////////////////////////////////
+
+---------- DIMENSIONS ----------
+  Mass: %.3f kg
+  MOI: %.3f kg * m^2
+  Bumper Width: %.3f m
+  Bumper Length: %.3f m
+  Wheelbase: %.3f m
+  Trackwidth: %.3f m
+
+--------- DRIVE MOTOR ----------
+  Wheel Radius: %.3f m
+  Gearing: %.3f : 1
+  Motor Max Speed: %.0f RPM
+  Motor Max Torque: %.3f N * m
+
+------- MOTOR CALCULATOR -------
+  NEO
+  Current Limit: %.3f A
+
+(You've done it right when these all check out)
+------ THEORETICAL -------
+  Floor Speed: %.3f m/s
+  Floor Accel: %.3f m/s^2
+  Ang Speed: %.3f rad/s
+  Ang Accel: %.3f rad/s^2
+
+
+        """,
+        SWERVE_DRIVE.ROBOT_MASS,
+        SWERVE_DRIVE.PHYSICS.SIMULATED_MOI,
+        SWERVE_DRIVE.CHASSIS_WIDTH + SWERVE_DRIVE.BUMPER_THICKNESS * 2.0,
+        SWERVE_DRIVE.CHASSIS_LENGTH + SWERVE_DRIVE.BUMPER_THICKNESS * 2.0,
+        SWERVE_DRIVE.WHEELBASE,
+        SWERVE_DRIVE.TRACKWIDTH,
+        SWERVE_DRIVE.WHEEL_RADIUS,
+        SWERVE_DRIVE.DRIVE_MOTOR_GEARING,
+        SWERVE_DRIVE.PHYSICS.MAX_MOTOR_SPEED,
+        SWERVE_DRIVE.PHYSICS.MAX_MOTOR_TORQUE,
+        SWERVE_DRIVE.PHYSICS.SLIPLESS_CURRENT_LIMIT,
+        SWERVE_DRIVE.PHYSICS.MAX_LINEAR_VELOCITY,
+        SWERVE_DRIVE.PHYSICS.MAX_LINEAR_ACCELERATION,
+        SWERVE_DRIVE.PHYSICS.MAX_ANGULAR_VELOCITY,
+        SWERVE_DRIVE.PHYSICS.MAX_ANGULAR_ACCELERATION
+      )
+    );
   }
 
   /*public Command followPathCommand(List<Pose2d> poses) {

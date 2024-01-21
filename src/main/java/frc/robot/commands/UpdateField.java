@@ -24,7 +24,7 @@ public class UpdateField extends Command {
     this.s_drive = s_drive;
     this.p_lib = p_lib;
     // Use addRequirements() here to declare subsystem dependencies.
-    addRequirements(s_drive, p_lib);
+    addRequirements(p_lib);
   }
 
   // Called when the command is initially scheduled.

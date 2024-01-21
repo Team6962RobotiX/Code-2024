@@ -56,7 +56,8 @@ public final class Constants {
     public static final int      MODULE_COUNT                       = 4;
     public static final double   CHASSIS_WIDTH                      = Units.inchesToMeters(28);
     public static final double   CHASSIS_LENGTH                     = Units.inchesToMeters(28);
-    public static final double   WHEEL_FRAME_DISTANCE               = Units.inchesToMeters(2.625);
+    public static final double   BUMPER_THICKNESS                   = Units.inchesToMeters(3.25);
+    public static final double   WHEEL_TO_EDGE_DISTANCE             = Units.inchesToMeters(2.625);
     public static final double   WHEEL_RADIUS                       = Units.inchesToMeters(2.0); // measured in meters
     public static final double   WHEEL_WIDTH                        = Units.inchesToMeters(2.0); // measured in meters
     public static final double   DRIVE_MOTOR_GEARING                = 6.75;
@@ -85,12 +86,12 @@ public final class Constants {
     ///////////////////////// CALCUALTED /////////////////////////
 
     // PHYSICAL
-    public static final double   TRACKWIDTH                         = CHASSIS_WIDTH - WHEEL_FRAME_DISTANCE * 2.0; // left-to-right distance between the drivetrain wheels
-    public static final double   WHEELBASE                          = CHASSIS_LENGTH - WHEEL_FRAME_DISTANCE * 2.0; // front-to-back distance between the drivetrain wheels
+    public static final double   TRACKWIDTH                         = CHASSIS_WIDTH - WHEEL_TO_EDGE_DISTANCE * 2.0; // left-to-right distance between the drivetrain wheels
+    public static final double   WHEELBASE                          = CHASSIS_LENGTH - WHEEL_TO_EDGE_DISTANCE * 2.0; // front-to-back distance between the drivetrain wheels
     
     // GEAR AND WHEEL RATIOS
-    public static final double   DRIVE_ENCODER_CONVERSION_FACTOR  = (WHEEL_RADIUS * 2.0 * Math.PI) / DRIVE_MOTOR_GEARING;
-    public static final double   STEER_ENCODER_CONVERSION_FACTOR = (Math.PI * 2.0) / STEER_MOTOR_GEARING;
+    public static final double   DRIVE_ENCODER_CONVERSION_FACTOR    = (WHEEL_RADIUS * 2.0 * Math.PI) / DRIVE_MOTOR_GEARING;
+    public static final double   STEER_ENCODER_CONVERSION_FACTOR    = (Math.PI * 2.0) / STEER_MOTOR_GEARING;
     
     public static class PHYSICS {
       public static final double ROTATIONAL_INERTIA = (1.0 / 12.0) * ROBOT_MASS * (Math.pow(CHASSIS_WIDTH, 2.0) + Math.pow(CHASSIS_LENGTH, 2.0));
@@ -98,15 +99,22 @@ public final class Constants {
       public static final double SLIPLESS_CURRENT_LIMIT = (SLIPLESS_ACCELERATION * NEO.STALL_CURRENT * ROBOT_MASS * WHEEL_RADIUS) / (4 * DRIVE_MOTOR_GEARING * NEO.STALL_TORQUE);
       
       public static final double DRIVE_RADIUS = Math.hypot(WHEELBASE / 2.0, TRACKWIDTH / 2.0);
-      
-      public static final double MAX_WHEEL_VELOCITY = (NEO.FREE_SPEED * GEARBOX_EFFICIENCY * (Math.PI * 2.0)) / 60 / DRIVE_MOTOR_GEARING;
+      public static final double MAX_MOTOR_SPEED = NEO.FREE_SPEED * GEARBOX_EFFICIENCY;
+      public static final double MAX_MOTOR_TORQUE = NEO.maxTorqueCurrentLimited((int) SLIPLESS_CURRENT_LIMIT);
+      public static final double MAX_WHEEL_VELOCITY = (MAX_MOTOR_SPEED * (Math.PI * 2.0)) / 60.0 / DRIVE_MOTOR_GEARING;
       public static final double MAX_LINEAR_VELOCITY = MAX_WHEEL_VELOCITY * WHEEL_RADIUS;
-      public static final double MAX_LINEAR_FORCE = (4.0 * NEO.maxTorqueCurrentLimited((int) SLIPLESS_CURRENT_LIMIT) * DRIVE_MOTOR_GEARING) / WHEEL_RADIUS; // N
+      public static final double MAX_LINEAR_FORCE = (4.0 * MAX_MOTOR_TORQUE * DRIVE_MOTOR_GEARING) / WHEEL_RADIUS; // N
       public static final double MAX_LINEAR_ACCELERATION = MAX_LINEAR_FORCE / ROBOT_MASS;
       public static final double MAX_CHASSIS_TORQUE = MAX_LINEAR_FORCE * DRIVE_RADIUS;
       public static final double MAX_ANGULAR_ACCELERATION = SwerveDrive.toAngular(MAX_LINEAR_ACCELERATION); // MAX_CHASSIS_TORQUE / ROTATIONAL_INERTIA;
       public static final double MAX_ANGULAR_VELOCITY = (MAX_WHEEL_VELOCITY * WHEEL_RADIUS) / DRIVE_RADIUS;
+
+      public static final double SIMULATED_MOI = Math.pow(SWERVE_DRIVE.PHYSICS.DRIVE_RADIUS, 2.0) * SWERVE_DRIVE.ROBOT_MASS;
     }
+
+    // (MAX_LINEAR_FORCE * DRIVE_RADIUS) / ROTATIONAL_INERTIA = (MAX_LINEAR_FORCE / ROBOT_MASS) / DRIVE_RADIUS
+
+    // A_ACC = (MAX_LINEAR_FORCE / ROBOT_MASS) / DRIVE_RADIUS
 
     public static final class AUTONOMOUS {
       public static final double MAX_LINEAR_VELOCITY = PHYSICS.MAX_LINEAR_VELOCITY;
@@ -115,7 +123,7 @@ public final class Constants {
       public static final double MAX_ANGULAR_ACCELERATION = PHYSICS.MAX_ANGULAR_ACCELERATION;
 
       public static final class TRANSLATION_GAINS {
-        public static final double kP = 10.0;
+        public static final double kP = 2.0;
         public static final double kI = 0.0;
         public static final double kD = 0.0;
       }
@@ -185,7 +193,7 @@ public final class Constants {
     public static final double STALL_TORQUE = 3.28;
     public static final double STALL_CURRENT = 181;
     public static final double SAFE_TEMPERATURE = 60;
-    public static final int SAFE_STALL_CURRENT = 60;
+    public static final int SAFE_STALL_CURRENT = 40;
 
     public static double maxTorqueCurrentLimited(int currentLimit) {
       return STALL_TORQUE / STALL_CURRENT * currentLimit;
