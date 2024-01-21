@@ -63,7 +63,7 @@ public class RobotContainer {
     swerveDrive.setDefaultCommand(new XBoxSwerve(swerveDrive, () -> XboxController));
     p_lib.setDefaultCommand(new UpdateField(swerveDrive,p_lib));
     field = swerveDrive.getField();
-    //Positive y moves the camera left, Positive x moves the camera forward
+    //Positive y moves the camera left, Positive x moves the camera forward - TEMPORARY
     swerveDrive.resetPose(new Pose2d(new Translation2d(2, 2), new Rotation2d()));
 
     // Configure the trigger bindings
