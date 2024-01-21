@@ -3,6 +3,7 @@ package frc.robot.util.Logging;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Timer;
 import java.util.TimerTask;
 import java.util.function.Supplier;
 
@@ -22,18 +23,21 @@ import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.RobotController;
 import frc.robot.Constants.LOGGING;
 
-public final class Logger extends TimerTask {
+public final class Logger {
   private static NetworkTable table = NetworkTableInstance.getDefault().getTable("Logs");
   private static Map<String, Supplier<Object>> entries = new HashMap<String, Supplier<Object>>();
 
-  @Override
-  public void run() {
-    logAll();
-  }
-
   public static void startLog() {
-    java.util.Timer timer = new java.util.Timer();
-    timer.schedule(new Logger(), 0, (long) (LOGGING.LOGGING_PERIOD_MS));
+    TimerTask task = new TimerTask() {
+      @Override
+      public void run() {
+        logAll();
+      }
+    };
+
+    Timer timer = new Timer();
+    
+    timer.schedule(task, 0, (long) (LOGGING.LOGGING_PERIOD_MS));
   }
 
   private static void logAll() {

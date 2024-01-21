@@ -19,8 +19,6 @@ import frc.robot.subsystems.drive.SwerveModule;
 import frc.robot.util.MathUtils;
 import frc.robot.util.MathUtils.InputMath;
 
-/** An example command that uses an example subsystem. */
-
 public class XBoxSwerve extends Command {
   private XboxController controller;
   private SwerveDrive swerveDrive;
