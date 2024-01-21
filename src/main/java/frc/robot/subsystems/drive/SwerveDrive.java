@@ -62,8 +62,6 @@ public class SwerveDrive extends SubsystemBase {
     )
   );
 
-  double speedCap = 1.0;
-
   public SwerveDrive() {
     for (int i = 0; i < SWERVE_DRIVE.MODULE_COUNT; i++) {
       if (RobotBase.isSimulation()) {
@@ -140,11 +138,6 @@ public class SwerveDrive extends SubsystemBase {
   }
 
   public void drive(double xVelocity, double yVelocity, double angularVelocity) {
-    /*double norm = Math.sqrt(Math.pow(xVelocity, 2) + Math.pow(yVelocity, 2));
-    if (norm > speedCap) {
-      xVelocity *= (speedCap/norm);
-      yVelocity *= (speedCap/norm);
-    }*/
     drive(ChassisSpeeds.fromFieldRelativeSpeeds(xVelocity, yVelocity, angularVelocity, getHeading()));
   }
 
@@ -183,6 +176,7 @@ public class SwerveDrive extends SubsystemBase {
     modules[1].setTargetState(new SwerveModuleState(0.0, Rotation2d.fromDegrees(-45.0)));
     modules[2].setTargetState(new SwerveModuleState(0.0, Rotation2d.fromDegrees(-45.0)));
     modules[3].setTargetState(new SwerveModuleState(0.0, Rotation2d.fromDegrees(45.0)));
+    rotateController.calculate(getHeading().getRadians());
   }
 
   /**
@@ -222,14 +216,6 @@ public class SwerveDrive extends SubsystemBase {
   public ChassisSpeeds getDrivenChassisSpeeds() {
     return kinematics.toChassisSpeeds(getDrivenModuleStates());
   }
-
-  public void setSpeedCap(double cap) {
-    speedCap = cap;
-  }
-
-  public double getSpeedCap() {
-    return speedCap;
-  } 
 
   /**
    * @return Measured module positions
@@ -299,6 +285,8 @@ public class SwerveDrive extends SubsystemBase {
     heading = newHeading;
     gyro.reset();
     gyro.setAngleAdjustment(newHeading.getDegrees());
+    rotateController.reset(newHeading.getRadians(), 0.0);
+    rotateController.calculate(newHeading.getRadians(), newHeading.getRadians());
   }
 
   /**

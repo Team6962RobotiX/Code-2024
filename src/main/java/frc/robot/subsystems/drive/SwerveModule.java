@@ -96,8 +96,9 @@ public class SwerveModule extends SubsystemBase {
       () -> steerPID.setOutputRange(-SWERVE_DRIVE.MOTOR_POWER_HARD_CAP, SWERVE_DRIVE.MOTOR_POWER_HARD_CAP, 0),
       () -> steerMotor.burnFlash(),
 
-      () -> absoluteSteerEncoder.getConfigurator().apply(new MagnetSensorConfigs().withMagnetOffset(SWERVE_DRIVE.STEER_ENCODER_OFFSETS[id]).withAbsoluteSensorRange(AbsoluteSensorRangeValue.Signed_PlusMinusHalf))
+      () -> absoluteSteerEncoder.getConfigurator().apply(new MagnetSensorConfigs().withAbsoluteSensorRange(AbsoluteSensorRangeValue.Signed_PlusMinusHalf).withMagnetOffset(Units.degreesToRotations(SWERVE_DRIVE.STEER_ENCODER_OFFSETS[id])))
     ));
+
     // driveMotor.setClosedLoopRampRate(Math.max((NEO.FREE_SPEED / 60.0) / ((9.80 * SWERVE_DRIVE.COEFFICIENT_OF_FRICTION) / SWERVE_DRIVE.DRIVE_MOTOR_METERS_PER_REVOLUTION), DRIVE_MOTOR_CONFIG.RAMP_RATE))
 
     seedSteerEncoder();
@@ -117,10 +118,10 @@ public class SwerveModule extends SubsystemBase {
   }
 
   public void periodic() {
-    if (Math.abs(getMeasuredState().speedMetersPerSecond) < SWERVE_DRIVE.VELOCITY_DEADBAND && SWERVE_MATH.angleDistance(getMeasuredState().angle.getRadians(), getTargetState().angle.getRadians()) < Units.degreesToRadians(1.0)) {
+    if (Math.abs(getMeasuredState().speedMetersPerSecond) < SWERVE_DRIVE.VELOCITY_DEADBAND) {
       seedSteerEncoder();
     }
-
+    
     drive(calculateDrivenState());
   }
   
@@ -163,14 +164,18 @@ public class SwerveModule extends SubsystemBase {
     drivenState = new SwerveModuleState(newVelocity.getNorm(), newVelocity.getAngle());
     drivenState = SwerveModuleState.optimize(drivenState, getMeasuredState().angle);
     wheelAcceleration = (drivenState.speedMetersPerSecond - oldState.speedMetersPerSecond) / 0.02;
+
+    if (acceleration.getNorm() <= SWERVE_DRIVE.VELOCITY_DEADBAND) {
+      drivenState = targetState;
+    }
     
     return drivenState;
   }
     
   public void stop() {
     targetState = new SwerveModuleState(0.0, getMeasuredState().angle);
-    steerMotor.stopMotor();
-    driveMotor.stopMotor();
+    // steerMotor.stopMotor();
+    // driveMotor.stopMotor();
   }
   
   /**
@@ -183,7 +188,7 @@ public class SwerveModule extends SubsystemBase {
   }
   
   private Rotation2d getTrueSteerDirection() {
-    return Rotation2d.fromDegrees(absoluteSteerEncoder.getAbsolutePosition().getValueAsDouble());
+    return Rotation2d.fromRotations(absoluteSteerEncoder.getAbsolutePosition().getValue());
   }
 
   public SwerveModuleState getTargetState() {

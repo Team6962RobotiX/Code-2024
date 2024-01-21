@@ -90,7 +90,7 @@ public final class Constants {
     
     // GEAR AND WHEEL RATIOS
     public static final double   DRIVE_ENCODER_CONVERSION_FACTOR  = (WHEEL_RADIUS * 2.0 * Math.PI) / DRIVE_MOTOR_GEARING;
-    public static final double   STEER_ENCODER_CONVERSION_FACTOR = (Math.PI * 2.0) / DRIVE_MOTOR_GEARING;
+    public static final double   STEER_ENCODER_CONVERSION_FACTOR = (Math.PI * 2.0) / STEER_MOTOR_GEARING;
     
     public static class PHYSICS {
       public static final double ROTATIONAL_INERTIA = (1.0 / 12.0) * ROBOT_MASS * (Math.pow(CHASSIS_WIDTH, 2.0) + Math.pow(CHASSIS_LENGTH, 2.0));

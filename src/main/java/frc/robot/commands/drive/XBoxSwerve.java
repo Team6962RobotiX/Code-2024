@@ -59,8 +59,8 @@ public class XBoxSwerve extends Command {
 
     double leftTrigger = controller.getLeftTriggerAxis();
     double rightTrigger = controller.getRightTriggerAxis();
-    Translation2d leftStick = new Translation2d(-controller.getLeftY(), -controller.getLeftX());
-    Translation2d rightStick = new Translation2d(-controller.getRightY(), -controller.getRightX());
+    Translation2d leftStick = new Translation2d(controller.getLeftX(), -controller.getLeftY());
+    Translation2d rightStick = new Translation2d(controller.getRightX(), -controller.getRightY());
     
     if (RobotBase.isSimulation()) {
       leftTrigger = (controller.getRawAxis(5) + 1.0) / 2.0;
@@ -73,7 +73,7 @@ public class XBoxSwerve extends Command {
     leftStick = INPUT_MATH.circular(leftStick, 0.0, Constants.map(Math.max(leftTrigger, rightTrigger), 0, 1, Math.PI / 8.0, Math.PI / 4.0));
     rightStick = INPUT_MATH.circular(rightStick, 0.0, Math.PI / 8.0);
     
-    angularVelocity += rightStick.getY() * MAX_ANGULAR_VELOCITY;
+    angularVelocity += -rightStick.getX() * MAX_ANGULAR_VELOCITY;
     
     // Rotate to nearest 90 degrees when any bumpers are pressed
     if (controller.getLeftBumper() || controller.getRightBumper()) {
@@ -99,7 +99,7 @@ public class XBoxSwerve extends Command {
     moving = moving || SwerveDrive.toLinear(Math.abs(angularVelocity)) > SWERVE_DRIVE.VELOCITY_DEADBAND;
     moving = moving || velocity.getNorm() > SWERVE_DRIVE.VELOCITY_DEADBAND;
     for (SwerveModuleState moduleState : swerveDrive.getTargetModuleStates()) if (Math.abs(moduleState.speedMetersPerSecond) > SWERVE_DRIVE.VELOCITY_DEADBAND) moving = true;
-    for (SwerveModuleState moduleState : swerveDrive.getMeasuredModuleStates()) if (Math.abs(moduleState.speedMetersPerSecond) > SWERVE_DRIVE.VELOCITY_DEADBAND) moving = true;
+    for (SwerveModuleState moduleState : swerveDrive.getDrivenModuleStates()) if (Math.abs(moduleState.speedMetersPerSecond) > SWERVE_DRIVE.VELOCITY_DEADBAND) moving = true;
     if (!moving) {
       swerveDrive.parkModules();
       return;
