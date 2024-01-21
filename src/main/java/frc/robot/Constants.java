@@ -140,7 +140,7 @@ public final class Constants {
       // CALCULATED
       public static final double kV                 = 12.0 / (PHYSICS.MAX_LINEAR_VELOCITY); // volts per m/s
       public static final int    CURRENT_LIMIT      = (int) (PHYSICS.SLIPLESS_CURRENT_LIMIT); // Amps
-      public static final double RAMP_RATE          = (12.0 / kV) / PHYSICS.SLIPLESS_ACCELERATION; // Seconds it takes to reach full power
+      public static final double RAMP_RATE          = 0.1; // Seconds it takes to reach full power
       
       // PREFERENCE
       public static final int[]  STATUS_FRAMES      = { 10, 10, 10, 500, 500, 500, 500 }; // ms
