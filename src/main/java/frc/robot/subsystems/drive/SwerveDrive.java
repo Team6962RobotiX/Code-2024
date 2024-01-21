@@ -180,16 +180,23 @@ public class SwerveDrive extends SubsystemBase {
     Translation2d targetLinearVelocity = new Translation2d(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond);
     Translation2d currentLinearVelocity = new Translation2d(drivenChassisSpeeds.vxMetersPerSecond, drivenChassisSpeeds.vyMetersPerSecond);
     Translation2d linearAcceleration = (targetLinearVelocity).minus(currentLinearVelocity).div(0.02);
-    if (linearAcceleration.getNorm() > SWERVE_DRIVE.PHYSICS.MAX_LINEAR_ACCELERATION) {
-      linearAcceleration = new Translation2d(SWERVE_DRIVE.PHYSICS.MAX_LINEAR_ACCELERATION, linearAcceleration.getAngle());
-    }
-    Translation2d attainableLinearVelocity = currentLinearVelocity.plus(linearAcceleration.times(0.02));
-    
-    // Limit rotational acceleration
+    double linearForce = linearAcceleration.getNorm() * SWERVE_DRIVE.ROBOT_MASS;
+
+     // Limit rotational acceleration
     double targetAngularVelocity = speeds.omegaRadiansPerSecond;
     double currentAngularVelocity = drivenChassisSpeeds.omegaRadiansPerSecond;
     double angularAcceleration = (targetAngularVelocity - currentAngularVelocity) / 0.02;
-    angularAcceleration = Math.max(Math.min(angularAcceleration, SWERVE_DRIVE.PHYSICS.MAX_ANGULAR_ACCELERATION), -SWERVE_DRIVE.PHYSICS.MAX_ANGULAR_ACCELERATION);
+    double angularForce = Math.abs((SWERVE_DRIVE.PHYSICS.ROTATIONAL_INERTIA * angularAcceleration) / SWERVE_DRIVE.PHYSICS.DRIVE_RADIUS);
+
+    double frictionForce = 9.80 * SWERVE_DRIVE.ROBOT_MASS * SWERVE_DRIVE.FRICTION_COEFFICIENT;
+
+    if (linearForce + angularForce > frictionForce) {
+      double factor = (linearForce + angularForce) / frictionForce;
+      linearAcceleration = linearAcceleration.div(factor);
+      angularAcceleration /= factor;
+    }
+
+    Translation2d attainableLinearVelocity = currentLinearVelocity.plus(linearAcceleration.times(0.02));
     double attainableAngularVelocity = currentAngularVelocity + (angularAcceleration * 0.02);
     
     drivenChassisSpeeds = new ChassisSpeeds(attainableLinearVelocity.getX(), attainableLinearVelocity.getY(), attainableAngularVelocity);
