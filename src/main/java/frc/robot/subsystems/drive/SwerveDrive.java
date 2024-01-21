@@ -237,24 +237,10 @@ public class SwerveDrive extends SubsystemBase {
     }
   }
 
-  /**
-   * Sets the robot's target heading to a given angle
-   * @param heading The target heading, expressed as a Rotation2d object
-   * @deprecated Use {@link #setTargetHeading(double) setTargetHeading(double headingRadians)} instead
-  */
-  @Deprecated
   public void setTargetHeading(Rotation2d heading) {
-    setTargetHeading(heading.getRadians());
+    rotateController.setGoal(heading.getRadians());
   }
-
-  /**
-   * Sets the robot's target heading to a given angle
-   * @param headingRadians The target heading in radians
-  */
-  public void setTargetHeading(double headingRadians) {
-    rotateController.setGoal(headingRadians);
-  }
-
+  
   /**
    * This creates an "X" pattern with the wheels which makes the robot very hard to move
    */
