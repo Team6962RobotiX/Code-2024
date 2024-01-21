@@ -76,9 +76,6 @@ public class SwerveModuleSim extends SwerveModule {
   public void drive(SwerveModuleState state) {
     double speedMetersPerSecond = state.speedMetersPerSecond;
     double radians = state.angle.getRadians();
-
-    // System.out.println("target: " + getTargetState().angle);
-    // System.out.println("measured: " + getMeasuredState().angle);
     
     double speedMultiple = 1.0;
     if (SWERVE_DRIVE.DO_ANGLE_ERROR_SPEED_REDUCTION) {
@@ -87,12 +84,9 @@ public class SwerveModuleSim extends SwerveModule {
     speedMetersPerSecond *= speedMultiple;
 
     for (int i = 0; i < 20; i++) {
-      double availableVoltage = RobotController.getBatteryVoltage();
-
       double driveVolts = driveFF.calculate(speedMetersPerSecond, getWheelAcceleration()) + 12.0 * drivePID.calculate(getMeasuredState().speedMetersPerSecond, speedMetersPerSecond);
-      
       double steerVolts = 12.0 * steerPID.calculate(getMeasuredState().angle.getRadians(), radians);
-
+      
       driveVoltRamp += (MathUtil.clamp(driveVolts - driveVoltRamp, -12.0 / DRIVE_MOTOR_PROFILE.RAMP_RATE / 1000.0, 12.0 / DRIVE_MOTOR_PROFILE.RAMP_RATE / 1000.0));
       driveVolts = driveVoltRamp;
 
