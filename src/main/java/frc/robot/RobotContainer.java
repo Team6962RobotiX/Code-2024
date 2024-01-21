@@ -8,6 +8,9 @@ import com.choreo.lib.Choreo;
 import com.choreo.lib.ChoreoTrajectory;
 
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj.DataLogManager;
@@ -22,8 +25,16 @@ import frc.robot.Constants.CAN;
 import frc.robot.Constants.DEVICES;
 import frc.robot.commands.drive.XBoxSwerve;
 import frc.robot.subsystems.drive.SwerveDrive;
+import frc.robot.Constants.NEO;
+import frc.robot.Constants.SWERVE_DRIVE;
+import frc.robot.Constants.SWERVE_DRIVE.DRIVE_MOTOR_PROFILE;
+import frc.robot.commands.UpdateField;
+import frc.robot.commands.drive.XBoxSwerve;
+import frc.robot.subsystems.drive.SwerveDrive;
+import frc.robot.subsystems.vision.PhotonLib;
 import frc.robot.util.Logging.Logger;
 import frc.robot.subsystems.vision.Limelight;
+
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -39,6 +50,8 @@ public class RobotContainer {
   //private final Limelight limelight = new Limelight("testone");
   private final ChoreoTrajectory traj;
   private Field2d field;
+  private final PhotonLib p_lib = new PhotonLib();
+  // private final Limelight limelight = new Limelight(LimelightConfig.NAME);
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
@@ -48,7 +61,11 @@ public class RobotContainer {
     Logger.autoLog("PDH", new PowerDistribution(CAN.PDH, ModuleType.kRev));
     Logger.startLog();
     swerveDrive.setDefaultCommand(new XBoxSwerve(swerveDrive, () -> XboxController));
+    p_lib.setDefaultCommand(new UpdateField(swerveDrive,p_lib));
     field = swerveDrive.getField();
+    //Positive y moves the camera left, Positive x moves the camera forward
+    swerveDrive.resetPose(new Pose2d(new Translation2d(2, 2), new Rotation2d()));
+
     // Configure the trigger bindings
     configureBindings();
 
@@ -85,6 +102,7 @@ public class RobotContainer {
     field.getObject("trajPoses").setPoses(
       traj.getPoses()
     );
+    
   }
 
   private void configureBindings() {

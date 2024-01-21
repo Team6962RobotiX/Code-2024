@@ -1,0 +1,33 @@
+{
+  "NTProvider": {
+    "types": {
+      "/FMSInfo": "FMSInfo",
+      "/SmartDashboard/Field": "Field2d",
+      "/SmartDashboard/VisionSystemSim-main/Sim Field": "Field2d"
+    }
+  },
+  "NetworkTables": {
+    "transitory": {
+      "Logs": {
+        "SwerveDrive": {
+          "double[]##v_/Logs/SwerveDrive/pose_degrees": {
+            "open": true
+          },
+          "double[]##v_/Logs/SwerveDrive/pose_radians": {
+            "open": true
+          },
+          "open": true
+        },
+        "open": true
+      },
+      "SmartDashboard": {
+        "Field": {
+          "open": true
+        }
+      }
+    }
+  },
+  "NetworkTables Info": {
+    "visible": true
+  }
+}
