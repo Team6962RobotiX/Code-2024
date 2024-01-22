@@ -42,8 +42,7 @@ public class SwerveModule extends SubsystemBase {
   private CANcoder absoluteSteerEncoder;
   private SparkPIDController drivePID, steerPID;
   private SwerveModuleState targetState = new SwerveModuleState();
-  private SwerveModuleState drivenState = new SwerveModuleState();
-  private double wheelAcceleration = 0.0;
+  private SwerveModuleState lastDrivenState = new SwerveModuleState();
   public final int id;
   
   private SimpleMotorFeedforward driveFF = new SimpleMotorFeedforward(
@@ -131,9 +130,6 @@ public class SwerveModule extends SubsystemBase {
     Logger.autoLog(logPath + "measuredState",           () -> getMeasuredState());
     Logger.autoLog(logPath + "measuredAngle",           () -> getMeasuredState().angle.getDegrees());
     Logger.autoLog(logPath + "measuredVelocity",        () -> getMeasuredState().speedMetersPerSecond);
-    Logger.autoLog(logPath + "drivenState",             () -> getDrivenState());
-    Logger.autoLog(logPath + "drivenAngle",             () -> getDrivenState().angle.getDegrees());
-    Logger.autoLog(logPath + "drivenVelocity",          () -> getDrivenState().speedMetersPerSecond);
     Logger.autoLog(logPath + "targetState",             () -> getTargetState());
     Logger.autoLog(logPath + "targetAngle",             () -> getTargetState().angle.getDegrees());
     Logger.autoLog(logPath + "targetVelocity",          () -> getTargetState().speedMetersPerSecond);
@@ -144,7 +140,8 @@ public class SwerveModule extends SubsystemBase {
       seedSteerEncoder();
     }
     
-    drive(calculateDrivenState());
+    drive(targetState);
+    setTargetState(new SwerveModuleState(0.0, getMeasuredState().angle));
   }
   
   public void drive(SwerveModuleState state) {
@@ -155,43 +152,27 @@ public class SwerveModule extends SubsystemBase {
       speedMetersPerSecond *= Math.cos(SwerveMath.angleDistance(radians, getMeasuredState().angle.getRadians()));
     }
     
+    double wheelAcceleration = (speedMetersPerSecond - lastDrivenState.speedMetersPerSecond) / 0.02;
+
     drivePID.setReference(
       speedMetersPerSecond,
       ControlType.kVelocity,
       0,
-      driveFF.calculate(speedMetersPerSecond, getWheelAcceleration()),
+      driveFF.calculate(speedMetersPerSecond, wheelAcceleration),
       ArbFFUnits.kVoltage
     );
-      
+    
     steerPID.setReference(
       radians,
       ControlType.kPosition,
       0
     );
+
+    lastDrivenState = new SwerveModuleState(speedMetersPerSecond, Rotation2d.fromRadians(radians));
   }
     
   public void setTargetState(SwerveModuleState state) {
     targetState = SwerveModuleState.optimize(state, getMeasuredState().angle);
-  }
-
-  public SwerveModuleState calculateDrivenState() {
-    SwerveModuleState oldState = new SwerveModuleState(getDrivenState().speedMetersPerSecond, getDrivenState().angle);
-    Translation2d currentVelocity = new Translation2d(oldState.speedMetersPerSecond, oldState.angle);
-    Translation2d targetVelocity = new Translation2d(targetState.speedMetersPerSecond, targetState.angle);
-    Translation2d acceleration = (targetVelocity).minus(currentVelocity).div(0.02);
-    if (acceleration.getNorm() > SWERVE_DRIVE.PHYSICS.MAX_LINEAR_ACCELERATION) {
-      acceleration = new Translation2d(SWERVE_DRIVE.PHYSICS.MAX_LINEAR_ACCELERATION, acceleration.getAngle());
-    }
-    Translation2d newVelocity = currentVelocity.plus(acceleration.times(0.02));
-    drivenState = new SwerveModuleState(newVelocity.getNorm(), newVelocity.getAngle());
-    drivenState = SwerveModuleState.optimize(drivenState, getMeasuredState().angle);
-    wheelAcceleration = (drivenState.speedMetersPerSecond - oldState.speedMetersPerSecond) / 0.02;
-
-    if (acceleration.getNorm() <= SWERVE_DRIVE.VELOCITY_DEADBAND) {
-      drivenState = targetState;
-    }
-    
-    return drivenState;
   }
     
   public void stop() {
@@ -221,10 +202,6 @@ public class SwerveModule extends SubsystemBase {
     return new SwerveModuleState(driveEncoder.getVelocity(), Rotation2d.fromRadians(MathUtil.angleModulus(steerEncoder.getPosition())));
   }
 
-  public SwerveModuleState getDrivenState() {
-    return drivenState;
-  }
-
   public SwerveModulePosition getModulePosition() {
     return new SwerveModulePosition(driveEncoder.getPosition(), getMeasuredState().angle);
   }
@@ -233,20 +210,8 @@ public class SwerveModule extends SubsystemBase {
     return (power * 12.0) / DRIVE_MOTOR_PROFILE.kV;
   }
 
-  // public static double calcCurrent(double acceleration) {
-  //   return (acceleration * SWERVE_DRIVE.ROBOT_MASS * SWERVE_DRIVE.FRICTION_COEFFICIENT * SWERVE_DRIVE.WHEEL_RADIUS * 2.0 * SWERVE_DRIVE.DRIVE_MOTOR_GEAR_RATIO * (0.5 * NEO.STALL_CURRENT - 0.5 * NEO.FREE_CURRENT)) / (NEO.STALL_TORQUE * SWERVE_DRIVE.MODULE_COUNT * SWERVE_DRIVE.GEARBOX_EFFICIENCY) + NEO.FREE_CURRENT;
-  // }
-
-  // public static double calcAcceleration(double current) {
-  //   return (2.0 * NEO.STALL_TORQUE * SWERVE_DRIVE.MODULE_COUNT * SWERVE_DRIVE.GEARBOX_EFFICIENCY * current - NEO.STALL_TORQUE * SWERVE_DRIVE.MODULE_COUNT * NEO.FREE_CURRENT * SWERVE_DRIVE.GEARBOX_EFFICIENCY) / (SWERVE_DRIVE.ROBOT_MASS * SWERVE_DRIVE.FRICTION_COEFFICIENT * SWERVE_DRIVE.WHEEL_DIAMETER * SWERVE_DRIVE.DRIVE_MOTOR_GEAR_RATIO * NEO.STALL_CURRENT - SWERVE_DRIVE.ROBOT_MASS * SWERVE_DRIVE.FRICTION_COEFFICIENT * SWERVE_DRIVE.WHEEL_DIAMETER * SWERVE_DRIVE.DRIVE_MOTOR_GEAR_RATIO * NEO.FREE_CURRENT);
-  // }
-
   public double getTotalCurrent() {
     return driveMotor.getOutputCurrent() + steerMotor.getOutputCurrent();
-  }
-
-  public double getWheelAcceleration() {
-    return wheelAcceleration;
   }
 
   public void setVolts(double volts) {

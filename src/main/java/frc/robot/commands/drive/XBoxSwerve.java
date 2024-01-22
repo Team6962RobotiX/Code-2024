@@ -75,7 +75,7 @@ public class XBoxSwerve extends Command {
     
     // Rotate to nearest 90 degrees when any bumpers are pressed
     if (controller.getLeftBumper() || controller.getRightBumper()) {
-      swerveDrive.setTargetHeading(Math.round(targetRobotAngle / (Math.PI / 2)) * (Math.PI / 2));
+      swerveDrive.setTargetHeading(Rotation2d.fromRadians(Math.round(targetRobotAngle / (Math.PI / 2.0)) * (Math.PI / 2.0)));
     }
 
     velocity = velocity.plus(leftStick.times(MathUtils.map(Math.max(leftTrigger, rightTrigger), 0, 1, NOMINAL_DRIVE_VELOCITY, MAX_DRIVE_VELOCITY)));
@@ -97,7 +97,7 @@ public class XBoxSwerve extends Command {
     moving = moving || SwerveDrive.toLinear(Math.abs(angularVelocity)) > SWERVE_DRIVE.VELOCITY_DEADBAND;
     moving = moving || velocity.getNorm() > SWERVE_DRIVE.VELOCITY_DEADBAND;
     for (SwerveModuleState moduleState : swerveDrive.getTargetModuleStates()) if (Math.abs(moduleState.speedMetersPerSecond) > SWERVE_DRIVE.VELOCITY_DEADBAND) moving = true;
-    for (SwerveModuleState moduleState : swerveDrive.getDrivenModuleStates()) if (Math.abs(moduleState.speedMetersPerSecond) > SWERVE_DRIVE.VELOCITY_DEADBAND) moving = true;
+    for (SwerveModuleState moduleState : swerveDrive.getMeasuredModuleStates()) if (Math.abs(moduleState.speedMetersPerSecond) > SWERVE_DRIVE.VELOCITY_DEADBAND) moving = true;
     if (!moving) {
       swerveDrive.parkModules();
       return;
