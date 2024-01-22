@@ -260,17 +260,17 @@ public final class Constants {
   public static final class PHOTON_LIB {
     public static final int CAM_RESOLUTION_WIDTH = 320; //Pixels
     public static final int CAM_RESOLUTION_HEIGHT = 240; //Pixels
-    public static final double MIN_TARGET_AREA = 10; //Square pixels
+    public static final double MIN_TARGET_AREA = 10; //Square pixels (CHANGE)
 
     
-    public static final double CAM_PITCH = 0.0; //Degrees
-    public static final double CAM_HEIGHT_OFF_GROUND = 1.0; //Meters
+    public static final double CAM_PITCH = 0.0; //Degrees (CHANGE)
+    public static final double CAM_HEIGHT_OFF_GROUND = 1.0; //Meters (CHANGE)
 
     public static final double FOV_HEIGHT = 59.6; //Degrees
     public static final double FOV_WIDTH = 49.7; //Degrees
     public static final double CAM_DIAG_FOV = Math.sqrt(Math.pow(FOV_HEIGHT,2) + Math.pow(FOV_WIDTH,2));
 
-    public static final double MAX_LED_RANGE = 20; //Meters
+    public static final double MAX_LED_RANGE = 20; //Meters (CHANGE)
 
   }
 }
