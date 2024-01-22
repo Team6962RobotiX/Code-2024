@@ -63,11 +63,11 @@ public class XBoxSwerve extends Command {
       leftTrigger = (controller.getRawAxis(5) + 1.0) / 2.0;
       rightTrigger = (controller.getRawAxis(4) + 1.0) / 2.0;
       leftStick = new Translation2d(-controller.getRawAxis(1), -controller.getRawAxis(0));
-      rightStick = new Translation2d(-controller.getRawAxis(3), -controller.getRawAxis(2));
+      rightStick = new Translation2d(controller.getRawAxis(2), controller.getRawAxis(3));
     }
 
     // Deadbands
-    leftStick = InputMath.circular(leftStick, 0.0, MathUtils.map(Math.max(leftTrigger, rightTrigger), 0, 1, Math.PI / 16.0, Math.PI / 8.0));
+    // leftStick = InputMath.circular(leftStick, 0.0, MathUtils.map(Math.max(leftTrigger, rightTrigger), 0, 1, Math.PI / 16.0, Math.PI / 8.0));
     
     angularVelocity += -rightStick.getX() * MAX_ANGULAR_VELOCITY;
     
