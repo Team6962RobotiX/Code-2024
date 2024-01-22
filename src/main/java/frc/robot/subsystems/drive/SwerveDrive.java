@@ -59,7 +59,7 @@ public class SwerveDrive extends SubsystemBase {
   private SwerveDriveKinematics kinematics = getKinematics();
   private SwerveDrivePoseEstimator poseEstimator;
   private Field2d field = new Field2d();
-  private Rotation2d heading = Rotation2d.fromDegrees(0);
+  private Rotation2d heading = Rotation2d.fromDegrees(0.0);
 
   private ChassisSpeeds drivenChassisSpeeds = new ChassisSpeeds();
 
@@ -356,6 +356,7 @@ public class SwerveDrive extends SubsystemBase {
    * @return Resets gyro heading
    */
   public void setHeading(Rotation2d newHeading) {
+    poseEstimator.resetPosition(newHeading, getModulePositions(), getPose());
     heading = newHeading;
     gyro.reset();
     gyro.setAngleAdjustment(newHeading.getDegrees());

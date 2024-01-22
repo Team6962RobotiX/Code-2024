@@ -8,6 +8,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.RobotBase;
 import frc.robot.subsystems.drive.SwerveDrive;
 
 /**
@@ -70,7 +71,6 @@ public final class Constants {
 
     // DRIVING OPTIONS
     public static final double   TELEOPERATED_DRIVE_POWER        = 0.4; // Percent driving power (0.2  = 20%)
-    public static final double   TELEOPERATED_SLOW_DRIVE_POWER   = 0.2; // Percent driving power when using the DPad
     public static final double   TELEOPERATED_BOOST_DRIVE_POWER  = 1.0; // Percent driving power when using the DPad
     public static final double   TELEOPERATED_ROTATE_POWER       = 0.4; // Percent rotating power (0.4 = 40%)
     public static final double   VELOCITY_DEADBAND               = 0.15; // Velocity we stop moving at

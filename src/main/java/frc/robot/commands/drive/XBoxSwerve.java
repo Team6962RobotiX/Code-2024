@@ -25,7 +25,6 @@ public class XBoxSwerve extends Command {
   
   public final double MAX_DRIVE_VELOCITY = SwerveModule.calcWheelVelocity(SWERVE_DRIVE.TELEOPERATED_BOOST_DRIVE_POWER);
   public final double NOMINAL_DRIVE_VELOCITY = SwerveModule.calcWheelVelocity(SWERVE_DRIVE.TELEOPERATED_DRIVE_POWER);
-  public final double SLOW_DRIVE_VELOCITY = SwerveModule.calcWheelVelocity(SWERVE_DRIVE.TELEOPERATED_SLOW_DRIVE_POWER);
   public final double MAX_ANGULAR_VELOCITY = SwerveDrive.toAngular(SwerveModule.calcWheelVelocity(SWERVE_DRIVE.TELEOPERATED_ROTATE_POWER));
 
   private double targetRobotAngle = 0.0;
@@ -68,8 +67,7 @@ public class XBoxSwerve extends Command {
     }
 
     // Deadbands
-    leftStick = InputMath.circular(leftStick, 0.0, MathUtils.map(Math.max(leftTrigger, rightTrigger), 0, 1, Math.PI / 8.0, Math.PI / 4.0));
-    rightStick = InputMath.circular(rightStick, 0.0, Math.PI / 8.0);
+    leftStick = InputMath.circular(leftStick, 0.0, MathUtils.map(Math.max(leftTrigger, rightTrigger), 0, 1, Math.PI / 16.0, Math.PI / 8.0));
     
     angularVelocity += -rightStick.getX() * MAX_ANGULAR_VELOCITY;
     
