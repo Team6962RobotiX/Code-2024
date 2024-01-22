@@ -12,6 +12,7 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.system.plant.LinearSystemId;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.Unit;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.simulation.FlywheelSim;
@@ -24,14 +25,14 @@ import frc.robot.util.Logging.Logger;
 
 public class SwerveModuleSim extends SwerveModule {
   private FlywheelSim driveMotor = new FlywheelSim(
-    LinearSystemId.identifyVelocitySystem(DRIVE_MOTOR_PROFILE.kV * (SWERVE_DRIVE.WHEEL_RADIUS), DRIVE_MOTOR_PROFILE.kA * (SWERVE_DRIVE.WHEEL_RADIUS)),
-    DCMotor.getNEO(1),
+    LinearSystemId.identifyVelocitySystem(DRIVE_MOTOR_PROFILE.kV * SWERVE_DRIVE.WHEEL_RADIUS, DRIVE_MOTOR_PROFILE.kA * SWERVE_DRIVE.WHEEL_RADIUS),
+    new DCMotor(12.0, 3.28, 181, 1.3, Units.rotationsPerMinuteToRadiansPerSecond(5880), 1),
     SWERVE_DRIVE.DRIVE_MOTOR_GEARING
   );
-  
+
   private FlywheelSim steerMotor = new FlywheelSim(
     LinearSystemId.identifyVelocitySystem(STEER_MOTOR_PROFILE.kV, STEER_MOTOR_PROFILE.kA),
-    DCMotor.getNEO(1),
+    new DCMotor(12.0, 3.28, 181, 1.3, Units.rotationsPerMinuteToRadiansPerSecond(5880), 1),
     SWERVE_DRIVE.STEER_MOTOR_GEARING
   );
 

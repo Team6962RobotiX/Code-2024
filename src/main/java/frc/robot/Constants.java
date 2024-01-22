@@ -64,6 +64,9 @@ public final class Constants {
     public static final double   STEER_MOTOR_GEARING             = 150.0 / 7.0;
     public static final double   GEARBOX_EFFICIENCY              = 0.8;
     public static final double[] STEER_ENCODER_OFFSETS           = { -124.805, -303.047, -101.602, -65.215 };
+    public static final double   BATTERY_RESISTANCE              = 0.015; // ohms
+    public static final double   BATTERY_VOLTAGE                 = 12.6; // volts
+    public static final double   BROWNOUT_VOLTAGE                = 6.8; // volts
 
     // DRIVING OPTIONS
     public static final double   TELEOPERATED_DRIVE_POWER        = 0.4; // Percent driving power (0.2  = 20%)
@@ -90,6 +93,7 @@ public final class Constants {
     public static final double   WHEELBASE                       = CHASSIS_LENGTH - WHEEL_TO_EDGE_DISTANCE * 2.0; // front-to-back distance between the drivetrain wheels
     public static final double   BUMPER_WIDTH                    = SWERVE_DRIVE.CHASSIS_WIDTH + SWERVE_DRIVE.BUMPER_THICKNESS * 2.0;
     public static final double   BUMPER_LENGTH                   = SWERVE_DRIVE.CHASSIS_LENGTH + SWERVE_DRIVE.BUMPER_THICKNESS * 2.0;
+    public static final double   MAX_CURRENT_DRAW                = (BATTERY_VOLTAGE - BROWNOUT_VOLTAGE) / BATTERY_RESISTANCE;
 
     
     // GEAR AND WHEEL RATIOS
@@ -138,8 +142,8 @@ public final class Constants {
       public static final double kA                 = 0.27734; // volts per m/s^2, free spinning
       
       // CALCULATED
-      public static final double kV                 = 12.0 / (PHYSICS.MAX_LINEAR_VELOCITY); // volts per m/s
-      public static final int    CURRENT_LIMIT      = (int) (PHYSICS.SLIPLESS_CURRENT_LIMIT); // Amps
+      public static final double kV                 = 12.0 / PHYSICS.MAX_LINEAR_VELOCITY; // volts per m/s
+      public static final int    CURRENT_LIMIT      = PHYSICS.SLIPLESS_CURRENT_LIMIT; // Amps
       public static final double RAMP_RATE          = 0.1; // Seconds it takes to reach full power
       
       // PREFERENCE
@@ -153,7 +157,7 @@ public final class Constants {
       public static final double kD                 = 0.06514; // Derivative Gain
       public static final double kS                 = 0.06684; // volts
       public static final double kA                 = 0.01968; // volts per rad/s^2
-
+      
       // CALCULATED
       public static final double kV                 = 12.0 / (NEO.FREE_SPEED / 60.0 * (1.0 / STEER_MOTOR_GEARING) * Math.PI * 2.0);
       public static final int    CURRENT_LIMIT      = 30; // Amps

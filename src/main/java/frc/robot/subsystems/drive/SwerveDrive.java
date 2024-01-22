@@ -30,6 +30,7 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
+import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.SPI;
@@ -44,6 +45,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.SWERVE_DRIVE;
 import frc.robot.Constants.SWERVE_DRIVE.PHYSICS;
+import frc.robot.util.StatusChecks;
 import frc.robot.util.Logging.Logger;
 
 /**
@@ -116,6 +118,8 @@ public class SwerveDrive extends SubsystemBase {
     //   ),
     //   this // Reference to this subsystem to set requirements
     // );
+
+    StatusChecks.addCheck("Gyro Connection", gyro::isConnected);
   }
 
   @Override

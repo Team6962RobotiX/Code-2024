@@ -51,7 +51,7 @@ public class RobotContainer {
   // private final Limelight limelight = new Limelight("testone");
   private final PhotonLib photonLib = new PhotonLib(swerveDrive::getPose);
   // private final Limelight limelight = new Limelight(LimelightConfig.NAME);
-
+  
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
     DataLogManager.start();
@@ -62,10 +62,9 @@ public class RobotContainer {
     swerveDrive.setDefaultCommand(new XBoxSwerve(swerveDrive, () -> XboxController));
     //Positive y moves the camera left, Positive x moves the camera forward - TEMPORARY
     swerveDrive.resetPose(new Pose2d(new Translation2d(2, 2), new Rotation2d()));
-
     // Configure the trigger bindings
     configureBindings();
-
+    
     SwerveDrive.printChoreoConfig();
 
   }
@@ -75,7 +74,7 @@ public class RobotContainer {
   }
 
   public Command getAutonomousCommand() {
-    return swerveDrive.followChoreoTrajectory("TestPath2", true);
+    return swerveDrive.followChoreoTrajectory("DifficultPath", true);
   }
 
   public void disabledPeriodic() {

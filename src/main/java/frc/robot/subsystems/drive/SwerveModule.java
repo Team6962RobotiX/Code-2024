@@ -13,6 +13,7 @@ import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkPIDController;
 import com.revrobotics.CANSparkBase.ControlType;
 import com.revrobotics.CANSparkBase.IdleMode;
+import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.configs.MagnetSensorConfigs;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.signals.AbsoluteSensorRangeValue;
@@ -35,6 +36,7 @@ import frc.robot.Constants.SWERVE_DRIVE.STEER_MOTOR_PROFILE;
 import frc.robot.util.ConfigUtils;
 import frc.robot.util.Logging.Logger;
 import frc.robot.util.MathUtils.SwerveMath;
+import frc.robot.util.StatusChecks;
 
 public class SwerveModule extends SubsystemBase {
   private CANSparkMax driveMotor, steerMotor;
@@ -133,6 +135,10 @@ public class SwerveModule extends SubsystemBase {
     Logger.autoLog(logPath + "targetState",             () -> getTargetState());
     Logger.autoLog(logPath + "targetAngle",             () -> getTargetState().angle.getDegrees());
     Logger.autoLog(logPath + "targetVelocity",          () -> getTargetState().speedMetersPerSecond);
+
+    StatusChecks.addCheck(SWERVE_DRIVE.MODULE_NAMES[id] + " Swerve Module Drive Motor", () -> driveMotor.getFaults() == 0);
+    StatusChecks.addCheck(SWERVE_DRIVE.MODULE_NAMES[id] + " Swerve Module Steer Motor", () -> steerMotor.getFaults() == 0);
+    StatusChecks.addCheck(SWERVE_DRIVE.MODULE_NAMES[id] + " Swerve Module CanCoder", () -> absoluteSteerEncoder.getFaultField().getValue() == 0);
   }
 
   public void periodic() {
