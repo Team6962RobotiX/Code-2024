@@ -28,7 +28,7 @@ public final class Constants {
   }
 
   public static final class LOGGING {
-    public static final int LOGGING_PERIOD_MS = 100;
+    public static final int LOGGING_PERIOD_MS = 20;
   }
 
   // DEVICES
@@ -122,7 +122,7 @@ public final class Constants {
 
     public static final class AUTONOMOUS {
       public static final class TRANSLATION_GAINS {
-        public static final double kP = 1.0;
+        public static final double kP = 0.75;
         public static final double kI = 0.0;
         public static final double kD = 0.0;
       }

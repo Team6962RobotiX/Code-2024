@@ -103,6 +103,9 @@ public class SwerveDrive extends SubsystemBase {
     
     SmartDashboard.putData("Field", field);
     Logger.autoLog("SwerveDrive/pose", () -> this.getPose());
+    Logger.autoLog("SwerveDrive/targetStates", this::getTargetModuleStates);
+    Logger.autoLog("SwerveDrive/measuredStates", this::getMeasuredModuleStates);
+
 
     // AutoBuilder.configureHolonomic(
     //   this::getPose, // Robot pose supplier
