@@ -71,10 +71,10 @@ public final class Constants {
 
     // DRIVING OPTIONS
     public static final double   TELEOPERATED_FINE_TUNE_DRIVE_POWER = 0.2; // Percent driving power when using d-pad
-    public static final double   TELEOPERATED_DRIVE_POWER           = 0.4; // Percent driving power
-    public static final double   TELEOPERATED_BOOST_DRIVE_POWER     = 1.0; // Percent driving power when using the triggers
-    public static final double   TELEOPERATED_ROTATE_POWER          = 0.4; // Percent rotating power
-    public static final double   VELOCITY_DEADBAND                  = 0.15; // Velocity we stop moving at
+    public static final double   TELEOPERATED_DRIVE_POWER           = 0.5; // Percent driving power
+    public static final double   TELEOPERATED_BOOST_POWER           = 1.0; // Percent power when using the triggers
+    public static final double   TELEOPERATED_ROTATE_POWER          = 0.5; // Percent rotating power
+    public static final double   VELOCITY_DEADBAND                  = 0.1; // Velocity we stop moving at
     
     // ODOMETER
     public static final Pose2d   STARTING_POSE                      = new Pose2d(0.0, 0.0, Rotation2d.fromDegrees(0.0));

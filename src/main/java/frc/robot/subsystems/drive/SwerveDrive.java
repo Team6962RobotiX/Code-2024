@@ -86,6 +86,7 @@ public class SwerveDrive extends SubsystemBase {
     
     // Set up pose estimator and rotation controller
     poseEstimator = new SwerveDrivePoseEstimator(kinematics, getHeading(), getModulePositions(), SWERVE_DRIVE.STARTING_POSE);
+
     rotateController.enableContinuousInput(-Math.PI, Math.PI);
 
     // If possible, connect to the gyroscope
@@ -98,7 +99,7 @@ public class SwerveDrive extends SubsystemBase {
     new Thread(() -> {
       try {
         Thread.sleep(1000);
-        setHeading(new Rotation2d());
+        setHeading(getHeading());
       } catch (Exception e) {}
     }).start();
     
@@ -196,6 +197,10 @@ public class SwerveDrive extends SubsystemBase {
       fieldRelativeSpeeds.omegaRadiansPerSecond += rotateController.calculate(getHeading().getRadians());
     }
 
+    SwerveModuleState[] moduleStates = kinematics.toSwerveModuleStates(ChassisSpeeds.fromFieldRelativeSpeeds(fieldRelativeSpeeds, getHeading()));
+    SwerveDriveKinematics.desaturateWheelSpeeds(moduleStates, SWERVE_DRIVE.PHYSICS.MAX_LINEAR_VELOCITY);
+    fieldRelativeSpeeds = ChassisSpeeds.fromRobotRelativeSpeeds(kinematics.toChassisSpeeds(moduleStates), getHeading());
+
     fieldRelativeSpeeds = ChassisSpeeds.discretize(fieldRelativeSpeeds, SWERVE_DRIVE.DISCRETIZED_TIME_STEP);
 
     // Limit translational acceleration
@@ -221,7 +226,6 @@ public class SwerveDrive extends SubsystemBase {
     Translation2d attainableLinearVelocity = currentLinearVelocity.plus(linearAcceleration.times(0.02));
     double attainableAngularVelocity = currentAngularVelocity + (angularAcceleration * 0.02);
 
-    
     drivenChassisSpeeds = new ChassisSpeeds(attainableLinearVelocity.getX(), attainableLinearVelocity.getY(), attainableAngularVelocity);
     
     if (targetAngularSpeed > SWERVE_DRIVE.VELOCITY_DEADBAND) {
@@ -245,14 +249,11 @@ public class SwerveDrive extends SubsystemBase {
       parkModules();
       return;
     }
+
     driveModules(drivenModuleStates);
   }
 
   private void driveModules(SwerveModuleState[] moduleStates) {
-    // Prevents wheels from going over the maximum velocity (based on the motor power cap)
-    double maxWheelVelocity = SwerveModule.calcWheelVelocity(SWERVE_DRIVE.MOTOR_POWER_HARD_CAP);
-    SwerveDriveKinematics.desaturateWheelSpeeds(moduleStates, maxWheelVelocity);
-
     // Drive the swerve modules at the calculated speeds
     for (int i = 0; i < SWERVE_DRIVE.MODULE_COUNT; i++) {
       modules[i].setTargetState(moduleStates[i]);

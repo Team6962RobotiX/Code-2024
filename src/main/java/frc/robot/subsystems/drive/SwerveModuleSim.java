@@ -95,8 +95,8 @@ public class SwerveModuleSim extends SwerveModule {
       steerVoltRamp += (MathUtil.clamp(steerVolts - steerVoltRamp, -12.0 / STEER_MOTOR_PROFILE.RAMP_RATE / 1000.0, 12.0 / STEER_MOTOR_PROFILE.RAMP_RATE / 1000.0));
       steerVolts = steerVoltRamp;
 
-      driveMotor.setInputVoltage(driveVolts);
-      steerMotor.setInputVoltage(steerVolts);
+      driveMotor.setInputVoltage(MathUtil.clamp(driveVolts, -12.0, 12.0));
+      steerMotor.setInputVoltage(MathUtil.clamp(steerVolts, -12.0, 12.0));
 
       driveMotor.update(1.0 / 1000.0);
       steerMotor.update(1.0 / 1000.0);

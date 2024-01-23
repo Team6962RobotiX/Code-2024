@@ -24,10 +24,11 @@ public class XBoxSwerve extends Command {
   private XboxController controller;
   private SwerveDrive swerveDrive;
   
-  public final double MAX_DRIVE_VELOCITY = SwerveModule.calcWheelVelocity(SWERVE_DRIVE.TELEOPERATED_BOOST_DRIVE_POWER);
+  public final double MAX_DRIVE_VELOCITY = SwerveModule.calcWheelVelocity(SWERVE_DRIVE.TELEOPERATED_BOOST_POWER);
   public final double NOMINAL_DRIVE_VELOCITY = SwerveModule.calcWheelVelocity(SWERVE_DRIVE.TELEOPERATED_DRIVE_POWER);
   public final double FINE_TUNE_DRIVE_VELOCITY = SwerveModule.calcWheelVelocity(SWERVE_DRIVE.TELEOPERATED_FINE_TUNE_DRIVE_POWER);
-  public final double MAX_ANGULAR_VELOCITY = SwerveDrive.toAngular(SwerveModule.calcWheelVelocity(SWERVE_DRIVE.TELEOPERATED_ROTATE_POWER));
+  public final double NOMINAL_ANGULAR_VELOCITY = SwerveDrive.toAngular(SwerveModule.calcWheelVelocity(SWERVE_DRIVE.TELEOPERATED_ROTATE_POWER));
+  public final double MAX_ANGULAR_VELOCITY = SwerveDrive.toAngular(MAX_DRIVE_VELOCITY);
 
   private double targetRobotAngle = 0.0;
   
@@ -61,10 +62,15 @@ public class XBoxSwerve extends Command {
     Translation2d leftStick = new Translation2d(controller.getLeftX(), -controller.getLeftY());
     Translation2d rightStick = new Translation2d(controller.getRightX(), -controller.getRightY());
     
+
+    if (RobotBase.isSimulation()) {
+      leftStick = new Translation2d(-controller.getLeftY(), -controller.getLeftX());
+    }
+
     // Deadbands
     // leftStick = InputMath.circular(leftStick, 0.0, MathUtils.map(Math.max(leftTrigger, rightTrigger), 0, 1, Math.PI / 16.0, Math.PI / 8.0));
     
-    angularVelocity += -rightStick.getX() * MAX_ANGULAR_VELOCITY;
+    angularVelocity += -rightStick.getX() * MathUtils.map(Math.max(leftTrigger, rightTrigger), 0, 1, NOMINAL_ANGULAR_VELOCITY, MAX_ANGULAR_VELOCITY);
     
     // Rotate to nearest 90 degrees when any bumpers are pressed
     if (controller.getLeftBumper() || controller.getRightBumper()) {
