@@ -60,6 +60,7 @@ public class SwerveDrive extends SubsystemBase {
   private SwerveDrivePoseEstimator poseEstimator;
   private Field2d field = new Field2d();
   private Rotation2d heading = Rotation2d.fromDegrees(0.0);
+  private boolean deliberatelyRotating = false;
 
   private ChassisSpeeds drivenChassisSpeeds = new ChassisSpeeds();
 
@@ -189,10 +190,10 @@ public class SwerveDrive extends SubsystemBase {
   private void driveAttainableSpeeds(ChassisSpeeds fieldRelativeSpeeds) {
     // Find the speeds in meters per second that the robot is trying to turn at and the speeds the
     // robot is currently turning at
-
-    double drivenAngularSpeed = toLinear(Math.abs(getDrivenChassisSpeeds().omegaRadiansPerSecond));
+    double targetAngularSpeed = toLinear(Math.abs(fieldRelativeSpeeds.omegaRadiansPerSecond));
+    double measuredAngularSpeed = toLinear(Math.abs(getMeasuredChassisSpeeds().omegaRadiansPerSecond));
     // If we're not trying to turn
-    if (drivenAngularSpeed < SWERVE_DRIVE.VELOCITY_DEADBAND) {
+    if (!deliberatelyRotating) {
       fieldRelativeSpeeds.omegaRadiansPerSecond += rotateController.calculate(getHeading().getRadians());
     }
 
@@ -224,22 +225,26 @@ public class SwerveDrive extends SubsystemBase {
     
     drivenChassisSpeeds = new ChassisSpeeds(attainableLinearVelocity.getX(), attainableLinearVelocity.getY(), attainableAngularVelocity);
     
-    drivenAngularSpeed = toLinear(Math.abs(drivenChassisSpeeds.omegaRadiansPerSecond));
-    // If we're not trying to turn
-    if (drivenAngularSpeed < SWERVE_DRIVE.VELOCITY_DEADBAND) {
-      rotateController.setGoal(getHeading().getRadians());
+    if (targetAngularSpeed > SWERVE_DRIVE.VELOCITY_DEADBAND) {
+      deliberatelyRotating = true;
+    }
+    if (measuredAngularSpeed < SWERVE_DRIVE.VELOCITY_DEADBAND) {
+      if (deliberatelyRotating == true) {
+        rotateController.setGoal(getHeading().getRadians());
+        rotateController.reset(getHeading().getRadians());
+      }
+      deliberatelyRotating = false;
     }
 
     SwerveModuleState[] drivenModuleStates = kinematics.toSwerveModuleStates(ChassisSpeeds.fromFieldRelativeSpeeds(drivenChassisSpeeds, getHeading()));
 
-    // boolean moving = false;
-    // for (SwerveModuleState moduleState : drivenModuleStates) if (Math.abs(moduleState.speedMetersPerSecond) > SWERVE_DRIVE.VELOCITY_DEADBAND) moving = true;
-    // for (SwerveModuleState moduleState : getMeasuredModuleStates()) if (Math.abs(moduleState.speedMetersPerSecond) > SWERVE_DRIVE.VELOCITY_DEADBAND) moving = true;
-    // if (!moving) {
-    //   parkModules();
-    //   return;
-    // }
-    System.out.println(rotateController.getGoal().position);
+    boolean moving = false;
+    for (SwerveModuleState moduleState : drivenModuleStates) if (Math.abs(moduleState.speedMetersPerSecond) > SWERVE_DRIVE.VELOCITY_DEADBAND) moving = true;
+    for (SwerveModuleState moduleState : getMeasuredModuleStates()) if (Math.abs(moduleState.speedMetersPerSecond) > SWERVE_DRIVE.VELOCITY_DEADBAND) moving = true;
+    if (!moving) {
+      parkModules();
+      return;
+    }
     driveModules(drivenModuleStates);
   }
 
@@ -369,8 +374,8 @@ public class SwerveDrive extends SubsystemBase {
     heading = newHeading;
     gyro.reset();
     gyro.setAngleAdjustment(newHeading.getDegrees());
-    rotateController.reset(newHeading.getRadians(), 0.0);
-    rotateController.calculate(newHeading.getRadians(), newHeading.getRadians());
+    rotateController.reset(newHeading.getRadians());
+    rotateController.setGoal(newHeading.getRadians());
   }
 
   /**
