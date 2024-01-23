@@ -35,7 +35,7 @@ public class XBoxSwerve extends Command {
   public XBoxSwerve(SwerveDrive swerveDrive, Supplier<XboxController> xboxSupplier) {
     this.swerveDrive = swerveDrive;
     controller = xboxSupplier.get();
-    controller.setRumble(RumbleType.kBothRumble, 1.0);
+    // controller.setRumble(RumbleType.kBothRumble, 1.0);
     addRequirements(swerveDrive);
   }
 
@@ -88,17 +88,6 @@ public class XBoxSwerve extends Command {
     }
     if (velocity.getNorm() < SWERVE_DRIVE.VELOCITY_DEADBAND) {
       velocity = new Translation2d();
-    }
-
-    
-    boolean moving = false;
-    moving = moving || SwerveDrive.toLinear(Math.abs(angularVelocity)) > SWERVE_DRIVE.VELOCITY_DEADBAND;
-    moving = moving || velocity.getNorm() > SWERVE_DRIVE.VELOCITY_DEADBAND;
-    for (SwerveModuleState moduleState : swerveDrive.getTargetModuleStates()) if (Math.abs(moduleState.speedMetersPerSecond) > SWERVE_DRIVE.VELOCITY_DEADBAND) moving = true;
-    for (SwerveModuleState moduleState : swerveDrive.getMeasuredModuleStates()) if (Math.abs(moduleState.speedMetersPerSecond) > SWERVE_DRIVE.VELOCITY_DEADBAND) moving = true;
-    if (!moving) {
-      swerveDrive.parkModules();
-      return;
     }
 
     swerveDrive.driveFieldRelative(velocity.getX(), velocity.getY(), angularVelocity);
