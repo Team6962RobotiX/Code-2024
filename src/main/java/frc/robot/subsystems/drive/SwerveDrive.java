@@ -188,17 +188,15 @@ public class SwerveDrive extends SubsystemBase {
 
 
   private void driveAttainableSpeeds(ChassisSpeeds fieldRelativeSpeeds) {
-    // Find the speeds in meters per second that the robot is trying to turn at and the speeds the
-    // robot is currently turning at
     double targetAngularSpeed = toLinear(Math.abs(fieldRelativeSpeeds.omegaRadiansPerSecond));
     double measuredAngularSpeed = toLinear(Math.abs(getMeasuredChassisSpeeds().omegaRadiansPerSecond));
+    
     // If we're not trying to turn
     if (!deliberatelyRotating) {
       fieldRelativeSpeeds.omegaRadiansPerSecond += rotateController.calculate(getHeading().getRadians());
     }
 
     fieldRelativeSpeeds = ChassisSpeeds.discretize(fieldRelativeSpeeds, SWERVE_DRIVE.DISCRETIZED_TIME_STEP);
-
 
     // Limit translational acceleration
     Translation2d targetLinearVelocity = new Translation2d(fieldRelativeSpeeds.vxMetersPerSecond, fieldRelativeSpeeds.vyMetersPerSecond);
@@ -222,6 +220,7 @@ public class SwerveDrive extends SubsystemBase {
 
     Translation2d attainableLinearVelocity = currentLinearVelocity.plus(linearAcceleration.times(0.02));
     double attainableAngularVelocity = currentAngularVelocity + (angularAcceleration * 0.02);
+
     
     drivenChassisSpeeds = new ChassisSpeeds(attainableLinearVelocity.getX(), attainableLinearVelocity.getY(), attainableAngularVelocity);
     
@@ -239,6 +238,7 @@ public class SwerveDrive extends SubsystemBase {
     SwerveModuleState[] drivenModuleStates = kinematics.toSwerveModuleStates(ChassisSpeeds.fromFieldRelativeSpeeds(drivenChassisSpeeds, getHeading()));
 
     boolean moving = false;
+    for (SwerveModuleState moduleState : kinematics.toSwerveModuleStates(fieldRelativeSpeeds)) if (Math.abs(moduleState.speedMetersPerSecond) > SWERVE_DRIVE.VELOCITY_DEADBAND) moving = true;
     for (SwerveModuleState moduleState : drivenModuleStates) if (Math.abs(moduleState.speedMetersPerSecond) > SWERVE_DRIVE.VELOCITY_DEADBAND) moving = true;
     for (SwerveModuleState moduleState : getMeasuredModuleStates()) if (Math.abs(moduleState.speedMetersPerSecond) > SWERVE_DRIVE.VELOCITY_DEADBAND) moving = true;
     if (!moving) {

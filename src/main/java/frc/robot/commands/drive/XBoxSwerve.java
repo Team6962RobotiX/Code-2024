@@ -9,6 +9,7 @@ import java.util.function.Supplier;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.XboxController;
@@ -25,6 +26,7 @@ public class XBoxSwerve extends Command {
   
   public final double MAX_DRIVE_VELOCITY = SwerveModule.calcWheelVelocity(SWERVE_DRIVE.TELEOPERATED_BOOST_DRIVE_POWER);
   public final double NOMINAL_DRIVE_VELOCITY = SwerveModule.calcWheelVelocity(SWERVE_DRIVE.TELEOPERATED_DRIVE_POWER);
+  public final double FINE_TUNE_DRIVE_VELOCITY = SwerveModule.calcWheelVelocity(SWERVE_DRIVE.TELEOPERATED_FINE_TUNE_DRIVE_POWER);
   public final double MAX_ANGULAR_VELOCITY = SwerveDrive.toAngular(SwerveModule.calcWheelVelocity(SWERVE_DRIVE.TELEOPERATED_ROTATE_POWER));
 
   private double targetRobotAngle = 0.0;
@@ -59,13 +61,6 @@ public class XBoxSwerve extends Command {
     Translation2d leftStick = new Translation2d(controller.getLeftX(), -controller.getLeftY());
     Translation2d rightStick = new Translation2d(controller.getRightX(), -controller.getRightY());
     
-    if (RobotBase.isSimulation()) {
-      leftTrigger = (controller.getRawAxis(5) + 1.0) / 2.0;
-      rightTrigger = (controller.getRawAxis(4) + 1.0) / 2.0;
-      leftStick = new Translation2d(-controller.getRawAxis(1), -controller.getRawAxis(0));
-      rightStick = new Translation2d(controller.getRawAxis(2), controller.getRawAxis(3));
-    }
-
     // Deadbands
     // leftStick = InputMath.circular(leftStick, 0.0, MathUtils.map(Math.max(leftTrigger, rightTrigger), 0, 1, Math.PI / 16.0, Math.PI / 8.0));
     
@@ -77,6 +72,11 @@ public class XBoxSwerve extends Command {
     }
 
     velocity = velocity.plus(leftStick.times(MathUtils.map(Math.max(leftTrigger, rightTrigger), 0, 1, NOMINAL_DRIVE_VELOCITY, MAX_DRIVE_VELOCITY)));
+
+    if (controller.getPOV() != -1) {
+      Translation2d povVelocity = new Translation2d(-Math.sin(Units.degreesToRadians(controller.getPOV())) * FINE_TUNE_DRIVE_VELOCITY, Math.cos(Units.degreesToRadians(controller.getPOV())) * FINE_TUNE_DRIVE_VELOCITY);
+      velocity = velocity.plus(povVelocity);
+    }
 
     // Zero heading when Y is pressed
     if (controller.getYButton()) {

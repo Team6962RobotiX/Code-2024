@@ -78,7 +78,7 @@ public class SwerveModuleSim extends SwerveModule {
   public void drive(SwerveModuleState state) {
     double speedMetersPerSecond = state.speedMetersPerSecond;
     double radians = state.angle.getRadians();
-    
+
     if (SWERVE_DRIVE.DO_ANGLE_ERROR_SPEED_REDUCTION) {
       speedMetersPerSecond *= Math.cos(SwerveMath.angleDistance(getMeasuredState().angle.getRadians(), getMeasuredState().angle.getRadians()));
     }
