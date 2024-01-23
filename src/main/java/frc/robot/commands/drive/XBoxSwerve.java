@@ -61,15 +61,19 @@ public class XBoxSwerve extends Command {
     double rightTrigger = controller.getRightTriggerAxis();
     Translation2d leftStick = new Translation2d(controller.getLeftX(), -controller.getLeftY());
     Translation2d rightStick = new Translation2d(controller.getRightX(), -controller.getRightY());
+    boolean yButton = controller.getYButton();
     
-
     if (RobotBase.isSimulation()) {
-      leftStick = new Translation2d(-controller.getLeftY(), -controller.getLeftX());
+      leftStick = new Translation2d(controller.getRawAxis(0), -controller.getRawAxis(1));
+      rightStick = new Translation2d(controller.getRawAxis(2), -controller.getRawAxis(3));
+      leftTrigger = (controller.getRawAxis(5) + 1.0) / 2.0;
+      rightTrigger = (controller.getRawAxis(4) + 1.0) / 2.0;
+      yButton = controller.getRawButton(5);
     }
 
     // Deadbands
     // leftStick = InputMath.circular(leftStick, 0.0, MathUtils.map(Math.max(leftTrigger, rightTrigger), 0, 1, Math.PI / 16.0, Math.PI / 8.0));
-    
+
     angularVelocity += -rightStick.getX() * MathUtils.map(Math.max(leftTrigger, rightTrigger), 0, 1, NOMINAL_ANGULAR_VELOCITY, MAX_ANGULAR_VELOCITY);
     
     // Rotate to nearest 90 degrees when any bumpers are pressed
@@ -85,7 +89,7 @@ public class XBoxSwerve extends Command {
     }
 
     // Zero heading when Y is pressed
-    if (controller.getYButton()) {
+    if (yButton) {
       swerveDrive.setHeading(new Rotation2d());
     }
 
