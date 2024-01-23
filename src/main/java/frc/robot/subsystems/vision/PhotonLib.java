@@ -2,6 +2,11 @@
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
 
+
+// NOTICE: THIS CLASS IS DEPRECATED. DELETE WHEN CAMERA CLASS IS TESTED
+// use the Camera class instead. it encapsulates the same plib functions,
+// but is integrated with the Limelight class as well.
+
 package frc.robot.subsystems.vision;
 
 import java.io.IOException;
@@ -13,10 +18,6 @@ import org.photonvision.PhotonCamera;
 import org.photonvision.simulation.PhotonCameraSim;
 import org.photonvision.simulation.SimCameraProperties;
 import org.photonvision.simulation.VisionSystemSim;
-
-import com.kauailabs.navx.frc.Quaternion;
-import com.revrobotics.CANSparkMax;
-import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
@@ -35,7 +36,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.commands.*;
 import frc.robot.Constants;
 
-
+@Deprecated
 public class PhotonLib extends SubsystemBase {
 
   VisionSystemSim visionSim = new VisionSystemSim("main");
@@ -67,7 +68,7 @@ public class PhotonLib extends SubsystemBase {
 
 
     }
-  /** Creates a new ExampleSubsystem. */
+  /** Use Camera class instead */
   public PhotonLib(Supplier<Pose2d> poseSupplier) {
     pose = poseSupplier;
     Path aprilTagPath = Filesystem.getDeployDirectory().toPath().resolve("corrected_apriltags_coordinates.json");
@@ -102,8 +103,8 @@ public class PhotonLib extends SubsystemBase {
    
     visionSim.addAprilTags(tagLayout);
 
-    cameraProp.setCalibration(Constants.PHOTON_LIB.CAM_RESOLUTION_WIDTH, Constants.PHOTON_LIB.CAM_RESOLUTION_HEIGHT, Rotation2d.fromDegrees(Constants.PHOTON_LIB.CAM_DIAG_FOV));
 
+    cameraProp.setCalibration(Constants.PHOTON_LIB.CAM_RESOLUTION_WIDTH, Constants.PHOTON_LIB.CAM_RESOLUTION_HEIGHT, Rotation2d.fromDegrees(Constants.PHOTON_LIB.CAM_DIAG_FOV));
     camera = new PhotonCamera("cameraName");
 
     cameraSim = new PhotonCameraSim(camera, cameraProp);
