@@ -30,6 +30,7 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotBase;
@@ -61,6 +62,7 @@ public class SwerveDrive extends SubsystemBase {
   private Field2d field = new Field2d();
   private Rotation2d heading = Rotation2d.fromDegrees(0.0);
   private boolean deliberatelyRotating = false;
+  private boolean parked = false;
 
   private ChassisSpeeds drivenChassisSpeeds = new ChassisSpeeds();
 
@@ -190,10 +192,10 @@ public class SwerveDrive extends SubsystemBase {
 
   private void driveAttainableSpeeds(ChassisSpeeds fieldRelativeSpeeds) {
     double targetAngularSpeed = toLinear(Math.abs(fieldRelativeSpeeds.omegaRadiansPerSecond));
-    double measuredAngularSpeed = toLinear(Math.abs(getMeasuredChassisSpeeds().omegaRadiansPerSecond));
+    double measuredAngularSpeed = toLinear(Math.abs(getDrivenChassisSpeeds().omegaRadiansPerSecond));
     
     // If we're not trying to turn
-    if (!deliberatelyRotating) {
+    if (!deliberatelyRotating && !parked) {
       fieldRelativeSpeeds.omegaRadiansPerSecond += rotateController.calculate(getHeading().getRadians());
     }
 
@@ -244,7 +246,10 @@ public class SwerveDrive extends SubsystemBase {
     boolean moving = false;
     for (SwerveModuleState moduleState : kinematics.toSwerveModuleStates(fieldRelativeSpeeds)) if (Math.abs(moduleState.speedMetersPerSecond) > SWERVE_DRIVE.VELOCITY_DEADBAND) moving = true;
     for (SwerveModuleState moduleState : drivenModuleStates) if (Math.abs(moduleState.speedMetersPerSecond) > SWERVE_DRIVE.VELOCITY_DEADBAND) moving = true;
-    for (SwerveModuleState moduleState : getMeasuredModuleStates()) if (Math.abs(moduleState.speedMetersPerSecond) > SWERVE_DRIVE.VELOCITY_DEADBAND) moving = true;
+    if (!parked) {
+      for (SwerveModuleState moduleState : getMeasuredModuleStates()) if (Math.abs(moduleState.speedMetersPerSecond) > SWERVE_DRIVE.VELOCITY_DEADBAND) moving = true;
+    }
+    parked = false;
     if (!moving) {
       parkModules();
       return;
@@ -272,6 +277,7 @@ public class SwerveDrive extends SubsystemBase {
     modules[1].setTargetState(new SwerveModuleState(0.0, Rotation2d.fromDegrees(-45.0)));
     modules[2].setTargetState(new SwerveModuleState(0.0, Rotation2d.fromDegrees(-45.0)));
     modules[3].setTargetState(new SwerveModuleState(0.0, Rotation2d.fromDegrees(45.0)));
+    parked = true;
   }
 
   /**
