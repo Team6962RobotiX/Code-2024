@@ -47,6 +47,8 @@ public class RobotContainer {
   // The robot's subsystems and commands
   private final XboxController XboxController = new XboxController(DEVICES.USB_XBOX_CONTROLLER);
   private final SwerveDrive swerveDrive = new SwerveDrive();
+
+  //Simulation only - getPose() does not work in real life
   private final Camera camera = new Camera("default", swerveDrive::getPose);
   
   /** The container for the robot. Contains subsystems, OI devices, and commands. */

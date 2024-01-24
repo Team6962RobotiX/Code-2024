@@ -266,7 +266,8 @@ public final class Constants {
   }
 
   public static final class PHOTON_LIB {
-    public static final int CAM_RESOLUTION_WIDTH = 320; //Pixels
+    public static final int SCALE = 1; //INCREASE THIS TO MAKE THE SIMULATION EASIER TO SEE ON A LAPTOP
+    public static final int CAM_RESOLUTION_WIDTH = 320; //Pixels 
     public static final int CAM_RESOLUTION_HEIGHT = 240; //Pixels
     public static final double MIN_TARGET_AREA = 10; //Square pixels (CHANGE)
 

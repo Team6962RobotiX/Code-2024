@@ -49,7 +49,7 @@ public class Camera extends SubsystemBase {
   private LimelightHelpers.LimelightTarget_Fiducial LimelightHelperFidcuial = new LimelightHelpers.LimelightTarget_Fiducial();
   //private double lastKnownAprilTagZ = 0.0;
 
-  private void initalize(String name) {
+  private void initialize(String name) {
     this.name = name;
     this.camera = new PhotonCamera(name);
     cameraProp.setCalibration(Constants.PHOTON_LIB.CAM_RESOLUTION_WIDTH, Constants.PHOTON_LIB.CAM_RESOLUTION_HEIGHT, Rotation2d.fromDegrees(Constants.PHOTON_LIB.CAM_DIAG_FOV));
@@ -65,11 +65,12 @@ public class Camera extends SubsystemBase {
   }
   // real camera
   public Camera(String name) {
-    initalize(name);
+    initialize(name);
   }
 
+  //simulated camera
   public Camera(String name, Supplier<Pose2d> poseSupplier) {
-    initalize(name);
+    initialize(name);
     this.poseSupplier = poseSupplier;
     this.cameraSim = new PhotonCameraSim(camera, cameraProp);
     visionSim.addAprilTags(tagLayout);
