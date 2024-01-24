@@ -159,7 +159,7 @@ public class SwerveModule extends SubsystemBase {
     }
     
     double wheelAcceleration = (speedMetersPerSecond - lastDrivenState.speedMetersPerSecond) / 0.02;
-
+    
     drivePID.setReference(
       speedMetersPerSecond,
       ControlType.kVelocity,

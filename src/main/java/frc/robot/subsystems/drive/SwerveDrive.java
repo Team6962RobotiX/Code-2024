@@ -192,11 +192,24 @@ public class SwerveDrive extends SubsystemBase {
 
   private void driveAttainableSpeeds(ChassisSpeeds fieldRelativeSpeeds) {
     double targetAngularSpeed = toLinear(Math.abs(fieldRelativeSpeeds.omegaRadiansPerSecond));
-    double measuredAngularSpeed = toLinear(Math.abs(getDrivenChassisSpeeds().omegaRadiansPerSecond));
-    
-    // If we're not trying to turn
-    if (!deliberatelyRotating && !parked) {
-      fieldRelativeSpeeds.omegaRadiansPerSecond += rotateController.calculate(getHeading().getRadians());
+    double drivenAngularSpeed = toLinear(Math.abs(getDrivenChassisSpeeds().omegaRadiansPerSecond));
+
+    if (targetAngularSpeed > SWERVE_DRIVE.VELOCITY_DEADBAND) {
+      deliberatelyRotating = true;
+      setTargetHeading(getHeading());
+      rotateController.reset(getHeading().getRadians());
+    }
+    if (drivenAngularSpeed < SWERVE_DRIVE.VELOCITY_DEADBAND) {
+      if (deliberatelyRotating) {
+        setTargetHeading(getHeading());
+        rotateController.reset(getHeading().getRadians());
+      }
+      deliberatelyRotating = false;
+    }
+
+    double rotationCompensation = rotateController.calculate(getHeading().getRadians());    
+    if (!parked || rotateController.getPositionError() > Units.degreesToRadians(15.0)) {
+      fieldRelativeSpeeds.omegaRadiansPerSecond += rotationCompensation;
     }
 
     SwerveModuleState[] moduleStates = kinematics.toSwerveModuleStates(ChassisSpeeds.fromFieldRelativeSpeeds(fieldRelativeSpeeds, getHeading()));
@@ -229,17 +242,6 @@ public class SwerveDrive extends SubsystemBase {
     double attainableAngularVelocity = currentAngularVelocity + (angularAcceleration * 0.02);
 
     drivenChassisSpeeds = new ChassisSpeeds(attainableLinearVelocity.getX(), attainableLinearVelocity.getY(), attainableAngularVelocity);
-    
-    if (targetAngularSpeed > SWERVE_DRIVE.VELOCITY_DEADBAND) {
-      deliberatelyRotating = true;
-    }
-    if (measuredAngularSpeed < SWERVE_DRIVE.VELOCITY_DEADBAND) {
-      if (deliberatelyRotating == true) {
-        rotateController.setGoal(getHeading().getRadians());
-        rotateController.reset(getHeading().getRadians());
-      }
-      deliberatelyRotating = false;
-    }
 
     SwerveModuleState[] drivenModuleStates = kinematics.toSwerveModuleStates(ChassisSpeeds.fromFieldRelativeSpeeds(drivenChassisSpeeds, getHeading()));
 

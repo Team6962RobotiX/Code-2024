@@ -72,7 +72,7 @@ public class RobotContainer {
   }
 
   public Command getAutonomousCommand() {
-    return swerveDrive.followChoreoTrajectory("SmallPath", true);
+    return swerveDrive.followChoreoTrajectory("simple", true);
   }
 
   public void disabledPeriodic() {

@@ -76,11 +76,6 @@ public class XBoxSwerve extends Command {
 
     angularVelocity += -rightStick.getX() * MathUtils.map(Math.max(leftTrigger, rightTrigger), 0, 1, NOMINAL_ANGULAR_VELOCITY, MAX_ANGULAR_VELOCITY);
     
-    // Rotate to nearest 90 degrees when any bumpers are pressed
-    if (controller.getLeftBumper() || controller.getRightBumper()) {
-      swerveDrive.setTargetHeading(Rotation2d.fromRadians(Math.round(targetRobotAngle / (Math.PI / 2.0)) * (Math.PI / 2.0)));
-    }
-
     velocity = velocity.plus(leftStick.times(MathUtils.map(Math.max(leftTrigger, rightTrigger), 0, 1, NOMINAL_DRIVE_VELOCITY, MAX_DRIVE_VELOCITY)));
 
     if (controller.getPOV() != -1) {
@@ -102,6 +97,10 @@ public class XBoxSwerve extends Command {
 
     swerveDrive.driveFieldRelative(velocity.getX(), velocity.getY(), angularVelocity);
     
+    if (leftStick.getNorm() > 0.05 && (controller.getLeftBumper() || controller.getRightBumper())) {
+      swerveDrive.setTargetHeading(leftStick.getAngle());
+    }
+
     angularVelocity = 0.0;
     velocity = new Translation2d();
   }
