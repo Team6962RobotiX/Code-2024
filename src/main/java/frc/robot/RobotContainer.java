@@ -40,6 +40,12 @@ public class RobotContainer {
   private final ChoreoTrajectory traj;
   private Field2d field;
 
+<<<<<<< Updated upstream
+=======
+  //Simulation only - getPose() does not work in real life
+  private final Camera camera = new Camera("testtwo", swerveDrive::getPose);
+  
+>>>>>>> Stashed changes
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
     DataLogManager.start();
