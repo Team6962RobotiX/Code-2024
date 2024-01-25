@@ -4,48 +4,68 @@
 
 package frc.robot.subsystems.vision;
 
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
 
-import edu.wpi.first.math.geometry.Pose3d;
+import javax.security.auth.login.LoginException;
+
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.math.util.Units;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
+
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
+
+import org.photonvision.EstimatedRobotPose;
 import org.photonvision.PhotonCamera;
+import org.photonvision.PhotonPoseEstimator;
+import org.photonvision.PhotonPoseEstimator.PoseStrategy;
+import org.photonvision.PhotonUtils;
 import org.photonvision.estimation.TargetModel;
 import org.photonvision.simulation.PhotonCameraSim;
 import org.photonvision.simulation.SimCameraProperties;
 import org.photonvision.simulation.VisionSystemSim;
 import org.photonvision.simulation.VisionTargetSim;
+import org.photonvision.targeting.PhotonPipelineResult;
+import org.photonvision.targeting.PhotonTrackedTarget;
 
 import frc.robot.util.LimelightHelpers;
 import frc.robot.util.Logging.Logger;
 import frc.robot.Constants;
+import frc.robot.Constants.PHOTON_LIB;
 
 
 public class Camera extends SubsystemBase {
   private LimelightHelpers.LimelightResults limelightData;
   private String name;
   private ShuffleboardTab dashboard = Shuffleboard.getTab("Dashboard");
-  private Pose3d botPose; 
-  private Pose3d fieldSpace;   
+  // private Pose3d helpME;
   
   
   private AprilTagFieldLayout tagLayout;
   private VisionSystemSim visionSim = new VisionSystemSim("main");
   private SimCameraProperties cameraProp = new SimCameraProperties();
   private PhotonCamera camera;
+  private PhotonPipelineResult latestResult;
   private PhotonCameraSim cameraSim;
   private Supplier<Pose2d> poseSupplier;
+  private NetworkTableInstance inst;
+  private PhotonPoseEstimator photonPoseEstimator;
+  private Pose2d previousPose;
 
 
   // LimelightHelper Fiducial methods are not static so you need to make an instance of it
@@ -88,36 +108,24 @@ public class Camera extends SubsystemBase {
     cameraSim.enableRawStream(true);
     cameraSim.enableProcessedStream(true);
     cameraSim.enableDrawWireframe(false);
+
+    photonPoseEstimator = new PhotonPoseEstimator(tagLayout, PoseStrategy.CLOSEST_TO_REFERENCE_POSE, camera, robotToCamera);
+
   }
 
 
   @Override
   public void periodic() {
-    //limelightData = LimelightHelpers.getLatestResults(name);
-    //botPose = LimelightHelpers.getBotPose3d(name);
-    //fieldSpace = LimelightHelperFidcuial.getRobotPose_FieldSpace();
-  
-    //Pose3d targetSpace = LimelightHelpers.getCameraPose3d_TargetSpace("light"); // change later
-    //Pose3d targetSpaceBottom = LimelightHelpers.getCameraPose3d_TargetSpace("bottom");
+    // helpME = LimelightHelpers.getCameraPose3d_TargetSpace(name);
+    // System.out.println("botpose: " + helpME);  
+    inst = NetworkTableInstance.getDefault();
+    NetworkTable inet = inst.getTable("limelight");
+    NetworkTableEntry tx = inet.getEntry("tx");
+    double x = tx.getDouble(0.0);
+    System.out.println("table: " + x);
 
-    //double z = Math.abs(targetSpace.getZ());
-    //double z_bottom = Math.abs(targetSpaceBottom.getZ());
-
-    // if (z_top != 0 && z_bottom != 0) {
-    //   lastKnownAprilTagZ = (z_top+z_bottom)/2;
-    // }else if (z_top != 0){
-    //   lastKnownAprilTagZ = z_top;
-    // }else if (z_bottom != 0){
-    //   lastKnownAprilTagZ = z_bottom;
-    // }
-
-    //lastKnownAprilTagZ = z;
+   
   }
-
-  /*public double getLastKnownAprilTagZ() {
-    return lastKnownAprilTagZ;
-  }
-  */
 
   public LimelightHelpers.Results getTargetingResults() {
     return limelightData.targetingResults;
@@ -130,30 +138,75 @@ public class Camera extends SubsystemBase {
   @Override
   public void simulationPeriodic() {
     visionSim.update(poseSupplier.get());
-  }
 
-  // Returns a set of all the apriltags
-  public Set<VisionTargetSim> getTargets() {
-    return visionSim.getVisionTargets();
-  }
+    previousPose = poseSupplier.get();
 
-  // Returns closest apriltag
-  public VisionTargetSim getClosestTarget() {
-    double closestDist = Double.MAX_VALUE;
-    VisionTargetSim closest = null;
-    for (VisionTargetSim vts : visionSim.getVisionTargets()) {
-      // poseSupplier is 2d so needs x and y, and vts is 3d so needs x and z
-      double targetDist = Math.hypot(
-        (double) (poseSupplier.get().getX() - vts.getPose().getX()),
-        (double) (poseSupplier.get().getY() - vts.getPose().getZ())
-      );
+    //Logger.log("vision/getBestTargetDist", getBestTargetDist());
 
-      if (targetDist < closestDist) {
-        closest = vts;
-        closestDist = targetDist;
+    try {
+
+      latestResult = camera.getLatestResult();
+      System.out.println(camera.getLatestResult());
+
+      System.out.println(latestResult);
+
+      boolean hasTargets = latestResult.hasTargets();
+
+      if (hasTargets) {
+        Optional<EstimatedRobotPose> poseRaw = getEstimatedGlobalPose(previousPose);
+
+        if (poseRaw.isPresent()) {
+          EstimatedRobotPose position = poseRaw.get();
+          Pose3d pose = position.estimatedPose;
+
+          Pose2d pose2d = pose.toPose2d();
+          System.out.println(pose2d);
+        }
       }
     }
+      catch(Exception e){
+        System.out.println("null");
 
-    return closest;
+      }
+    }
+  
+
+  public PhotonTrackedTarget getBestTarget() {
+    if (latestResult.hasTargets()) {
+      return latestResult.getBestTarget();
+    }
+    return null;
   }
+
+  public double getBestTargetDist() {
+    if (latestResult.hasTargets()) {
+      return PhotonUtils.calculateDistanceToTargetMeters(
+        PHOTON_LIB.CAM_HEIGHT_OFF_GROUND,
+        tagLayout.getTagPose(getBestTarget().getFiducialId()).get().getZ(),
+        PHOTON_LIB.CAM_PITCH,
+        Units.degreesToRadians(getBestTarget().getPitch())
+      );
+    }
+    return -1.0;
+  }
+
+  public int getFiducialId() {
+    if (latestResult.hasTargets()){
+      PhotonTrackedTarget target = latestResult.getBestTarget();
+
+      int targetID = target.getFiducialId();
+
+      return targetID;
+    }
+    else {
+      return 0;
+    }
+  }
+  
+
+   public Optional<EstimatedRobotPose> getEstimatedGlobalPose(Pose2d prevEstimatedRobotPose) {
+        photonPoseEstimator.setReferencePose(prevEstimatedRobotPose);
+        return photonPoseEstimator.update();
+  }
+  
 }
