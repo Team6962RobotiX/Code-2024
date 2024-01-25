@@ -93,7 +93,10 @@ public class Camera extends SubsystemBase {
 
   @Override
   public void periodic() {
-
+    System.out.println(
+      getClosestTarget().getPose().getX() + ", " + 
+      getClosestTarget().getPose().getZ()
+    );
     //limelightData = LimelightHelpers.getLatestResults(name);
     //botPose = LimelightHelpers.getBotPose3d(name);
     //fieldSpace = LimelightHelperFidcuial.getRobotPose_FieldSpace();
@@ -143,5 +146,23 @@ public class Camera extends SubsystemBase {
 
     //   System.out.println("Target distance: " + targetDist);
     // }
+  }
+
+  public VisionTargetSim getClosestTarget() {
+    double closestDist = Double.MAX_VALUE;
+    VisionTargetSim closest = null;
+    for (VisionTargetSim vts : visionSim.getVisionTargets()) {
+      double targetDist = Math.hypot(
+        (double) (poseSupplier.get().getX() - vts.getPose().getX()),
+        (double) (poseSupplier.get().getY() - vts.getPose().getZ())
+      );
+
+      if (targetDist < closestDist) {
+        closest = vts;
+        closestDist = targetDist;
+      }
+    }
+
+    return closest;
   }
 }
