@@ -93,10 +93,6 @@ public class Camera extends SubsystemBase {
 
   @Override
   public void periodic() {
-    System.out.println(
-      getClosestTarget().getPose().getX() + ", " + 
-      getClosestTarget().getPose().getZ()
-    );
     //limelightData = LimelightHelpers.getLatestResults(name);
     //botPose = LimelightHelpers.getBotPose3d(name);
     //fieldSpace = LimelightHelperFidcuial.getRobotPose_FieldSpace();
@@ -136,22 +132,17 @@ public class Camera extends SubsystemBase {
     visionSim.update(poseSupplier.get());
   }
 
+  // Returns a set of all the apriltags
   public Set<VisionTargetSim> getTargets() {
     return visionSim.getVisionTargets();
-    // for (VisionTargetSim vts : visionSim.getVisionTargets()) {
-    //   double targetDist = Math.hypot(
-    //     (double) (poseSupplier.get().getX() - vts.getPose().getX()),
-    //     (double) (poseSupplier.get().getY() - vts.getPose().getZ())
-    //   );
-
-    //   System.out.println("Target distance: " + targetDist);
-    // }
   }
 
+  // Returns closest apriltag
   public VisionTargetSim getClosestTarget() {
     double closestDist = Double.MAX_VALUE;
     VisionTargetSim closest = null;
     for (VisionTargetSim vts : visionSim.getVisionTargets()) {
+      // poseSupplier is 2d so needs x and y, and vts is 3d so needs x and z
       double targetDist = Math.hypot(
         (double) (poseSupplier.get().getX() - vts.getPose().getX()),
         (double) (poseSupplier.get().getY() - vts.getPose().getZ())
