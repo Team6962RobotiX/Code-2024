@@ -1,4 +1,4 @@
-/*package frc.robot.commands.vision;
+package frc.robot.commands.vision;
 
 import java.util.function.Supplier;
 
@@ -6,7 +6,7 @@ import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants;
-import frc.robot.LimelightHelpers;
+// import frc.robot.LimelightHelpers;
 import frc.robot.subsystems.drive.SwerveDrive;
 import frc.robot.subsystems.vision.Camera;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
@@ -29,20 +29,20 @@ public class AutoDeccel extends Command {
     // System.out.print("MaxSpeed - ");
     // System.out.println(getMaxSpeed());
 
-    drive.setSpeedCap(getMaxSpeed());
+    // drive.setSpeedCap(getMaxSpeed());
 
-    System.out.print("SpeedCap - ");
-    SmartDashboard.putNumber("getLastKnownAprilTagZ", camera.getLastKnownAprilTagZ());
-    System.out.println(drive.getSpeedCap());
+    // System.out.print("SpeedCap - ");
+    // SmartDashboard.putNumber("getLastKnownAprilTagZ", camera.getLastKnownAprilTagZ());
+    // System.out.println(drive.getSpeedCap());
   }
 
   @Override
   public void end(boolean interrupted) {
-    drive.setSpeedCap(1);
+    // drive.setSpeedCap(1);
   }
   
   public double getMaxSpeed() {
-    double z = limelight.getLastKnownAprilTagZ();
+    double z = camera.getBestTargetDist();
     double initialDist = 4;
     double initialSpeed = 0.9;
     double finalDist = 1.68;
@@ -53,4 +53,3 @@ public class AutoDeccel extends Command {
     return maxSpeed;
   }
 }
-*/
