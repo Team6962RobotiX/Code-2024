@@ -1,0 +1,93 @@
+{
+  "NTProvider": {
+    "types": {
+      "/FMSInfo": "FMSInfo",
+      "/SmartDashboard/Field": "Field2d",
+      "/SmartDashboard/VisionSystemSim-main/Sim Field": "Field2d"
+    },
+    "windows": {
+      "/SmartDashboard/Field": {
+        "Robot": {
+          "arrowColor": [
+            1.0,
+            0.2862745225429535,
+            0.2862745225429535,
+            255.0
+          ],
+          "arrowWeight": 3.0,
+          "color": [
+            1.0,
+            1.0,
+            1.0,
+            255.0
+          ],
+          "length": 0.8759999871253967,
+          "weight": 3.0,
+          "width": 0.8759999871253967
+        },
+        "Swerve Modules": {
+          "arrowColor": [
+            0.0,
+            1.0,
+            0.4971427917480469,
+            255.0
+          ],
+          "arrowSize": 14,
+          "color": [
+            1.0,
+            1.0,
+            1.0,
+            255.0
+          ],
+          "style": "Hidden",
+          "weight": 3.0
+        },
+        "bottom": 544,
+        "builtin": "2024 Crescendo",
+        "height": 8.013679504394531,
+        "left": 46,
+        "right": 1088,
+        "top": 36,
+        "traj": {
+          "arrowColor": [
+            1.0,
+            0.28431373834609985,
+            0.28431373834609985,
+            255.0
+          ],
+          "arrowWeight": 3.0,
+          "color": [
+            1.0,
+            1.0,
+            1.0,
+            255.0
+          ],
+          "length": 0.8759999871253967,
+          "style": "Box/Image",
+          "weight": 3.0,
+          "width": 0.8759999871253967
+        },
+        "trajPoses": {
+          "arrowSize": 100,
+          "arrowWeight": 1.0,
+          "arrows": false,
+          "color": [
+            0.0,
+            1.0,
+            0.4999997615814209,
+            255.0
+          ],
+          "style": "Line",
+          "weight": 3.0
+        },
+        "width": 16.541748046875,
+        "window": {
+          "visible": true
+        }
+      }
+    }
+  },
+  "NetworkTables Info": {
+    "visible": true
+  }
+}

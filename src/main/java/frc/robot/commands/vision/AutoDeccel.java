@@ -8,7 +8,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants;
 import frc.robot.LimelightHelpers;
 import frc.robot.subsystems.drive.SwerveDrive;
-import frc.robot.subsystems.vision.Limelight;
+import frc.robot.subsystems.vision.Camera;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj.shuffleboard.WidgetType;
@@ -16,11 +16,11 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class AutoDeccel extends Command {
   private SwerveDrive drive;
-  private Limelight limelight;
+  private Camera camera;
 
-  public AutoDeccel(SwerveDrive drive, Limelight limelight) {
+  public AutoDeccel(SwerveDrive drive, Camera camera) {
     this.drive = drive;
-    this.limelight = limelight;
+    this.camera = camera;
     addRequirements();
   }
   
@@ -32,7 +32,7 @@ public class AutoDeccel extends Command {
     drive.setSpeedCap(getMaxSpeed());
 
     System.out.print("SpeedCap - ");
-    SmartDashboard.putNumber("getLastKnownAprilTagZ", limelight.getLastKnownAprilTagZ());
+    SmartDashboard.putNumber("getLastKnownAprilTagZ", camera.getLastKnownAprilTagZ());
     System.out.println(drive.getSpeedCap());
   }
 

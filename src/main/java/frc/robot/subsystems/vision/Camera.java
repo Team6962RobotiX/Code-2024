@@ -4,6 +4,7 @@
 
 package frc.robot.subsystems.vision;
 
+import java.util.Set;
 import java.util.function.Supplier;
 
 import edu.wpi.first.math.geometry.Pose3d;
@@ -23,9 +24,11 @@ import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 import org.photonvision.PhotonCamera;
+import org.photonvision.estimation.TargetModel;
 import org.photonvision.simulation.PhotonCameraSim;
 import org.photonvision.simulation.SimCameraProperties;
 import org.photonvision.simulation.VisionSystemSim;
+import org.photonvision.simulation.VisionTargetSim;
 
 import frc.robot.util.LimelightHelpers;
 import frc.robot.util.Logging.Logger;
@@ -53,6 +56,8 @@ public class Camera extends SubsystemBase {
   // LimelightHelper Fiducial methods are not static so you need to make an instance of it
   private LimelightHelpers.LimelightTarget_Fiducial LimelightHelperFidcuial = new LimelightHelpers.LimelightTarget_Fiducial();
   //private double lastKnownAprilTagZ = 0.0;
+
+  // Test vision target
 
   private void initialize(String name) {
     this.name = name;
@@ -138,5 +143,30 @@ public class Camera extends SubsystemBase {
   @Override
   public void simulationPeriodic() {
     visionSim.update(poseSupplier.get());
+  }
+
+  // Returns a set of all the apriltags
+  public Set<VisionTargetSim> getTargets() {
+    return visionSim.getVisionTargets();
+  }
+
+  // Returns closest apriltag
+  public VisionTargetSim getClosestTarget() {
+    double closestDist = Double.MAX_VALUE;
+    VisionTargetSim closest = null;
+    for (VisionTargetSim vts : visionSim.getVisionTargets()) {
+      // poseSupplier is 2d so needs x and y, and vts is 3d so needs x and z
+      double targetDist = Math.hypot(
+        (double) (poseSupplier.get().getX() - vts.getPose().getX()),
+        (double) (poseSupplier.get().getY() - vts.getPose().getZ())
+      );
+
+      if (targetDist < closestDist) {
+        closest = vts;
+        closestDist = targetDist;
+      }
+    }
+
+    return closest;
   }
 }
