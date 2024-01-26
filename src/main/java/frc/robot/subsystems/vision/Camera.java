@@ -12,6 +12,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
@@ -24,15 +25,19 @@ import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 import org.photonvision.PhotonCamera;
+import org.photonvision.PhotonUtils;
 import org.photonvision.estimation.TargetModel;
 import org.photonvision.simulation.PhotonCameraSim;
 import org.photonvision.simulation.SimCameraProperties;
 import org.photonvision.simulation.VisionSystemSim;
 import org.photonvision.simulation.VisionTargetSim;
+import org.photonvision.targeting.PhotonPipelineResult;
+import org.photonvision.targeting.PhotonTrackedTarget;
 
 import frc.robot.util.LimelightHelpers;
 import frc.robot.util.Logging.Logger;
 import frc.robot.Constants;
+import frc.robot.Constants.PHOTON_LIB;
 
 
 public class Camera extends SubsystemBase {
@@ -48,6 +53,7 @@ public class Camera extends SubsystemBase {
   private VisionSystemSim visionSim = new VisionSystemSim("main");
   private SimCameraProperties cameraProp = new SimCameraProperties();
   private PhotonCamera camera;
+  private PhotonPipelineResult latestResult;
   private PhotonCameraSim cameraSim;
   private Supplier<Pose2d> poseSupplier;
   private NetworkTableInstance inst;
@@ -115,6 +121,7 @@ public class Camera extends SubsystemBase {
 
     //double z = Math.abs(targetSpace.getZ());
     //double z_bottom = Math.abs(targetSpaceBottom.getZ());
+    latestResult = camera.getLatestResult();
 
     // if (z_top != 0 && z_bottom != 0) {
     //   lastKnownAprilTagZ = (z_top+z_bottom)/2;
@@ -145,28 +152,20 @@ public class Camera extends SubsystemBase {
     visionSim.update(poseSupplier.get());
   }
 
-  // Returns a set of all the apriltags
-  public Set<VisionTargetSim> getTargets() {
-    return visionSim.getVisionTargets();
-  }
-
-  // Returns closest apriltag
-  public VisionTargetSim getClosestTarget() {
-    double closestDist = Double.MAX_VALUE;
-    VisionTargetSim closest = null;
-    for (VisionTargetSim vts : visionSim.getVisionTargets()) {
-      // poseSupplier is 2d so needs x and y, and vts is 3d so needs x and z
-      double targetDist = Math.hypot(
-        (double) (poseSupplier.get().getX() - vts.getPose().getX()),
-        (double) (poseSupplier.get().getY() - vts.getPose().getZ())
-      );
-
-      if (targetDist < closestDist) {
-        closest = vts;
-        closestDist = targetDist;
-      }
+  public PhotonTrackedTarget getBestTarget() {
+    if (latestResult.hasTargets()) {
+      return latestResult.getBestTarget();
     }
 
-    return closest;
+    return null;
+  }
+
+  public double getBestTargetDist() {
+    return PhotonUtils.calculateDistanceToTargetMeters(
+      PHOTON_LIB.CAM_HEIGHT_OFF_GROUND,
+      1.0, // Change to actual target height off ground variable
+      PHOTON_LIB.CAM_PITCH,
+      Units.degreesToRadians(getBestTarget().getPitch())
+    );
   }
 }
