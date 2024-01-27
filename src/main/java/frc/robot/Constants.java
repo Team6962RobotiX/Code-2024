@@ -64,7 +64,6 @@ public final class Constants {
     public static final double   DRIVE_MOTOR_GEARING                = 6.75;
     public static final double   STEER_MOTOR_GEARING                = 150.0 / 7.0;
     public static final double   GEARBOX_EFFICIENCY                 = 0.8;
-    public static final double[] STEER_ENCODER_OFFSETS              = { -124.805, -303.047, -101.602, -65.215 };
     public static final double   BATTERY_RESISTANCE                 = 0.015; // ohms
     public static final double   BATTERY_VOLTAGE                    = 12.6; // volts
     public static final double   BROWNOUT_VOLTAGE                   = 6.8; // volts
@@ -177,14 +176,16 @@ public final class Constants {
     
     // MODULES
     // In order of: front left, front right, back left, back right, where the battery is in the back
-    public static final String[] MODULE_NAMES = { "FL", "FR", "BL", "BR" };
+    public static final String[] MODULE_NAMES          = { "FL", "FR", "BL", "BR" };
+    public static final double[] STEER_ENCODER_OFFSETS = { -213.047, 24.785, -34.805, -11.602 };
+
   }
 
   public static final class CAN {
     // In order of: front left, front right, back left, back right, where the battery is in the back
-    public static final int[] SWERVE_DRIVE_SPARK_MAX = { 10, 20, 30, 40 };
-    public static final int[] SWERVE_STEER_SPARK_MAX = { 11, 21, 31, 41 };
-    public static final int[] SWERVE_STEER_CANCODERS = { 12, 22, 32, 42 };
+    public static final int[] SWERVE_DRIVE_SPARK_MAX = { 20, 40, 10, 30 };
+    public static final int[] SWERVE_STEER_SPARK_MAX = { 21, 41, 11, 31 };
+    public static final int[] SWERVE_STEER_CANCODERS = { 22, 42, 12, 32 };
     public static final int PDH = 5;
   }
   
