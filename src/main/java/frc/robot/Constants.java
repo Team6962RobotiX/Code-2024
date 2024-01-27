@@ -8,6 +8,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.RobotBase;
 import frc.robot.subsystems.drive.SwerveDrive;
 
@@ -94,6 +95,7 @@ public final class Constants {
     public static final double   BUMPER_WIDTH                       = SWERVE_DRIVE.CHASSIS_WIDTH + SWERVE_DRIVE.BUMPER_THICKNESS * 2.0;
     public static final double   BUMPER_LENGTH                      = SWERVE_DRIVE.CHASSIS_LENGTH + SWERVE_DRIVE.BUMPER_THICKNESS * 2.0;
     public static final double   MAX_CURRENT_DRAW                   = (BATTERY_VOLTAGE - BROWNOUT_VOLTAGE) / BATTERY_RESISTANCE;
+    public static final boolean  IS_PROTOTYPE_CHASSIS               = new DigitalInput(0).get();
 
     
     // GEAR AND WHEEL RATIOS
@@ -177,7 +179,8 @@ public final class Constants {
     // MODULES
     // In order of: front left, front right, back left, back right, where the battery is in the back
     public static final String[] MODULE_NAMES          = { "FL", "FR", "BL", "BR" };
-    public static final double[] STEER_ENCODER_OFFSETS = { -213.047, 24.785, -34.805, -11.602 };
+    public static final double[] STEER_ENCODER_OFFSETS_PROTO = { -213.047, 24.785, -34.805, -11.602 };
+    public static final double[] STEER_ENCODER_OFFSETS_COMP  = { -78.75, 64.4238, 90.96696, 201.53304 };
 
   }
 

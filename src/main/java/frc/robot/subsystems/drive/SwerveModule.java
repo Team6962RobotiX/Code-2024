@@ -70,9 +70,8 @@ public class SwerveModule extends SubsystemBase {
 
     MagnetSensorConfigs magConfig = new MagnetSensorConfigs();
     magConfig.withAbsoluteSensorRange(AbsoluteSensorRangeValue.Signed_PlusMinusHalf);
-    magConfig.withMagnetOffset(Units.degreesToRotations(SWERVE_DRIVE.STEER_ENCODER_OFFSETS[id]));
+    magConfig.withMagnetOffset(Units.degreesToRotations(SWERVE_DRIVE.IS_PROTOTYPE_CHASSIS ? SWERVE_DRIVE.STEER_ENCODER_OFFSETS_PROTO[id] : SWERVE_DRIVE.STEER_ENCODER_OFFSETS_COMP[id]));
     
-
     // Configure a lot of stuff, handling REVLibErrors gracefully
     ConfigUtils.configure(List.of(
       // Reset the drive motor controller to factory defaults
