@@ -8,6 +8,7 @@ import java.util.function.Supplier;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
@@ -59,13 +60,13 @@ public class XBoxSwerve extends Command {
 
     double leftTrigger = controller.getLeftTriggerAxis();
     double rightTrigger = controller.getRightTriggerAxis();
-    Translation2d leftStick = new Translation2d(controller.getLeftX(), -controller.getLeftY());
+    Translation2d leftStick = new Translation2d(-controller.getLeftY(), -controller.getLeftX());
     Translation2d rightStick = new Translation2d(controller.getRightX(), -controller.getRightY());
     boolean yButton = controller.getYButton();
     
     if (RobotBase.isSimulation()) {
       leftStick = new Translation2d(controller.getRawAxis(0), -controller.getRawAxis(1));
-      rightStick = new Translation2d(controller.getRawAxis(2), -controller.getRawAxis(3));
+      rightStick = new Translation2d(controller.getRawAxis(3), -controller.getRawAxis(4));
       leftTrigger = (controller.getRawAxis(5) + 1.0) / 2.0;
       rightTrigger = (controller.getRawAxis(4) + 1.0) / 2.0;
       yButton = controller.getRawButton(5);
@@ -79,7 +80,7 @@ public class XBoxSwerve extends Command {
     velocity = velocity.plus(leftStick.times(MathUtils.map(Math.max(leftTrigger, rightTrigger), 0, 1, NOMINAL_DRIVE_VELOCITY, MAX_DRIVE_VELOCITY)));
 
     if (controller.getPOV() != -1) {
-      Translation2d povVelocity = new Translation2d(Math.sin(Units.degreesToRadians(controller.getPOV())) * FINE_TUNE_DRIVE_VELOCITY, Math.cos(Units.degreesToRadians(controller.getPOV())) * FINE_TUNE_DRIVE_VELOCITY);
+      Translation2d povVelocity = new Translation2d(Math.cos(Units.degreesToRadians(controller.getPOV())) * FINE_TUNE_DRIVE_VELOCITY, -Math.sin(Units.degreesToRadians(controller.getPOV())) * FINE_TUNE_DRIVE_VELOCITY);
       velocity = velocity.plus(povVelocity);
     }
 
@@ -96,7 +97,7 @@ public class XBoxSwerve extends Command {
     }
 
     swerveDrive.driveFieldRelative(velocity.getX(), velocity.getY(), angularVelocity);
-    
+
     if (leftStick.getNorm() > 0.05 && (controller.getLeftBumper() || controller.getRightBumper())) {
       swerveDrive.setTargetHeading(leftStick.getAngle());
     }

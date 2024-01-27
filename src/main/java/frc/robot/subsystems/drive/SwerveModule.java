@@ -14,6 +14,8 @@ import com.revrobotics.SparkPIDController;
 import com.revrobotics.CANSparkBase.ControlType;
 import com.revrobotics.CANSparkBase.IdleMode;
 import com.ctre.phoenix6.BaseStatusSignal;
+import com.ctre.phoenix6.configs.CANcoderConfiguration;
+import com.ctre.phoenix6.configs.CANcoderConfigurator;
 import com.ctre.phoenix6.configs.MagnetSensorConfigs;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.signals.AbsoluteSensorRangeValue;
@@ -65,6 +67,11 @@ public class SwerveModule extends SubsystemBase {
     driveEncoder         = driveMotor.getEncoder();
     drivePID             = driveMotor.getPIDController();
     steerPID             = steerMotor.getPIDController();
+
+    MagnetSensorConfigs magConfig = new MagnetSensorConfigs();
+    magConfig.withAbsoluteSensorRange(AbsoluteSensorRangeValue.Signed_PlusMinusHalf);
+    magConfig.withMagnetOffset(Units.degreesToRotations(SWERVE_DRIVE.STEER_ENCODER_OFFSETS[id]));
+    
 
     // Configure a lot of stuff, handling REVLibErrors gracefully
     ConfigUtils.configure(List.of(
@@ -119,7 +126,7 @@ public class SwerveModule extends SubsystemBase {
       // Write the steering motor configuration settings to flash
       () -> steerMotor.burnFlash(),
 
-      () -> absoluteSteerEncoder.getConfigurator().apply(new MagnetSensorConfigs().withAbsoluteSensorRange(AbsoluteSensorRangeValue.Signed_PlusMinusHalf).withMagnetOffset(Units.degreesToRotations(SWERVE_DRIVE.STEER_ENCODER_OFFSETS[id])))
+      () -> absoluteSteerEncoder.getConfigurator().apply(magConfig)
     ));
 
     // driveMotor.setClosedLoopRampRate(Math.max((NEO.FREE_SPEED / 60.0) / ((9.80 * SWERVE_DRIVE.COEFFICIENT_OF_FRICTION) / SWERVE_DRIVE.DRIVE_MOTOR_METERS_PER_REVOLUTION), DRIVE_MOTOR_CONFIG.RAMP_RATE))
