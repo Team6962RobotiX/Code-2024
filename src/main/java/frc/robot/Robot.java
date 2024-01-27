@@ -2,18 +2,17 @@ package frc.robot;
 
 
 import edu.wpi.first.cameraserver.*;
+import com.revrobotics.CANSparkLowLevel.MotorType;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
-import edu.wpi.first.wpilibj.motorcontrol.MotorControllerGroup;
-import edu.wpi.first.wpilibj.motorcontrol.PWMSparkMax;
+import com.revrobotics.CANSparkMax;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import java.io.File;
 import java.io.IOException;
 import edu.wpi.first.wpilibj.TimedRobot;
-import com.revrobotics.CANSparkMax;
 import com.fasterxml.jackson.databind.util.RawValue;
 import com.revrobotics.*;
 
@@ -27,10 +26,10 @@ import org.opencv.core.Mat;
 import java.util.*;
 public class Robot extends TimedRobot {
   Joystick joystick0;
-  PWMSparkMax lbank1;
-  PWMSparkMax lbank2;
-  PWMSparkMax rbank1;
-  PWMSparkMax rbank2;
+  CANSparkMax lbank1;
+  CANSparkMax lbank2;
+  CANSparkMax rbank1;
+  CANSparkMax rbank2;
   DifferentialDrive myDrive;
   
   @Override
@@ -40,19 +39,14 @@ public class Robot extends TimedRobot {
     joystick0 = new Joystick(0);
 
     //Sparks
-    lbank1 = new PWMSparkMax(0);
-    lbank2 = new PWMSparkMax(1); 
-    rbank1 = new PWMSparkMax(2); 
-    rbank2 = new PWMSparkMax(3);    
-    DifferentialDrive myDrive = new DifferentialDrive(
-      (double output) -> {
-        lbank1.set(output);
-        lbank2.set(output);
-      },
-      (double output) -> {
-        rbank1.set(output);
-        rbank2.set(output);
-      });
+    rbank1 = new CANSparkMax(1,MotorType.kBrushless);
+    lbank1 = new CANSparkMax(2,MotorType.kBrushless); 
+    lbank2 = new CANSparkMax(3,MotorType.kBrushless); 
+    rbank2 = new CANSparkMax(4,MotorType.kBrushless);    
+    rbank2.follow(rbank1);
+    lbank2.follow(lbank1);
+
+    DifferentialDrive myDrive = new DifferentialDrive(lbank1,rbank1);
   
     
   }
@@ -101,3 +95,4 @@ public class Robot extends TimedRobot {
 
 }
 
+//qwertyuiopasdfghjklzxcvbnmmnbvcxzlkjhgfdsapoiuytrewqqazwsxedcrfvtgbyhnujmikolpplokimjunhybgtvfrcdexswzaq
