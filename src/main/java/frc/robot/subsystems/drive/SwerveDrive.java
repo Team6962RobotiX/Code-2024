@@ -7,6 +7,7 @@ package frc.robot.subsystems.drive;
 import java.util.ArrayList;
 import java.util.List;
 
+import static edu.wpi.first.units.MutableMeasure.mutable;
 import com.choreo.lib.Choreo;
 import com.choreo.lib.ChoreoTrajectory;
 import com.kauailabs.navx.frc.AHRS;
@@ -16,6 +17,7 @@ import com.pathplanner.lib.path.GoalEndState;
 import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
 import com.pathplanner.lib.path.PathPoint;
+import com.revrobotics.SparkMaxLimitSwitch.Direction;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
@@ -31,9 +33,15 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.units.Distance;
+import edu.wpi.first.units.Measure;
+import edu.wpi.first.units.MutableMeasure;
+import edu.wpi.first.units.Velocity;
+import edu.wpi.first.units.Voltage;
 import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.simulation.BatterySim;
@@ -44,10 +52,15 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants.SWERVE_DRIVE;
 import frc.robot.Constants.SWERVE_DRIVE.PHYSICS;
 import frc.robot.util.StatusChecks;
 import frc.robot.util.Logging.Logger;
+
+import static edu.wpi.first.units.Units.Meters;
+import static edu.wpi.first.units.Units.MetersPerSecond;
+import static edu.wpi.first.units.Units.Volts;
 
 /**
  * This class represents the subsystem for the swerve drive. It contains four
@@ -63,6 +76,25 @@ public class SwerveDrive extends SubsystemBase {
   private Rotation2d heading = Rotation2d.fromDegrees(0.0);
   private boolean deliberatelyRotating = false;
   private boolean parked = false;
+
+
+  private SysIdRoutine calibrationRoutine = new SysIdRoutine(
+    new SysIdRoutine.Config(),
+    new SysIdRoutine.Mechanism(
+      (Measure<Voltage> volts) -> {
+        modules[0].setVolts(volts.in(Volts));
+      },
+      log -> {
+        // Record a frame for the left motors.  Since these share an encoder, we consider
+        // the entire group to be one motor.
+        log.motor("module-" + SWERVE_DRIVE.MODULE_NAMES[0])
+            .voltage(Volts.of(modules[0].getDriveMotorController().get() * RobotController.getBatteryVoltage()))
+            .linearPosition(Meters.of(modules[0].getModulePosition().distanceMeters))
+            .linearVelocity(MetersPerSecond.of(modules[0].getMeasuredState().speedMetersPerSecond));
+      },
+      this
+    )
+  );
 
   private ChassisSpeeds drivenChassisSpeeds = new ChassisSpeeds();
 
@@ -127,6 +159,10 @@ public class SwerveDrive extends SubsystemBase {
     // );
 
     StatusChecks.addCheck("Gyro Connection", gyro::isConnected);
+  }
+
+  public void testInit() {
+    sysIdQuasistatic(SysIdRoutine.Direction.kForward).schedule();
   }
 
   @Override
@@ -560,5 +596,13 @@ public class SwerveDrive extends SubsystemBase {
       );
     }
 
+  }
+
+  public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
+    return calibrationRoutine.quasistatic(direction);
+  }
+
+  public Command sysIdDynamic(SysIdRoutine.Direction direction) {
+    return calibrationRoutine.dynamic(direction);
   }
 }

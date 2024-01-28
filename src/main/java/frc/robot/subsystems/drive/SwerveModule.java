@@ -230,6 +230,14 @@ public class SwerveModule extends SubsystemBase {
     steerPID.setReference(0.0, ControlType.kPosition);
     driveMotor.setVoltage(volts);
   }
+
+  public CANSparkMax getDriveMotorController() {
+    return driveMotor;
+  }
+
+  public CANSparkMax getSteerMotorController() {
+    return steerMotor;
+  }
   
   public Pose2d getPose(Pose2d robotPose) {
     Pose2d relativePose = new Pose2d();
