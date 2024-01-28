@@ -66,7 +66,7 @@ public class SwerveDrive extends SubsystemBase {
 
   private ChassisSpeeds drivenChassisSpeeds = new ChassisSpeeds();
 
-  private double autoSpeedScale = 1.0;
+  private double speedScale = 1.0;
 
   private ProfiledPIDController rotateController = new ProfiledPIDController(
     SWERVE_DRIVE.ABSOLUTE_ROTATION_GAINS.kP,
@@ -108,9 +108,10 @@ public class SwerveDrive extends SubsystemBase {
     }).start();
     
     SmartDashboard.putData("Field", field);
-    Logger.autoLog("SwerveDrive/pose", () -> this.getPose());
+    Logger.autoLog("SwerveDrive/pose", this::getPose);
     Logger.autoLog("SwerveDrive/targetStates", this::getTargetModuleStates);
     Logger.autoLog("SwerveDrive/measuredStates", this::getMeasuredModuleStates);
+    Logger.autoLog("SwerveDrive/speedScale", this::getSpeedScale);
 
 
     // AutoBuilder.configureHolonomic(
@@ -193,7 +194,7 @@ public class SwerveDrive extends SubsystemBase {
 
 
   private void driveAttainableSpeeds(ChassisSpeeds fieldRelativeSpeeds) {
-    fieldRelativeSpeeds = fieldRelativeSpeeds.times(autoSpeedScale);
+    fieldRelativeSpeeds = fieldRelativeSpeeds.times(speedScale);
     double targetAngularSpeed = toLinear(Math.abs(fieldRelativeSpeeds.omegaRadiansPerSecond));
     double drivenAngularSpeed = toLinear(Math.abs(getDrivenChassisSpeeds().omegaRadiansPerSecond));
 
@@ -501,9 +502,14 @@ public class SwerveDrive extends SubsystemBase {
     );
   }
 
-  public void setAutoSpeedScale(double scale) {
-    autoSpeedScale = scale;
+  public void setSpeedScale(double scale) {
+    speedScale = scale;
   }
+
+  public double getSpeedScale() {
+    return speedScale;
+  }
+
   public Command followChoreoTrajectory(String pathName, boolean first) {
 
     ChoreoTrajectory trajectory = Choreo.getTrajectory(pathName);
