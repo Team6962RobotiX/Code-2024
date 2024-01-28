@@ -95,7 +95,7 @@ public final class Constants {
     public static final double   BUMPER_WIDTH                       = SWERVE_DRIVE.CHASSIS_WIDTH + SWERVE_DRIVE.BUMPER_THICKNESS * 2.0;
     public static final double   BUMPER_LENGTH                      = SWERVE_DRIVE.CHASSIS_LENGTH + SWERVE_DRIVE.BUMPER_THICKNESS * 2.0;
     public static final double   MAX_CURRENT_DRAW                   = (BATTERY_VOLTAGE - BROWNOUT_VOLTAGE) / BATTERY_RESISTANCE;
-    public static final boolean  IS_PROTOTYPE_CHASSIS               = new DigitalInput(0).get();
+    public static final boolean  IS_PROTOTYPE_CHASSIS               = !new DigitalInput(0).get();
 
     
     // GEAR AND WHEEL RATIOS
@@ -178,9 +178,10 @@ public final class Constants {
     
     // MODULES
     // In order of: front left, front right, back left, back right, where the battery is in the back
+
     public static final String[] MODULE_NAMES          = { "FL", "FR", "BL", "BR" };
     public static final double[] STEER_ENCODER_OFFSETS_PROTO = { -213.047, 24.785, -34.805, -11.602 };
-    public static final double[] STEER_ENCODER_OFFSETS_COMP  = { -78.75, -25.5762, 0.96696, 111.53304 };
+    public static final double[] STEER_ENCODER_OFFSETS_COMP  = { 69.70908 + 180.0, 88.0214 + 180.0, 57.48648 + 180.0, 191.33784 + 180.0 };
 
   }
 
