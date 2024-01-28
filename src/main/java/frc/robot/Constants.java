@@ -133,6 +133,23 @@ public final class Constants {
         public static final double kI = 0.0;
         public static final double kD = 0.0;
       }
+      public static final class DECCEL_CURVE {
+        public static final double INITIAL_DIST = 4.0;
+        public static final double INITIAL_SPEED = 1.0;
+        public static final double FINAL_DIST = 1.0;
+        public static final double FINAL_SPEED = 0.0;
+        public static final double DEFAULT_DEGREE = 1.0/3.0;
+
+        public static double getScale(double dist, double degree) {
+          if (dist < 0) return 1.0;
+          if (dist <= FINAL_DIST) return 0.0;
+          double a = (INITIAL_SPEED-FINAL_SPEED)/Math.pow(INITIAL_DIST-FINAL_DIST, degree);
+          double ret =  a * Math.pow(dist - FINAL_DIST, degree) + FINAL_SPEED;
+          return Math.max(0.0, ret);
+        }
+
+        public static double getScale(double dist) { return getScale(dist, DEFAULT_DEGREE); }
+      }
     }
 
     public static final class DRIVE_MOTOR_PROFILE {
