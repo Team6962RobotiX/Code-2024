@@ -3,8 +3,6 @@ package frc.robot.util.Logging;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.function.Supplier;
 
 import com.ctre.phoenix6.hardware.CANcoder;
@@ -21,124 +19,131 @@ import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.RobotController;
-import frc.robot.Constants.LOGGING;
+import edu.wpi.first.wpilibj2.command.Command;
 
 public final class Logger {
   private static NetworkTable table = NetworkTableInstance.getDefault().getTable("Logs");
   private static Map<String, Supplier<Object>> entries = new HashMap<String, Supplier<Object>>();
 
-  public static void startLog() {
-    TimerTask task = new TimerTask() {
-      @Override
-      public void run() {
-        logAll();
-      }
-    };
+  public static void start() {
+    LoggingUpdateCommand command = new LoggingUpdateCommand();
 
-    Timer timer = new Timer();
-    
-    timer.schedule(task, 0, (long) (LOGGING.LOGGING_PERIOD_MS));
+    command.schedule();
   }
 
-  private static void logAll() {
+  private static void update() {
     for (String key : entries.keySet()) {
-      Object value = entries.get(key).get();
+      Supplier<Object> object = entries.get(key);
+
       try {
-        log(key, value);
-      } catch (IllegalArgumentException e) {
-        System.out.println("[LOGGING] unknown type: " + value.getClass().getSimpleName());
+        logObject(key, object);
+      } catch (IllegalArgumentException exception) {
+        System.out.println("[LOGGING] unknown type: " + object.get().getClass().getSimpleName());
       }
     }
+
     logRio("roboRio");
   }
 
-  public static void autoLog(String key, Supplier<Object> supplier) {
+  private static class LoggingUpdateCommand extends Command {
+    @Override
+    public void execute() {
+        Logger.update();
+    }
+
+    @Override
+    public boolean isFinished() {
+        return false;
+    }
+  }
+
+  public static void log(String key, Supplier<Object> supplier) {
     entries.put(key, supplier);
   }
 
-  public static void autoLog(String key, Object obj) {
-    autoLog(key, () -> obj);
+  public static void log(String key, Object obj) {
+    log(key, () -> obj);
   }
 
-  public static void log(String key, Object obj) {
-    if (obj instanceof CANSparkMax) log(key, (CANSparkMax) obj);
-    else if (obj instanceof RelativeEncoder) log(key, (RelativeEncoder) obj);
-    else if (obj instanceof AHRS) log(key, (AHRS) obj);
-    else if (obj instanceof Pose2d) log(key, (Pose2d) obj);
-    else if (obj instanceof SwerveModuleState) log(key, (SwerveModuleState) obj);
-    else if (obj instanceof SwerveModuleState[]) log(key, (SwerveModuleState[]) obj);
-    else if (obj instanceof SwerveModulePosition[]) log(key, (SwerveModulePosition[]) obj);
-    else if (obj instanceof CANStatus) log(key, (CANStatus) obj);
-    else if (obj instanceof PowerDistribution) log(key, (PowerDistribution) obj);
+  public static void logObject(String key, Object obj) {
+    if (obj instanceof CANSparkMax) logObject(key, (CANSparkMax) obj);
+    else if (obj instanceof RelativeEncoder) logObject(key, (RelativeEncoder) obj);
+    else if (obj instanceof AHRS) logObject(key, (AHRS) obj);
+    else if (obj instanceof Pose2d) logObject(key, (Pose2d) obj);
+    else if (obj instanceof SwerveModuleState) logObject(key, (SwerveModuleState) obj);
+    else if (obj instanceof SwerveModuleState[]) logObject(key, (SwerveModuleState[]) obj);
+    else if (obj instanceof SwerveModulePosition[]) logObject(key, (SwerveModulePosition[]) obj);
+    else if (obj instanceof CANStatus) logObject(key, (CANStatus) obj);
+    else if (obj instanceof PowerDistribution) logObject(key, (PowerDistribution) obj);
     else table.getEntry(key).setValue(obj);
   }
 
-  public static void log(String path, CANSparkMax sparkMax) {
-    log(path + "/power", sparkMax.get());
-    log(path + "/motorTemperature", sparkMax.getMotorTemperature());
-    log(path + "/outputCurrent", sparkMax.getOutputCurrent());
-    log(path + "/busVoltage", sparkMax.getBusVoltage());
-    log(path + "/appliedOutput", sparkMax.getAppliedOutput());
-    log(path + "/encoder", sparkMax.getEncoder());
+  private static void logObject(String path, CANSparkMax sparkMax) {
+    logObject(path + "/power", sparkMax.get());
+    logObject(path + "/motorTemperature", sparkMax.getMotorTemperature());
+    logObject(path + "/outputCurrent", sparkMax.getOutputCurrent());
+    logObject(path + "/busVoltage", sparkMax.getBusVoltage());
+    logObject(path + "/appliedOutput", sparkMax.getAppliedOutput());
+    logObject(path + "/encoder", sparkMax.getEncoder());
   }
 
-  public static void log(String path, RelativeEncoder encoder) {
-    log(path + "/position", encoder.getPosition());
-    log(path + "/velocity", encoder.getVelocity());
+  private static void logObject(String path, RelativeEncoder encoder) {
+    logObject(path + "/position", encoder.getPosition());
+    logObject(path + "/velocity", encoder.getVelocity());
   }
 
-  public static void log(String path, CANcoder encoder) {
-    log(path + "/absolutePosition", encoder.getAbsolutePosition());
-    log(path + "/position", encoder.getPosition());
-    log(path + "/velocity", encoder.getVelocity());
+  private static void logObject(String path, CANcoder encoder) {
+    logObject(path + "/absolutePosition", encoder.getAbsolutePosition());
+    logObject(path + "/position", encoder.getPosition());
+    logObject(path + "/velocity", encoder.getVelocity());
   }
 
-  public static void log(String path, AHRS navX) {
-    log(path + "/isAltitudeValid", navX.isAltitudeValid());
-    log(path + "/isCalibrating", navX.isCalibrating());
-    log(path + "/isConnected", navX.isConnected());
-    log(path + "/isMagneticDisturbance", navX.isMagneticDisturbance());
-    log(path + "/isMagnetometerCalibrated", navX.isMagnetometerCalibrated());
-    log(path + "/isMoving", navX.isMoving());
-    log(path + "/isRotating", navX.isRotating());
-    log(path + "/actualUpdateRate", navX.getActualUpdateRate());
-    log(path + "/firmwareVersion", navX.getFirmwareVersion());
-    log(path + "/altitude", navX.getAltitude());
-    log(path + "/angle", navX.getAngle());
-    log(path + "/angleAdjustment", navX.getAngleAdjustment());
-    log(path + "/compassHeading", navX.getCompassHeading());
-    log(path + "/displacementX", navX.getDisplacementX());
-    log(path + "/displacementY", navX.getDisplacementY());
-    log(path + "/displacementZ", navX.getDisplacementZ());
-    log(path + "/fusedHeading", navX.getFusedHeading());
-    log(path + "/pitch", navX.getPitch());
-    log(path + "/pressure", navX.getPressure());
-    log(path + "/roll", navX.getRoll());
-    log(path + "/yaw", navX.getYaw());
-    log(path + "/temperature", navX.getTempC());
-    log(path + "/velocityX", navX.getVelocityX());
-    log(path + "/velocityY", navX.getVelocityY());
-    log(path + "/velocityZ", navX.getVelocityZ());
-    log(path + "/accelerationX", navX.getRawAccelX());
-    log(path + "/accelerationY", navX.getRawAccelY());
-    log(path + "/accelerationZ", navX.getRawAccelZ());
+  private static void logObject(String path, AHRS navX) {
+    logObject(path + "/isAltitudeValid", navX.isAltitudeValid());
+    logObject(path + "/isCalibrating", navX.isCalibrating());
+    logObject(path + "/isConnected", navX.isConnected());
+    logObject(path + "/isMagneticDisturbance", navX.isMagneticDisturbance());
+    logObject(path + "/isMagnetometerCalibrated", navX.isMagnetometerCalibrated());
+    logObject(path + "/isMoving", navX.isMoving());
+    logObject(path + "/isRotating", navX.isRotating());
+    logObject(path + "/actualUpdateRate", navX.getActualUpdateRate());
+    logObject(path + "/firmwareVersion", navX.getFirmwareVersion());
+    logObject(path + "/altitude", navX.getAltitude());
+    logObject(path + "/angle", navX.getAngle());
+    logObject(path + "/angleAdjustment", navX.getAngleAdjustment());
+    logObject(path + "/compassHeading", navX.getCompassHeading());
+    logObject(path + "/displacementX", navX.getDisplacementX());
+    logObject(path + "/displacementY", navX.getDisplacementY());
+    logObject(path + "/displacementZ", navX.getDisplacementZ());
+    logObject(path + "/fusedHeading", navX.getFusedHeading());
+    logObject(path + "/pitch", navX.getPitch());
+    logObject(path + "/pressure", navX.getPressure());
+    logObject(path + "/roll", navX.getRoll());
+    logObject(path + "/yaw", navX.getYaw());
+    logObject(path + "/temperature", navX.getTempC());
+    logObject(path + "/velocityX", navX.getVelocityX());
+    logObject(path + "/velocityY", navX.getVelocityY());
+    logObject(path + "/velocityZ", navX.getVelocityZ());
+    logObject(path + "/accelerationX", navX.getRawAccelX());
+    logObject(path + "/accelerationY", navX.getRawAccelY());
+    logObject(path + "/accelerationZ", navX.getRawAccelZ());
   }
 
-  public static void log(String path, Pose2d pose) {
-    log(path + "_radians", new double[] { pose.getX(), pose.getY(), pose.getRotation().getRadians() });
-    log(path + "_degrees", new double[] { pose.getX(), pose.getY(), pose.getRotation().getDegrees() });
+  private static void logObject(String path, Pose2d pose) {
+    logObject(path + "_radians", new double[] { pose.getX(), pose.getY(), pose.getRotation().getRadians() });
+    logObject(path + "_degrees", new double[] { pose.getX(), pose.getY(), pose.getRotation().getDegrees() });
   }
 
 
-  public static void log(String path, SwerveModuleState swerveModuleState) {
-    log(path + "/state", new double[] {
+  private static void logObject(String path, SwerveModuleState swerveModuleState) {
+    logObject(path + "/state", new double[] {
       swerveModuleState.angle.getRadians(), 
       swerveModuleState.speedMetersPerSecond
     });
   }
 
-  public static void log(String path, SwerveModuleState[] swerveModuleStates) {
-    log(path + "/states", new double[] {
+  private static void logObject(String path, SwerveModuleState[] swerveModuleStates) {
+    logObject(path + "/states", new double[] {
       swerveModuleStates[0].angle.getRadians(), 
       swerveModuleStates[0].speedMetersPerSecond, 
       swerveModuleStates[1].angle.getRadians(), 
@@ -150,8 +155,8 @@ public final class Logger {
     });
   }
 
-  public static void log(String path, SwerveModulePosition[] swerveModulePositions) {
-    log(path + "/positions", new double[] {
+  private static void logObject(String path, SwerveModulePosition[] swerveModulePositions) {
+    logObject(path + "/positions", new double[] {
       swerveModulePositions[0].angle.getRadians(), 
       swerveModulePositions[0].distanceMeters, 
       swerveModulePositions[1].angle.getRadians(), 
@@ -163,60 +168,60 @@ public final class Logger {
     });
   }
 
-  public static void logRio(String path) {
-    log(path + "/isBrownedOut", RobotController.isBrownedOut());
-    log(path + "/isSysActive", RobotController.isSysActive());
-    log(path + "/brownoutVoltage", RobotController.getBrownoutVoltage());
-    log(path + "/batteryVoltage", RobotController.getBatteryVoltage());
-    log(path + "/batteryVoltage", RobotController.getBatteryVoltage());
-    log(path + "/inputCurrent", RobotController.getInputCurrent());
-    log(path + "/inputVoltage", RobotController.getInputVoltage());
-    log(path + "/3V3Line/current", RobotController.getCurrent3V3());
-    log(path + "/5VLine/current", RobotController.getCurrent5V());
-    log(path + "/6VLine/current", RobotController.getCurrent6V());
-    log(path + "/3V3Line/enabled", RobotController.getEnabled3V3());
-    log(path + "/5VLine/enabled", RobotController.getEnabled5V());
-    log(path + "/6VLine/enabled", RobotController.getEnabled6V());
-    log(path + "/3V3Line/faultCount", RobotController.getFaultCount3V3());
-    log(path + "/5VLine/faultCount", RobotController.getFaultCount5V());
-    log(path + "/6VLine/faultCount", RobotController.getFaultCount6V());
-    log(path + "/3V3Line/voltage", RobotController.getVoltage3V3());
-    log(path + "/5VLine/voltage", RobotController.getVoltage5V());
-    log(path + "/6VLine/voltage", RobotController.getVoltage6V());
-    log(path + "/canStatus", RobotController.getCANStatus());
+  private static void logRio(String path) {
+    logObject(path + "/isBrownedOut", RobotController.isBrownedOut());
+    logObject(path + "/isSysActive", RobotController.isSysActive());
+    logObject(path + "/brownoutVoltage", RobotController.getBrownoutVoltage());
+    logObject(path + "/batteryVoltage", RobotController.getBatteryVoltage());
+    logObject(path + "/batteryVoltage", RobotController.getBatteryVoltage());
+    logObject(path + "/inputCurrent", RobotController.getInputCurrent());
+    logObject(path + "/inputVoltage", RobotController.getInputVoltage());
+    logObject(path + "/3V3Line/current", RobotController.getCurrent3V3());
+    logObject(path + "/5VLine/current", RobotController.getCurrent5V());
+    logObject(path + "/6VLine/current", RobotController.getCurrent6V());
+    logObject(path + "/3V3Line/enabled", RobotController.getEnabled3V3());
+    logObject(path + "/5VLine/enabled", RobotController.getEnabled5V());
+    logObject(path + "/6VLine/enabled", RobotController.getEnabled6V());
+    logObject(path + "/3V3Line/faultCount", RobotController.getFaultCount3V3());
+    logObject(path + "/5VLine/faultCount", RobotController.getFaultCount5V());
+    logObject(path + "/6VLine/faultCount", RobotController.getFaultCount6V());
+    logObject(path + "/3V3Line/voltage", RobotController.getVoltage3V3());
+    logObject(path + "/5VLine/voltage", RobotController.getVoltage5V());
+    logObject(path + "/6VLine/voltage", RobotController.getVoltage6V());
+    logObject(path + "/canStatus", RobotController.getCANStatus());
   }
 
-  public static void log(String path, CANStatus canStatus) {
-    log(path + "/busOffCount", canStatus.busOffCount);
-    log(path + "/percentBusUtilization", canStatus.percentBusUtilization);
-    log(path + "/receiveErrorCount", canStatus.receiveErrorCount);
-    log(path + "/transmitErrorCount", canStatus.transmitErrorCount);
-    log(path + "/txFullCount", canStatus.txFullCount);
+  private static void logObject(String path, CANStatus canStatus) {
+    logObject(path + "/busOffCount", canStatus.busOffCount);
+    logObject(path + "/percentBusUtilization", canStatus.percentBusUtilization);
+    logObject(path + "/receiveErrorCount", canStatus.receiveErrorCount);
+    logObject(path + "/transmitErrorCount", canStatus.transmitErrorCount);
+    logObject(path + "/txFullCount", canStatus.txFullCount);
   }
 
-  public static void log(String path, PowerDistribution PDH) {
-    log(path + "/faults", PDH.getFaults());
-    log(path + "/canId", PDH.getModule());
+  private static void logObject(String path, PowerDistribution PDH) {
+    logObject(path + "/faults", PDH.getFaults());
+    logObject(path + "/canId", PDH.getModule());
     for (int i = 0; i <= 23; i++) {
-      log(path + "/channels/channel" + i + "Current", PDH.getCurrent(i));
+      logObject(path + "/channels/channel" + i + "Current", PDH.getCurrent(i));
     }
-    log(path + "/isSwitchableChannelOn", PDH.getSwitchableChannel());
-    log(path + "/temperature", PDH.getTemperature());
-    log(path + "/totalCurrent", PDH.getTotalCurrent());
-    log(path + "/totalJoules", PDH.getTotalEnergy());
-    log(path + "/totalWatts", PDH.getTotalPower());
-    log(path + "/voltage", PDH.getVoltage());
+    logObject(path + "/isSwitchableChannelOn", PDH.getSwitchableChannel());
+    logObject(path + "/temperature", PDH.getTemperature());
+    logObject(path + "/totalCurrent", PDH.getTotalCurrent());
+    logObject(path + "/totalJoules", PDH.getTotalEnergy());
+    logObject(path + "/totalWatts", PDH.getTotalPower());
+    logObject(path + "/voltage", PDH.getVoltage());
   }
 
-  public static void log(String path, PowerDistributionFaults faults) {
-    log(path + "/brownout", faults.Brownout);
-    log(path + "/canWarning", faults.CanWarning);
+  private static void logObject(String path, PowerDistributionFaults faults) {
+    logObject(path + "/brownout", faults.Brownout);
+    logObject(path + "/canWarning", faults.CanWarning);
 
     for (int i = 0; i < 24; i++) {
-      log(path + "/channel" + i + "BreakerFault", faults.getBreakerFault(i));
+      logObject(path + "/channel" + i + "BreakerFault", faults.getBreakerFault(i));
     }
     
-    log(path + "/hardwareFault", faults.HardwareFault);
+    logObject(path + "/hardwareFault", faults.HardwareFault);
   }
 
   public static void log(String path, Object self, Class clazz) {    
@@ -229,7 +234,7 @@ public final class Logger {
 
     for (Field f: clazz.getDeclaredFields()) {
       try {
-        log(path + "/" + f.getName(), f.get(self));
+        logObject(path + "/" + f.getName(), f.get(self));
       }
       catch (Exception e) {}
     }

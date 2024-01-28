@@ -125,17 +125,17 @@ public class SwerveModule extends SubsystemBase {
     seedSteerEncoder();
 
     String logPath = "module_" + SWERVE_DRIVE.MODULE_NAMES[id] + "/";
-    Logger.autoLog(logPath + "current",                 () -> getTotalCurrent());
-    Logger.autoLog(logPath + "getAbsoluteSteerDegrees", () -> getTrueSteerDirection().getDegrees());
-    Logger.autoLog(logPath + "measuredState",           () -> getMeasuredState());
-    Logger.autoLog(logPath + "measuredAngle",           () -> getMeasuredState().angle.getDegrees());
-    Logger.autoLog(logPath + "measuredVelocity",        () -> getMeasuredState().speedMetersPerSecond);
-    Logger.autoLog(logPath + "drivenState",             () -> getDrivenState());
-    Logger.autoLog(logPath + "drivenAngle",             () -> getDrivenState().angle.getDegrees());
-    Logger.autoLog(logPath + "drivenVelocity",          () -> getDrivenState().speedMetersPerSecond);
-    Logger.autoLog(logPath + "targetState",             () -> getTargetState());
-    Logger.autoLog(logPath + "targetAngle",             () -> getTargetState().angle.getDegrees());
-    Logger.autoLog(logPath + "targetVelocity",          () -> getTargetState().speedMetersPerSecond);
+    Logger.log(logPath + "current",                 () -> getTotalCurrent());
+    Logger.log(logPath + "getAbsoluteSteerDegrees", () -> getTrueSteerDirection().getDegrees());
+    Logger.log(logPath + "measuredState",           () -> getMeasuredState());
+    Logger.log(logPath + "measuredAngle",           () -> getMeasuredState().angle.getDegrees());
+    Logger.log(logPath + "measuredVelocity",        () -> getMeasuredState().speedMetersPerSecond);
+    Logger.log(logPath + "drivenState",             () -> getDrivenState());
+    Logger.log(logPath + "drivenAngle",             () -> getDrivenState().angle.getDegrees());
+    Logger.log(logPath + "drivenVelocity",          () -> getDrivenState().speedMetersPerSecond);
+    Logger.log(logPath + "targetState",             () -> getTargetState());
+    Logger.log(logPath + "targetAngle",             () -> getTargetState().angle.getDegrees());
+    Logger.log(logPath + "targetVelocity",          () -> getTargetState().speedMetersPerSecond);
   }
 
   public void periodic() {

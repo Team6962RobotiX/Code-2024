@@ -45,8 +45,8 @@ public class RobotContainer {
     DataLogManager.start();
     DriverStation.startDataLog(DataLogManager.getLog(), true);
     Logger.log("constants", this, Constants.class);
-    Logger.autoLog("PDH", new PowerDistribution(CAN.PDH, ModuleType.kRev));
-    Logger.startLog();
+    Logger.log("PDH", new PowerDistribution(CAN.PDH, ModuleType.kRev));
+
     swerveDrive.setDefaultCommand(new XBoxSwerve(swerveDrive, () -> XboxController));
     field = swerveDrive.getField();
     // Configure the trigger bindings
