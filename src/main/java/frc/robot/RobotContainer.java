@@ -22,16 +22,16 @@ import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.button.JoystickButton;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.CAN;
 import frc.robot.Constants.DEVICES;
 import frc.robot.commands.drive.XBoxSwerve;
+import frc.robot.commands.vision.AutoDeccel;
 import frc.robot.subsystems.drive.SwerveDrive;
 import frc.robot.Constants.NEO;
 import frc.robot.Constants.SWERVE_DRIVE;
 import frc.robot.Constants.SWERVE_DRIVE.DRIVE_MOTOR_PROFILE;
-import frc.robot.commands.drive.XBoxSwerve;
-import frc.robot.subsystems.drive.SwerveDrive;
-import frc.robot.subsystems.vision.PhotonLib;
 import frc.robot.util.Logging.Logger;
 import frc.robot.subsystems.vision.Camera;
 
@@ -45,7 +45,7 @@ import frc.robot.subsystems.vision.Camera;
 public class RobotContainer {
 
   // The robot's subsystems and commands
-  private final XboxController XboxController = new XboxController(DEVICES.USB_XBOX_CONTROLLER);
+  private final XboxController controller = new XboxController(DEVICES.USB_XBOX_CONTROLLER);
   private final SwerveDrive swerveDrive = new SwerveDrive();
 
   //Simulation only - getPose() does not work in real life
@@ -59,7 +59,7 @@ public class RobotContainer {
     Logger.autoLog("PDH", new PowerDistribution(CAN.PDH, ModuleType.kRev));
     Logger.startLog();
 
-    swerveDrive.setDefaultCommand(new XBoxSwerve(swerveDrive, () -> XboxController));
+    swerveDrive.setDefaultCommand(new XBoxSwerve(swerveDrive, () -> controller));
     //Positive y moves the camera left, Positive x moves the camera forward - TEMPORARY
     swerveDrive.resetPose(new Pose2d(new Translation2d(2, 2), new Rotation2d()));
     // Configure the trigger bindings
@@ -70,7 +70,7 @@ public class RobotContainer {
   }
 
   private void configureBindings() {
-    
+    new JoystickButton(controller, XboxController.Button.kA.value).whileTrue(new AutoDeccel(swerveDrive, camera));
   }
 
   public Command getAutonomousCommand() {

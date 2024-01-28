@@ -66,6 +66,8 @@ public class SwerveDrive extends SubsystemBase {
 
   private ChassisSpeeds drivenChassisSpeeds = new ChassisSpeeds();
 
+  private double autoSpeedScale = 1.0;
+
   private ProfiledPIDController rotateController = new ProfiledPIDController(
     SWERVE_DRIVE.ABSOLUTE_ROTATION_GAINS.kP,
     SWERVE_DRIVE.ABSOLUTE_ROTATION_GAINS.kI,
@@ -191,6 +193,7 @@ public class SwerveDrive extends SubsystemBase {
 
 
   private void driveAttainableSpeeds(ChassisSpeeds fieldRelativeSpeeds) {
+    fieldRelativeSpeeds = fieldRelativeSpeeds.times(autoSpeedScale);
     double targetAngularSpeed = toLinear(Math.abs(fieldRelativeSpeeds.omegaRadiansPerSecond));
     double drivenAngularSpeed = toLinear(Math.abs(getDrivenChassisSpeeds().omegaRadiansPerSecond));
 
@@ -496,6 +499,10 @@ public class SwerveDrive extends SubsystemBase {
         SWERVE_DRIVE.PHYSICS.MAX_ANGULAR_ACCELERATION
       )
     );
+  }
+
+  public void setAutoSpeedScale(double scale) {
+    autoSpeedScale = scale;
   }
   public Command followChoreoTrajectory(String pathName, boolean first) {
 

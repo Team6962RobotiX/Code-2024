@@ -7,7 +7,8 @@ package frc.robot.subsystems.vision;
 import java.util.Set;
 import java.util.function.Supplier;
 
-import edu.wpi.first.math.geometry.Pose3d;
+import javax.security.auth.login.LoginException;
+
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
@@ -22,6 +23,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 import org.photonvision.PhotonCamera;
@@ -44,9 +46,7 @@ public class Camera extends SubsystemBase {
   private LimelightHelpers.LimelightResults limelightData;
   private String name;
   private ShuffleboardTab dashboard = Shuffleboard.getTab("Dashboard");
-  private Pose3d botPose; 
-  private Pose3d fieldSpace;   
-  private Pose3d helpME;
+  // private Pose3d helpME;
   
   
   private AprilTagFieldLayout tagLayout;
@@ -104,40 +104,16 @@ public class Camera extends SubsystemBase {
 
   @Override
   public void periodic() {
-
-    //limelightData = LimelightHelpers.getLatestResults(name);
-    //botPose = LimelightHelpers.getBotPose3d(name);
-    helpME = LimelightHelpers.getCameraPose3d_TargetSpace(name);
-    System.out.println("botpose: " + helpME);  
-    //fieldSpace = LimelightHelperFidcuial.getRobotPose_FieldSpace();
-  
-    //Pose3d targetSpace = LimelightHelpers.getCameraPose3d_TargetSpace("light"); // change later
-    //Pose3d targetSpaceBottom = LimelightHelpers.getCameraPose3d_TargetSpace("bottom");
+    // helpME = LimelightHelpers.getCameraPose3d_TargetSpace(name);
+    // System.out.println("botpose: " + helpME);  
     inst = NetworkTableInstance.getDefault();
     NetworkTable inet = inst.getTable("limelight");
     NetworkTableEntry tx = inet.getEntry("tx");
     double x = tx.getDouble(0.0);
     System.out.println("table: " + x);
 
-    //double z = Math.abs(targetSpace.getZ());
-    //double z_bottom = Math.abs(targetSpaceBottom.getZ());
     latestResult = camera.getLatestResult();
-
-    // if (z_top != 0 && z_bottom != 0) {
-    //   lastKnownAprilTagZ = (z_top+z_bottom)/2;
-    // }else if (z_top != 0){
-    //   lastKnownAprilTagZ = z_top;
-    // }else if (z_bottom != 0){
-    //   lastKnownAprilTagZ = z_bottom;
-    // }
-
-    //lastKnownAprilTagZ = z;
   }
-
-  /*public double getLastKnownAprilTagZ() {
-    return lastKnownAprilTagZ;
-  }
-  */
 
   public LimelightHelpers.Results getTargetingResults() {
     return limelightData.targetingResults;
@@ -150,22 +126,25 @@ public class Camera extends SubsystemBase {
   @Override
   public void simulationPeriodic() {
     visionSim.update(poseSupplier.get());
+    Logger.log("vision/getBestTargetDist", getBestTargetDist());
   }
 
   public PhotonTrackedTarget getBestTarget() {
     if (latestResult.hasTargets()) {
       return latestResult.getBestTarget();
     }
-
     return null;
   }
 
   public double getBestTargetDist() {
-    return PhotonUtils.calculateDistanceToTargetMeters(
-      PHOTON_LIB.CAM_HEIGHT_OFF_GROUND,
-      1.0, // Change to actual target height off ground variable
-      PHOTON_LIB.CAM_PITCH,
-      Units.degreesToRadians(getBestTarget().getPitch())
-    );
+    if (latestResult.hasTargets()) {
+      return PhotonUtils.calculateDistanceToTargetMeters(
+        PHOTON_LIB.CAM_HEIGHT_OFF_GROUND,
+        tagLayout.getTagPose(getBestTarget().getFiducialId()).get().getZ(),
+        PHOTON_LIB.CAM_PITCH,
+        Units.degreesToRadians(getBestTarget().getPitch())
+      );
+    }
+    return -1.0;
   }
 }
