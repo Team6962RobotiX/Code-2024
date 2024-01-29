@@ -12,9 +12,12 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.system.plant.LinearSystemId;
+import edu.wpi.first.math.util.Units;
+import edu.wpi.first.units.Unit;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.simulation.FlywheelSim;
 import frc.robot.Constants.SWERVE_DRIVE;
+import frc.robot.Constants.SWERVE_MATH;
 import frc.robot.Constants.SWERVE_DRIVE.DRIVE_MOTOR_PROFILE;
 import frc.robot.Constants.SWERVE_DRIVE.STEER_MOTOR_PROFILE;
 import frc.robot.util.MathUtils.SwerveMath;
@@ -22,14 +25,14 @@ import frc.robot.util.Logging.Logger;
 
 public class SwerveModuleSim extends SwerveModule {
   private FlywheelSim driveMotor = new FlywheelSim(
-    LinearSystemId.identifyVelocitySystem(DRIVE_MOTOR_PROFILE.kV * (SWERVE_DRIVE.WHEEL_RADIUS), DRIVE_MOTOR_PROFILE.kA * (SWERVE_DRIVE.WHEEL_RADIUS)),
-    DCMotor.getNEO(1),
+    LinearSystemId.identifyVelocitySystem(DRIVE_MOTOR_PROFILE.kV * SWERVE_DRIVE.WHEEL_RADIUS, DRIVE_MOTOR_PROFILE.kA * SWERVE_DRIVE.WHEEL_RADIUS),
+    new DCMotor(12.0, 3.28, 181, 1.3, Units.rotationsPerMinuteToRadiansPerSecond(5880), 1),
     SWERVE_DRIVE.DRIVE_MOTOR_GEARING
   );
-  
+
   private FlywheelSim steerMotor = new FlywheelSim(
     LinearSystemId.identifyVelocitySystem(STEER_MOTOR_PROFILE.kV, STEER_MOTOR_PROFILE.kA),
-    DCMotor.getNEO(1),
+    new DCMotor(12.0, 3.28, 181, 1.3, Units.rotationsPerMinuteToRadiansPerSecond(5880), 1),
     SWERVE_DRIVE.STEER_MOTOR_GEARING
   );
 
@@ -53,11 +56,12 @@ public class SwerveModuleSim extends SwerveModule {
   private double steerVoltRamp = 0.0;
   private double drivePosition = 0.0;
   private double steerRadians = (Math.random() * 2.0 * Math.PI) - Math.PI;
+
+  private SwerveModuleState lastDrivenState = new SwerveModuleState();
   
   public SwerveModuleSim(int id) {
     super(id);
     steerPID.enableContinuousInput(-Math.PI, Math.PI);
-    System.out.println(DRIVE_MOTOR_PROFILE.RAMP_RATE);
 
     String logPath = "module_" + SWERVE_DRIVE.MODULE_NAMES[id] + "/";
     Logger.log(logPath + "current",                 () -> getTotalCurrent());
@@ -65,9 +69,6 @@ public class SwerveModuleSim extends SwerveModule {
     Logger.log(logPath + "measuredState",           () -> getMeasuredState());
     Logger.log(logPath + "measuredAngle",           () -> getMeasuredState().angle.getDegrees());
     Logger.log(logPath + "measuredVelocity",        () -> getMeasuredState().speedMetersPerSecond);
-    Logger.log(logPath + "drivenState",             () -> getDrivenState());
-    Logger.log(logPath + "drivenAngle",             () -> getDrivenState().angle.getDegrees());
-    Logger.log(logPath + "drivenVelocity",          () -> getDrivenState().speedMetersPerSecond);
     Logger.log(logPath + "targetState",             () -> getTargetState());
     Logger.log(logPath + "targetAngle",             () -> getTargetState().angle.getDegrees());
     Logger.log(logPath + "targetVelocity",          () -> getTargetState().speedMetersPerSecond);
@@ -77,25 +78,16 @@ public class SwerveModuleSim extends SwerveModule {
   public void drive(SwerveModuleState state) {
     double speedMetersPerSecond = state.speedMetersPerSecond;
     double radians = state.angle.getRadians();
-    
-    double speedMultiple = 1.0;
+
     if (SWERVE_DRIVE.DO_ANGLE_ERROR_SPEED_REDUCTION) {
-      speedMultiple = Math.cos(SwerveMath.angleDistance(getDrivenState().angle.getRadians(), getMeasuredState().angle.getRadians()));
+      speedMetersPerSecond *= Math.cos(SwerveMath.angleDistance(getMeasuredState().angle.getRadians(), getMeasuredState().angle.getRadians()));
     }
-    speedMetersPerSecond *= speedMultiple;
+
+    double wheelAcceleration = (speedMetersPerSecond - lastDrivenState.speedMetersPerSecond) / 0.02;
 
     for (int i = 0; i < 20; i++) {
-      double availableVoltage = RobotController.getBatteryVoltage();
-
-      double driveVolts = MathUtil.clamp(
-        driveFF.calculate(speedMetersPerSecond, getWheelAcceleration()) + 12.0 * drivePID.calculate(getMeasuredState().speedMetersPerSecond, speedMetersPerSecond), 
-        -availableVoltage, availableVoltage
-      );
-      
-      double steerVolts = MathUtil.clamp(
-        12.0 * steerPID.calculate(getMeasuredState().angle.getRadians(), radians), 
-        -availableVoltage, availableVoltage
-      );
+      double driveVolts = driveFF.calculate(speedMetersPerSecond, wheelAcceleration) + 12.0 * drivePID.calculate(getMeasuredState().speedMetersPerSecond, speedMetersPerSecond);
+      double steerVolts = 12.0 * steerPID.calculate(getMeasuredState().angle.getRadians(), radians);
       
       driveVoltRamp += (MathUtil.clamp(driveVolts - driveVoltRamp, -12.0 / DRIVE_MOTOR_PROFILE.RAMP_RATE / 1000.0, 12.0 / DRIVE_MOTOR_PROFILE.RAMP_RATE / 1000.0));
       driveVolts = driveVoltRamp;
@@ -103,15 +95,18 @@ public class SwerveModuleSim extends SwerveModule {
       steerVoltRamp += (MathUtil.clamp(steerVolts - steerVoltRamp, -12.0 / STEER_MOTOR_PROFILE.RAMP_RATE / 1000.0, 12.0 / STEER_MOTOR_PROFILE.RAMP_RATE / 1000.0));
       steerVolts = steerVoltRamp;
 
-      driveMotor.setInputVoltage(driveVolts);
-      steerMotor.setInputVoltage(steerVolts);
+      driveMotor.setInputVoltage(MathUtil.clamp(driveVolts, -12.0, 12.0));
+      steerMotor.setInputVoltage(MathUtil.clamp(steerVolts, -12.0, 12.0));
 
       driveMotor.update(1.0 / 1000.0);
       steerMotor.update(1.0 / 1000.0);
 
       drivePosition += getMeasuredState().speedMetersPerSecond * (1.0 / 1000.0);
       steerRadians += steerMotor.getAngularVelocityRadPerSec() * (1.0 / 1000.0);
+      steerRadians = MathUtil.angleModulus(steerRadians);
     }
+
+    lastDrivenState = new SwerveModuleState(speedMetersPerSecond, Rotation2d.fromRadians(radians));
   }
 
   @Override
@@ -121,7 +116,9 @@ public class SwerveModuleSim extends SwerveModule {
   
   @Override
   public double getTotalCurrent() {
-    return driveMotor.getCurrentDrawAmps() + steerMotor.getCurrentDrawAmps();
+    return 
+      MathUtil.clamp(driveMotor.getCurrentDrawAmps(), -SWERVE_DRIVE.DRIVE_MOTOR_PROFILE.CURRENT_LIMIT, SWERVE_DRIVE.DRIVE_MOTOR_PROFILE.CURRENT_LIMIT) + 
+      MathUtil.clamp(steerMotor.getCurrentDrawAmps(), -SWERVE_DRIVE.STEER_MOTOR_PROFILE.CURRENT_LIMIT, SWERVE_DRIVE.STEER_MOTOR_PROFILE.CURRENT_LIMIT);
   }
   
   @Override
@@ -133,7 +130,7 @@ public class SwerveModuleSim extends SwerveModule {
 
   @Override
   public SwerveModuleState getMeasuredState() {
-    return new SwerveModuleState(driveMotor.getAngularVelocityRadPerSec() * (SWERVE_DRIVE.WHEEL_RADIUS), Rotation2d.fromRadians(steerRadians));
+    return new SwerveModuleState(driveMotor.getAngularVelocityRadPerSec() * SWERVE_DRIVE.WHEEL_RADIUS, Rotation2d.fromRadians(steerRadians));
   }
 
   @Override

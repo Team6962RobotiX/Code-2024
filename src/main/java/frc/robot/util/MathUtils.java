@@ -64,12 +64,9 @@ public final class MathUtils {
       return 0.0;
     }
 
-    public static Translation2d circular(Translation2d input, double deadband, double snapRadians) {
+    public static Translation2d circular(Translation2d input, double deadband) {
       double magnitude = input.getNorm();
       double direction = input.getAngle().getRadians();
-      if (mod(direction, Math.PI / 2.0) <= snapRadians / 2.0 || mod(direction, Math.PI / 2.0) >= (Math.PI / 2.0) - (snapRadians / 2.0)) {
-        direction = Math.round(direction / (Math.PI / 2.0)) * (Math.PI / 2.0);
-      }
       if (Math.abs(magnitude) <= deadband) return new Translation2d();
       magnitude = nonLinear(map(magnitude, deadband, 1.0, 0.0, 1.0));
       return new Translation2d(magnitude * Math.cos(direction), magnitude * Math.sin(direction));

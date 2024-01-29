@@ -8,6 +8,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.RobotBase;
 import frc.robot.subsystems.drive.SwerveDrive;
 
 /**
@@ -56,20 +57,23 @@ public final class Constants {
     public static final int      MODULE_COUNT                       = 4;
     public static final double   CHASSIS_WIDTH                      = Units.inchesToMeters(28);
     public static final double   CHASSIS_LENGTH                     = Units.inchesToMeters(28);
-    public static final double   WHEEL_FRAME_DISTANCE               = Units.inchesToMeters(2.625);
+    public static final double   BUMPER_THICKNESS                   = Units.inchesToMeters(3.25);
+    public static final double   WHEEL_TO_EDGE_DISTANCE             = Units.inchesToMeters(2.625);
     public static final double   WHEEL_RADIUS                       = Units.inchesToMeters(2.0); // measured in meters
     public static final double   WHEEL_WIDTH                        = Units.inchesToMeters(2.0); // measured in meters
     public static final double   DRIVE_MOTOR_GEARING                = 6.75;
     public static final double   STEER_MOTOR_GEARING                = 150.0 / 7.0;
     public static final double   GEARBOX_EFFICIENCY                 = 0.8;
-    public static final double[] STEER_ENCODER_OFFSETS              = { -124.805, -303.047, -101.602, -65.215 };
+    public static final double   BATTERY_RESISTANCE                 = 0.015; // ohms
+    public static final double   BATTERY_VOLTAGE                    = 12.6; // volts
+    public static final double   BROWNOUT_VOLTAGE                   = 6.8; // volts
 
     // DRIVING OPTIONS
-    public static final double   TELEOPERATED_DRIVE_POWER           = 0.4; // Percent driving power (0.2  = 20%)
-    public static final double   TELEOPERATED_SLOW_DRIVE_POWER      = 0.2; // Percent driving power when using the DPad
-    public static final double   TELEOPERATED_BOOST_DRIVE_POWER     = 1.0; // Percent driving power when using the DPad
-    public static final double   TELEOPERATED_ROTATE_POWER          = 0.4; // Percent rotating power (0.4 = 40%)
-    public static final double   VELOCITY_DEADBAND                  = 0.15; // Velocity we stop moving at
+    public static final double   TELEOPERATED_FINE_TUNE_DRIVE_POWER = 0.1; // Percent driving power when using d-pad
+    public static final double   TELEOPERATED_DRIVE_POWER           = 0.5; // Percent driving power
+    public static final double   TELEOPERATED_BOOST_POWER           = 1.0; // Percent power when using the triggers
+    public static final double   TELEOPERATED_ROTATE_POWER          = 0.5; // Percent rotating power
+    public static final double   VELOCITY_DEADBAND                  = 0.1; // Velocity we stop moving at
     
     // ODOMETER
     public static final Pose2d   STARTING_POSE                      = new Pose2d(0.0, 0.0, Rotation2d.fromDegrees(0.0));
@@ -85,42 +89,45 @@ public final class Constants {
     ///////////////////////// CALCUALTED /////////////////////////
 
     // PHYSICAL
-    public static final double   TRACKWIDTH                         = CHASSIS_WIDTH - WHEEL_FRAME_DISTANCE * 2.0; // left-to-right distance between the drivetrain wheels
-    public static final double   WHEELBASE                          = CHASSIS_LENGTH - WHEEL_FRAME_DISTANCE * 2.0; // front-to-back distance between the drivetrain wheels
+    public static final double   TRACKWIDTH                         = CHASSIS_WIDTH - WHEEL_TO_EDGE_DISTANCE * 2.0; // left-to-right distance between the drivetrain wheels
+    public static final double   WHEELBASE                          = CHASSIS_LENGTH - WHEEL_TO_EDGE_DISTANCE * 2.0; // front-to-back distance between the drivetrain wheels
+    public static final double   BUMPER_WIDTH                       = SWERVE_DRIVE.CHASSIS_WIDTH + SWERVE_DRIVE.BUMPER_THICKNESS * 2.0;
+    public static final double   BUMPER_LENGTH                      = SWERVE_DRIVE.CHASSIS_LENGTH + SWERVE_DRIVE.BUMPER_THICKNESS * 2.0;
+    public static final double   MAX_CURRENT_DRAW                   = (BATTERY_VOLTAGE - BROWNOUT_VOLTAGE) / BATTERY_RESISTANCE;
+
     
     // GEAR AND WHEEL RATIOS
-    public static final double   DRIVE_ENCODER_CONVERSION_FACTOR  = (WHEEL_RADIUS * 2.0 * Math.PI) / DRIVE_MOTOR_GEARING;
-    public static final double   STEER_ENCODER_CONVERSION_FACTOR = (Math.PI * 2.0) / DRIVE_MOTOR_GEARING;
+    public static final double   DRIVE_ENCODER_CONVERSION_FACTOR    = (WHEEL_RADIUS * 2.0 * Math.PI) / DRIVE_MOTOR_GEARING;
+    public static final double   STEER_ENCODER_CONVERSION_FACTOR    = (Math.PI * 2.0) / STEER_MOTOR_GEARING;
     
     public static class PHYSICS {
-      public static final double ROTATIONAL_INERTIA = (1.0 / 12.0) * ROBOT_MASS * (Math.pow(CHASSIS_WIDTH, 2.0) + Math.pow(CHASSIS_LENGTH, 2.0));
-      public static final double SLIPLESS_ACCELERATION = 9.80 * FRICTION_COEFFICIENT;
-      public static final double SLIPLESS_CURRENT_LIMIT = (SLIPLESS_ACCELERATION * NEO.STALL_CURRENT * ROBOT_MASS * WHEEL_RADIUS) / (4 * DRIVE_MOTOR_GEARING * NEO.STALL_TORQUE);
+      public static final double ROTATIONAL_INERTIA                 = (1.0 / 12.0) * ROBOT_MASS * (Math.pow(BUMPER_WIDTH, 2.0) + Math.pow(BUMPER_LENGTH, 2.0));
+      public static final double SLIPLESS_ACCELERATION              = 9.80 * FRICTION_COEFFICIENT;
+      public static final int    SLIPLESS_CURRENT_LIMIT             = (int) ((SLIPLESS_ACCELERATION * NEO.STALL_CURRENT * ROBOT_MASS * WHEEL_RADIUS) / (4.0 * DRIVE_MOTOR_GEARING * NEO.STALL_TORQUE));
       
-      public static final double DRIVE_RADIUS = Math.hypot(WHEELBASE / 2.0, TRACKWIDTH / 2.0);
+      public static final double MAX_MOTOR_SPEED                    = NEO.FREE_SPEED * GEARBOX_EFFICIENCY;
+      public static final double MAX_MOTOR_TORQUE                   = NEO.maxTorqueCurrentLimited(SLIPLESS_CURRENT_LIMIT);
       
-      public static final double MAX_WHEEL_VELOCITY = (NEO.FREE_SPEED * GEARBOX_EFFICIENCY * (Math.PI * 2.0)) / 60 / DRIVE_MOTOR_GEARING;
-      public static final double MAX_LINEAR_VELOCITY = MAX_WHEEL_VELOCITY * WHEEL_RADIUS;
-      public static final double MAX_LINEAR_FORCE = (4.0 * NEO.maxTorqueCurrentLimited((int) SLIPLESS_CURRENT_LIMIT) * DRIVE_MOTOR_GEARING) / WHEEL_RADIUS; // N
-      public static final double MAX_LINEAR_ACCELERATION = MAX_LINEAR_FORCE / ROBOT_MASS;
-      public static final double MAX_CHASSIS_TORQUE = MAX_LINEAR_FORCE * DRIVE_RADIUS;
-      public static final double MAX_ANGULAR_ACCELERATION = SwerveDrive.toAngular(MAX_LINEAR_ACCELERATION); // MAX_CHASSIS_TORQUE / ROTATIONAL_INERTIA;
-      public static final double MAX_ANGULAR_VELOCITY = (MAX_WHEEL_VELOCITY * WHEEL_RADIUS) / DRIVE_RADIUS;
+      public static final double MAX_WHEEL_VELOCITY                 = (MAX_MOTOR_SPEED * (Math.PI * 2.0)) / 60.0 / DRIVE_MOTOR_GEARING;
+      
+      public static final double MAX_LINEAR_VELOCITY                = MAX_WHEEL_VELOCITY * WHEEL_RADIUS;
+      public static final double MAX_LINEAR_FORCE                   = (4.0 * MAX_MOTOR_TORQUE * DRIVE_MOTOR_GEARING) / WHEEL_RADIUS;
+      public static final double MAX_LINEAR_ACCELERATION            = MAX_LINEAR_FORCE / ROBOT_MASS;
+      
+      public static final double DRIVE_RADIUS                       = Math.hypot(WHEELBASE / 2.0, TRACKWIDTH / 2.0);
+      public static final double MAX_ANGULAR_TORQUE                 = MAX_LINEAR_FORCE * DRIVE_RADIUS;
+      public static final double MAX_ANGULAR_ACCELERATION           = MAX_ANGULAR_TORQUE / ROTATIONAL_INERTIA;
+      public static final double MAX_ANGULAR_VELOCITY               = (MAX_WHEEL_VELOCITY * WHEEL_RADIUS) / DRIVE_RADIUS;
     }
 
     public static final class AUTONOMOUS {
-      public static final double MAX_LINEAR_VELOCITY = PHYSICS.MAX_LINEAR_VELOCITY;
-      public static final double MAX_LINEAR_ACCELERATION = PHYSICS.MAX_LINEAR_ACCELERATION;
-      public static final double MAX_ANGULAR_VELOCITY = PHYSICS.MAX_ANGULAR_VELOCITY;
-      public static final double MAX_ANGULAR_ACCELERATION = PHYSICS.MAX_ANGULAR_ACCELERATION;
-
       public static final class TRANSLATION_GAINS {
-        public static final double kP = 10.0;
+        public static final double kP = 0.75;
         public static final double kI = 0.0;
         public static final double kD = 0.0;
       }
       public static final class ROTATION_GAINS {
-        public static final double kP = 2.0;
+        public static final double kP = 1.0;
         public static final double kI = 0.0;
         public static final double kD = 0.0;
       }
@@ -135,9 +142,9 @@ public final class Constants {
       public static final double kA                 = 0.27734; // volts per m/s^2, free spinning
       
       // CALCULATED
-      public static final double kV                 = 12.0 / (PHYSICS.MAX_LINEAR_VELOCITY); // volts per m/s
-      public static final int    CURRENT_LIMIT      = (int) (PHYSICS.SLIPLESS_CURRENT_LIMIT); // Amps
-      public static final double RAMP_RATE          = (12.0 / kV) / PHYSICS.SLIPLESS_ACCELERATION; // Seconds it takes to reach full power
+      public static final double kV                 = 12.0 / PHYSICS.MAX_LINEAR_VELOCITY; // volts per m/s
+      public static final int    CURRENT_LIMIT      = PHYSICS.SLIPLESS_CURRENT_LIMIT; // Amps
+      public static final double RAMP_RATE          = 0.1; // Seconds it takes to reach full power
       
       // PREFERENCE
       public static final int[]  STATUS_FRAMES      = { 10, 10, 10, 500, 500, 500, 500 }; // ms
@@ -150,7 +157,7 @@ public final class Constants {
       public static final double kD                 = 0.06514; // Derivative Gain
       public static final double kS                 = 0.06684; // volts
       public static final double kA                 = 0.01968; // volts per rad/s^2
-
+      
       // CALCULATED
       public static final double kV                 = 12.0 / (NEO.FREE_SPEED / 60.0 * (1.0 / STEER_MOTOR_GEARING) * Math.PI * 2.0);
       public static final int    CURRENT_LIMIT      = 30; // Amps
@@ -162,21 +169,23 @@ public final class Constants {
 
     // TELEOPERATED
     public static final class ABSOLUTE_ROTATION_GAINS {
-      public static final double kP  = 4.0;
-      public static final double kI  = 0.0;
-      public static final double kD  = 0.0;
+      public static final double kP = 4.0;
+      public static final double kI = 0.0;
+      public static final double kD = 0.0;
     }
     
     // MODULES
     // In order of: front left, front right, back left, back right, where the battery is in the back
-    public static final String[] MODULE_NAMES = { "FL", "FR", "BL", "BR" };
+    public static final String[] MODULE_NAMES          = { "FL", "FR", "BL", "BR" };
+    public static final double[] STEER_ENCODER_OFFSETS = { -213.047, 24.785, -34.805, -11.602 };
+
   }
 
   public static final class CAN {
     // In order of: front left, front right, back left, back right, where the battery is in the back
-    public static final int[] SWERVE_DRIVE_SPARK_MAX = { 10, 20, 30, 40 };
-    public static final int[] SWERVE_STEER_SPARK_MAX = { 11, 21, 31, 41 };
-    public static final int[] SWERVE_STEER_CANCODERS = { 12, 22, 32, 42 };
+    public static final int[] SWERVE_DRIVE_SPARK_MAX = { 20, 40, 10, 30 };
+    public static final int[] SWERVE_STEER_SPARK_MAX = { 21, 41, 11, 31 };
+    public static final int[] SWERVE_STEER_CANCODERS = { 22, 42, 12, 32 };
     public static final int PDH = 5;
   }
   
@@ -185,10 +194,93 @@ public final class Constants {
     public static final double STALL_TORQUE = 3.28;
     public static final double STALL_CURRENT = 181;
     public static final double SAFE_TEMPERATURE = 60;
-    public static final int SAFE_STALL_CURRENT = 60;
+    public static final int SAFE_STALL_CURRENT = 40;
 
     public static double maxTorqueCurrentLimited(int currentLimit) {
       return STALL_TORQUE / STALL_CURRENT * currentLimit;
     }
+  }
+
+  public static final class SWERVE_MATH {
+    public static double angleDistance(double alpha, double beta) {
+      double phi = Math.abs(beta - alpha) % (2.0 * Math.PI);
+      return phi > Math.PI ? (2.0 * Math.PI) - phi : phi;
+    }
+
+    /**
+     * Logical inverse of the Pose exponential from 254. Taken from team 3181.
+     *
+     * @param transform Pose to perform the log on.
+     * @return {@link Twist2d} of the transformed pose.
+     */
+    public static Twist2d PoseLog(final Pose2d transform) {
+      final double kEps          = 1E-9;
+      final double dtheta        = transform.getRotation().getRadians();
+      final double half_dtheta   = 0.5 * dtheta;
+      final double cos_minus_one = transform.getRotation().getCos() - 1.0;
+      double       halftheta_by_tan_of_halfdtheta;
+      if (Math.abs(cos_minus_one) < kEps) {
+        halftheta_by_tan_of_halfdtheta = 1.0 - 1.0 / 12.0 * dtheta * dtheta;
+      } else {
+        halftheta_by_tan_of_halfdtheta = -(half_dtheta * transform.getRotation().getSin()) / cos_minus_one;
+      }
+      final Translation2d translation_part = transform.getTranslation().rotateBy(new Rotation2d(halftheta_by_tan_of_halfdtheta, -half_dtheta));
+      return new Twist2d(translation_part.getX(), translation_part.getY(), dtheta);
+    }
+  }
+
+  public static final class INPUT_MATH {
+    public static double addLinearDeadband(double input, double deadband) { // input ranges from -1 to 1
+      if (Math.abs(input) <= deadband) return 0.0;
+      if (input > 0) return map(input, deadband, 1.0, 0.0, 1.0);
+      return map(input, -deadband, -1.0, 0.0, -1.0);
+    }
+
+    public static double mapBothSides(double X, double A, double B, double C, double D) {
+      if (X > 0.0) return map(X, A, B, C, D);
+      if (X < 0.0) return map(X, -A, -B, -C, -D);
+      return 0.0;
+    }
+
+    public static Translation2d circular(Translation2d input, double deadband, double snapRadians) {
+      double magnitude = input.getNorm();
+      double direction = input.getAngle().getRadians();
+      if (mod(direction, Math.PI / 2.0) <= snapRadians / 2.0 || mod(direction, Math.PI / 2.0) >= (Math.PI / 2.0) - (snapRadians / 2.0)) {
+        direction = Math.round(direction / (Math.PI / 2.0)) * (Math.PI / 2.0);
+      }
+      if (Math.abs(magnitude) <= deadband) return new Translation2d();
+      magnitude = nonLinear(map(magnitude, deadband, 1.0, 0.0, 1.0));
+      return new Translation2d(magnitude * Math.cos(direction), magnitude * Math.sin(direction));
+    }
+
+    public static double nonLinear(double x) {
+      return (1 - Math.cos(Math.abs(x) * Math.PI / 2.0)) * Math.signum(x);
+    }
+  }
+
+  public static double map(double X, double A, double B, double C, double D) {
+    return (X - A) / (B - A) * (D - C) + C;
+  }
+
+  public static double mod(double x, double r) {
+    return ((x % r) + r) % r;
+  }
+
+  public static final class PHOTON_LIB {
+    public static final int SCALE = 1; //INCREASE THIS TO MAKE THE SIMULATION EASIER TO SEE ON A LAPTOP
+    public static final int CAM_RESOLUTION_WIDTH = 320; //Pixels 
+    public static final int CAM_RESOLUTION_HEIGHT = 240; //Pixels
+    public static final double MIN_TARGET_AREA = 10; //Square pixels (CHANGE)
+
+    
+    public static final double CAM_PITCH = 0.0; //Degrees (CHANGE)
+    public static final double CAM_HEIGHT_OFF_GROUND = 1.0; //Meters (CHANGE)
+
+    public static final double FOV_HEIGHT = 59.6; //Degrees
+    public static final double FOV_WIDTH = 49.7; //Degrees
+    public static final double CAM_DIAG_FOV = Math.sqrt(Math.pow(FOV_HEIGHT,2) + Math.pow(FOV_WIDTH,2));
+
+    public static final double MAX_LED_RANGE = 20; //Meters (CHANGE)
+
   }
 }

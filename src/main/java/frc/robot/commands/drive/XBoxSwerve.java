@@ -8,7 +8,9 @@ import java.util.function.Supplier;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.XboxController;
@@ -23,10 +25,11 @@ public class XBoxSwerve extends Command {
   private XboxController controller;
   private SwerveDrive swerveDrive;
   
-  public final double MAX_DRIVE_VELOCITY = SwerveModule.calcWheelVelocity(SWERVE_DRIVE.TELEOPERATED_BOOST_DRIVE_POWER);
+  public final double MAX_DRIVE_VELOCITY = SwerveModule.calcWheelVelocity(SWERVE_DRIVE.TELEOPERATED_BOOST_POWER);
   public final double NOMINAL_DRIVE_VELOCITY = SwerveModule.calcWheelVelocity(SWERVE_DRIVE.TELEOPERATED_DRIVE_POWER);
-  public final double SLOW_DRIVE_VELOCITY = SwerveModule.calcWheelVelocity(SWERVE_DRIVE.TELEOPERATED_SLOW_DRIVE_POWER);
-  public final double MAX_ANGULAR_VELOCITY = SwerveDrive.toAngular(SwerveModule.calcWheelVelocity(SWERVE_DRIVE.TELEOPERATED_ROTATE_POWER));
+  public final double FINE_TUNE_DRIVE_VELOCITY = SwerveModule.calcWheelVelocity(SWERVE_DRIVE.TELEOPERATED_FINE_TUNE_DRIVE_POWER);
+  public final double NOMINAL_ANGULAR_VELOCITY = SwerveDrive.toAngular(SwerveModule.calcWheelVelocity(SWERVE_DRIVE.TELEOPERATED_ROTATE_POWER));
+  public final double MAX_ANGULAR_VELOCITY = SwerveDrive.toAngular(MAX_DRIVE_VELOCITY);
 
   private double targetRobotAngle = 0.0;
   
@@ -36,7 +39,7 @@ public class XBoxSwerve extends Command {
   public XBoxSwerve(SwerveDrive swerveDrive, Supplier<XboxController> xboxSupplier) {
     this.swerveDrive = swerveDrive;
     controller = xboxSupplier.get();
-    controller.setRumble(RumbleType.kBothRumble, 1.0);
+    // controller.setRumble(RumbleType.kBothRumble, 1.0);
     addRequirements(swerveDrive);
   }
 
@@ -58,30 +61,31 @@ public class XBoxSwerve extends Command {
     double leftTrigger = controller.getLeftTriggerAxis();
     double rightTrigger = controller.getRightTriggerAxis();
     Translation2d leftStick = new Translation2d(-controller.getLeftY(), -controller.getLeftX());
-    Translation2d rightStick = new Translation2d(-controller.getRightY(), -controller.getRightX());
+    Translation2d rightStick = new Translation2d(controller.getRightX(), -controller.getRightY());
+    boolean yButton = controller.getYButton();
     
     if (RobotBase.isSimulation()) {
+      leftStick = new Translation2d(controller.getRawAxis(0), -controller.getRawAxis(1));
+      rightStick = new Translation2d(controller.getRawAxis(2), -controller.getRawAxis(3));
       leftTrigger = (controller.getRawAxis(5) + 1.0) / 2.0;
       rightTrigger = (controller.getRawAxis(4) + 1.0) / 2.0;
-      leftStick = new Translation2d(-controller.getRawAxis(1), -controller.getRawAxis(0));
-      rightStick = new Translation2d(-controller.getRawAxis(3), -controller.getRawAxis(2));
+      yButton = controller.getRawButton(5);
     }
 
     // Deadbands
-    leftStick = InputMath.circular(leftStick, 0.0, MathUtils.map(Math.max(leftTrigger, rightTrigger), 0, 1, Math.PI / 8.0, Math.PI / 4.0));
-    rightStick = InputMath.circular(rightStick, 0.0, Math.PI / 8.0);
-    
-    angularVelocity += rightStick.getY() * MAX_ANGULAR_VELOCITY;
-    
-    // Rotate to nearest 90 degrees when any bumpers are pressed
-    if (controller.getLeftBumper() || controller.getRightBumper()) {
-      swerveDrive.setTargetHeading(Math.round(targetRobotAngle / (Math.PI / 2)) * (Math.PI / 2));
-    }
+    leftStick = InputMath.circular(leftStick, 0.05);
 
+    angularVelocity += -rightStick.getX() * MathUtils.map(Math.max(leftTrigger, rightTrigger), 0, 1, NOMINAL_ANGULAR_VELOCITY, MAX_ANGULAR_VELOCITY);
+    
     velocity = velocity.plus(leftStick.times(MathUtils.map(Math.max(leftTrigger, rightTrigger), 0, 1, NOMINAL_DRIVE_VELOCITY, MAX_DRIVE_VELOCITY)));
 
+    if (controller.getPOV() != -1) {
+      Translation2d povVelocity = new Translation2d(Math.cos(Units.degreesToRadians(controller.getPOV())) * FINE_TUNE_DRIVE_VELOCITY, -Math.sin(Units.degreesToRadians(controller.getPOV())) * FINE_TUNE_DRIVE_VELOCITY);
+      velocity = velocity.plus(povVelocity);
+    }
+
     // Zero heading when Y is pressed
-    if (controller.getYButton()) {
+    if (yButton) {
       swerveDrive.setHeading(new Rotation2d());
     }
 
@@ -92,19 +96,12 @@ public class XBoxSwerve extends Command {
       velocity = new Translation2d();
     }
 
-    
-    boolean moving = false;
-    moving = moving || SwerveDrive.toLinear(Math.abs(angularVelocity)) > SWERVE_DRIVE.VELOCITY_DEADBAND;
-    moving = moving || velocity.getNorm() > SWERVE_DRIVE.VELOCITY_DEADBAND;
-    for (SwerveModuleState moduleState : swerveDrive.getTargetModuleStates()) if (Math.abs(moduleState.speedMetersPerSecond) > SWERVE_DRIVE.VELOCITY_DEADBAND) moving = true;
-    for (SwerveModuleState moduleState : swerveDrive.getMeasuredModuleStates()) if (Math.abs(moduleState.speedMetersPerSecond) > SWERVE_DRIVE.VELOCITY_DEADBAND) moving = true;
-    if (!moving) {
-      swerveDrive.parkModules();
-      return;
+    swerveDrive.driveFieldRelative(velocity.getX(), velocity.getY(), angularVelocity);
+
+    if (leftStick.getNorm() > 0.05 && (controller.getLeftBumper() || controller.getRightBumper())) {
+      swerveDrive.setTargetHeading(leftStick.getAngle());
     }
 
-    swerveDrive.driveFieldRelative(velocity.getX(), velocity.getY(), angularVelocity);
-    
     angularVelocity = 0.0;
     velocity = new Translation2d();
   }
