@@ -67,7 +67,7 @@ import static edu.wpi.first.units.Units.Volts;
  * swerve module objects and a gyroscope object.
  */
 public class SwerveDrive extends SubsystemBase {
-  private SwerveModule[] modules = new SwerveModule[SWERVE_DRIVE.MODULE_COUNT];
+  public SwerveModule[] modules = new SwerveModule[SWERVE_DRIVE.MODULE_COUNT];
   private AHRS gyro;
 
   private SwerveDriveKinematics kinematics = getKinematics();
@@ -76,25 +76,6 @@ public class SwerveDrive extends SubsystemBase {
   private Rotation2d heading = Rotation2d.fromDegrees(0.0);
   private boolean deliberatelyRotating = false;
   private boolean parked = false;
-
-
-  private SysIdRoutine calibrationRoutine = new SysIdRoutine(
-    new SysIdRoutine.Config(),
-    new SysIdRoutine.Mechanism(
-      (Measure<Voltage> volts) -> {
-        modules[0].setVolts(volts.in(Volts));
-      },
-      log -> {
-        // Record a frame for the left motors.  Since these share an encoder, we consider
-        // the entire group to be one motor.
-        log.motor("module-" + SWERVE_DRIVE.MODULE_NAMES[0])
-            .voltage(Volts.of(modules[0].getDriveMotorController().get() * RobotController.getBatteryVoltage()))
-            .linearPosition(Meters.of(modules[0].getModulePosition().distanceMeters))
-            .linearVelocity(MetersPerSecond.of(modules[0].getMeasuredState().speedMetersPerSecond));
-      },
-      this
-    )
-  );
 
   private ChassisSpeeds drivenChassisSpeeds = new ChassisSpeeds();
 
@@ -159,10 +140,6 @@ public class SwerveDrive extends SubsystemBase {
     // );
 
     StatusChecks.addCheck("Gyro Connection", gyro::isConnected);
-  }
-
-  public void testInit() {
-    sysIdQuasistatic(SysIdRoutine.Direction.kForward).schedule();
   }
 
   @Override
@@ -596,13 +573,5 @@ public class SwerveDrive extends SubsystemBase {
       );
     }
 
-  }
-
-  public Command sysIdQuasistatic(SysIdRoutine.Direction direction) {
-    return calibrationRoutine.quasistatic(direction);
-  }
-
-  public Command sysIdDynamic(SysIdRoutine.Direction direction) {
-    return calibrationRoutine.dynamic(direction);
   }
 }

@@ -4,10 +4,15 @@
 
 package frc.robot.subsystems.drive;
 
+import static edu.wpi.first.units.Units.Meters;
+import static edu.wpi.first.units.Units.MetersPerSecond;
+import static edu.wpi.first.units.Units.Volts;
+
 import java.util.List;
 
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkLowLevel.MotorType;
+import com.revrobotics.SparkPIDController.AccelStrategy;
 import com.revrobotics.SparkPIDController.ArbFFUnits;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkPIDController;
@@ -28,8 +33,14 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.units.Measure;
+import edu.wpi.first.units.Voltage;
 import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.RobotController;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants.CAN;
 import frc.robot.Constants.NEO;
 import frc.robot.Constants.SWERVE_DRIVE;
@@ -48,6 +59,7 @@ public class SwerveModule extends SubsystemBase {
   private SwerveModuleState targetState = new SwerveModuleState();
   private SwerveModuleState lastDrivenState = new SwerveModuleState();
   public final int id;
+  private boolean isCalibrating = false;
   
   private SimpleMotorFeedforward driveFF = new SimpleMotorFeedforward(
     DRIVE_MOTOR_PROFILE.kS,
@@ -148,6 +160,8 @@ public class SwerveModule extends SubsystemBase {
   }
 
   public void periodic() {
+    if (isCalibrating) return;
+
     if (Math.abs(getMeasuredState().speedMetersPerSecond) < SWERVE_DRIVE.VELOCITY_DEADBAND && SwerveMath.angleDistance(getMeasuredState().angle.getRadians(), getTargetState().angle.getRadians()) < Units.degreesToRadians(1.0)) {
       seedSteerEncoder();
     }
@@ -225,19 +239,6 @@ public class SwerveModule extends SubsystemBase {
   public double getTotalCurrent() {
     return driveMotor.getOutputCurrent() + steerMotor.getOutputCurrent();
   }
-
-  public void setVolts(double volts) {
-    steerPID.setReference(0.0, ControlType.kPosition);
-    driveMotor.setVoltage(volts);
-  }
-
-  public CANSparkMax getDriveMotorController() {
-    return driveMotor;
-  }
-
-  public CANSparkMax getSteerMotorController() {
-    return steerMotor;
-  }
   
   public Pose2d getPose(Pose2d robotPose) {
     Pose2d relativePose = new Pose2d();
@@ -269,5 +270,56 @@ public class SwerveModule extends SubsystemBase {
       -robotPose.getY(),
       new Rotation2d()
     ));
+  }
+
+
+  public Command calibrateSteerMotor() {
+    SysIdRoutine calibrationRoutine = new SysIdRoutine(
+      new SysIdRoutine.Config(),
+      new SysIdRoutine.Mechanism(
+        (Measure<Voltage> volts) -> {
+          steerMotor.set(volts.in(Volts) / RobotController.getBatteryVoltage());
+        },
+        log -> {
+          log.motor("module-" + SWERVE_DRIVE.MODULE_NAMES[id])
+              .voltage(Volts.of(steerMotor.get() * RobotController.getBatteryVoltage()))
+              .linearPosition(Meters.of(steerEncoder.getPosition()))
+              .linearVelocity(MetersPerSecond.of(steerEncoder.getVelocity()));
+        },
+        this
+      )
+    );
+
+    return Commands.sequence(
+      Commands.runOnce(() -> isCalibrating = true),
+      calibrationRoutine.quasistatic(SysIdRoutine.Direction.kForward),
+      calibrationRoutine.dynamic(SysIdRoutine.Direction.kForward),
+      Commands.runOnce(() -> isCalibrating = false)
+    );
+  }
+
+  public Command calibrateDriveMotor() {
+    SysIdRoutine calibrationRoutine = new SysIdRoutine(
+      new SysIdRoutine.Config(),
+      new SysIdRoutine.Mechanism(
+        (Measure<Voltage> volts) -> {
+          driveMotor.set(volts.in(Volts) / RobotController.getBatteryVoltage());
+        },
+        log -> {
+          log.motor("module-" + SWERVE_DRIVE.MODULE_NAMES[id])
+              .voltage(Volts.of(driveMotor.get() * RobotController.getBatteryVoltage()))
+              .linearPosition(Meters.of(driveEncoder.getPosition()))
+              .linearVelocity(MetersPerSecond.of(driveEncoder.getVelocity()));
+        },
+        this
+      )
+    );
+
+    return Commands.sequence(
+      Commands.runOnce(() -> isCalibrating = true),
+      calibrationRoutine.quasistatic(SysIdRoutine.Direction.kForward),
+      calibrationRoutine.dynamic(SysIdRoutine.Direction.kForward),
+      Commands.runOnce(() -> isCalibrating = false)
+    );
   }
 }
