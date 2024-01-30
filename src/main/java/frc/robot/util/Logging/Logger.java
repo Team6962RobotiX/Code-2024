@@ -20,6 +20,7 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.subsystems.drive.SwerveModuleSim;
 
 public final class Logger {
   private static NetworkTable table = NetworkTableInstance.getDefault().getTable("Logs");
@@ -33,12 +34,14 @@ public final class Logger {
 
   private static void update() {
     for (String key : entries.keySet()) {
-      Supplier<Object> object = entries.get(key);
+      Supplier<Object> supplier = entries.get(key);
+      Object object = supplier.get();
 
       try {
         logObject(key, object);
       } catch (IllegalArgumentException exception) {
-        System.out.println("[LOGGING] unknown type: " + object.get().getClass().getSimpleName());
+        System.out.println("[LOGGING] unknown type: " + object.getClass().getSimpleName());
+        System.out.println(exception);
       }
     }
 
@@ -48,12 +51,12 @@ public final class Logger {
   private static class LoggingUpdateCommand extends Command {
     @Override
     public void execute() {
-        Logger.update();
+      Logger.update();
     }
 
     @Override
-    public boolean isFinished() {
-        return false;
+    public boolean runsWhenDisabled() {
+        return true;
     }
   }
 
@@ -234,7 +237,7 @@ public final class Logger {
 
     for (Field f: clazz.getDeclaredFields()) {
       try {
-        logObject(path + "/" + f.getName(), f.get(self));
+        log(path + "/" + f.getName(), f.get(self));
       }
       catch (Exception e) {}
     }
