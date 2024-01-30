@@ -55,8 +55,7 @@ public class RobotContainer {
   public RobotContainer() {
     DataLogManager.start();
     DriverStation.startDataLog(DataLogManager.getLog(), true);
-    Logger.log("constants", this, Constants.class);
-    Logger.log("PDH", new PowerDistribution(CAN.PDH, ModuleType.kRev));
+    Logger.log("PDH", () -> new PowerDistribution(CAN.PDH, ModuleType.kRev));
     Logger.start();
     swerveDrive.setDefaultCommand(new XBoxSwerve(swerveDrive, () -> XboxController));
     //Positive y moves the camera left, Positive x moves the camera forward - TEMPORARY

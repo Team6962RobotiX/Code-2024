@@ -17,15 +17,19 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.NetworkTableValue;
 import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj2.command.Command;
-import frc.robot.subsystems.drive.SwerveModuleSim;
 
 public final class Logger {
   private static NetworkTable table = NetworkTableInstance.getDefault().getTable("Logs");
   private static Map<String, Supplier<Object>> entries = new HashMap<String, Supplier<Object>>();
 
+  /**
+   * Starts the logger, which will automatically log all queued values added with
+   * {@link #log(String, Supplier)} at every call to periodic().
+   */
   public static void start() {
     LoggingUpdateCommand command = new LoggingUpdateCommand();
 
@@ -40,8 +44,7 @@ public final class Logger {
       try {
         logObject(key, object);
       } catch (IllegalArgumentException exception) {
-        System.out.println("[LOGGING] unknown type: " + object.getClass().getSimpleName());
-        System.out.println(exception);
+        System.out.println("[LOGGING] Cannot log object of type: " + object.getClass().getSimpleName());
       }
     }
 
@@ -60,15 +63,43 @@ public final class Logger {
     }
   }
 
+  /**
+   * Schedules the logging of the value of a supplier under a specific key in the NetworkTable.
+   * Invalid values will cause a message to be printed. See {@link #logObject(String, Object)}
+   * for a list of valid types.
+   * @param key The key of the NetworkTable to store the value in
+   * @param supplier A supplier that returns the value to log
+  */
   public static void log(String key, Supplier<Object> supplier) {
     entries.put(key, supplier);
   }
 
-  public static void log(String key, Object obj) {
-    log(key, () -> obj);
+  /**
+   * Immediately logs an object under a specific key in the NetworkTable. Invalid values will
+   * cause a message to be printed. See {@link #logObject(String, Object)} for a list of valid
+   * types.
+   * @param key The key of the NetworkTable to store the value in
+   * @param object The object to log
+   */
+  public static void log(String key, Object object) {
+    try {
+      logObject(key, object);
+    } catch (IllegalArgumentException exception) {
+      System.out.println("[LOGGING] unknown type: " + object.getClass().getSimpleName());
+    }
   }
 
-  public static void logObject(String key, Object obj) {
+  /**
+   * Immediately log an object under a specific key in the NetworkTable.
+   * @param key The key of the NetworkTable to store the value in.
+   * @param obj The object to log, of one of the following types: CANSparkMax,
+   * RelativeEncoder, AHRS, Pose2d, SwerveModuleState, SwerveModuleState[],
+   * SwerveModulePosition, CANStatus, PowerDistribution, NetworkTableValue, Boolean,
+   * Long, Float, Number, String, byte[], boolean[], long[], float[], double[],
+   * Boolean[], Long[], Float[], Number[], or String[]. If the object is not one of
+   * these types, an error will be thrown.
+  */
+  private static void logObject(String key, Object obj) {
     if (obj instanceof CANSparkMax) logObject(key, (CANSparkMax) obj);
     else if (obj instanceof RelativeEncoder) logObject(key, (RelativeEncoder) obj);
     else if (obj instanceof AHRS) logObject(key, (AHRS) obj);
@@ -225,21 +256,5 @@ public final class Logger {
     }
     
     logObject(path + "/hardwareFault", faults.HardwareFault);
-  }
-
-  public static void log(String path, Object self, Class clazz) {    
-    for (Class c: clazz.getDeclaredClasses()) {
-      try {
-        log(path + "/" + c.getSimpleName(), self, c);
-      }
-      catch (Exception e) {}
-    }
-
-    for (Field f: clazz.getDeclaredFields()) {
-      try {
-        log(path + "/" + f.getName(), f.get(self));
-      }
-      catch (Exception e) {}
-    }
   }
 }
