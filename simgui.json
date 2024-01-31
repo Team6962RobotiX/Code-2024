@@ -1,13 +1,4 @@
 {
-  "HALProvider": {
-    "Other Devices": {
-      "navX-Sensor[0]": {
-        "header": {
-          "open": true
-        }
-      }
-    }
-  },
   "NTProvider": {
     "types": {
       "/FMSInfo": "FMSInfo",
@@ -95,17 +86,6 @@
         }
       },
       "/SmartDashboard/VisionSystemSim-main/Sim Field": {
-<<<<<<< Updated upstream
-=======
-        "apriltag": {
-          "color": [
-            0.0,
-            179.99998474121094,
-            255.0,
-            255.0
-          ]
-        },
->>>>>>> Stashed changes
         "bottom": 1476,
         "height": 8.210550308227539,
         "left": 150,
@@ -115,7 +95,6 @@
         "window": {
           "visible": true
         }
-<<<<<<< Updated upstream
       }
     }
   },
@@ -135,8 +114,6 @@
         "vision": {
           "open": true
         }
-=======
->>>>>>> Stashed changes
       }
     }
   },

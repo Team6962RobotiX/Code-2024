@@ -4,9 +4,7 @@
 package frc.robot;
 
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.util.Units;
@@ -80,7 +78,6 @@ public final class Constants {
     
     // ODOMETER
     public static final Pose2d   STARTING_POSE                      = new Pose2d(0.0, 0.0, Rotation2d.fromDegrees(0.0));
-    public static final Pose3d   STARTING_POSE_3D                   = new Pose3d(0.0, 0.0, 0.0, new Rotation3d());
 
     // TESTING
     public static final double   MOTOR_POWER_HARD_CAP               = 1.0; // Only use for testing, otherwise set to 1.0
