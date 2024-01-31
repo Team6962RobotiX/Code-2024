@@ -145,7 +145,8 @@ public class Camera extends SubsystemBase {
 
     try {
 
-      var latestResult = camera.getLatestResult();
+      latestResult = camera.getLatestResult();
+      System.out.println(camera.getLatestResult());
 
       System.out.println(latestResult);
 
@@ -190,11 +191,16 @@ public class Camera extends SubsystemBase {
   }
 
   public int getFiducialId() {
-    PhotonTrackedTarget target = latestResult.getBestTarget();
+    if (latestResult.hasTargets()){
+      PhotonTrackedTarget target = latestResult.getBestTarget();
 
-    int targetID = target.getFiducialId();
+      int targetID = target.getFiducialId();
 
-    return targetID;
+      return targetID;
+    }
+    else {
+      return 0;
+    }
   }
   
 
