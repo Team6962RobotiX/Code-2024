@@ -66,7 +66,7 @@ public class XBoxSwerve extends Command {
     
     if (RobotBase.isSimulation()) {
       leftStick = new Translation2d(controller.getRawAxis(0), -controller.getRawAxis(1));
-      rightStick = new Translation2d(controller.getRawAxis(3), -controller.getRawAxis(4));
+      rightStick = new Translation2d(controller.getRawAxis(2), -controller.getRawAxis(4));
       leftTrigger = (controller.getRawAxis(5) + 1.0) / 2.0;
       rightTrigger = (controller.getRawAxis(4) + 1.0) / 2.0;
       yButton = controller.getRawButton(5);

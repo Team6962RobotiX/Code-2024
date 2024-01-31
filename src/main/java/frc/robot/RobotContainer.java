@@ -30,6 +30,7 @@ import frc.robot.Constants.CAN;
 import frc.robot.Constants.DEVICES;
 import frc.robot.commands.drive.XBoxSwerve;
 import frc.robot.commands.vision.AutoDeccel;
+import frc.robot.commands.vision.AutoOrient;
 import frc.robot.Constants.CAN;
 import frc.robot.Constants.DEVICES;
 import frc.robot.commands.drive.XBoxSwerve;
@@ -81,6 +82,8 @@ public class RobotContainer {
 
   private void configureBindings() {
     new JoystickButton(controller, XboxController.Button.kA.value).whileTrue(new AutoDeccel(swerveDrive, camera));
+    new JoystickButton(controller, 6).whileTrue(new AutoOrient(camera, swerveDrive));
+
   }
 
   public Command getAutonomousCommand() {
