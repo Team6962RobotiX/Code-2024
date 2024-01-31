@@ -4,6 +4,7 @@
 
 package frc.robot.subsystems.vision;
 
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -20,13 +21,19 @@ import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
+
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
+
+import org.photonvision.EstimatedRobotPose;
 import org.photonvision.PhotonCamera;
+import org.photonvision.PhotonPoseEstimator;
+import org.photonvision.PhotonPoseEstimator.PoseStrategy;
 import org.photonvision.PhotonUtils;
 import org.photonvision.estimation.TargetModel;
 import org.photonvision.simulation.PhotonCameraSim;
@@ -57,6 +64,8 @@ public class Camera extends SubsystemBase {
   private PhotonCameraSim cameraSim;
   private Supplier<Pose2d> poseSupplier;
   private NetworkTableInstance inst;
+  private PhotonPoseEstimator photonPoseEstimator;
+  private Pose2d previousPose;
 
 
   // LimelightHelper Fiducial methods are not static so you need to make an instance of it
@@ -99,6 +108,9 @@ public class Camera extends SubsystemBase {
     cameraSim.enableRawStream(true);
     cameraSim.enableProcessedStream(true);
     cameraSim.enableDrawWireframe(false);
+
+    photonPoseEstimator = new PhotonPoseEstimator(tagLayout, PoseStrategy.CLOSEST_TO_REFERENCE_POSE, camera, robotToCamera);
+
   }
 
 
@@ -112,7 +124,7 @@ public class Camera extends SubsystemBase {
     double x = tx.getDouble(0.0);
     System.out.println("table: " + x);
 
-    latestResult = camera.getLatestResult();
+   
   }
 
   public LimelightHelpers.Results getTargetingResults() {
@@ -126,8 +138,37 @@ public class Camera extends SubsystemBase {
   @Override
   public void simulationPeriodic() {
     visionSim.update(poseSupplier.get());
-    Logger.log("vision/getBestTargetDist", getBestTargetDist());
-  }
+
+    previousPose = poseSupplier.get();
+
+    //Logger.log("vision/getBestTargetDist", getBestTargetDist());
+
+    try {
+
+      var latestResult = camera.getLatestResult();
+
+      System.out.println(latestResult);
+
+      boolean hasTargets = latestResult.hasTargets();
+
+      if (hasTargets) {
+        Optional<EstimatedRobotPose> poseRaw = getEstimatedGlobalPose(previousPose);
+
+        if (poseRaw.isPresent()) {
+          EstimatedRobotPose position = poseRaw.get();
+          Pose3d pose = position.estimatedPose;
+
+          Pose2d pose2d = pose.toPose2d();
+          System.out.println(pose2d);
+        }
+      }
+    }
+      catch(Exception e){
+        System.out.println("null");
+
+      }
+    }
+  
 
   public PhotonTrackedTarget getBestTarget() {
     if (latestResult.hasTargets()) {
@@ -147,4 +188,20 @@ public class Camera extends SubsystemBase {
     }
     return -1.0;
   }
+
+  public int getFiducialId() {
+    PhotonTrackedTarget target = latestResult.getBestTarget();
+
+    int targetID = target.getFiducialId();
+
+    return targetID;
+  }
+  
+
+   public Optional<EstimatedRobotPose> getEstimatedGlobalPose(Pose2d prevEstimatedRobotPose) {
+        photonPoseEstimator.setReferencePose(prevEstimatedRobotPose);
+        return photonPoseEstimator.update();
+  }
+  
 }
+
