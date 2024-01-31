@@ -1,4 +1,17 @@
 {
+<<<<<<< Updated upstream
+=======
+  "FMS": {
+    "window": {
+      "visible": false
+    }
+  },
+  "Keyboard 0 Settings": {
+    "window": {
+      "visible": true
+    }
+  },
+>>>>>>> Stashed changes
   "keyboardJoysticks": [
     {
       "axisConfig": [
@@ -42,7 +55,7 @@
       "axisCount": 8,
       "buttonCount": 6,
       "buttonKeys": [
-        -1,
+        74,
         -1,
         -1,
         -1,
@@ -66,7 +79,6 @@
     {
       "axisConfig": [
         {
-          "decKey": 74,
           "incKey": 76
         },
         {
