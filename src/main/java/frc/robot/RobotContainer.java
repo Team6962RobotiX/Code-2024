@@ -34,7 +34,6 @@ import frc.robot.Constants.SWERVE_DRIVE;
 import frc.robot.Constants.SWERVE_DRIVE.DRIVE_MOTOR_PROFILE;
 import frc.robot.commands.drive.XBoxSwerve;
 import frc.robot.subsystems.drive.SwerveDrive;
-import frc.robot.subsystems.vision.PhotonLib;
 import frc.robot.util.Logging.Logger;
 import frc.robot.subsystems.vision.Camera;
 

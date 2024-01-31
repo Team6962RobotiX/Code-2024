@@ -205,14 +205,14 @@ public class SwerveDrive extends SubsystemBase {
 
   private void driveAttainableSpeeds(ChassisSpeeds fieldRelativeSpeeds) {
     double targetAngularSpeed = toLinear(Math.abs(fieldRelativeSpeeds.omegaRadiansPerSecond));
-    double measuredAngularSpeed = toLinear(Math.abs(getMeasuredChassisSpeeds().omegaRadiansPerSecond));
+    double drivenAngularSpeed = toLinear(Math.abs(getDrivenChassisSpeeds().omegaRadiansPerSecond));
 
     if (targetAngularSpeed > SWERVE_DRIVE.VELOCITY_DEADBAND) {
       deliberatelyRotating = true;
       setTargetHeading(getHeading());
       rotateController.reset(getHeading().getRadians());
     }
-    if (measuredAngularSpeed < SWERVE_DRIVE.VELOCITY_DEADBAND) {
+    if (drivenAngularSpeed < SWERVE_DRIVE.VELOCITY_DEADBAND) {
       if (deliberatelyRotating) {
         setTargetHeading(getHeading());
         rotateController.reset(getHeading().getRadians());
@@ -288,10 +288,10 @@ public class SwerveDrive extends SubsystemBase {
    * This creates an "X" pattern with the wheels which makes the robot very hard to move
    */
   public void parkModules() {
-    modules[0].setTargetState(new SwerveModuleState(0.0, Rotation2d.fromDegrees(-45.0)));
-    modules[1].setTargetState(new SwerveModuleState(0.0, Rotation2d.fromDegrees(45.0)));
-    modules[2].setTargetState(new SwerveModuleState(0.0, Rotation2d.fromDegrees(45.0)));
-    modules[3].setTargetState(new SwerveModuleState(0.0, Rotation2d.fromDegrees(-45.0)));
+    modules[0].setTargetState(new SwerveModuleState(0.0, Rotation2d.fromDegrees(45.0)));
+    modules[1].setTargetState(new SwerveModuleState(0.0, Rotation2d.fromDegrees(-45.0)));
+    modules[2].setTargetState(new SwerveModuleState(0.0, Rotation2d.fromDegrees(-45.0)));
+    modules[3].setTargetState(new SwerveModuleState(0.0, Rotation2d.fromDegrees(45.0)));
     parked = true;
   }
 
