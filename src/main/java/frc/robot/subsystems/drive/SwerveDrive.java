@@ -205,14 +205,14 @@ public class SwerveDrive extends SubsystemBase {
 
   private void driveAttainableSpeeds(ChassisSpeeds fieldRelativeSpeeds) {
     double targetAngularSpeed = toLinear(Math.abs(fieldRelativeSpeeds.omegaRadiansPerSecond));
-    double drivenAngularSpeed = toLinear(Math.abs(getDrivenChassisSpeeds().omegaRadiansPerSecond));
+    double measuredAngularSpeed = toLinear(Math.abs(getMeasuredChassisSpeeds().omegaRadiansPerSecond));
 
     if (targetAngularSpeed > SWERVE_DRIVE.VELOCITY_DEADBAND) {
       deliberatelyRotating = true;
       setTargetHeading(getHeading());
       rotateController.reset(getHeading().getRadians());
     }
-    if (drivenAngularSpeed < SWERVE_DRIVE.VELOCITY_DEADBAND) {
+    if (measuredAngularSpeed < SWERVE_DRIVE.VELOCITY_DEADBAND) {
       if (deliberatelyRotating) {
         setTargetHeading(getHeading());
         rotateController.reset(getHeading().getRadians());
