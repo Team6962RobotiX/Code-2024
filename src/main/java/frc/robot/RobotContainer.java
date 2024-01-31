@@ -23,11 +23,18 @@ import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
+<<<<<<< Updated upstream
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.CAN;
 import frc.robot.Constants.DEVICES;
 import frc.robot.commands.drive.XBoxSwerve;
 import frc.robot.commands.vision.AutoDeccel;
+=======
+import frc.robot.Constants.CAN;
+import frc.robot.Constants.DEVICES;
+import frc.robot.commands.drive.XBoxSwerve;
+import frc.robot.commands.vision.AutoOrient;
+>>>>>>> Stashed changes
 import frc.robot.subsystems.drive.SwerveDrive;
 import frc.robot.Constants.NEO;
 import frc.robot.Constants.SWERVE_DRIVE;
@@ -70,7 +77,11 @@ public class RobotContainer {
   }
 
   private void configureBindings() {
+<<<<<<< Updated upstream
     new JoystickButton(controller, XboxController.Button.kA.value).whileTrue(new AutoDeccel(swerveDrive, camera));
+=======
+    new JoystickButton(XboxController, 1).whileTrue(new AutoOrient(camera, swerveDrive));
+>>>>>>> Stashed changes
   }
 
   public Command getAutonomousCommand() {
