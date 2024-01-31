@@ -39,10 +39,10 @@ public class Robot extends TimedRobot {
     joystick0 = new Joystick(0);
 
     //Sparks
-    rbank1 = new CANSparkMax(1,MotorType.kBrushless);
-    lbank1 = new CANSparkMax(2,MotorType.kBrushless); 
-    lbank2 = new CANSparkMax(3,MotorType.kBrushless); 
-    rbank2 = new CANSparkMax(4,MotorType.kBrushless);    
+    rbank1 = new CANSparkMax(51,MotorType.kBrushless);
+    lbank1 = new CANSparkMax(52,MotorType.kBrushless); 
+    lbank2 = new CANSparkMax(53,MotorType.kBrushless); 
+    rbank2 = new CANSparkMax(54,MotorType.kBrushless);    
     rbank2.follow(rbank1);
     lbank2.follow(lbank1);
 
