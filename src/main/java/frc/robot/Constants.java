@@ -28,10 +28,6 @@ public final class Constants {
     public static final boolean ENABLE_DASHBOARD = true;
   }
 
-  public static final class LOGGING {
-    public static final int LOGGING_PERIOD_MS = 20;
-  }
-
   // DEVICES
   public static final class DEVICES {
     public static final int USB_XBOX_CONTROLLER = 0;
