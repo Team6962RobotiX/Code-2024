@@ -20,8 +20,11 @@ import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants.CAN;
 import frc.robot.Constants.DEVICES;
 import frc.robot.commands.drive.XBoxSwerve;
@@ -31,7 +34,6 @@ import frc.robot.Constants.SWERVE_DRIVE;
 import frc.robot.Constants.SWERVE_DRIVE.DRIVE_MOTOR_PROFILE;
 import frc.robot.commands.drive.XBoxSwerve;
 import frc.robot.subsystems.drive.SwerveDrive;
-import frc.robot.subsystems.vision.PhotonLib;
 import frc.robot.util.Logging.Logger;
 import frc.robot.subsystems.vision.Camera;
 
@@ -48,8 +50,10 @@ public class RobotContainer {
   private final XboxController XboxController = new XboxController(DEVICES.USB_XBOX_CONTROLLER);
   private final SwerveDrive swerveDrive = new SwerveDrive();
 
-  //Simulation only - getPose() does not work in real life
+  // Simulation only - getPose() does not work in real life
   private final Camera camera = new Camera("default", swerveDrive::getPose);
+
+  private final SendableChooser<Command> calibrationChooser = new SendableChooser<>();
   
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
@@ -58,13 +62,16 @@ public class RobotContainer {
     Logger.log("PDH", () -> new PowerDistribution(CAN.PDH, ModuleType.kRev));
     Logger.start();
     swerveDrive.setDefaultCommand(new XBoxSwerve(swerveDrive, () -> XboxController));
-    //Positive y moves the camera left, Positive x moves the camera forward - TEMPORARY
-    swerveDrive.resetPose(new Pose2d(new Translation2d(2, 2), new Rotation2d()));
+    
+    calibrationChooser.setDefaultOption("Calibrate Drive Motor (FL)", swerveDrive.modules[0].calibrateDriveMotor());
+    calibrationChooser.setDefaultOption("Calibrate Steer Motor (FL)", swerveDrive.modules[0].calibrateSteerMotor());
+    SmartDashboard.putData("Swerve Module Calibration", calibrationChooser);
+
+
     // Configure the trigger bindings
     configureBindings();
     
     SwerveDrive.printChoreoConfig();
-
   }
 
   private void configureBindings() {
@@ -72,9 +79,14 @@ public class RobotContainer {
   }
 
   public Command getAutonomousCommand() {
+    // return swerveDrive.goTo(new Translation2d(5.0, 5.0), Rotation2d.fromDegrees(90.0));
     return swerveDrive.followChoreoTrajectory("simple", true);
   }
 
   public void disabledPeriodic() {
+  }
+
+  public void testInit() {
+    calibrationChooser.getSelected().schedule();
   }
 }

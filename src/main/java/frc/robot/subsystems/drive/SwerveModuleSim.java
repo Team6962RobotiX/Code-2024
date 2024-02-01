@@ -138,14 +138,6 @@ public class SwerveModuleSim extends SwerveModule {
     return new SwerveModulePosition(drivePosition, getMeasuredState().angle);
   }
 
-  @Override
-  public void setVolts(double volts) {
-    steerRadians = 0.0;
-    driveMotor.setInputVoltage(volts);
-    driveMotor.update(0.02);
-    drivePosition += getMeasuredState().speedMetersPerSecond * 0.02;
-  }
-
   public static double wheelMOI(double radius, double mass) {
     return (1.0 / 2.0) * mass * Math.pow(radius, 2.0);
   }
