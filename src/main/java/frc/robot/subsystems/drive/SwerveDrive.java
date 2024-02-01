@@ -179,7 +179,7 @@ public class SwerveDrive extends SubsystemBase {
    * Drives the robot at a given field-relative ChassisSpeeds
    * @param fieldRelativeSpeeds
    */
-  public void driveFieldRelative(ChassisSpeeds fieldRelativeSpeeds) {
+  private void driveFieldRelative(ChassisSpeeds fieldRelativeSpeeds) {
     driveAttainableSpeeds(fieldRelativeSpeeds);
   }
 
@@ -197,7 +197,7 @@ public class SwerveDrive extends SubsystemBase {
    * Drives the robot at a given robot-relative ChassisSpeeds
    * @param robotRelativeSpeeds
    */
-  public void driveRobotRelative(ChassisSpeeds robotRelativeSpeeds) {
+  private void driveRobotRelative(ChassisSpeeds robotRelativeSpeeds) {
     driveFieldRelative(ChassisSpeeds.fromRobotRelativeSpeeds(robotRelativeSpeeds, getHeading()));
   }
 
@@ -338,7 +338,7 @@ public class SwerveDrive extends SubsystemBase {
   /**
    * @return Measured module positions
    */
-  public SwerveModulePosition[] getModulePositions() {
+  private SwerveModulePosition[] getModulePositions() {
     SwerveModulePosition[] positions = new SwerveModulePosition[SWERVE_DRIVE.MODULE_COUNT];
     for (int i = 0; i < SWERVE_DRIVE.MODULE_COUNT; i++) {
       positions[i] = modules[i].getModulePosition();
@@ -349,7 +349,7 @@ public class SwerveDrive extends SubsystemBase {
   /**
    * @return Target module states (speed and direction)
    */
-  public SwerveModuleState[] getTargetModuleStates() {
+  private SwerveModuleState[] getTargetModuleStates() {
     SwerveModuleState[] targetStates = new SwerveModuleState[SWERVE_DRIVE.MODULE_COUNT];
     for (int i = 0; i < SWERVE_DRIVE.MODULE_COUNT; i++) {
       targetStates[i] = modules[i].getTargetState();
@@ -360,7 +360,7 @@ public class SwerveDrive extends SubsystemBase {
   /**
    * @return Measured module states (speed and direction)
    */
-  public SwerveModuleState[] getMeasuredModuleStates() {
+  private SwerveModuleState[] getMeasuredModuleStates() {
     SwerveModuleState[] measuredStates = new SwerveModuleState[SWERVE_DRIVE.MODULE_COUNT];
     for (int i = 0; i < SWERVE_DRIVE.MODULE_COUNT; i++) {
       measuredStates[i] = modules[i].getMeasuredState();
