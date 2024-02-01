@@ -64,8 +64,6 @@ public class RobotContainer {
     Logger.startLog();
 
     swerveDrive.setDefaultCommand(new XBoxSwerve(swerveDrive, () -> XboxController));
-    //Positive y moves the camera left, Positive x moves the camera forward - TEMPORARY
-    swerveDrive.resetPose(new Pose2d(new Translation2d(2, 2), new Rotation2d()));
     
     calibrationChooser.setDefaultOption("Calibrate Drive Motor (FL)", swerveDrive.modules[0].calibrateDriveMotor());
     calibrationChooser.setDefaultOption("Calibrate Steer Motor (FL)", swerveDrive.modules[0].calibrateSteerMotor());
@@ -83,6 +81,7 @@ public class RobotContainer {
   }
 
   public Command getAutonomousCommand() {
+    // return swerveDrive.goTo(new Translation2d(5.0, 5.0), Rotation2d.fromDegrees(90.0));
     return swerveDrive.followChoreoTrajectory("simple", true);
   }
 
