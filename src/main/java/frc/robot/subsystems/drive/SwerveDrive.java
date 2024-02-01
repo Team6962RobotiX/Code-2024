@@ -105,8 +105,8 @@ public class SwerveDrive extends SubsystemBase {
     
     SmartDashboard.putData("Field", field);
     Logger.log("SwerveDrive/pose", () -> this.getPose());
-    Logger.log("SwerveDrive/targetStates", () -> this::getTargetModuleStates);
-    Logger.log("SwerveDrive/measuredStates", () -> this::getMeasuredModuleStates);
+    Logger.log("SwerveDrive/targetStates", this::getTargetModuleStates);
+    Logger.log("SwerveDrive/measuredStates", this::getMeasuredModuleStates);
 
     StatusChecks.addCheck("Gyro Connection", gyro::isConnected);
 
