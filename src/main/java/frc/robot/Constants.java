@@ -6,10 +6,12 @@ package frc.robot;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.XboxController;
 import frc.robot.subsystems.drive.SwerveDrive;
 
 /**
@@ -27,6 +29,7 @@ public final class Constants {
     public static final boolean ENABLE_DRIVE     = true;
     public static final boolean ENABLE_LIMELIGHT = false;
     public static final boolean ENABLE_DASHBOARD = true;
+    public static final boolean ENABLE_SHOOTER   = false;
   }
 
   public static final class LOGGING {
@@ -74,7 +77,7 @@ public final class Constants {
     public static final double   TELEOPERATED_DRIVE_POWER           = 0.5; // Percent driving power
     public static final double   TELEOPERATED_BOOST_POWER           = 1.0; // Percent power when using the triggers
     public static final double   TELEOPERATED_ROTATE_POWER          = 0.5; // Percent rotating power
-    public static final double   VELOCITY_DEADBAND                  = 0.1; // Velocity we stop moving at
+    public static final double   VELOCITY_DEADBAND                  = 0.01; // Velocity we stop moving at
     
     // ODOMETER
     public static final Pose2d   STARTING_POSE                      = new Pose2d(0.0, 0.0, Rotation2d.fromDegrees(0.0));
@@ -179,10 +182,9 @@ public final class Constants {
     // MODULES
     // In order of: front left, front right, back left, back right, where the battery is in the back
 
-    public static final String[] MODULE_NAMES          = { "FL", "FR", "BL", "BR" };
+    public static final String[] MODULE_NAMES                = { "FL", "FR", "BL", "BR" };
     public static final double[] STEER_ENCODER_OFFSETS_PROTO = { -213.047, 24.785, -34.805, -11.602 };
     public static final double[] STEER_ENCODER_OFFSETS_COMP  = { 69.70908 + 180.0, 88.0214 + 180.0, 57.48648 + 180.0, 191.33784 + 180.0 };
-
   }
 
   public static final class CAN {
@@ -191,6 +193,8 @@ public final class Constants {
     public static final int[] SWERVE_STEER_SPARK_MAX = { 21, 41, 11, 31 };
     public static final int[] SWERVE_STEER_CANCODERS = { 22, 42, 12, 32 };
     public static final int PDH = 5;
+    public static final int SHOOTER_WHEELS = 6;
+    public static final int SHOOTER_PIVOT = 7;
   }
   
   public static final class NEO {
@@ -262,6 +266,16 @@ public final class Constants {
     }
   }
 
+  public static boolean isIdle(XboxController xboxController) {
+    if (xboxController.getRawAxis(0) != 0) {
+      return false;
+    }
+    if (xboxController.getRawAxis(1) != 0) {
+      return false;
+    }
+    return true;
+  }
+
   public static double map(double X, double A, double B, double C, double D) {
     return (X - A) / (B - A) * (D - C) + C;
   }
@@ -282,9 +296,35 @@ public final class Constants {
 
     public static final double FOV_HEIGHT = 59.6; //Degrees
     public static final double FOV_WIDTH = 49.7; //Degrees
-    public static final double CAM_DIAG_FOV = Math.sqrt(Math.pow(FOV_HEIGHT,2) + Math.pow(FOV_WIDTH,2));
+    public static final double CAM_DIAG_FOV = Math.sqrt(Math.pow(FOV_HEIGHT, 2) + Math.pow(FOV_WIDTH, 2));
 
     public static final double MAX_LED_RANGE = 20; //Meters (CHANGE)
+  }
 
+  public static final class SHOOTER {
+    public static final class SHOOTER_WHEELS {
+      public static final double GEARBOX_STEP_UP = 2.0;
+      public static final double WHEEL_MOI = 0.001;
+      public static final double WHEEL_RADIUS = Units.inchesToMeters(2.0);
+      public static final double PROJECTILE_MASS = Units.lbsToKilograms(0.5);
+      public static final double SPEED_TOLERANCE = Units.degreesToRadians(2.0);
+      public static final double TARGET_SPEED    = Units.rotationsPerMinuteToRadiansPerSecond(10000);
+
+      // x is front-to-back
+      // y is left-to-right
+      // z is top-to-bottom
+      public static final Translation3d POSITION = new Translation3d(0.0, 0.0, 0.0);
+      
+      public static final class PROFILE {
+        public static final double kV = 0.1; // volts per rad/s
+        public static final double kA = 0.1; // volts per rad/s^2
+      }
+    }
+
+    public static final class SHOOTER_PIVOT {
+      public static final double GEARBOX_REDUCTION = 1.0;
+      public static final double ROTATION_DELAY    = 0.3; // seconds
+      public static final double ANGLE_TOLERANCE   = Units.degreesToRadians(2.0);
+    }
   }
 }

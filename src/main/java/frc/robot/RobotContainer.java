@@ -29,6 +29,8 @@ import frc.robot.Constants.CAN;
 import frc.robot.Constants.DEVICES;
 import frc.robot.commands.drive.XBoxSwerve;
 import frc.robot.subsystems.drive.SwerveDrive;
+import frc.robot.subsystems.shooter.ShooterPivot;
+import frc.robot.subsystems.shooter.ShooterWheels;
 import frc.robot.Constants.NEO;
 import frc.robot.Constants.SWERVE_DRIVE;
 import frc.robot.Constants.SWERVE_DRIVE.DRIVE_MOTOR_PROFILE;
@@ -47,8 +49,10 @@ import frc.robot.subsystems.vision.Camera;
 public class RobotContainer {
 
   // The robot's subsystems and commands
-  private final XboxController XboxController = new XboxController(DEVICES.USB_XBOX_CONTROLLER);
+  private final XboxController xboxController = new XboxController(DEVICES.USB_XBOX_CONTROLLER);
   private final SwerveDrive swerveDrive = new SwerveDrive();
+  private final ShooterWheels shooterWheels = new ShooterWheels();
+  private final ShooterPivot shooterPivot = new ShooterPivot(shooterWheels, swerveDrive);
 
   // Simulation only - getPose() does not work in real life
   private final Camera camera = new Camera("default", swerveDrive::getPose);
@@ -63,7 +67,7 @@ public class RobotContainer {
     Logger.autoLog("PDH", new PowerDistribution(CAN.PDH, ModuleType.kRev));
     Logger.startLog();
 
-    swerveDrive.setDefaultCommand(new XBoxSwerve(swerveDrive, () -> XboxController));
+    swerveDrive.setDefaultCommand(new XBoxSwerve(swerveDrive, () -> xboxController));
     
     calibrationChooser.setDefaultOption("Calibrate Drive Motor (FL)", swerveDrive.modules[0].calibrateDriveMotor());
     calibrationChooser.setDefaultOption("Calibrate Steer Motor (FL)", swerveDrive.modules[0].calibrateSteerMotor());
@@ -91,4 +95,5 @@ public class RobotContainer {
   public void testInit() {
     calibrationChooser.getSelected().schedule();
   }
+
 }

@@ -6,6 +6,7 @@ package frc.robot.commands.drive;
 
 import java.util.function.Supplier;
 
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -15,6 +16,9 @@ import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import frc.robot.Field;
+import frc.robot.Constants;
 import frc.robot.Constants.SWERVE_DRIVE;
 import frc.robot.subsystems.drive.SwerveDrive;
 import frc.robot.subsystems.drive.SwerveModule;
@@ -92,8 +96,13 @@ public class XBoxSwerve extends Command {
     if (SwerveDrive.toLinear(Math.abs(angularVelocity)) < SWERVE_DRIVE.VELOCITY_DEADBAND) {
       angularVelocity = 0.0;
     }
+
     if (velocity.getNorm() < SWERVE_DRIVE.VELOCITY_DEADBAND) {
       velocity = new Translation2d();
+    }
+
+    if (controller.getRawButton(6)) {
+      swerveDrive.goToNearestPose(Field.AUTO_MOVE_POSITIONS_BLUE.values().toArray(new Pose2d[]{}), controller).schedule();
     }
 
     swerveDrive.driveFieldRelative(velocity.getX(), velocity.getY(), angularVelocity);
