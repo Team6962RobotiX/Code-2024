@@ -57,7 +57,7 @@ public class Robot extends TimedRobot {
 
   @Override
   public void autonomousInit() {}
-
+ 
   @Override
   public void autonomousPeriodic() {
     lbank1.setVoltage(12);
@@ -65,34 +65,37 @@ public class Robot extends TimedRobot {
     rbank1.setVoltage(12);
     rbank2.setVoltage(12);
 
-    myDrive.tankDrive(-0.2, 0.2, false);
+    lbank1.set(0.1);
+    
+    rbank1.set(-0.1);
+    
   }
 
   @Override
   public void teleopInit() {
-    System.out.print("hi");
-  }
+
+    }
 
   @Override
   public void teleopPeriodic() {
 
-    lbank1.setVoltage(12);
-    lbank2.setVoltage(12);
-    rbank1.setVoltage(12);
-    rbank2.setVoltage(12);
-
-    double limitTurnSpeed = 0.5;
-    double limitSpeed = 0.5; 
-
+    
+    double limitTurnSpeed = 0.2;
+    double limitSpeed = 0.2; 
+    
     double joystickLValue = 
         (-joystick0.getRawAxis(1) * limitSpeed + (joystick0.getRawAxis(2) * limitTurnSpeed));
     double joystickRValue =
         (-joystick0.getRawAxis(1) * limitSpeed - (joystick0.getRawAxis(2) * limitTurnSpeed));
 
+    /* 
     myDrive.tankDrive(-joystickLValue, joystickRValue,false);
+    */
+    rbank1.set(-joystickRValue);
+    lbank1.set(joystickLValue);
+    
   }
 
 
 }
 
-//qwertyuiopasdfghjklzxcvbnmmnbvcxzlkjhgfdsapoiuytrewqqazwsxedcrfvtgbyhnujmikolpplokimjunhybgtvfrcdexswzaq
