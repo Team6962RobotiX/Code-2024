@@ -624,30 +624,24 @@ public class SwerveDrive extends SubsystemBase {
    * @return A command to run
    */
   public Command goTo(Pose2d pose, XboxController xboxController) {
-    Rotation2d angle = pose.getTranslation().minus(getPose().getTranslation()).getAngle();
-
-    List<Translation2d> bezierPoints = PathPlannerPath.bezierFromPoses(
-      new Pose2d(getPose().getTranslation(), angle),
-      new Pose2d(pose.getTranslation(), angle)
+    // Create the constraints to use while pathfinding
+    PathConstraints constraints = new PathConstraints(
+      SWERVE_DRIVE.PHYSICS.MAX_LINEAR_VELOCITY,
+      SWERVE_DRIVE.PHYSICS.MAX_LINEAR_ACCELERATION / 2.0,
+      SWERVE_DRIVE.PHYSICS.MAX_ANGULAR_VELOCITY,
+      SWERVE_DRIVE.PHYSICS.MAX_ANGULAR_ACCELERATION / 2.0
     );
 
-    PathPlannerPath path = new PathPlannerPath(
-      bezierPoints,
-      new PathConstraints(
-        SWERVE_DRIVE.PHYSICS.MAX_LINEAR_VELOCITY,
-        SWERVE_DRIVE.PHYSICS.MAX_LINEAR_ACCELERATION / 2.0,
-        SWERVE_DRIVE.PHYSICS.MAX_ANGULAR_VELOCITY,
-        SWERVE_DRIVE.PHYSICS.MAX_ANGULAR_ACCELERATION / 2.0
-      ),
-      new GoalEndState(
-        0.0,
-        pose.getRotation(),
-        true
-      )
+    // Since AutoBuilder is configured, we can use it to build pathfinding commands
+    Command pathfindingCommand = AutoBuilder.pathfindToPose(
+      pose,
+      constraints,
+      0.0, // Goal end velocity in meters/sec
+      0.0 // Rotation delay distance in meters. This is how far the robot should travel before attempting to rotate.
     );
 
     return Commands.sequence(
-      AutoBuilder.followPath(path),
+      pathfindingCommand,
       Commands.runOnce(() -> setTargetHeading(pose.getRotation()))
     ).onlyWhile(() -> Constants.isIdle(xboxController));
   }

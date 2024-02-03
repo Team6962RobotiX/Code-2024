@@ -144,7 +144,7 @@ public final class Constants {
       public static final double kP                 = 0.00010; // Proportion Gain
       public static final double kI                 = 0.00000; // Integral Gain
       public static final double kD                 = 0.00000; // Derivative Gain
-      public static final double kS                 = 0.1819; // volts
+      public static final double kS                 = 0.00000; // volts
       public static final double kV                 = 2.7413; // volts per m/s
       public static final double kA                 = 0.17317; // volts per m/s^2, free spinning
       
@@ -161,7 +161,7 @@ public final class Constants {
       public static final double kP                 = 0.47250; // Proportion Gain
       public static final double kI                 = 0.00000; // Integral Gain
       public static final double kD                 = 0.01456; // Derivative Gain
-      public static final double kS                 = 0.18749; // volts
+      public static final double kS                 = 0.00000; // volts
       public static final double kV                 = 0.44192;
       public static final double kA                 = 0.03813; // volts per rad/s^2
       
@@ -175,7 +175,7 @@ public final class Constants {
 
     // TELEOPERATED
     public static final class ABSOLUTE_ROTATION_GAINS {
-      public static final double kP = 4.0;
+      public static final double kP = 3.0;
       public static final double kI = 0.0;
       public static final double kD = 0.0;
       public static final double TOLERANCE = Units.degreesToRadians(1.0);
