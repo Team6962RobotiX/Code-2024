@@ -5,8 +5,11 @@
 package frc.robot.subsystems.vision;
 
 import java.util.Optional;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
+
+import javax.security.auth.login.LoginException;
 
 import javax.security.auth.login.LoginException;
 
@@ -18,20 +21,32 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
+import edu.wpi.first.math.util.Units;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
+
 import edu.wpi.first.math.geometry.Pose3d;
 
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 
 import org.photonvision.EstimatedRobotPose;
+
+import org.photonvision.EstimatedRobotPose;
 import org.photonvision.PhotonCamera;
+import org.photonvision.PhotonPoseEstimator;
+import org.photonvision.PhotonPoseEstimator.PoseStrategy;
+import org.photonvision.PhotonUtils;
 import org.photonvision.PhotonPoseEstimator;
 import org.photonvision.PhotonPoseEstimator.PoseStrategy;
 import org.photonvision.PhotonUtils;
@@ -47,12 +62,14 @@ import frc.robot.util.LimelightHelpers;
 import frc.robot.util.Logging.Logger;
 import frc.robot.Constants;
 import frc.robot.Constants.PHOTON_LIB;
+import frc.robot.Constants.PHOTON_LIB;
 
 
 public class Camera extends SubsystemBase {
   private LimelightHelpers.LimelightResults limelightData;
   private String name;
   private ShuffleboardTab dashboard = Shuffleboard.getTab("Dashboard");
+  // private Pose3d helpME;
   // private Pose3d helpME;
   
   
@@ -111,6 +128,9 @@ public class Camera extends SubsystemBase {
 
     photonPoseEstimator = new PhotonPoseEstimator(tagLayout, PoseStrategy.CLOSEST_TO_REFERENCE_POSE, camera, robotToCamera);
 
+
+    photonPoseEstimator = new PhotonPoseEstimator(tagLayout, PoseStrategy.CLOSEST_TO_REFERENCE_POSE, camera, robotToCamera);
+
   }
 
 
@@ -145,17 +165,8 @@ public class Camera extends SubsystemBase {
 
     try {
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-      var latestResult = camera.getLatestResult();
-=======
       latestResult = camera.getLatestResult();
       System.out.println(camera.getLatestResult());
->>>>>>> f72851517f3afa1c5c034eccf9bc408bf1858836
-=======
-      latestResult = camera.getLatestResult();
-      System.out.println(camera.getLatestResult());
->>>>>>> f72851517f3afa1c5c034eccf9bc408bf1858836
 
       System.out.println(latestResult);
 
@@ -200,16 +211,6 @@ public class Camera extends SubsystemBase {
   }
 
   public int getFiducialId() {
-<<<<<<< HEAD
-<<<<<<< HEAD
-    PhotonTrackedTarget target = latestResult.getBestTarget();
-
-    int targetID = target.getFiducialId();
-
-    return targetID;
-=======
-=======
->>>>>>> f72851517f3afa1c5c034eccf9bc408bf1858836
     if (latestResult.hasTargets()){
       PhotonTrackedTarget target = latestResult.getBestTarget();
 
@@ -220,25 +221,18 @@ public class Camera extends SubsystemBase {
     else {
       return 0;
     }
-<<<<<<< HEAD
->>>>>>> f72851517f3afa1c5c034eccf9bc408bf1858836
-=======
->>>>>>> f72851517f3afa1c5c034eccf9bc408bf1858836
   }
   
 
    public Optional<EstimatedRobotPose> getEstimatedGlobalPose(Pose2d prevEstimatedRobotPose) {
-        photonPoseEstimator.setReferencePose(prevEstimatedRobotPose);
-        return photonPoseEstimator.update();
-  }
+      photonPoseEstimator.setReferencePose(prevEstimatedRobotPose);
+      
+      return photonPoseEstimator.update();
+
+    }
+
   
-<<<<<<< HEAD
-<<<<<<< HEAD
 }
 
-=======
-}
->>>>>>> f72851517f3afa1c5c034eccf9bc408bf1858836
-=======
-}
->>>>>>> f72851517f3afa1c5c034eccf9bc408bf1858836
+
+  
