@@ -73,6 +73,8 @@ public class SwerveDrive extends SubsystemBase {
   private ChassisSpeeds drivenChassisSpeeds = new ChassisSpeeds();
   private ChassisSpeeds lastMeasuredChassisSpeeds = new ChassisSpeeds();
 
+  private boolean parkOverride = false;
+
   private PIDController rotateController = new PIDController(
     SWERVE_DRIVE.ABSOLUTE_ROTATION_GAINS.kP,
     SWERVE_DRIVE.ABSOLUTE_ROTATION_GAINS.kI,
@@ -232,7 +234,7 @@ public class SwerveDrive extends SubsystemBase {
 
     double rotationCompensation = rotateController.calculate(getHeading().getRadians());
 
-    if (!parked || rotateController.getPositionError() > Units.degreesToRadians(2.5)) {
+    if (!parked || rotateController.getPositionError() > Units.degreesToRadians(5.0)) {
       if (!deliberatelyRotating) {
         fieldRelativeSpeeds.omegaRadiansPerSecond += rotationCompensation;
       }
@@ -278,10 +280,11 @@ public class SwerveDrive extends SubsystemBase {
       for (SwerveModuleState moduleState : getMeasuredModuleStates()) if (Math.abs(moduleState.speedMetersPerSecond) > SWERVE_DRIVE.VELOCITY_DEADBAND) moving = true;
     }
     parked = false;
-    if (!moving) {
+    if (!moving && !parkOverride) {
       parkModules();
       return;
     }
+    parkOverride = false;
 
     driveModules(drivenModuleStates);
   }
@@ -299,6 +302,7 @@ public class SwerveDrive extends SubsystemBase {
    */
   public void setTargetHeading(Rotation2d heading) {
     rotateController.setSetpoint(heading.getRadians());
+    parkOverride = true;
   }
 
   /**

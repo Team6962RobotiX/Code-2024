@@ -144,7 +144,7 @@ public final class Constants {
       public static final double kP                 = 0.00010; // Proportion Gain
       public static final double kI                 = 0.00000; // Integral Gain
       public static final double kD                 = 0.00000; // Derivative Gain
-      public static final double kS                 = 0.00000; // volts
+      public static final double kS                 = 0.1819; // volts
       public static final double kV                 = 2.7413; // volts per m/s
       public static final double kA                 = 0.17317; // volts per m/s^2, free spinning
       

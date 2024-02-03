@@ -160,7 +160,6 @@ public class SwerveModule extends SubsystemBase {
     StatusChecks.addCheck(SWERVE_DRIVE.MODULE_NAMES[id] + " Swerve Module CanCoder", () -> absoluteSteerEncoder.getFaultField().getValue() == 0);
   }
 
-  private double temp_counter = 0.0;
 
   public void periodic() {
     if (isCalibrating) return;
@@ -168,10 +167,8 @@ public class SwerveModule extends SubsystemBase {
     if (Math.abs(getMeasuredState().speedMetersPerSecond) < SWERVE_DRIVE.VELOCITY_DEADBAND && SwerveMath.angleDistance(getMeasuredState().angle.getRadians(), getTargetState().angle.getRadians()) < Units.degreesToRadians(1.0)) {
       seedSteerEncoder();
     }
-    setTargetState(new SwerveModuleState(0.0, Rotation2d.fromDegrees(temp_counter)));
+
     drive(targetState);
-    temp_counter += 1.0;
-    // setTargetState(new SwerveModuleState(0.0, getMeasuredState().angle));
   }
   
   public void drive(SwerveModuleState state) {
@@ -184,8 +181,6 @@ public class SwerveModule extends SubsystemBase {
     
     double wheelAcceleration = (speedMetersPerSecond - lastDrivenState.speedMetersPerSecond) / 0.02;
     
-    speedMetersPerSecond += steerEncoder.getVelocity() / 2.0 * SWERVE_DRIVE.WHEEL_RADIUS;
-
     drivePID.setReference(
       speedMetersPerSecond,
       ControlType.kVelocity,
