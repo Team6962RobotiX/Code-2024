@@ -6,6 +6,7 @@ package frc.robot.subsystems.drive;
 
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
+import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.units.Units.Volts;
 
 import java.util.List;
@@ -293,7 +294,17 @@ public class SwerveModule extends SubsystemBase {
     return Commands.sequence(
       Commands.runOnce(() -> isCalibrating = true),
       calibrationRoutine.quasistatic(SysIdRoutine.Direction.kForward),
+      Commands.runOnce(() -> steerMotor.stopMotor()),
+      Commands.waitSeconds(1.0),
+      calibrationRoutine.quasistatic(SysIdRoutine.Direction.kReverse),
+      Commands.runOnce(() -> steerMotor.stopMotor()),
+      Commands.waitSeconds(1.0),
       calibrationRoutine.dynamic(SysIdRoutine.Direction.kForward),
+      Commands.runOnce(() -> steerMotor.stopMotor()),
+      Commands.waitSeconds(1.0),
+      calibrationRoutine.dynamic(SysIdRoutine.Direction.kReverse),
+      Commands.runOnce(() -> steerMotor.stopMotor()),
+      Commands.waitSeconds(1.0),
       Commands.runOnce(() -> isCalibrating = false)
     );
   }
@@ -318,7 +329,17 @@ public class SwerveModule extends SubsystemBase {
     return Commands.sequence(
       Commands.runOnce(() -> isCalibrating = true),
       calibrationRoutine.quasistatic(SysIdRoutine.Direction.kForward),
+      Commands.runOnce(() -> driveMotor.stopMotor()),
+      Commands.waitSeconds(1.0),
+      calibrationRoutine.quasistatic(SysIdRoutine.Direction.kReverse),
+      Commands.runOnce(() -> driveMotor.stopMotor()),
+      Commands.waitSeconds(1.0),
       calibrationRoutine.dynamic(SysIdRoutine.Direction.kForward),
+      Commands.runOnce(() -> driveMotor.stopMotor()),
+      Commands.waitSeconds(1.0),
+      calibrationRoutine.dynamic(SysIdRoutine.Direction.kReverse),
+      Commands.runOnce(() -> driveMotor.stopMotor()),
+      Commands.waitSeconds(1.0),
       Commands.runOnce(() -> isCalibrating = false)
     );
   }

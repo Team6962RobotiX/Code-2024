@@ -29,7 +29,7 @@ public final class Constants {
     public static final boolean ENABLE_DRIVE     = true;
     public static final boolean ENABLE_LIMELIGHT = false;
     public static final boolean ENABLE_DASHBOARD = true;
-    public static final boolean ENABLE_SHOOTER   = true;
+    public static final boolean ENABLE_SHOOTER   = false;
   }
 
   public static final class LOGGING {
