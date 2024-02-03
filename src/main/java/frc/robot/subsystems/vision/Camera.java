@@ -87,7 +87,7 @@ public class Camera extends SubsystemBase {
     visionSim.addCamera(cameraSim, robotToCamera);
     cameraSim.enableRawStream(true);
     cameraSim.enableProcessedStream(true);
-    cameraSim.enableDrawWireframe(false);
+    cameraSim.enableDrawWireframe(true);
   }
 
 

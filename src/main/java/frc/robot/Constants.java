@@ -29,7 +29,7 @@ public final class Constants {
     public static final boolean ENABLE_DRIVE     = true;
     public static final boolean ENABLE_LIMELIGHT = false;
     public static final boolean ENABLE_DASHBOARD = true;
-    public static final boolean ENABLE_SHOOTER   = false;
+    public static final boolean ENABLE_SHOOTER   = true;
   }
 
   public static final class LOGGING {
@@ -125,6 +125,7 @@ public final class Constants {
       public static final double MAX_ANGULAR_VELOCITY               = (MAX_WHEEL_VELOCITY * WHEEL_RADIUS) / DRIVE_RADIUS;
     }
 
+    // Used only for when we have errors in the path (aka only when wheels slip or we're bumped off course)
     public static final class AUTONOMOUS {
       public static final class TRANSLATION_GAINS {
         public static final double kP = 0.75;
@@ -174,7 +175,7 @@ public final class Constants {
 
     // TELEOPERATED
     public static final class ABSOLUTE_ROTATION_GAINS {
-      public static final double kP = 4.0; 
+      public static final double kP = 4.0;
       public static final double kI = 0.0;
       public static final double kD = 0.0;
     }
@@ -303,17 +304,15 @@ public final class Constants {
 
   public static final class SHOOTER {
     public static final class SHOOTER_WHEELS {
-      public static final double GEARBOX_STEP_UP = 2.0;
+      public static final double GEARBOX_STEP_UP = 2.4;
       public static final double WHEEL_MOI = 0.001;
       public static final double WHEEL_RADIUS = Units.inchesToMeters(2.0);
       public static final double PROJECTILE_MASS = Units.lbsToKilograms(0.5);
-      public static final double SPEED_TOLERANCE = Units.degreesToRadians(2.0);
       public static final double TARGET_SPEED    = Units.rotationsPerMinuteToRadiansPerSecond(10000);
 
       // x is front-to-back
       // y is left-to-right
       // z is top-to-bottom
-      public static final Translation3d POSITION = new Translation3d(0.0, 0.0, 0.0);
       
       public static final class PROFILE {
         public static final double kV = 0.1; // volts per rad/s
@@ -324,7 +323,11 @@ public final class Constants {
     public static final class SHOOTER_PIVOT {
       public static final double GEARBOX_REDUCTION = 1.0;
       public static final double ROTATION_DELAY    = 0.3; // seconds
-      public static final double ANGLE_TOLERANCE   = Units.degreesToRadians(2.0);
+      public static final double ANGLE_TOLERANCE   = Units.degreesToRadians(0.5);
+      public static final double ANGLE_PRECISION   = Units.degreesToRadians(3);
+      public static final double HEADING_PRECISION = Units.degreesToRadians(1);
+      public static final Translation3d POSITION = new Translation3d(0.0, 0.0, 0.3);
+      public static final double LENGTH = 1.0;
     }
   }
 }

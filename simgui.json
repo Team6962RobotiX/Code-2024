@@ -1,6 +1,9 @@
 {
   "HALProvider": {
     "RoboRIO": {
+      "RoboRIO Input": {
+        "open": true
+      },
       "window": {
         "visible": true
       }
@@ -10,6 +13,7 @@
     "types": {
       "/FMSInfo": "FMSInfo",
       "/SmartDashboard/Field": "Field2d",
+      "/SmartDashboard/ShooterMechanism": "Mechanism2d",
       "/SmartDashboard/Swerve Module Calibration": "String Chooser",
       "/SmartDashboard/VisionSystemSim-main/Sim Field": "Field2d"
     },
@@ -88,6 +92,11 @@
           "weight": 3.0
         },
         "width": 16.541748046875,
+        "window": {
+          "visible": true
+        }
+      },
+      "/SmartDashboard/ShooterMechanism": {
         "window": {
           "visible": true
         }

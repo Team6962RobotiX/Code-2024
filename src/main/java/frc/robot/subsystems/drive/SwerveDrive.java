@@ -104,7 +104,7 @@ public class SwerveDrive extends SubsystemBase {
     new Thread(() -> {
       try {
         Thread.sleep(1000);
-        setHeading(getHeading());
+        resetGyroHeading(getHeading());
       } catch (Exception e) {}
     }).start();
     
@@ -290,8 +290,21 @@ public class SwerveDrive extends SubsystemBase {
     }
   }
 
+  /**
+   * 
+   * @param heading 
+   */
   public void setTargetHeading(Rotation2d heading) {
     rotateController.setSetpoint(heading.getRadians());
+  }
+
+  /**
+   * 
+   * @param point The point on the field we want to face
+   */
+  public void facePoint(Translation2d point) {
+    Translation2d currentPosition = getPose().getTranslation();
+    setTargetHeading(point.minus(currentPosition).getAngle());
   }
 
   public Rotation2d getTargetHeading() {
@@ -317,6 +330,10 @@ public class SwerveDrive extends SubsystemBase {
     poseEstimator.resetPosition(getHeading(), getModulePositions(), pose);
   }
 
+  /**
+   * 
+   * @param visionMeasurement The robot position on the field from the apriltags
+   */
   public void addVisionMeasurement(Pose2d visionMeasurement) {
     poseEstimator.addVisionMeasurement(visionMeasurement, Timer.getFPGATimestamp());
   }
@@ -407,9 +424,9 @@ public class SwerveDrive extends SubsystemBase {
   }
 
   /**
-   * @return Resets gyro heading
+   * Resets gyro heading
    */
-  public void setHeading(Rotation2d newHeading) {
+  public void resetGyroHeading(Rotation2d newHeading) {
     poseEstimator.resetPosition(newHeading, getModulePositions(), getPose());
     heading = newHeading;
     gyro.reset();

@@ -11,6 +11,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.math.util.Units;
 
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide numerical or boolean
@@ -28,4 +29,9 @@ public final class Field {
   );
 
   public static final Translation3d SPEAKER_RED = new Translation3d(16.5, 5.5, 2.0);
+  public static final double SPEAKER_WIDTH = 1.0;
+  public static final double SPEAKER_HEIGHT = 0.5;
+  public static final double NOTE_THICKNESS = Units.inchesToMeters(1.0);
+  public static final double NOTE_LENGTH    = Units.inchesToMeters(14.0);
+
 }

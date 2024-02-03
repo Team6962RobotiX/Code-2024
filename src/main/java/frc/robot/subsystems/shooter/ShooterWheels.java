@@ -16,6 +16,8 @@ import edu.wpi.first.math.Nat;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.controller.LinearQuadraticRegulator;
 import edu.wpi.first.math.estimator.KalmanFilter;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.system.LinearSystem;
 import edu.wpi.first.math.system.LinearSystemLoop;
@@ -29,12 +31,14 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.commands.*;
+import frc.robot.subsystems.drive.SwerveDrive;
 import frc.robot.util.StatusChecks;
 import frc.robot.util.Logging.Logger;
 import frc.robot.Constants;
 import frc.robot.Constants.CAN;
 import frc.robot.Constants.ENABLED_SYSTEMS;
 import frc.robot.Constants.SHOOTER;
+import frc.robot.Constants.SHOOTER.SHOOTER_PIVOT;
 import frc.robot.Constants.SHOOTER.SHOOTER_WHEELS;
 import frc.robot.Constants.SWERVE_DRIVE;
 
@@ -76,12 +80,14 @@ public class ShooterWheels extends SubsystemBase {
   private CANSparkMax motor;
   private RelativeEncoder encoder;
   private boolean isCalibrating = false;
+  private SwerveDrive swerveDrive;
 
-  public ShooterWheels() {
+  public ShooterWheels(SwerveDrive swerveDrive) {
     if (!ENABLED_SYSTEMS.ENABLE_SHOOTER) return;
     motor = new CANSparkMax(CAN.SHOOTER_WHEELS, MotorType.kBrushless);
     encoder = motor.getEncoder();
     encoder.setVelocityConversionFactor(SHOOTER_WHEELS.GEARBOX_STEP_UP * 2.0 * Math.PI / 60.0);
+    this.swerveDrive = swerveDrive;
 
     String logPath = "shooter-wheels/";
     Logger.autoLog(logPath + "current",                 () -> motor.getOutputCurrent());
@@ -93,14 +99,16 @@ public class ShooterWheels extends SubsystemBase {
     StatusChecks.addCheck("Shooter Wheels Motor", () -> motor.getFaults() == 0);
   }
 
-  public double calculatePivotAngle(double targetHeight, double targetDistance) {
-    targetHeight -= SHOOTER_WHEELS.POSITION.getY();
-    targetDistance -= SHOOTER_WHEELS.POSITION.getX();
+  public Rotation2d calculatePivotAngle(Translation3d targetPoint) {
+
+    double targetHeight = targetPoint.getZ() - SHOOTER_PIVOT.POSITION.getZ();
+    
+    double targetDistance = ShooterPivot.getShooterLocationOnField(swerveDrive.getPose()).toTranslation2d().getDistance(targetPoint.toTranslation2d());
 
     double projectileVelocity = getProjectileVelocity();
 
     double gravity = 9.80;
-    return Math.atan((Math.pow(projectileVelocity, 2.0) - Math.sqrt(Math.pow(projectileVelocity, 4.0) - gravity * (gravity * Math.pow(targetDistance, 2.0) + 2.0 * targetHeight * Math.pow(projectileVelocity, 2.0)))) / (gravity * targetDistance));
+    return Rotation2d.fromRadians(Math.atan((Math.pow(projectileVelocity, 2.0) - Math.sqrt(Math.pow(projectileVelocity, 4.0) - gravity * (gravity * Math.pow(targetDistance, 2.0) + 2.0 * targetHeight * Math.pow(projectileVelocity, 2.0)))) / (gravity * targetDistance)));
   }
 
   public double getProjectileVelocity() {
@@ -115,7 +123,7 @@ public class ShooterWheels extends SubsystemBase {
   }
 
   public double getVelocity() {
-    return 1000;
+    return SHOOTER_WHEELS.TARGET_SPEED;
   }
 
   @Override

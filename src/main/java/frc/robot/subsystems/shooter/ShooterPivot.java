@@ -16,6 +16,7 @@ import edu.wpi.first.math.Nat;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.controller.LinearQuadraticRegulator;
 import edu.wpi.first.math.estimator.KalmanFilter;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -28,8 +29,13 @@ import edu.wpi.first.math.system.plant.LinearSystemId;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.Measure;
+import edu.wpi.first.units.Unit;
 import edu.wpi.first.units.Voltage;
 import edu.wpi.first.wpilibj.RobotController;
+import edu.wpi.first.wpilibj.smartdashboard.Mechanism2d;
+import edu.wpi.first.wpilibj.smartdashboard.MechanismLigament2d;
+import edu.wpi.first.wpilibj.smartdashboard.MechanismRoot2d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -48,7 +54,7 @@ import frc.robot.Constants.SHOOTER.SHOOTER_WHEELS;
 import frc.robot.Constants.SWERVE_DRIVE;
 
 public class ShooterPivot extends SubsystemBase {
-  private double targetAngle = 0.0;
+  private Rotation2d targetPivotAngle = new Rotation2d();
   private CANSparkMax motor;
   private RelativeEncoder encoder;
   private boolean isCalibrating = false;
@@ -56,6 +62,9 @@ public class ShooterPivot extends SubsystemBase {
   private SwerveDrive swerveDrive;
   private double headingVelocity = 0.0;
   private Rotation2d targetHeading = new Rotation2d();
+  private Mechanism2d mechanism = new Mechanism2d(0, 0);
+  private MechanismRoot2d pivotMechanism = mechanism.getRoot("pivot", SHOOTER_PIVOT.POSITION.getX(), SHOOTER_PIVOT.POSITION.getZ());
+  private MechanismLigament2d shooterMechanism = pivotMechanism.append(new MechanismLigament2d("shooter", SHOOTER_PIVOT.LENGTH, 90));
 
   public ShooterPivot(ShooterWheels shooterWheels, SwerveDrive swerveDrive) {
     if (!ENABLED_SYSTEMS.ENABLE_SHOOTER) return;
@@ -74,10 +83,16 @@ public class ShooterPivot extends SubsystemBase {
 
     this.shooterWheels = shooterWheels;
     this.swerveDrive = swerveDrive;
+
+    SmartDashboard.putData("ShooterMechanism", mechanism);
   }
 
-  public void setTargetAngle(double angle) {
-    targetAngle = angle;
+  public void setTargetAngle(Rotation2d angle) {
+    targetPivotAngle = angle;
+  }
+
+  public Rotation2d getPivotAngle() {
+    return targetPivotAngle;
   }
 
   @Override
@@ -85,40 +100,83 @@ public class ShooterPivot extends SubsystemBase {
     if (!ENABLED_SYSTEMS.ENABLE_SHOOTER) return;
     if (isCalibrating) return;
     
+    // Calculate point to aim towards, accounting for current velocity
+
     Translation3d speakerPosition = Field.SPEAKER_RED;
-    Translation2d swerveDrivePosition = swerveDrive.getPose().getTranslation();
-    Translation3d shooterPositionRotated = SHOOTER_WHEELS.POSITION.rotateBy(new Rotation3d(0.0, 0.0, swerveDrive.getHeading().getRadians()));
-    Translation3d shooterPositionOnField = new Translation3d(shooterPositionRotated.getX() + swerveDrivePosition.getX(), shooterPositionRotated.getY() + swerveDrivePosition.getY(), shooterPositionRotated.getZ());
-    double distance = speakerPosition.getDistance(shooterPositionOnField);
-
-    Translation2d currentVelocity = swerveDrive.getFieldVelocity();
-    Translation2d projectileOffset = currentVelocity.times(distance / shooterWheels.getProjectileVelocity());
+    Translation3d pointToAimTo = calculateAimingPoint(speakerPosition);
+    double floorDistance = speakerPosition.toTranslation2d().getDistance(getShooterLocationOnField(swerveDrive.getPose()).toTranslation2d());
     
-    Translation3d pointToAimTo = new Translation3d(
-      speakerPosition.getX() - projectileOffset.getX(),
-      speakerPosition.getY() - projectileOffset.getY(),
-      speakerPosition.getZ()
-    );
-    
-    Rotation2d newTargetHeading = pointToAimTo.toTranslation2d().minus(swerveDrive.getPose().getTranslation()).getAngle();
-    headingVelocity = newTargetHeading.minus(targetHeading).getRadians() / 0.02;
-    targetHeading = newTargetHeading;
-
-    Logger.autoLog("actualTargetHeading", targetHeading.getDegrees());
-
-    if (distance < 5.0) {
-      swerveDrive.setTargetHeading(targetHeading.plus(Rotation2d.fromRadians(headingVelocity * SHOOTER_PIVOT.ROTATION_DELAY)));
+    if (floorDistance < 8.0) {
+      orientToPoint(pointToAimTo);
     }
 
-    // double speakerDistance = 1.0;
-    // double speakerHeight = 1.0;
-    // setTargetAngle(shooterWheels.calculatePivotAngle());
-    // shooterWheels.setTargetAngularVelocity(SHOOTER_WHEELS.TARGET_SPEED);
+    Logger.autoLog("pointToAimTo", () -> pointToAimTo);
+
+    setTargetAngle(shooterWheels.calculatePivotAngle(pointToAimTo));
+    shooterWheels.setTargetAngularVelocity(SHOOTER_WHEELS.TARGET_SPEED);
+
+    double shotChance = calculateShotChance(speakerPosition);
+    System.out.println("shotChance " + shotChance * 100);
+
+    shooterMechanism.setAngle(getPivotAngle());
+    System.out.println(targetPivotAngle);
+    // pivotMechanism.setPosition(floorDistance, shotChance);
   }
 
   @Override
   public void simulationPeriodic() {
   // This method will be called once per scheduler run during simulation
+  }
+
+  public Translation3d calculateAimingPoint(Translation3d targetPoint) {
+    double distanceFromSpeaker = getShooterLocationOnField(swerveDrive.getPose()).getDistance(targetPoint);
+
+    Translation2d currentVelocity = swerveDrive.getFieldVelocity();
+    Translation2d projectileOffset = currentVelocity.times(distanceFromSpeaker / shooterWheels.getProjectileVelocity());
+    
+    return new Translation3d(
+      targetPoint.getX() - projectileOffset.getX(),
+      targetPoint.getY() - projectileOffset.getY(),
+      targetPoint.getZ()
+    );
+  }
+
+  public static Translation3d getShooterLocationOnField(Pose2d currentPose) {
+    Translation2d swerveDrivePosition = currentPose.getTranslation();
+    Translation3d shooterPositionRotated = SHOOTER_PIVOT.POSITION.rotateBy(new Rotation3d(0.0, 0.0, currentPose.getRotation().getRadians()));
+    return new Translation3d(shooterPositionRotated.getX() + swerveDrivePosition.getX(), shooterPositionRotated.getY() + swerveDrivePosition.getY(), shooterPositionRotated.getZ());
+  }
+
+  public void orientToPoint(Translation3d pointToAimTo) {
+    Rotation2d newTargetHeading = pointToAimTo.toTranslation2d().minus(swerveDrive.getPose().getTranslation()).getAngle();
+    headingVelocity = newTargetHeading.minus(targetHeading).getRadians() / 0.02;
+    targetHeading = newTargetHeading;
+    swerveDrive.setTargetHeading(targetHeading.plus(Rotation2d.fromRadians(headingVelocity * SHOOTER_PIVOT.ROTATION_DELAY)));
+  }
+
+  public double calculateShotChance(Translation3d speakerPosition) {
+    Translation3d shooterLocation = getShooterLocationOnField(swerveDrive.getPose());
+    double floorDistance = speakerPosition.toTranslation2d().getDistance(shooterLocation.toTranslation2d());
+    double totalDistance = speakerPosition.getDistance(shooterLocation);
+    
+    double speakerVerticalDegreesOfView = Units.radiansToDegrees(2.0 * Math.atan((Field.SPEAKER_HEIGHT - Field.NOTE_THICKNESS) / 2.0 / totalDistance));
+    double speakerLateralDegreesOfView = Units.radiansToDegrees(2.0 * Math.atan((Field.SPEAKER_WIDTH - Field.NOTE_LENGTH) / 2.0 / totalDistance));
+    speakerVerticalDegreesOfView *= Math.cos(Math.PI / 2.0 - Math.atan((Field.SPEAKER_RED.getZ() - SHOOTER_PIVOT.POSITION.getZ()) / floorDistance) - Units.degreesToRadians(14.0));
+    
+    double veritcalDegreesOfAccuracy = Units.radiansToDegrees(SHOOTER_PIVOT.ANGLE_PRECISION) * 2.0;
+    double lateralDegreesOfAccuracy  = 0.5 * 2.0;
+    
+    Rotation2d idealHeading = calculateAimingPoint(speakerPosition).toTranslation2d().minus(swerveDrive.getPose().getTranslation()).getAngle();
+
+    double verticalErrorDegrees = Math.abs(targetPivotAngle.minus(getPivotAngle()).getDegrees());
+    double lateralErrorDegrees = Math.abs(idealHeading.minus(swerveDrive.getHeading()).getDegrees());
+
+    double verticalValidShotDegrees = Math.min((speakerVerticalDegreesOfView / 2.0 + veritcalDegreesOfAccuracy / 2.0) - verticalErrorDegrees, Math.min(speakerVerticalDegreesOfView, veritcalDegreesOfAccuracy));
+    double lateralValidShotDegrees = Math.min((speakerLateralDegreesOfView / 2.0 + lateralDegreesOfAccuracy / 2.0) - lateralErrorDegrees, Math.min(speakerLateralDegreesOfView, lateralDegreesOfAccuracy));
+    verticalValidShotDegrees = Math.max(0, verticalValidShotDegrees);
+    lateralValidShotDegrees = Math.max(0, lateralValidShotDegrees);
+
+    return (verticalValidShotDegrees * lateralValidShotDegrees) / (veritcalDegreesOfAccuracy * lateralDegreesOfAccuracy);
   }
 
   public Command calibrate() {
