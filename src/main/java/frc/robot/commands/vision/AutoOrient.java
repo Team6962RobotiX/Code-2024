@@ -46,8 +46,12 @@ public class AutoOrient extends Command {
   @Override
   public void execute() {
 
+    sDrive.setTargetHeading(Rotation2d.fromDegrees(90));
+
+
     //TESTING ON FIDUCIAL ID 6
     if (camera.getFiducialId() == 6){
+
       Pose2d currentPose = sDrive.getPose();
 
       Translation2d currentTrans2d = currentPose.getTranslation();

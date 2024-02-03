@@ -62,6 +62,7 @@ import frc.robot.util.LimelightHelpers;
 import frc.robot.util.Logging.Logger;
 import frc.robot.Constants;
 import frc.robot.Constants.PHOTON_LIB;
+import frc.robot.subsystems.drive.SwerveDrive;
 import frc.robot.Constants.PHOTON_LIB;
 
 
@@ -69,8 +70,7 @@ public class Camera extends SubsystemBase {
   private LimelightHelpers.LimelightResults limelightData;
   private String name;
   private ShuffleboardTab dashboard = Shuffleboard.getTab("Dashboard");
-  // private Pose3d helpME;
-  // private Pose3d helpME;
+  private Pose3d helpME;
   
   
   private AprilTagFieldLayout tagLayout;
@@ -80,6 +80,7 @@ public class Camera extends SubsystemBase {
   private PhotonPipelineResult latestResult;
   private PhotonCameraSim cameraSim;
   private Supplier<Pose2d> poseSupplier;
+  private SwerveDrive sDrive;
   private NetworkTableInstance inst;
   private PhotonPoseEstimator photonPoseEstimator;
   private Pose2d previousPose;
@@ -111,9 +112,10 @@ public class Camera extends SubsystemBase {
   }
 
   //simulated camera
-  public Camera(String name, Supplier<Pose2d> poseSupplier) {
+  public Camera(String name, Supplier<Pose2d> poseSupplier, SwerveDrive sDrive) {
     initialize(name);
     this.poseSupplier = poseSupplier;
+    this.sDrive = sDrive;
     this.cameraSim = new PhotonCameraSim(camera, cameraProp);
     visionSim.addAprilTags(tagLayout);
     
@@ -128,16 +130,13 @@ public class Camera extends SubsystemBase {
 
     photonPoseEstimator = new PhotonPoseEstimator(tagLayout, PoseStrategy.CLOSEST_TO_REFERENCE_POSE, camera, robotToCamera);
 
-
-    photonPoseEstimator = new PhotonPoseEstimator(tagLayout, PoseStrategy.CLOSEST_TO_REFERENCE_POSE, camera, robotToCamera);
-
   }
 
 
   @Override
   public void periodic() {
-    // helpME = LimelightHelpers.getCameraPose3d_TargetSpace(name);
-    // System.out.println("botpose: " + helpME);  
+    helpME = LimelightHelpers.getCameraPose3d_TargetSpace(name);
+    System.out.println("botpose: " + helpME);  
     inst = NetworkTableInstance.getDefault();
     NetworkTable inet = inst.getTable("limelight");
     NetworkTableEntry tx = inet.getEntry("tx");
@@ -180,7 +179,8 @@ public class Camera extends SubsystemBase {
           Pose3d pose = position.estimatedPose;
 
           Pose2d pose2d = pose.toPose2d();
-          System.out.println(pose2d);
+          
+          sDrive.addVisionMeasurement(pose2d);
         }
       }
     }
@@ -188,6 +188,8 @@ public class Camera extends SubsystemBase {
         System.out.println("null");
 
       }
+
+      System.out.println(poseSupplier.get());
     }
   
 
@@ -226,7 +228,7 @@ public class Camera extends SubsystemBase {
 
    public Optional<EstimatedRobotPose> getEstimatedGlobalPose(Pose2d prevEstimatedRobotPose) {
       photonPoseEstimator.setReferencePose(prevEstimatedRobotPose);
-      
+
       return photonPoseEstimator.update();
 
     }
