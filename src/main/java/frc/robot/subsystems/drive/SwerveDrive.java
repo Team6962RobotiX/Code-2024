@@ -73,13 +73,9 @@ public class SwerveDrive extends SubsystemBase {
   private ChassisSpeeds drivenChassisSpeeds = new ChassisSpeeds();
   private ChassisSpeeds lastMeasuredChassisSpeeds = new ChassisSpeeds();
 
-<<<<<<< HEAD
   private double speedScale = 1.0;
 
-  private ProfiledPIDController rotateController = new ProfiledPIDController(
-=======
   private PIDController rotateController = new PIDController(
->>>>>>> f72851517f3afa1c5c034eccf9bc408bf1858836
     SWERVE_DRIVE.ABSOLUTE_ROTATION_GAINS.kP,
     SWERVE_DRIVE.ABSOLUTE_ROTATION_GAINS.kI,
     SWERVE_DRIVE.ABSOLUTE_ROTATION_GAINS.kD
@@ -115,7 +111,6 @@ public class SwerveDrive extends SubsystemBase {
     }).start();
     
     SmartDashboard.putData("Field", field);
-<<<<<<< HEAD
     Logger.autoLog("SwerveDrive/pose", this::getPose);
     Logger.autoLog("SwerveDrive/targetStates", this::getTargetModuleStates);
     Logger.autoLog("SwerveDrive/measuredStates", this::getMeasuredModuleStates);
@@ -136,14 +131,6 @@ public class SwerveDrive extends SubsystemBase {
     //   ),
     //   this // Reference to this subsystem to set requirements
     // );
-=======
-    Logger.autoLog("SwerveDrive/pose", () -> this.getPose());
-    Logger.autoLog("SwerveDrive/measuredHeading", () -> this.getHeading().getDegrees());
-    Logger.autoLog("SwerveDrive/targetHeading", () -> Units.radiansToDegrees(rotateController.getSetpoint()));
-    Logger.autoLog("SwerveDrive/targetStates", this::getTargetModuleStates);
-    Logger.autoLog("SwerveDrive/measuredStates", this::getMeasuredModuleStates);
-    Logger.autoLog("test", Field.SPEAKER_RED);
->>>>>>> f72851517f3afa1c5c034eccf9bc408bf1858836
 
     StatusChecks.addCheck("Gyro Connection", gyro::isConnected);
 
@@ -575,7 +562,6 @@ public class SwerveDrive extends SubsystemBase {
     );
   }
 
-<<<<<<< HEAD
   public void setSpeedScale(double scale) {
     speedScale = scale;
   }
@@ -584,8 +570,6 @@ public class SwerveDrive extends SubsystemBase {
     return speedScale;
   }
 
-=======
->>>>>>> f72851517f3afa1c5c034eccf9bc408bf1858836
   public Command followChoreoTrajectory(String pathName, boolean first) {
 
     ChoreoTrajectory trajectory = Choreo.getTrajectory(pathName);

@@ -146,7 +146,12 @@ public class Camera extends SubsystemBase {
     try {
 
 <<<<<<< HEAD
+<<<<<<< HEAD
       var latestResult = camera.getLatestResult();
+=======
+      latestResult = camera.getLatestResult();
+      System.out.println(camera.getLatestResult());
+>>>>>>> f72851517f3afa1c5c034eccf9bc408bf1858836
 =======
       latestResult = camera.getLatestResult();
       System.out.println(camera.getLatestResult());
@@ -196,12 +201,15 @@ public class Camera extends SubsystemBase {
 
   public int getFiducialId() {
 <<<<<<< HEAD
+<<<<<<< HEAD
     PhotonTrackedTarget target = latestResult.getBestTarget();
 
     int targetID = target.getFiducialId();
 
     return targetID;
 =======
+=======
+>>>>>>> f72851517f3afa1c5c034eccf9bc408bf1858836
     if (latestResult.hasTargets()){
       PhotonTrackedTarget target = latestResult.getBestTarget();
 
@@ -212,6 +220,9 @@ public class Camera extends SubsystemBase {
     else {
       return 0;
     }
+<<<<<<< HEAD
+>>>>>>> f72851517f3afa1c5c034eccf9bc408bf1858836
+=======
 >>>>>>> f72851517f3afa1c5c034eccf9bc408bf1858836
   }
   
@@ -222,8 +233,12 @@ public class Camera extends SubsystemBase {
   }
   
 <<<<<<< HEAD
+<<<<<<< HEAD
 }
 
+=======
+}
+>>>>>>> f72851517f3afa1c5c034eccf9bc408bf1858836
 =======
 }
 >>>>>>> f72851517f3afa1c5c034eccf9bc408bf1858836
