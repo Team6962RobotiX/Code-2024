@@ -4,36 +4,39 @@
 
 package frc.robot;
 
-import com.choreo.lib.Choreo;
-import com.choreo.lib.ChoreoTrajectory;
-
-import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.math.system.plant.DCMotor;
-import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj.XboxController;
-import edu.wpi.first.wpilibj.smartdashboard.Field2d;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+<<<<<<< HEAD
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+=======
+>>>>>>> f72851517f3afa1c5c034eccf9bc408bf1858836
 import frc.robot.Constants.CAN;
 import frc.robot.Constants.DEVICES;
 import frc.robot.commands.drive.XBoxSwerve;
 import frc.robot.commands.vision.AutoDeccel;
+import frc.robot.commands.vision.AutoOrient;
 import frc.robot.subsystems.drive.SwerveDrive;
+<<<<<<< HEAD
 import frc.robot.Constants.NEO;
 import frc.robot.Constants.SWERVE_DRIVE;
 import frc.robot.Constants.SWERVE_DRIVE.DRIVE_MOTOR_PROFILE;
 import frc.robot.util.Logging.Logger;
+=======
+import frc.robot.subsystems.shooter.ShooterPivot;
+import frc.robot.subsystems.shooter.ShooterWheels;
+>>>>>>> f72851517f3afa1c5c034eccf9bc408bf1858836
 import frc.robot.subsystems.vision.Camera;
+import frc.robot.util.Logging.Logger;
 
 
 /**
@@ -45,12 +48,23 @@ import frc.robot.subsystems.vision.Camera;
 public class RobotContainer {
 
   // The robot's subsystems and commands
+<<<<<<< HEAD
   private final XboxController controller = new XboxController(DEVICES.USB_XBOX_CONTROLLER);
+=======
+  private final XboxController xboxController = new XboxController(DEVICES.USB_XBOX_CONTROLLER);
+>>>>>>> f72851517f3afa1c5c034eccf9bc408bf1858836
   private final SwerveDrive swerveDrive = new SwerveDrive();
+  private final ShooterWheels shooterWheels = new ShooterWheels(swerveDrive);
+  private final ShooterPivot shooterPivot = new ShooterPivot(shooterWheels, swerveDrive);
 
-  //Simulation only - getPose() does not work in real life
+  // Simulation only - getPose() does not work in real life
   private final Camera camera = new Camera("default", swerveDrive::getPose);
 
+<<<<<<< HEAD
+=======
+  private final SendableChooser<Command> calibrationChooser = new SendableChooser<>();
+  
+>>>>>>> f72851517f3afa1c5c034eccf9bc408bf1858836
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
     DataLogManager.start();
@@ -59,24 +73,40 @@ public class RobotContainer {
     Logger.autoLog("PDH", new PowerDistribution(CAN.PDH, ModuleType.kRev));
     Logger.startLog();
 
+<<<<<<< HEAD
     swerveDrive.setDefaultCommand(new XBoxSwerve(swerveDrive, () -> controller));
     //Positive y moves the camera left, Positive x moves the camera forward - TEMPORARY
     swerveDrive.resetPose(new Pose2d(new Translation2d(2, 2), new Rotation2d()));
+=======
+    swerveDrive.setDefaultCommand(new XBoxSwerve(swerveDrive, () -> xboxController));
+    
+    calibrationChooser.setDefaultOption("Calibrate Drive Motor (FL)", swerveDrive.modules[0].calibrateDriveMotor());
+    calibrationChooser.setDefaultOption("Calibrate Steer Motor (FL)", swerveDrive.modules[0].calibrateSteerMotor());
+    SmartDashboard.putData("Swerve Module Calibration", calibrationChooser);
+
+>>>>>>> f72851517f3afa1c5c034eccf9bc408bf1858836
     // Configure the trigger bindings
     configureBindings();
     
     SwerveDrive.printChoreoConfig();
-
   }
 
   private void configureBindings() {
     new JoystickButton(controller, XboxController.Button.kA.value).whileTrue(new AutoDeccel(swerveDrive, camera));
+    new JoystickButton(controller, 6).whileTrue(new AutoOrient(camera, swerveDrive));
+
   }
 
   public Command getAutonomousCommand() {
+    // return swerveDrive.goTo(new Translation2d(5.0, 5.0), Rotation2d.fromDegrees(90.0));
     return swerveDrive.followChoreoTrajectory("simple", true);
   }
 
   public void disabledPeriodic() {
   }
+
+  public void testInit() {
+    calibrationChooser.getSelected().schedule();
+  }
+
 }
