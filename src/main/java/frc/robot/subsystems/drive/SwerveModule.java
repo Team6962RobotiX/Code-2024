@@ -282,7 +282,7 @@ public class SwerveModule extends SubsystemBase {
           steerMotor.set(volts.in(Volts) / RobotController.getBatteryVoltage());
         },
         log -> {
-          log.motor("module-" + SWERVE_DRIVE.MODULE_NAMES[id])
+          log.motor("module-steer-" + SWERVE_DRIVE.MODULE_NAMES[id])
               .voltage(Volts.of(steerMotor.get() * RobotController.getBatteryVoltage()))
               .linearPosition(Meters.of(steerEncoder.getPosition()))
               .linearVelocity(MetersPerSecond.of(steerEncoder.getVelocity()));
@@ -317,7 +317,7 @@ public class SwerveModule extends SubsystemBase {
           driveMotor.set(volts.in(Volts) / RobotController.getBatteryVoltage());
         },
         log -> {
-          log.motor("module-" + SWERVE_DRIVE.MODULE_NAMES[id])
+          log.motor("module-drive-" + SWERVE_DRIVE.MODULE_NAMES[id])
               .voltage(Volts.of(driveMotor.get() * RobotController.getBatteryVoltage()))
               .linearPosition(Meters.of(driveEncoder.getPosition()))
               .linearVelocity(MetersPerSecond.of(driveEncoder.getVelocity()));
