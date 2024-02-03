@@ -144,11 +144,11 @@ public final class Constants {
       public static final double kP                 = 0.00010; // Proportion Gain
       public static final double kI                 = 0.00000; // Integral Gain
       public static final double kD                 = 0.00000; // Derivative Gain
-      public static final double kS                 = 0.00000; // volts
-      public static final double kA                 = 0.27734; // volts per m/s^2, free spinning
+      public static final double kS                 = 0.1819; // volts
+      public static final double kV                 = 2.7413; // volts per m/s
+      public static final double kA                 = 0.17317; // volts per m/s^2, free spinning
       
       // CALCULATED
-      public static final double kV                 = 12.0 / PHYSICS.MAX_LINEAR_VELOCITY; // volts per m/s
       public static final int    CURRENT_LIMIT      = PHYSICS.SLIPLESS_CURRENT_LIMIT; // Amps
       public static final double RAMP_RATE          = 0.1; // Seconds it takes to reach full power
       
@@ -158,14 +158,14 @@ public final class Constants {
 
     public static final class STEER_MOTOR_PROFILE {
       // FROM WPILIB SYSTEM IDENTIFICATION
-      public static final double kP                 = 0.72776; // Proportion Gain
+      public static final double kP                 = 0.47250; // Proportion Gain
       public static final double kI                 = 0.00000; // Integral Gain
-      public static final double kD                 = 0.06514; // Derivative Gain
-      public static final double kS                 = 0.06684; // volts
-      public static final double kA                 = 0.01968; // volts per rad/s^2
+      public static final double kD                 = 0.01456; // Derivative Gain
+      public static final double kS                 = 0.18749; // volts
+      public static final double kV                 = 0.44192;
+      public static final double kA                 = 0.03813; // volts per rad/s^2
       
       // CALCULATED
-      public static final double kV                 = 12.0 / (NEO.FREE_SPEED / 60.0 * (1.0 / STEER_MOTOR_GEARING) * Math.PI * 2.0);
       public static final int    CURRENT_LIMIT      = 30; // Amps
       public static final double RAMP_RATE          = 0.1; // Seconds it takes to reach full power
       
