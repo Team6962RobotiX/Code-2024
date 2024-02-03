@@ -167,8 +167,8 @@ public class SwerveModule extends SubsystemBase {
       seedSteerEncoder();
     }
     
+    // setTargetState(new SwerveModuleState(0.0, Rotation2d.fromRadians(System.currentTimeMillis())));
     drive(targetState);
-    setTargetState(new SwerveModuleState(0.0, getMeasuredState().angle));
   }
   
   public void drive(SwerveModuleState state) {

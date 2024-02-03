@@ -93,6 +93,7 @@ public class SwerveDrive extends SubsystemBase {
     poseEstimator = new SwerveDrivePoseEstimator(kinematics, getHeading(), getModulePositions(), SWERVE_DRIVE.STARTING_POSE);
 
     rotateController.enableContinuousInput(-Math.PI, Math.PI);
+    rotateController.setTolerance(SWERVE_DRIVE.ABSOLUTE_ROTATION_GAINS.TOLERANCE);
 
     // If possible, connect to the gyroscope
     try {
@@ -210,16 +211,16 @@ public class SwerveDrive extends SubsystemBase {
   }
 
   private void driveAttainableSpeeds(ChassisSpeeds fieldRelativeSpeeds) {
-    double targetAngularSpeed = toLinear(Math.abs(fieldRelativeSpeeds.omegaRadiansPerSecond));
-    double lastMeasuredAngularSpeed = toLinear(Math.abs(lastMeasuredChassisSpeeds.omegaRadiansPerSecond));
-    double measuredAngularSpeed = toLinear(Math.abs(getMeasuredChassisSpeeds().omegaRadiansPerSecond));
+    double targetAngularSpeed = toLinear((fieldRelativeSpeeds.omegaRadiansPerSecond));
+    double lastMeasuredAngularSpeed = toLinear((lastMeasuredChassisSpeeds.omegaRadiansPerSecond));
+    double measuredAngularSpeed = toLinear((getMeasuredChassisSpeeds().omegaRadiansPerSecond));
 
-    if (targetAngularSpeed > SWERVE_DRIVE.VELOCITY_DEADBAND) {
+    if (Math.abs(targetAngularSpeed) > SWERVE_DRIVE.VELOCITY_DEADBAND) {
       deliberatelyRotating = true;
       setTargetHeading(getHeading());
       rotateController.reset();
     }
-    if (measuredAngularSpeed < SWERVE_DRIVE.VELOCITY_DEADBAND || Math.signum(lastMeasuredAngularSpeed) != Math.signum(measuredAngularSpeed)) {
+    if (Math.abs(measuredAngularSpeed) < SWERVE_DRIVE.VELOCITY_DEADBAND || Math.signum(lastMeasuredAngularSpeed) != Math.signum(measuredAngularSpeed)) {
       if (deliberatelyRotating) {
         setTargetHeading(getHeading());
         rotateController.reset();
@@ -231,8 +232,10 @@ public class SwerveDrive extends SubsystemBase {
 
     double rotationCompensation = rotateController.calculate(getHeading().getRadians());
 
-    if (!parked || rotateController.getPositionError() > Units.degreesToRadians(1.0)) {
-      fieldRelativeSpeeds.omegaRadiansPerSecond += rotationCompensation;
+    if (!parked || rotateController.getPositionError() > Units.degreesToRadians(2.5)) {
+      if (!deliberatelyRotating) {
+        fieldRelativeSpeeds.omegaRadiansPerSecond += rotationCompensation;
+      }
     }
 
     SwerveModuleState[] moduleStates = kinematics.toSwerveModuleStates(ChassisSpeeds.fromFieldRelativeSpeeds(fieldRelativeSpeeds, getHeading()));
@@ -432,6 +435,7 @@ public class SwerveDrive extends SubsystemBase {
     gyro.reset();
     gyro.setAngleAdjustment(newHeading.getDegrees());
     rotateController.reset();
+    rotateController.setSetpoint(getHeading().getRadians());
   }
 
   /**
