@@ -26,7 +26,7 @@ import frc.robot.subsystems.drive.SwerveDrive;
  */
 public final class Constants {
 
-  public static final boolean IS_BLUE_TEAM = DriverStation.getAlliance().equals(Alliance.Blue);
+  public static final boolean IS_BLUE_TEAM = DriverStation.getAlliance().equals(Alliance.Blue) || RobotBase.isSimulation();
 
   // ENABLED SYSTEMS
   public static final class ENABLED_SYSTEMS {
@@ -84,7 +84,7 @@ public final class Constants {
     public static final double   VELOCITY_DEADBAND                  = 0.01; // Velocity we stop moving at
     
     // ODOMETER
-    public static final Pose2d   STARTING_POSE                      = new Pose2d(0.0, 0.0, Rotation2d.fromDegrees(0.0));
+    public static final Pose2d   STARTING_POSE                      = Field.pose2d(0.0, 0.0, 0.0);
 
     // TESTING
     public static final double   MOTOR_POWER_HARD_CAP               = 1.0; // Only use for testing, otherwise set to 1.0

@@ -40,7 +40,7 @@ public class RobotContainer {
 
   // Simulation only - getPose() does not work in real life
   private final ApriltagPose camera = new ApriltagPose(swerveDrive);
-
+  
   private final SendableChooser<Command> calibrationChooser = new SendableChooser<>();
   
   /** The container for the robot. Contains subsystems, OI devices, and commands. */

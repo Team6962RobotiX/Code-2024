@@ -5,6 +5,7 @@
 package frc.robot.subsystems.drive;
 
 import java.io.Console;
+import java.sql.Driver;
 import java.util.List;
 import java.util.function.Supplier;
 
@@ -71,7 +72,7 @@ public class SwerveDrive extends SubsystemBase {
   private Rotation2d gyroHeading = Rotation2d.fromDegrees(0.0);
   private boolean deliberatelyRotating = false;
   private boolean parked = false;
-  private Rotation2d gyroOffset = new Rotation2d();
+  private Rotation2d gyroOffset = SWERVE_DRIVE.STARTING_POSE.getRotation();
 
   private ChassisSpeeds drivenChassisSpeeds = new ChassisSpeeds();
   private ChassisSpeeds lastMeasuredChassisSpeeds = new ChassisSpeeds();
@@ -95,10 +96,11 @@ public class SwerveDrive extends SubsystemBase {
     }
     
     // Set up pose estimator and rotation controller
-    poseEstimator = new SwerveDrivePoseEstimator(kinematics, gyroHeading, getModulePositions(), SWERVE_DRIVE.STARTING_POSE);
+    poseEstimator = new SwerveDrivePoseEstimator(kinematics, gyroHeading.plus(gyroOffset), getModulePositions(), SWERVE_DRIVE.STARTING_POSE);
 
     rotateController.enableContinuousInput(-Math.PI, Math.PI);
     rotateController.setTolerance(SWERVE_DRIVE.ABSOLUTE_ROTATION_GAINS.TOLERANCE);
+    setTargetHeading(SWERVE_DRIVE.STARTING_POSE.getRotation());
 
     // If possible, connect to the gyroscope
     try {
@@ -110,7 +112,7 @@ public class SwerveDrive extends SubsystemBase {
     new Thread(() -> {
       try {
         Thread.sleep(1000);
-        resetGyroHeading(getHeading());
+        resetGyroHeading(SWERVE_DRIVE.STARTING_POSE.getRotation());
       } catch (Exception e) {}
     }).start();
     
@@ -143,16 +145,13 @@ public class SwerveDrive extends SubsystemBase {
 
   @Override
   public void periodic() {
-
-    System.out.println(getHeading());
-
     // Update current heading based on gyroscope or wheel speeds
     if (gyro.isConnected() && !RobotBase.isSimulation()) {
       gyroHeading = gyro.getRotation2d();
     } else {
       gyroHeading = gyroHeading.plus(new Rotation2d(getMeasuredChassisSpeeds().omegaRadiansPerSecond * 0.02));
     }
-    
+
     // Update pose based on measured heading and swerve module positions
     poseEstimator.update(gyroHeading.plus(gyroOffset), getModulePositions());
     Pose2d visionPose = ApriltagPose.getRobotPose2d();
@@ -219,7 +218,7 @@ public class SwerveDrive extends SubsystemBase {
    * @param robotRelativeSpeeds
    */
   private void driveRobotRelative(ChassisSpeeds robotRelativeSpeeds) {
-    driveFieldRelative(ChassisSpeeds.fromRobotRelativeSpeeds(robotRelativeSpeeds, getHeading()));
+    driveFieldRelative(ChassisSpeeds.fromRobotRelativeSpeeds(robotRelativeSpeeds, getAllianceAwareHeading()));
   }
 
   private void driveAttainableSpeeds(ChassisSpeeds fieldRelativeSpeeds) {
@@ -250,9 +249,9 @@ public class SwerveDrive extends SubsystemBase {
       }
     }
 
-    SwerveModuleState[] moduleStates = kinematics.toSwerveModuleStates(ChassisSpeeds.fromFieldRelativeSpeeds(fieldRelativeSpeeds, getHeading()));
+    SwerveModuleState[] moduleStates = kinematics.toSwerveModuleStates(ChassisSpeeds.fromFieldRelativeSpeeds(fieldRelativeSpeeds, getAllianceAwareHeading()));
     SwerveDriveKinematics.desaturateWheelSpeeds(moduleStates, SWERVE_DRIVE.PHYSICS.MAX_LINEAR_VELOCITY);
-    fieldRelativeSpeeds = ChassisSpeeds.fromRobotRelativeSpeeds(kinematics.toChassisSpeeds(moduleStates), getHeading());
+    fieldRelativeSpeeds = ChassisSpeeds.fromRobotRelativeSpeeds(kinematics.toChassisSpeeds(moduleStates), getAllianceAwareHeading());
 
     fieldRelativeSpeeds = ChassisSpeeds.discretize(fieldRelativeSpeeds, SWERVE_DRIVE.DISCRETIZED_TIME_STEP);
 
@@ -281,7 +280,7 @@ public class SwerveDrive extends SubsystemBase {
 
     drivenChassisSpeeds = new ChassisSpeeds(attainableLinearVelocity.getX(), attainableLinearVelocity.getY(), attainableAngularVelocity);
 
-    SwerveModuleState[] drivenModuleStates = kinematics.toSwerveModuleStates(ChassisSpeeds.fromFieldRelativeSpeeds(drivenChassisSpeeds, getHeading()));
+    SwerveModuleState[] drivenModuleStates = kinematics.toSwerveModuleStates(ChassisSpeeds.fromFieldRelativeSpeeds(drivenChassisSpeeds, getAllianceAwareHeading()));
 
     boolean moving = false;
     for (SwerveModuleState moduleState : kinematics.toSwerveModuleStates(fieldRelativeSpeeds)) if (Math.abs(moduleState.speedMetersPerSecond) > SWERVE_DRIVE.VELOCITY_DEADBAND) moving = true;
@@ -454,6 +453,13 @@ public class SwerveDrive extends SubsystemBase {
    */
   public Rotation2d getHeading() {
     return getPose().getRotation();
+  }
+
+  /**
+   * @return Heading as a Rotation2d based on alliance
+   */
+  public Rotation2d getAllianceAwareHeading() {
+    return getHeading().plus(Rotation2d.fromDegrees(Constants.IS_BLUE_TEAM ? 0.0 : 180.0));
   }
 
   /**
@@ -633,36 +639,63 @@ public class SwerveDrive extends SubsystemBase {
    * @return A command to run
    */
   public Command goTo(Pose2d pose, XboxController xboxController) {
-    // Create the constraints to use while pathfinding
-    PathConstraints constraints = new PathConstraints(
-      SWERVE_DRIVE.PHYSICS.MAX_LINEAR_VELOCITY,
-      SWERVE_DRIVE.PHYSICS.MAX_LINEAR_ACCELERATION / 2.0,
-      SWERVE_DRIVE.PHYSICS.MAX_ANGULAR_VELOCITY,
-      SWERVE_DRIVE.PHYSICS.MAX_ANGULAR_ACCELERATION / 2.0
-    );
+    Command pathfindingCommand = goToSimple(pose, xboxController);
+    
+    if (pose.getTranslation().getDistance(getPose().getTranslation()) > 1.0) {
+      // Create the constraints to use while pathfinding
+      PathConstraints constraints = new PathConstraints(
+        SWERVE_DRIVE.PHYSICS.MAX_LINEAR_VELOCITY,
+        SWERVE_DRIVE.PHYSICS.MAX_LINEAR_ACCELERATION / 2.0,
+        SWERVE_DRIVE.PHYSICS.MAX_ANGULAR_VELOCITY,
+        SWERVE_DRIVE.PHYSICS.MAX_ANGULAR_ACCELERATION / 2.0
+      );
 
-    // Since AutoBuilder is configured, we can use it to build pathfinding commands
-    Command pathfindingCommand = AutoBuilder.pathfindToPose(
-      pose,
-      constraints,
-      0.0, // Goal end velocity in meters/sec
-      0.0 // Rotation delay distance in meters. This is how far the robot should travel before attempting to rotate.
-    );
+      // Since AutoBuilder is configured, we can use it to build pathfinding commands
+      pathfindingCommand = AutoBuilder.pathfindToPose(
+        pose,
+        constraints,
+        0.0, // Goal end velocity in meters/sec
+        0.0 // Rotation delay distance in meters. This is how far the robot should travel before attempting to rotate.
+      );
+    }
 
     return Commands.sequence(
       pathfindingCommand,
+      goToSimple(pose, xboxController)
+    ).onlyWhile(() -> Constants.isIdle(xboxController));
+  }
+
+  private Command goToSimple(Pose2d pose, XboxController xboxController) {
+    Rotation2d angle = pose.getTranslation().minus(getPose().getTranslation()).getAngle();
+
+    List<Translation2d> bezierPoints = PathPlannerPath.bezierFromPoses(
+      new Pose2d(getPose().getTranslation(), angle),
+      new Pose2d(pose.getTranslation(), angle)
+    );
+
+    PathPlannerPath path = new PathPlannerPath(
+      bezierPoints,
+      new PathConstraints(
+        SWERVE_DRIVE.PHYSICS.MAX_LINEAR_VELOCITY,
+        SWERVE_DRIVE.PHYSICS.MAX_LINEAR_ACCELERATION / 2.0,
+        SWERVE_DRIVE.PHYSICS.MAX_ANGULAR_VELOCITY,
+        SWERVE_DRIVE.PHYSICS.MAX_ANGULAR_ACCELERATION / 2.0
+      ),
+      new GoalEndState(
+        0.0,
+        pose.getRotation(),
+        true
+      )
+    );
+
+    return Commands.sequence(
+      AutoBuilder.followPath(path),
       Commands.runOnce(() -> setTargetHeading(pose.getRotation()))
     ).onlyWhile(() -> Constants.isIdle(xboxController));
   }
 
-  public Command goToNearestPose(Pose2d[] poses, XboxController xboxController) {
-    Pose2d closestPose = poses[0];
-    for (Pose2d pose : poses) {
-      if (pose.getTranslation().getDistance(getPose().getTranslation()) < closestPose.getTranslation().getDistance(getPose().getTranslation())) {
-        closestPose = pose;
-      }
-    }
-    return goTo(closestPose, xboxController).onlyWhile(() -> Constants.isIdle(xboxController));
+  public Command goToNearestPose(List<Pose2d> poses, XboxController xboxController) {
+   return goTo(getPose().nearest(poses), xboxController).onlyWhile(() -> Constants.isIdle(xboxController));
   }
   
   public boolean shouldFlipPaths() {

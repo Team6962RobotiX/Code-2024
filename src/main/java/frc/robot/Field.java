@@ -26,27 +26,27 @@ public final class Field {
   public static final double LENGTH = 16.54;
 
   public static final Map<String, Pose2d> AUTO_MOVE_POSITIONS = Map.of(
-    "AMP", pose2D(1.85, 7.75, -90.0),
-    "SOURCE", pose2D(15.4, 1.0, 120.0),
-    "SPEAKER", pose2D(1.5, 5.5, 0.0),
-    "TRAP", pose2D(6, WIDTH / 2, 0.0)
+    "AMP", pose2d(1.85, 7.75, 90.0),
+    "SOURCE", pose2d(15.4, 1.0, -60.0),
+    "SPEAKER", pose2d(1.5, 5.5, 180.0),
+    "TRAP", pose2d(6, WIDTH / 2, 180.0)
   );
 
-  public static final Translation3d SPEAKER = point3D(0.0, 5.5, 2.0);
+  public static final Translation3d SPEAKER = point3d(0.0, 5.5, 2.0);
   public static final double SPEAKER_WIDTH = 1.0;
   public static final double SPEAKER_HEIGHT = 0.5;
   public static final double NOTE_THICKNESS = Units.inchesToMeters(1.0);
   public static final double NOTE_LENGTH    = Units.inchesToMeters(14.0);
 
-  public static Pose2d pose2D(double x, double y, double degrees) {
+  public static Pose2d pose2d(double x, double y, double degrees) {
     return flipIfRed(new Pose2d(x, y, Rotation2d.fromDegrees(degrees)), Constants.IS_BLUE_TEAM);
   }
 
-  public static Translation2d point2D(double x, double y) {
+  public static Translation2d point2d(double x, double y) {
     return flipIfRed(new Translation2d(x, y), Constants.IS_BLUE_TEAM);
   }
   
-  public static Translation3d point3D(double x, double y, double z) {
+  public static Translation3d point3d(double x, double y, double z) {
     return flipIfRed(new Translation3d(x, y, z), Constants.IS_BLUE_TEAM);
   }
 
@@ -59,6 +59,6 @@ public final class Field {
   }
 
   public static Pose2d flipIfRed(Pose2d pose, boolean isBlueTeam) {
-    return new Pose2d(flipIfRed(pose.getTranslation(), isBlueTeam), isBlueTeam ? pose.getRotation() : pose.getRotation().unaryMinus());
+    return new Pose2d(flipIfRed(pose.getTranslation(), isBlueTeam), isBlueTeam ? pose.getRotation() : Rotation2d.fromDegrees(-(pose.getRotation().getDegrees() + 90) - 90));
   }
 }

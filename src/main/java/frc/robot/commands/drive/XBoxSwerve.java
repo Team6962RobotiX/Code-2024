@@ -4,6 +4,7 @@
 
 package frc.robot.commands.drive;
 
+import java.util.List;
 import java.util.function.Supplier;
 
 import edu.wpi.first.apriltag.AprilTag;
@@ -92,6 +93,8 @@ public class XBoxSwerve extends Command {
       Pose2d visionPose = ApriltagPose.getRobotPose2d();
       if (visionPose != null) {
         newHeading = visionPose.getRotation();
+      } else if (!Constants.IS_BLUE_TEAM) {
+        newHeading = newHeading.plus(Rotation2d.fromDegrees(180.0));
       }
       swerveDrive.resetGyroHeading(newHeading);
     }
@@ -105,7 +108,7 @@ public class XBoxSwerve extends Command {
     }
 
     if (controller.getAButton()) {
-      swerveDrive.goToNearestPose(Field.AUTO_MOVE_POSITIONS.values().toArray(new Pose2d[]{}), controller).schedule();
+      swerveDrive.goToNearestPose(List.of(Field.AUTO_MOVE_POSITIONS.values().toArray(new Pose2d[] {})), controller).schedule();
     }
 
     swerveDrive.driveFieldRelative(velocity.getX(), velocity.getY(), angularVelocity);
