@@ -23,9 +23,10 @@ import edu.wpi.first.math.util.Units;
  */
 public final class Field {
   public static final Map<String, Pose2d> AUTO_MOVE_POSITIONS_BLUE = Map.of(
-    "AMP", new Pose2d(1.85, 7.75, Rotation2d.fromDegrees(90.0)),
-    "SOURCE", new Pose2d(15.5, 1.25, Rotation2d.fromDegrees(45.0)),
-    "TRAP", new Pose2d()
+    // "AMP", new Pose2d(1.85, 7.75, Rotation2d.fromDegrees(90.0)),
+    // "SOURCE", new Pose2d(15.5, 1.25, Rotation2d.fromDegrees(45.0)),
+    // "TRAP", new Pose2d()
+    "TEST_POS", new Pose2d(3.5, 2.0, Rotation2d.fromDegrees(65.0))
   );
 
   public static final Translation3d SPEAKER_RED = new Translation3d(16.5, 5.5, 2.0);

@@ -20,7 +20,7 @@ import frc.robot.commands.drive.XBoxSwerve;
 import frc.robot.subsystems.drive.SwerveDrive;
 import frc.robot.subsystems.shooter.ShooterPivot;
 import frc.robot.subsystems.shooter.ShooterWheels;
-import frc.robot.subsystems.vision.Camera;
+import frc.robot.subsystems.vision.ApriltagPose;
 import frc.robot.util.Logging.Logger;
 
 
@@ -39,7 +39,7 @@ public class RobotContainer {
   private final ShooterPivot shooterPivot = new ShooterPivot(shooterWheels, swerveDrive);
 
   // Simulation only - getPose() does not work in real life
-  private final Camera camera = new Camera("default", swerveDrive::getPose);
+  private final ApriltagPose camera = new ApriltagPose(swerveDrive);
 
   private final SendableChooser<Command> calibrationChooser = new SendableChooser<>();
   
@@ -56,7 +56,7 @@ public class RobotContainer {
     calibrationChooser.setDefaultOption("Calibrate Drive Motor (FL)", swerveDrive.modules[0].calibrateDriveMotor());
     calibrationChooser.setDefaultOption("Calibrate Steer Motor (FL)", swerveDrive.modules[0].calibrateSteerMotor());
     SmartDashboard.putData("Swerve Module Calibration", calibrationChooser);
-
+    
     // Configure the trigger bindings
     configureBindings();
     

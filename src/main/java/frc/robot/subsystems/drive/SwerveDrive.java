@@ -19,6 +19,7 @@ import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
 import com.pathplanner.lib.util.PIDConstants;
 import com.pathplanner.lib.util.ReplanningConfig;
 
+import edu.wpi.first.apriltag.AprilTag;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
@@ -52,6 +53,7 @@ import frc.robot.Constants;
 import frc.robot.Field;
 import frc.robot.Constants.SWERVE_DRIVE;
 import frc.robot.commands.drive.XBoxSwerve;
+import frc.robot.subsystems.vision.ApriltagPose;
 import frc.robot.util.StatusChecks;
 import frc.robot.util.Logging.Logger;
 
@@ -69,6 +71,7 @@ public class SwerveDrive extends SubsystemBase {
   private Rotation2d heading = Rotation2d.fromDegrees(0.0);
   private boolean deliberatelyRotating = false;
   private boolean parked = false;
+  private Rotation2d headingOffset = new Rotation2d();
 
   private ChassisSpeeds drivenChassisSpeeds = new ChassisSpeeds();
   private ChassisSpeeds lastMeasuredChassisSpeeds = new ChassisSpeeds();
@@ -151,6 +154,10 @@ public class SwerveDrive extends SubsystemBase {
     
     // Update pose based on measured heading and swerve module positions
     poseEstimator.update(getHeading(), getModulePositions());
+    Pose2d visionPose = ApriltagPose.getRobotPose2d();
+    if (visionPose != null) {
+      addVisionMeasurement(visionPose);
+    }
 
     // Update field
     FieldObject2d modulesObject = field.getObject("Swerve Modules");
@@ -167,6 +174,8 @@ public class SwerveDrive extends SubsystemBase {
 
     // Update robot pose
     field.setRobotPose(getPose());
+
+    // System.out.println(getHeading());
   }
 
   @Override
@@ -434,10 +443,9 @@ public class SwerveDrive extends SubsystemBase {
    * Resets gyro heading
    */
   public void resetGyroHeading(Rotation2d newHeading) {
+    System.out.println(newHeading);
+    headingOffset = newHeading.minus(heading);
     poseEstimator.resetPosition(newHeading, getModulePositions(), getPose());
-    heading = newHeading;
-    gyro.reset();
-    gyro.setAngleAdjustment(newHeading.getDegrees());
     rotateController.reset();
     rotateController.setSetpoint(getHeading().getRadians());
   }
@@ -446,7 +454,7 @@ public class SwerveDrive extends SubsystemBase {
    * @return Gyro heading as a Rotation2d
    */
   public Rotation2d getHeading() {
-    return heading;
+    return heading.plus(headingOffset);
   }
 
   /**

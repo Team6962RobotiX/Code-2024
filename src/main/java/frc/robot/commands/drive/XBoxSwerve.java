@@ -6,6 +6,7 @@ package frc.robot.commands.drive;
 
 import java.util.function.Supplier;
 
+import edu.wpi.first.apriltag.AprilTag;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -22,6 +23,7 @@ import frc.robot.Constants;
 import frc.robot.Constants.SWERVE_DRIVE;
 import frc.robot.subsystems.drive.SwerveDrive;
 import frc.robot.subsystems.drive.SwerveModule;
+import frc.robot.subsystems.vision.ApriltagPose;
 import frc.robot.util.MathUtils;
 import frc.robot.util.MathUtils.InputMath;
 
@@ -90,7 +92,12 @@ public class XBoxSwerve extends Command {
 
     // Zero heading when Y is pressed
     if (yButton) {
-      swerveDrive.resetGyroHeading(new Rotation2d());
+      Rotation2d newHeading = new Rotation2d();
+      Pose2d visionPose = ApriltagPose.getRobotPose2d();
+      if (visionPose != null) {
+        newHeading = visionPose.getRotation();
+      }
+      swerveDrive.resetGyroHeading(newHeading);
     }
 
     if (SwerveDrive.toLinear(Math.abs(angularVelocity)) < SWERVE_DRIVE.VELOCITY_DEADBAND) {
@@ -101,7 +108,7 @@ public class XBoxSwerve extends Command {
       velocity = new Translation2d();
     }
 
-    if (controller.getRawButton(6)) {
+    if (controller.getAButton()) {
       swerveDrive.goToNearestPose(Field.AUTO_MOVE_POSITIONS_BLUE.values().toArray(new Pose2d[]{}), controller).schedule();
     }
 
