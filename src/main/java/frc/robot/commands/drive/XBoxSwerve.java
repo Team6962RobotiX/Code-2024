@@ -36,8 +36,6 @@ public class XBoxSwerve extends Command {
   public final double FINE_TUNE_DRIVE_VELOCITY = SwerveModule.calcWheelVelocity(SWERVE_DRIVE.TELEOPERATED_FINE_TUNE_DRIVE_POWER);
   public final double NOMINAL_ANGULAR_VELOCITY = SwerveDrive.toAngular(SwerveModule.calcWheelVelocity(SWERVE_DRIVE.TELEOPERATED_ROTATE_POWER));
   public final double MAX_ANGULAR_VELOCITY = SwerveDrive.toAngular(MAX_DRIVE_VELOCITY); // TODO: use physics from constants file
-
-  private double targetRobotAngle = 0.0;
   
   private Translation2d velocity = new Translation2d();
   private double angularVelocity = 0.0;
@@ -68,14 +66,12 @@ public class XBoxSwerve extends Command {
     double rightTrigger = controller.getRightTriggerAxis();
     Translation2d leftStick = new Translation2d(-controller.getLeftY(), -controller.getLeftX());
     Translation2d rightStick = new Translation2d(controller.getRightX(), -controller.getRightY());
-    boolean yButton = controller.getYButton();
     
     if (RobotBase.isSimulation()) {
       leftStick = new Translation2d(controller.getRawAxis(0), -controller.getRawAxis(1));
       rightStick = new Translation2d(controller.getRawAxis(3), -controller.getRawAxis(4));
       leftTrigger = (controller.getRawAxis(5) + 1.0) / 2.0;
       rightTrigger = (controller.getRawAxis(4) + 1.0) / 2.0;
-      yButton = controller.getRawButton(5);
     }
 
     // Deadbands
@@ -91,7 +87,7 @@ public class XBoxSwerve extends Command {
     }
 
     // Zero heading when Y is pressed
-    if (yButton) {
+    if (controller.getYButton()) {
       Rotation2d newHeading = new Rotation2d();
       Pose2d visionPose = ApriltagPose.getRobotPose2d();
       if (visionPose != null) {
@@ -109,7 +105,7 @@ public class XBoxSwerve extends Command {
     }
 
     if (controller.getAButton()) {
-      swerveDrive.goToNearestPose(Field.AUTO_MOVE_POSITIONS_BLUE.values().toArray(new Pose2d[]{}), controller).schedule();
+      swerveDrive.goToNearestPose(Field.AUTO_MOVE_POSITIONS.values().toArray(new Pose2d[]{}), controller).schedule();
     }
 
     swerveDrive.driveFieldRelative(velocity.getX(), velocity.getY(), angularVelocity);

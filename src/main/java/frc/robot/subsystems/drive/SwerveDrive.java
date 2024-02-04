@@ -68,10 +68,10 @@ public class SwerveDrive extends SubsystemBase {
   private SwerveDriveKinematics kinematics = getKinematics();
   private SwerveDrivePoseEstimator poseEstimator;
   private Field2d field = new Field2d();
-  private Rotation2d heading = Rotation2d.fromDegrees(0.0);
+  private Rotation2d gyroHeading = Rotation2d.fromDegrees(0.0);
   private boolean deliberatelyRotating = false;
   private boolean parked = false;
-  private Rotation2d headingOffset = new Rotation2d();
+  private Rotation2d gyroOffset = new Rotation2d();
 
   private ChassisSpeeds drivenChassisSpeeds = new ChassisSpeeds();
   private ChassisSpeeds lastMeasuredChassisSpeeds = new ChassisSpeeds();
@@ -95,7 +95,7 @@ public class SwerveDrive extends SubsystemBase {
     }
     
     // Set up pose estimator and rotation controller
-    poseEstimator = new SwerveDrivePoseEstimator(kinematics, getHeading(), getModulePositions(), SWERVE_DRIVE.STARTING_POSE);
+    poseEstimator = new SwerveDrivePoseEstimator(kinematics, gyroHeading, getModulePositions(), SWERVE_DRIVE.STARTING_POSE);
 
     rotateController.enableContinuousInput(-Math.PI, Math.PI);
     rotateController.setTolerance(SWERVE_DRIVE.ABSOLUTE_ROTATION_GAINS.TOLERANCE);
@@ -120,7 +120,7 @@ public class SwerveDrive extends SubsystemBase {
     Logger.autoLog("SwerveDrive/targetHeading", () -> Units.radiansToDegrees(rotateController.getSetpoint()));
     Logger.autoLog("SwerveDrive/targetStates", this::getTargetModuleStates);
     Logger.autoLog("SwerveDrive/measuredStates", this::getMeasuredModuleStates);
-    Logger.autoLog("test", Field.SPEAKER_RED);
+    Logger.autoLog("test", Field.SPEAKER);
 
     StatusChecks.addCheck("Gyro Connection", gyro::isConnected);
 
@@ -131,7 +131,7 @@ public class SwerveDrive extends SubsystemBase {
       this::driveRobotRelative, // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds
       new HolonomicPathFollowerConfig( // HolonomicPathFollowerConfig, this should likely live in your Constants class
         new PIDConstants(SWERVE_DRIVE.AUTONOMOUS.TRANSLATION_GAINS.kP, SWERVE_DRIVE.AUTONOMOUS.TRANSLATION_GAINS.kI, SWERVE_DRIVE.AUTONOMOUS.TRANSLATION_GAINS.kD), // Translation PID constants
-        new PIDConstants(SWERVE_DRIVE.AUTONOMOUS.ROTATION_GAINS.kP,    SWERVE_DRIVE.AUTONOMOUS.ROTATION_GAINS.kI,    SWERVE_DRIVE.AUTONOMOUS.ROTATION_GAINS.kD   ), // Rotation PID constants
+        new PIDConstants(SWERVE_DRIVE.AUTONOMOUS.   ROTATION_GAINS.kP, SWERVE_DRIVE.AUTONOMOUS.   ROTATION_GAINS.kI, SWERVE_DRIVE.AUTONOMOUS.   ROTATION_GAINS.kD), // Rotation PID constants
         SWERVE_DRIVE.PHYSICS.MAX_LINEAR_VELOCITY, // Max module speed, in m/s
         SWERVE_DRIVE.PHYSICS.DRIVE_RADIUS, // Drive base radius in meters. Distance from robot center to furthest module.
         new ReplanningConfig() // Default path replanning config. See the API for the options here
@@ -143,17 +143,18 @@ public class SwerveDrive extends SubsystemBase {
 
   @Override
   public void periodic() {
+
+    System.out.println(getHeading());
+
     // Update current heading based on gyroscope or wheel speeds
     if (gyro.isConnected() && !RobotBase.isSimulation()) {
-      heading = gyro.getRotation2d();
+      gyroHeading = gyro.getRotation2d();
     } else {
-      heading = heading.plus(new Rotation2d(getMeasuredChassisSpeeds().omegaRadiansPerSecond * 0.02));
+      gyroHeading = gyroHeading.plus(new Rotation2d(getMeasuredChassisSpeeds().omegaRadiansPerSecond * 0.02));
     }
-
-    heading = Rotation2d.fromRadians(MathUtil.angleModulus(heading.getRadians()));
     
     // Update pose based on measured heading and swerve module positions
-    poseEstimator.update(getHeading(), getModulePositions());
+    poseEstimator.update(gyroHeading.plus(gyroOffset), getModulePositions());
     Pose2d visionPose = ApriltagPose.getRobotPose2d();
     if (visionPose != null) {
       addVisionMeasurement(visionPose);
@@ -443,18 +444,16 @@ public class SwerveDrive extends SubsystemBase {
    * Resets gyro heading
    */
   public void resetGyroHeading(Rotation2d newHeading) {
-    System.out.println(newHeading);
-    headingOffset = newHeading.minus(heading);
-    poseEstimator.resetPosition(newHeading, getModulePositions(), getPose());
+    gyroOffset = newHeading.minus(gyroHeading);
     rotateController.reset();
-    rotateController.setSetpoint(getHeading().getRadians());
+    rotateController.setSetpoint(newHeading.getRadians());
   }
 
   /**
    * @return Gyro heading as a Rotation2d
    */
   public Rotation2d getHeading() {
-    return heading.plus(headingOffset);
+    return getPose().getRotation();
   }
 
   /**
@@ -462,6 +461,8 @@ public class SwerveDrive extends SubsystemBase {
    */
   public Pose2d getPose() {
     return poseEstimator.getEstimatedPosition();
+    // Pose2d estimatedPose = poseEstimator.getEstimatedPosition();
+    // return new Pose2d(estimatedPose.getTranslation(), estimatedPose.getRotation().rotateBy(gyroOffset));
   }
 
   /**

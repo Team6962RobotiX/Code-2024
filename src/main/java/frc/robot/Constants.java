@@ -10,8 +10,10 @@ import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import frc.robot.subsystems.drive.SwerveDrive;
 
 /**
@@ -23,6 +25,8 @@ import frc.robot.subsystems.drive.SwerveDrive;
  * constants are needed, to reduce verbosity.
  */
 public final class Constants {
+
+  public static final boolean IS_BLUE_TEAM = DriverStation.getAlliance().equals(Alliance.Blue);
 
   // ENABLED SYSTEMS
   public static final class ENABLED_SYSTEMS {
@@ -63,8 +67,8 @@ public final class Constants {
     public static final double   CHASSIS_LENGTH                     = Units.inchesToMeters(28);
     public static final double   BUMPER_THICKNESS                   = Units.inchesToMeters(3.25);
     public static final double   WHEEL_TO_EDGE_DISTANCE             = Units.inchesToMeters(2.625);
-    public static final double   WHEEL_RADIUS                       = Units.inchesToMeters(2.0); // measured in meters
-    public static final double   WHEEL_WIDTH                        = Units.inchesToMeters(2.0); // measured in meters
+    public static final double   WHEEL_RADIUS                       = Units.inchesToMeters(2.0);
+    public static final double   WHEEL_WIDTH                        = Units.inchesToMeters(2.0);
     public static final double   DRIVE_MOTOR_GEARING                = 6.75;
     public static final double   STEER_MOTOR_GEARING                = 150.0 / 7.0;
     public static final double   GEARBOX_EFFICIENCY                 = 0.8;
@@ -145,7 +149,7 @@ public final class Constants {
       public static final double kI                 = 0.00000; // Integral Gain
       public static final double kD                 = 0.00000; // Derivative Gain
       public static final double kS                 = 0.00000; // volts
-      public static final double kV                 = 2.7413; // volts per m/s
+      public static final double kV                 = 2.74130; // volts per m/s
       public static final double kA                 = 0.17317; // volts per m/s^2, free spinning
       
       // CALCULATED
@@ -162,7 +166,7 @@ public final class Constants {
       public static final double kI                 = 0.00000; // Integral Gain
       public static final double kD                 = 0.01456; // Derivative Gain
       public static final double kS                 = 0.00000; // volts
-      public static final double kV                 = 0.44192;
+      public static final double kV                 = 0.44192; // volts per rad/s
       public static final double kA                 = 0.03813; // volts per rad/s^2
       
       // CALCULATED

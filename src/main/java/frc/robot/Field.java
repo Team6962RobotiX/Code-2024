@@ -22,17 +22,43 @@ import edu.wpi.first.math.util.Units;
  * constants are needed, to reduce verbosity.
  */
 public final class Field {
-  public static final Map<String, Pose2d> AUTO_MOVE_POSITIONS_BLUE = Map.of(
-    // "AMP", new Pose2d(1.85, 7.75, Rotation2d.fromDegrees(90.0)),
-    // "SOURCE", new Pose2d(15.5, 1.25, Rotation2d.fromDegrees(45.0)),
-    // "TRAP", new Pose2d()
-    "TEST_POS", new Pose2d(3.5, 2.0, Rotation2d.fromDegrees(65.0))
+  public static final double WIDTH = 8.21;
+  public static final double LENGTH = 16.54;
+
+  public static final Map<String, Pose2d> AUTO_MOVE_POSITIONS = Map.of(
+    "AMP", pose2D(1.85, 7.75, -90.0),
+    "SOURCE", pose2D(15.4, 1.0, 120.0),
+    "SPEAKER", pose2D(1.5, 5.5, 0.0),
+    "TRAP", pose2D(6, WIDTH / 2, 0.0)
   );
 
-  public static final Translation3d SPEAKER_RED = new Translation3d(16.5, 5.5, 2.0);
+  public static final Translation3d SPEAKER = point3D(0.0, 5.5, 2.0);
   public static final double SPEAKER_WIDTH = 1.0;
   public static final double SPEAKER_HEIGHT = 0.5;
   public static final double NOTE_THICKNESS = Units.inchesToMeters(1.0);
   public static final double NOTE_LENGTH    = Units.inchesToMeters(14.0);
 
+  public static Pose2d pose2D(double x, double y, double degrees) {
+    return flipIfRed(new Pose2d(x, y, Rotation2d.fromDegrees(degrees)), Constants.IS_BLUE_TEAM);
+  }
+
+  public static Translation2d point2D(double x, double y) {
+    return flipIfRed(new Translation2d(x, y), Constants.IS_BLUE_TEAM);
+  }
+  
+  public static Translation3d point3D(double x, double y, double z) {
+    return flipIfRed(new Translation3d(x, y, z), Constants.IS_BLUE_TEAM);
+  }
+
+  public static Translation2d flipIfRed(Translation2d position, boolean isBlueTeam) {
+    return new Translation2d(isBlueTeam ? position.getX() : LENGTH - position.getX(), position.getY());
+  }
+
+  public static Translation3d flipIfRed(Translation3d position, boolean isBlueTeam) {
+    return new Translation3d(isBlueTeam ? position.getX() : LENGTH - position.getX(), position.getY(), position.getZ());
+  }
+
+  public static Pose2d flipIfRed(Pose2d pose, boolean isBlueTeam) {
+    return new Pose2d(flipIfRed(pose.getTranslation(), isBlueTeam), isBlueTeam ? pose.getRotation() : pose.getRotation().unaryMinus());
+  }
 }

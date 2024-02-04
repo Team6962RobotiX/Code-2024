@@ -102,7 +102,7 @@ public class ShooterPivot extends SubsystemBase {
     
     // Calculate point to aim towards, accounting for current velocity
 
-    Translation3d speakerPosition = Field.SPEAKER_RED;
+    Translation3d speakerPosition = Field.SPEAKER;
     Translation3d pointToAimTo = calculateAimingPoint(speakerPosition);
     double floorDistance = speakerPosition.toTranslation2d().getDistance(getShooterLocationOnField(swerveDrive.getPose()).toTranslation2d());
     
@@ -161,7 +161,7 @@ public class ShooterPivot extends SubsystemBase {
     
     double speakerVerticalDegreesOfView = Units.radiansToDegrees(2.0 * Math.atan((Field.SPEAKER_HEIGHT - Field.NOTE_THICKNESS) / 2.0 / totalDistance));
     double speakerLateralDegreesOfView = Units.radiansToDegrees(2.0 * Math.atan((Field.SPEAKER_WIDTH - Field.NOTE_LENGTH) / 2.0 / totalDistance));
-    speakerVerticalDegreesOfView *= Math.cos(Math.PI / 2.0 - Math.atan((Field.SPEAKER_RED.getZ() - SHOOTER_PIVOT.POSITION.getZ()) / floorDistance) - Units.degreesToRadians(14.0));
+    speakerVerticalDegreesOfView *= Math.cos(Math.PI / 2.0 - Math.atan((Field.SPEAKER.getZ() - SHOOTER_PIVOT.POSITION.getZ()) / floorDistance) - Units.degreesToRadians(14.0));
     
     double veritcalDegreesOfAccuracy = Units.radiansToDegrees(SHOOTER_PIVOT.ANGLE_PRECISION) * 2.0;
     double lateralDegreesOfAccuracy  = 0.5 * 2.0;
