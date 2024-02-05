@@ -54,6 +54,7 @@ import frc.robot.Constants;
 import frc.robot.Field;
 import frc.robot.Constants.ENABLED_SYSTEMS;
 import frc.robot.Constants.SWERVE_DRIVE;
+import frc.robot.Constants.SWERVE_DRIVE.AUTONOMOUS;
 import frc.robot.commands.drive.XBoxSwerve;
 import frc.robot.subsystems.vision.ApriltagPose;
 import frc.robot.util.StatusChecks;
@@ -647,18 +648,11 @@ public class SwerveDrive extends SubsystemBase {
     Command pathfindingCommand = goToSimple(pose, xboxController);
 
     if (pose.getTranslation().getDistance(getPose().getTranslation()) > 1.0) {
-      // Create the constraints to use while pathfinding
-      PathConstraints constraints = new PathConstraints(
-        SWERVE_DRIVE.PHYSICS.MAX_LINEAR_VELOCITY,
-        SWERVE_DRIVE.PHYSICS.MAX_LINEAR_ACCELERATION / 2.0,
-        SWERVE_DRIVE.PHYSICS.MAX_ANGULAR_VELOCITY,
-        SWERVE_DRIVE.PHYSICS.MAX_ANGULAR_ACCELERATION / 2.0
-      );
 
       // Since AutoBuilder is configured, we can use it to build pathfinding commands
       pathfindingCommand = AutoBuilder.pathfindToPose(
         pose,
-        constraints,
+        SWERVE_DRIVE.AUTONOMOUS.DEFAULT_PATH_CONSTRAINTS,
         0.0, // Goal end velocity in meters/sec
         0.0 // Rotation delay distance in meters. This is how far the robot should travel before attempting to rotate.
       );
@@ -680,12 +674,7 @@ public class SwerveDrive extends SubsystemBase {
 
     PathPlannerPath path = new PathPlannerPath(
       bezierPoints,
-      new PathConstraints(
-        SWERVE_DRIVE.PHYSICS.MAX_LINEAR_VELOCITY,
-        SWERVE_DRIVE.PHYSICS.MAX_LINEAR_ACCELERATION / 2.0,
-        SWERVE_DRIVE.PHYSICS.MAX_ANGULAR_VELOCITY,
-        SWERVE_DRIVE.PHYSICS.MAX_ANGULAR_ACCELERATION / 2.0
-      ),
+      SWERVE_DRIVE.AUTONOMOUS.DEFAULT_PATH_CONSTRAINTS,
       new GoalEndState(
         0.0,
         pose.getRotation(),

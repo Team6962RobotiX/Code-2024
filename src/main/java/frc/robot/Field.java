@@ -32,6 +32,7 @@ public final class Field {
     "TRAP", pose2d(6, WIDTH / 2, 180.0)
   );
 
+
   public static final Translation3d SPEAKER = point3d(0.0, 5.5, 2.0);
   public static final double SPEAKER_WIDTH = 1.0;
   public static final double SPEAKER_HEIGHT = 0.5;

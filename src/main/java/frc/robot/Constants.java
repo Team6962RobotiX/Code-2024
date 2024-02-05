@@ -3,6 +3,8 @@
 // the WPILib BSD license file in the root directory of this project.
 package frc.robot;
 
+import com.pathplanner.lib.path.PathConstraints;
+
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -142,6 +144,14 @@ public final class Constants {
         public static final double kI = 0.0;
         public static final double kD = 0.0;
       }
+
+      public static final PathConstraints DEFAULT_PATH_CONSTRAINTS =
+        new PathConstraints(
+          SWERVE_DRIVE.PHYSICS.MAX_LINEAR_VELOCITY,
+          SWERVE_DRIVE.PHYSICS.MAX_LINEAR_ACCELERATION / 2.0,
+          SWERVE_DRIVE.PHYSICS.MAX_ANGULAR_VELOCITY,
+          SWERVE_DRIVE.PHYSICS.MAX_ANGULAR_ACCELERATION / 2.0
+        );
     }
 
     public static final class DRIVE_MOTOR_PROFILE {
