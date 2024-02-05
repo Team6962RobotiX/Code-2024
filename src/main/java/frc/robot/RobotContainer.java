@@ -16,8 +16,10 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants.CAN;
 import frc.robot.Constants.DEVICES;
+import frc.robot.Constants.NEO;
 import frc.robot.commands.drive.XBoxSwerve;
 import frc.robot.subsystems.drive.SwerveDrive;
+import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.shooter.ShooterPivot;
 import frc.robot.subsystems.shooter.ShooterWheels;
 import frc.robot.subsystems.vision.ApriltagPose;
@@ -35,12 +37,11 @@ public class RobotContainer {
   // The robot's subsystems and commands
   private final XboxController xboxController = new XboxController(DEVICES.USB_XBOX_CONTROLLER);
   private final SwerveDrive swerveDrive = new SwerveDrive();
-  private final ShooterWheels shooterWheels = new ShooterWheels(swerveDrive);
-  private final ShooterPivot shooterPivot = new ShooterPivot(shooterWheels, swerveDrive);
+  private final Shooter shooter = new Shooter(swerveDrive);
 
   // Simulation only - getPose() does not work in real life
   private final ApriltagPose camera = new ApriltagPose(swerveDrive);
-  
+
   private final SendableChooser<Command> calibrationChooser = new SendableChooser<>();
   
   /** The container for the robot. Contains subsystems, OI devices, and commands. */

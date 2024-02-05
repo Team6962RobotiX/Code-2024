@@ -33,7 +33,7 @@ public final class Constants {
     public static final boolean ENABLE_DRIVE     = true;
     public static final boolean ENABLE_LIMELIGHT = false;
     public static final boolean ENABLE_DASHBOARD = true;
-    public static final boolean ENABLE_SHOOTER   = false;
+    public static final boolean ENABLE_SHOOTER   = true;
   }
 
   public static final class LOGGING {
@@ -59,8 +59,9 @@ public final class Constants {
   public static final class SWERVE_DRIVE {
 
     ///////////////////////// CONFIG /////////////////////////
-  
-    public static final double   ROBOT_MASS                         = 25; // kg
+    public static final double   INSPECTION_WEIGHT                  = Units.lbsToKilograms(41);
+    public static final double   BATTER_WEIGHT                      = Units.lbsToKilograms(12.89);
+    public static final double   ROBOT_MASS                         = INSPECTION_WEIGHT + BATTER_WEIGHT; // kg
     public static final double   FRICTION_COEFFICIENT               = 1.0; // 1.0 when on carpet 0.5 on KLS flooring
     public static final int      MODULE_COUNT                       = 4;
     public static final double   CHASSIS_WIDTH                      = Units.inchesToMeters(28);
@@ -308,31 +309,54 @@ public final class Constants {
   }
 
   public static final class SHOOTER {
-    public static final class SHOOTER_WHEELS {
-      public static final double GEARBOX_STEP_UP = 2.4;
-      public static final double WHEEL_MOI = 0.001;
+    public static final class WHEELS {
+      public static final double GEARBOX_STEP_UP = 2.0;
+      public static final double ENCODER_CONVERSION_FACTOR = 2.0 * Math.PI * GEARBOX_STEP_UP;
       public static final double WHEEL_RADIUS = Units.inchesToMeters(2.0);
+      public static final double WHEEL_MOI = 0.5 * Units.lbsToKilograms(5 - 1.4) * Math.pow(WHEEL_RADIUS, 2.0);
       public static final double PROJECTILE_MASS = Units.lbsToKilograms(0.5);
-      public static final double TARGET_SPEED    = Units.rotationsPerMinuteToRadiansPerSecond(10000);
+      public static final double TARGET_SPEED    = Units.rotationsPerMinuteToRadiansPerSecond(5000);
 
       // x is front-to-back
       // y is left-to-right
       // z is top-to-bottom
       
       public static final class PROFILE {
+        public static final double kS = 0.0; // volts per rad/s
         public static final double kV = 0.1; // volts per rad/s
         public static final double kA = 0.1; // volts per rad/s^2
+        public static final double RAMP_RATE = 0.1;
+        public static final int    CURRENT_LIMIT = 40;
       }
     }
 
-    public static final class SHOOTER_PIVOT {
-      public static final double GEARBOX_REDUCTION = 1.0;
+    // SHOOTER IS 6.5 KG
+
+    public static final class PIVOT {
+      public static final double GEARBOX_REDUCTION = 400.0;
+      public static final double ENCODER_CONVERSION_FACTOR = 2.0 * Math.PI / GEARBOX_REDUCTION;
       public static final double ROTATION_DELAY    = 0.3; // seconds
       public static final double ANGLE_TOLERANCE   = Units.degreesToRadians(0.5);
-      public static final double ANGLE_PRECISION   = Units.degreesToRadians(3);
-      public static final double HEADING_PRECISION = Units.degreesToRadians(1);
-      public static final Translation3d POSITION = new Translation3d(0.0, 0.0, 0.3);
-      public static final double LENGTH = 1.0;
+      public static final double ANGLE_PRECISION   = Units.degreesToRadians(0.5);
+      public static final double HEADING_PRECISION = Units.degreesToRadians(0.5);
+      public static final Translation3d POSITION = new Translation3d(0.0, 0.0, Units.inchesToMeters(18.0));
+      public static final double LENGTH = Units.inchesToMeters(15.0);
+      public static final double MASS = Units.lbsToKilograms(14.3);
+      public static final double MOI = (1.0 / 3.0) * MASS * Math.pow(LENGTH, 2.0);
+
+      public static final class PROFILE {
+        public static final double kP = 0.0;
+        public static final double kI = 0.0;
+        public static final double kD = 0.0;
+        public static final double kS = 0.0;
+        public static final double kG = 0.0;
+        public static final double kV = 0.0;
+        public static final double kA = 0.0;
+        public static final double RAMP_RATE = 0.1;
+        public static final int    CURRENT_LIMIT = 40;
+        public static final double SMART_MOTION_MAX_VELOCITY = NEO.FREE_SPEED / 60.0 * 2.0 * Math.PI / GEARBOX_REDUCTION; // rad/s
+        public static final double SMART_MOTION_MAX_ACCELERATION = (NEO.maxTorqueCurrentLimited(CURRENT_LIMIT) * GEARBOX_REDUCTION) / MOI; // rad/s^2
+      }
     }
   }
 }

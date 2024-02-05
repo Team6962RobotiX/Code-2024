@@ -147,6 +147,8 @@ public class SwerveModule extends SubsystemBase {
 
     String logPath = "module_" + SWERVE_DRIVE.MODULE_NAMES[id] + "/";
     Logger.autoLog(logPath + "current",                 () -> getTotalCurrent());
+    Logger.autoLog(logPath + "driveVoltage",            () -> driveMotor.getAppliedOutput() * driveMotor.getBusVoltage());
+    Logger.autoLog(logPath + "steerVoltage",            () -> steerMotor.getAppliedOutput() * steerMotor.getBusVoltage());
     Logger.autoLog(logPath + "getAbsoluteSteerDegrees", () -> getTrueSteerDirection().getDegrees());
     Logger.autoLog(logPath + "measuredState",           () -> getMeasuredState());
     Logger.autoLog(logPath + "measuredAngle",           () -> getMeasuredState().angle.getDegrees());
@@ -273,17 +275,16 @@ public class SwerveModule extends SubsystemBase {
     ));
   }
 
-
   public Command calibrateSteerMotor() {
     SysIdRoutine calibrationRoutine = new SysIdRoutine(
-      new SysIdRoutine.Config(),
+      new SysIdRoutine.Config(Volts.of(1).per(Seconds.of(1)), Volts.of(3), Seconds.of(10)),
       new SysIdRoutine.Mechanism(
         (Measure<Voltage> volts) -> {
-          steerMotor.set(volts.in(Volts) / RobotController.getBatteryVoltage());
+          steerMotor.setVoltage(volts.in(Volts));
         },
         log -> {
           log.motor("module-steer-" + SWERVE_DRIVE.MODULE_NAMES[id])
-              .voltage(Volts.of(steerMotor.get() * RobotController.getBatteryVoltage()))
+              .voltage(Volts.of(steerMotor.getBusVoltage() * steerMotor.getAppliedOutput()))
               .linearPosition(Meters.of(steerEncoder.getPosition()))
               .linearVelocity(MetersPerSecond.of(steerEncoder.getVelocity()));
         },
@@ -311,14 +312,14 @@ public class SwerveModule extends SubsystemBase {
 
   public Command calibrateDriveMotor() {
     SysIdRoutine calibrationRoutine = new SysIdRoutine(
-      new SysIdRoutine.Config(),
+      new SysIdRoutine.Config(Volts.of(1).per(Seconds.of(1)), Volts.of(3), Seconds.of(10)),
       new SysIdRoutine.Mechanism(
         (Measure<Voltage> volts) -> {
-          driveMotor.set(volts.in(Volts) / RobotController.getBatteryVoltage());
+          driveMotor.setVoltage(volts.in(Volts));
         },
         log -> {
           log.motor("module-drive-" + SWERVE_DRIVE.MODULE_NAMES[id])
-              .voltage(Volts.of(driveMotor.get() * RobotController.getBatteryVoltage()))
+              .voltage(Volts.of(driveMotor.getBusVoltage() * driveMotor.getAppliedOutput()))
               .linearPosition(Meters.of(driveEncoder.getPosition()))
               .linearVelocity(MetersPerSecond.of(driveEncoder.getVelocity()));
         },

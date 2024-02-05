@@ -52,6 +52,7 @@ import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.Field;
+import frc.robot.Constants.ENABLED_SYSTEMS;
 import frc.robot.Constants.SWERVE_DRIVE;
 import frc.robot.commands.drive.XBoxSwerve;
 import frc.robot.subsystems.vision.ApriltagPose;
@@ -86,6 +87,8 @@ public class SwerveDrive extends SubsystemBase {
   );
 
   public SwerveDrive() {
+    if (!ENABLED_SYSTEMS.ENABLE_DRIVE) return;
+
     // Create the serve module objects
     for (int i = 0; i < SWERVE_DRIVE.MODULE_COUNT; i++) {
       if (RobotBase.isSimulation()) {
@@ -145,6 +148,8 @@ public class SwerveDrive extends SubsystemBase {
 
   @Override
   public void periodic() {
+    if (!ENABLED_SYSTEMS.ENABLE_DRIVE) return;
+    
     // Update current heading based on gyroscope or wheel speeds
     if (gyro.isConnected() && !RobotBase.isSimulation()) {
       gyroHeading = gyro.getRotation2d();
@@ -640,7 +645,7 @@ public class SwerveDrive extends SubsystemBase {
    */
   public Command goTo(Pose2d pose, XboxController xboxController) {
     Command pathfindingCommand = goToSimple(pose, xboxController);
-    
+
     if (pose.getTranslation().getDistance(getPose().getTranslation()) > 1.0) {
       // Create the constraints to use while pathfinding
       PathConstraints constraints = new PathConstraints(
