@@ -22,7 +22,7 @@ import frc.robot.subsystems.drive.SwerveDrive;
 import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.shooter.ShooterPivot;
 import frc.robot.subsystems.shooter.ShooterWheels;
-import frc.robot.subsystems.vision.ApriltagPose;
+import frc.robot.subsystems.vision.AprilTagPose;
 import frc.robot.util.Logging.Logger;
 
 
@@ -38,10 +38,6 @@ public class RobotContainer {
   private final XboxController xboxController = new XboxController(DEVICES.USB_XBOX_CONTROLLER);
   private final SwerveDrive swerveDrive = new SwerveDrive();
   private final Shooter shooter = new Shooter(swerveDrive);
-
-  // Simulation only - getPose() does not work in real life
-  private final ApriltagPose camera = new ApriltagPose(swerveDrive);
-
   private final SendableChooser<Command> calibrationChooser = new SendableChooser<>();
   
   /** The container for the robot. Contains subsystems, OI devices, and commands. */

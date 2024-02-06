@@ -24,7 +24,7 @@ import frc.robot.Constants;
 import frc.robot.Constants.SWERVE_DRIVE;
 import frc.robot.subsystems.drive.SwerveDrive;
 import frc.robot.subsystems.drive.SwerveModule;
-import frc.robot.subsystems.vision.ApriltagPose;
+import frc.robot.subsystems.vision.AprilTagPose;
 import frc.robot.util.MathUtils;
 import frc.robot.util.MathUtils.InputMath;
 
@@ -90,12 +90,6 @@ public class XBoxSwerve extends Command {
     // Zero heading when Y is pressed
     if (controller.getYButton()) {
       Rotation2d newHeading = new Rotation2d();
-      Pose2d visionPose = ApriltagPose.getRobotPose2d();
-      if (visionPose != null) {
-        newHeading = visionPose.getRotation();
-      } else if (!Constants.IS_BLUE_TEAM) {
-        newHeading = newHeading.plus(Rotation2d.fromDegrees(180.0));
-      }
       swerveDrive.resetGyroHeading(newHeading);
     }
 

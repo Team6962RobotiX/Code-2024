@@ -41,7 +41,7 @@ import frc.robot.util.StatusChecks;
 import frc.robot.util.Logging.Logger;
 
 public class ShooterPivot extends SubsystemBase {
-  private Rotation2d targetAngle = new Rotation2d();
+  private Rotation2d targetAngle = null;
   private ArmFeedforward feedforward = new ArmFeedforward(PIVOT.PROFILE.kS, PIVOT.PROFILE.kG, PIVOT.PROFILE.kV, PIVOT.PROFILE.kA);
   private SparkPIDController pid;
   private CANSparkMax motor;
@@ -92,6 +92,12 @@ public class ShooterPivot extends SubsystemBase {
   }
 
   public void setTargetAngle(Rotation2d angle) {
+    if (targetAngle.getRadians() > PIVOT.MAX_ANGLE.getRadians()) {
+      targetAngle = PIVOT.MAX_ANGLE;
+    }
+    if (targetAngle.getRadians() < PIVOT.MIN_ANGLE.getRadians()) {
+      targetAngle = PIVOT.MIN_ANGLE;
+    }
     targetAngle = angle;
   }
 
@@ -107,16 +113,15 @@ public class ShooterPivot extends SubsystemBase {
   public void periodic() {
     if (!ENABLED_SYSTEMS.ENABLE_SHOOTER) return;
     if (isCalibrating) return;
+    if (targetAngle == null) return;
 
     pid.setReference(
       targetAngle.getRadians(),
-      ControlType.kPosition,
+      ControlType.kSmartMotion,
       0,
       feedforward.calculate(targetAngle.getRadians(), 0.0),
       ArbFFUnits.kVoltage
-    );
-
-    
+    );    
   }
 
   @Override

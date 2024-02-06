@@ -3,6 +3,10 @@
 // the WPILib BSD license file in the root directory of this project.
 package frc.robot;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Supplier;
+
 import com.pathplanner.lib.path.PathConstraints;
 
 import edu.wpi.first.math.geometry.Pose2d;
@@ -10,6 +14,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.geometry.Twist2d;
+import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -54,7 +59,7 @@ public final class Constants {
 
   // LIMELIGHT
   public static final class LIMELIGHT {
-    public static final String NAME = "limelight";
+    public static final String[] APRILTAG_CAMERA_NAMES = {"limelight"};
   }
 
   // SWERVE DRIVE
@@ -105,7 +110,7 @@ public final class Constants {
     public static final double   BUMPER_WIDTH                       = SWERVE_DRIVE.CHASSIS_WIDTH + SWERVE_DRIVE.BUMPER_THICKNESS * 2.0;
     public static final double   BUMPER_LENGTH                      = SWERVE_DRIVE.CHASSIS_LENGTH + SWERVE_DRIVE.BUMPER_THICKNESS * 2.0;
     public static final double   MAX_CURRENT_DRAW                   = (BATTERY_VOLTAGE - BROWNOUT_VOLTAGE) / BATTERY_RESISTANCE;
-    public static final boolean  IS_PROTOTYPE_CHASSIS               = !new DigitalInput(0).get();
+    public static final boolean  IS_PROTOTYPE_CHASSIS               = !new DigitalInput(0).get() || true;
 
     
     // GEAR AND WHEEL RATIOS
@@ -115,9 +120,9 @@ public final class Constants {
     public static class PHYSICS {
       public static final double ROTATIONAL_INERTIA                 = (1.0 / 12.0) * ROBOT_MASS * (Math.pow(BUMPER_WIDTH, 2.0) + Math.pow(BUMPER_LENGTH, 2.0));
       public static final double SLIPLESS_ACCELERATION              = 9.80 * FRICTION_COEFFICIENT;
-      public static final int    SLIPLESS_CURRENT_LIMIT             = (int) ((SLIPLESS_ACCELERATION * NEO.STALL_CURRENT * ROBOT_MASS * WHEEL_RADIUS) / (4.0 * DRIVE_MOTOR_GEARING * NEO.STALL_TORQUE));
+      public static final int    SLIPLESS_CURRENT_LIMIT             = (int) ((SLIPLESS_ACCELERATION * NEO.STATS.stallCurrentAmps * ROBOT_MASS * WHEEL_RADIUS) / (4.0 * DRIVE_MOTOR_GEARING * NEO.STATS.stallTorqueNewtonMeters));
       
-      public static final double MAX_MOTOR_SPEED                    = NEO.FREE_SPEED * GEARBOX_EFFICIENCY;
+      public static final double MAX_MOTOR_SPEED                    = NEO.RPM * GEARBOX_EFFICIENCY;
       public static final double MAX_MOTOR_TORQUE                   = NEO.maxTorqueCurrentLimited(SLIPLESS_CURRENT_LIMIT);
       
       public static final double MAX_WHEEL_VELOCITY                 = (MAX_MOTOR_SPEED * (Math.PI * 2.0)) / 60.0 / DRIVE_MOTOR_GEARING;
@@ -193,15 +198,58 @@ public final class Constants {
       public static final double kP = 3.0;
       public static final double kI = 0.0;
       public static final double kD = 0.0;
-      public static final double TOLERANCE = Units.degreesToRadians(1.0);
+      public static final double TOLERANCE = Units.degreesToRadians(0.5);
     }
     
     // MODULES
     // In order of: front left, front right, back left, back right, where the battery is in the back
 
-    public static final String[] MODULE_NAMES                = { "FL", "FR", "BL", "BR" };
-    public static final double[] STEER_ENCODER_OFFSETS_PROTO = { -213.047, 24.785, -34.805, -11.602 };
-    public static final double[] STEER_ENCODER_OFFSETS_COMP  = { 69.70908 + 180.0, 88.0214 + 180.0, 57.48648 + 180.0, 191.33784 + 180.0 };
+    // public static final double[] STEER_ENCODER_OFFSETS_PROTO = { -213.047, 24.785, -34.805, -11.602 };
+    // public static final double[] STEER_ENCODER_OFFSETS_COMP  = { 69.70908, 88.0214, 57.48648, 191.33784 };
+    
+    public record MODULE_CONFIG (int ID, int CAN_DRIVE, int CAN_STEER, int CAN_ENCODER, double ENCODER_OFFSET) {}
+
+    public static final MODULE_CONFIG[] MODULES = new MODULE_CONFIG[] {
+      new MODULE_CONFIG(0, 20, 21, 22, 0.1936363333),
+      new MODULE_CONFIG(1, 40, 41, 42, -0.0054961111),
+      new MODULE_CONFIG(2, 10, 11, 12, 0.4096846667),
+      new MODULE_CONFIG(3, 30, 31, 32, 0.031494),
+      new MODULE_CONFIG(4, 20, 21, 22, -0.5917972222),
+      new MODULE_CONFIG(5, 40, 41, 42, -0.1811527778),
+      new MODULE_CONFIG(6, 10, 11, 12, 0.1533194444),
+      new MODULE_CONFIG(7, 30, 31, 32, -0.5322277778),
+      // new MODULE(0, 20, 21, 22, 0.0),
+      // new MODULE(1, 23, 24, 25, 0.0),
+      // new MODULE(2, 26, 27, 28, 0.0),
+      // new MODULE(3, 29, 30, 31, 0.0),
+      // new MODULE(4, 32, 33, 34, 0.0),
+      // new MODULE(5, 35, 36, 37, 0.0),
+      // new MODULE(6, 38, 39, 40, 0.0),
+      // new MODULE(7, 41, 42, 43, 0.0),
+      // new MODULE(8, 44, 45, 46, 0.0),
+      // new MODULE(9, 47, 48, 49, 0.0),
+    };
+
+    public static final String[] MODULE_NAMES = {
+      "front-left",
+      "front-right",
+      "back-left",
+      "back-right"
+    };
+
+    public static final MODULE_CONFIG[] EQUIPPED_MODULES_PROTOTYPE = {
+      MODULES[4], // front-left
+      MODULES[5], // front-right
+      MODULES[6], // back-left
+      MODULES[7]  // back-right
+    };
+
+    public static final MODULE_CONFIG[] EQUIPPED_MODULES_COMPETITION = {
+      MODULES[0], // front-left
+      MODULES[1], // front-right
+      MODULES[2], // back-left
+      MODULES[3]  // back-right
+    };
   }
 
   public static final class CAN {
@@ -215,14 +263,13 @@ public final class Constants {
   }
   
   public static final class NEO {
-    public static final double FREE_SPEED = 5880;
-    public static final double STALL_TORQUE = 3.28;
-    public static final double STALL_CURRENT = 181;
+    public static final double RPM = 5880;
+    public static final DCMotor STATS = new DCMotor(12.0, 3.28, 181, 1.3, Units.rotationsPerMinuteToRadiansPerSecond(RPM), 1);
     public static final double SAFE_TEMPERATURE = 60;
     public static final int SAFE_STALL_CURRENT = 40;
 
     public static double maxTorqueCurrentLimited(int currentLimit) {
-      return STALL_TORQUE / STALL_CURRENT * currentLimit;
+      return STATS.stallTorqueNewtonMeters / STATS.stallCurrentAmps * currentLimit;
     }
   }
 
@@ -353,6 +400,8 @@ public final class Constants {
       public static final double LENGTH = Units.inchesToMeters(15.0);
       public static final double MASS = Units.lbsToKilograms(14.3);
       public static final double MOI = (1.0 / 3.0) * MASS * Math.pow(LENGTH, 2.0);
+      public static final Rotation2d MAX_ANGLE = Rotation2d.fromDegrees(90.0);
+      public static final Rotation2d MIN_ANGLE = Rotation2d.fromDegrees(0.0);
 
       public static final class PROFILE {
         public static final double kP = 0.0;
@@ -364,7 +413,7 @@ public final class Constants {
         public static final double kA = 0.0;
         public static final double RAMP_RATE = 0.1;
         public static final int    CURRENT_LIMIT = 40;
-        public static final double SMART_MOTION_MAX_VELOCITY = NEO.FREE_SPEED / 60.0 * 2.0 * Math.PI / GEARBOX_REDUCTION; // rad/s
+        public static final double SMART_MOTION_MAX_VELOCITY = NEO.RPM / 60.0 * 2.0 * Math.PI / GEARBOX_REDUCTION; // rad/s
         public static final double SMART_MOTION_MAX_ACCELERATION = (NEO.maxTorqueCurrentLimited(CURRENT_LIMIT) * GEARBOX_REDUCTION) / MOI; // rad/s^2
       }
     }

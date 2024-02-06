@@ -4,26 +4,20 @@
 
 package frc.robot.subsystems.drive;
 
-import java.io.Console;
-import java.sql.Driver;
 import java.util.List;
-import java.util.function.Supplier;
 
 import com.choreo.lib.Choreo;
 import com.choreo.lib.ChoreoTrajectory;
 import com.kauailabs.navx.frc.AHRS;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.path.GoalEndState;
-import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
 import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
 import com.pathplanner.lib.util.PIDConstants;
 import com.pathplanner.lib.util.ReplanningConfig;
 
-import edu.wpi.first.apriltag.AprilTag;
-import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -32,15 +26,12 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.math.trajectory.TrapezoidProfile;
-import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.SPI;
-import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.XboxController;
-import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.simulation.BatterySim;
 import edu.wpi.first.wpilibj.simulation.RoboRioSim;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
@@ -48,15 +39,13 @@ import edu.wpi.first.wpilibj.smartdashboard.FieldObject2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
-import frc.robot.Field;
 import frc.robot.Constants.ENABLED_SYSTEMS;
+import frc.robot.Constants.LIMELIGHT;
 import frc.robot.Constants.SWERVE_DRIVE;
-import frc.robot.Constants.SWERVE_DRIVE.AUTONOMOUS;
-import frc.robot.commands.drive.XBoxSwerve;
-import frc.robot.subsystems.vision.ApriltagPose;
+import frc.robot.Field;
+import frc.robot.subsystems.vision.AprilTagPose;
 import frc.robot.util.StatusChecks;
 import frc.robot.util.Logging.Logger;
 
@@ -87,20 +76,38 @@ public class SwerveDrive extends SubsystemBase {
     SWERVE_DRIVE.ABSOLUTE_ROTATION_GAINS.kD
   );
 
+  SWERVE_DRIVE.MODULE_CONFIG[] equippedModules;
+
   public SwerveDrive() {
     if (!ENABLED_SYSTEMS.ENABLE_DRIVE) return;
 
     // Create the serve module objects
-    for (int i = 0; i < SWERVE_DRIVE.MODULE_COUNT; i++) {
-      if (RobotBase.isSimulation()) {
-        modules[i] = new SwerveModuleSim(i);
-      } else {
-        modules[i] = new SwerveModule(i);
-      }
+    if (SWERVE_DRIVE.IS_PROTOTYPE_CHASSIS) {
+      equippedModules = SWERVE_DRIVE.EQUIPPED_MODULES_PROTOTYPE;
+    } else {
+      equippedModules = SWERVE_DRIVE.EQUIPPED_MODULES_COMPETITION;
     }
-    
+
+    int corner = 0;
+    for (SWERVE_DRIVE.MODULE_CONFIG config : equippedModules) {
+      String name = SWERVE_DRIVE.MODULE_NAMES[corner];
+      if (RobotBase.isSimulation()) {
+        modules[corner] = new SwerveModuleSim(config, corner, name);
+      } else {
+        modules[corner] = new SwerveModule(config, corner, name);
+      }
+      corner++;
+    }
+
     // Set up pose estimator and rotation controller
-    poseEstimator = new SwerveDrivePoseEstimator(kinematics, gyroHeading.plus(gyroOffset), getModulePositions(), SWERVE_DRIVE.STARTING_POSE);
+    poseEstimator = new SwerveDrivePoseEstimator(
+      kinematics,
+      gyroHeading.plus(gyroOffset),
+      getModulePositions(),
+      SWERVE_DRIVE.STARTING_POSE,
+      VecBuilder.fill(0.05, 0.05, Units.degreesToRadians(2)),
+      VecBuilder.fill(1.0, 1.0, Units.degreesToRadians(30))
+    );
 
     rotateController.enableContinuousInput(-Math.PI, Math.PI);
     rotateController.setTolerance(SWERVE_DRIVE.ABSOLUTE_ROTATION_GAINS.TOLERANCE);
@@ -160,11 +167,7 @@ public class SwerveDrive extends SubsystemBase {
 
     // Update pose based on measured heading and swerve module positions
     poseEstimator.update(gyroHeading.plus(gyroOffset), getModulePositions());
-    Pose2d visionPose = ApriltagPose.getRobotPose2d();
-    if (visionPose != null) {
-      addVisionMeasurement(visionPose);
-    }
-
+    AprilTagPose.injectVisionData(LIMELIGHT.APRILTAG_CAMERA_NAMES, this);    
     // Update field
     FieldObject2d modulesObject = field.getObject("Swerve Modules");
 
@@ -172,8 +175,10 @@ public class SwerveDrive extends SubsystemBase {
     Pose2d[] modulePoses = new Pose2d[SWERVE_DRIVE.MODULE_COUNT];
     Pose2d robotPose = getPose();
     
+    int i = 0;
     for (SwerveModule module : modules) {
-      modulePoses[module.id] = module.getPose(robotPose);
+      modulePoses[i] = module.getPose(robotPose);
+      i++;
     }
 
     modulesObject.setPoses(modulePoses);
@@ -356,8 +361,8 @@ public class SwerveDrive extends SubsystemBase {
    * 
    * @param visionMeasurement The robot position on the field from the apriltags
    */
-  public void addVisionMeasurement(Pose2d visionMeasurement) {
-    poseEstimator.addVisionMeasurement(visionMeasurement, Timer.getFPGATimestamp());
+  public void addVisionMeasurement(Pose2d visionMeasurement, double timestamp) {
+    poseEstimator.addVisionMeasurement(visionMeasurement, timestamp);
   }
 
   /**
