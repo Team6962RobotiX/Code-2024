@@ -41,6 +41,7 @@ public final class Constants {
     public static final boolean ENABLE_LIMELIGHT = false;
     public static final boolean ENABLE_DASHBOARD = true;
     public static final boolean ENABLE_SHOOTER   = true;
+    public static final boolean ENABLE_INTAKE   = true;
   }
 
   public static final class LOGGING {
@@ -260,6 +261,7 @@ public final class Constants {
     public static final int PDH = 5;
     public static final int SHOOTER_WHEELS = 6;
     public static final int SHOOTER_PIVOT = 7;
+    public static final int INTAKE = 8;
   }
   
   public static final class NEO {

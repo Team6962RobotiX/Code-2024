@@ -14,11 +14,14 @@ import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.robot.Constants.CAN;
 import frc.robot.Constants.DEVICES;
 import frc.robot.Constants.NEO;
 import frc.robot.Constants.SHOOTER.WHEELS;
 import frc.robot.commands.drive.XBoxSwerve;
+import frc.robot.subsystems.Intake;
 import frc.robot.subsystems.drive.SwerveDrive;
 import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.shooter.ShooterPivot;
@@ -40,6 +43,7 @@ public class RobotContainer {
   private final SwerveDrive swerveDrive = new SwerveDrive();
   // private final Shooter shooter = new Shooter(swerveDrive);
   private final SendableChooser<Command> calibrationChooser = new SendableChooser<>();
+  private final Intake intake = new Intake();
   
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
@@ -62,7 +66,7 @@ public class RobotContainer {
   }
 
   private void configureBindings() {
-    
+    new JoystickButton(xboxController, XboxController.Button.kX.value).whileTrue(Commands.startEnd(() -> intake.setState(Intake.IntakeState.FORWARD), () -> intake.setState(Intake.IntakeState.OFF)));
   }
 
   public Command getAutonomousCommand() {
