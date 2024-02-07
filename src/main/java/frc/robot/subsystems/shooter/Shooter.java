@@ -91,13 +91,14 @@ public class Shooter extends SubsystemBase {
     if (!ENABLED_SYSTEMS.ENABLE_SHOOTER) return;
 
     shooterMechanism.setAngle(shooterPivot.getMeasuredAngle());
+
+    aim(Field.SPEAKER);
   }
 
   public void aim(Translation3d point) {
     // Calculate point to aim towards, accounting for current velocity
-    Translation3d speakerPosition = Field.SPEAKER;
     Translation3d velocityCompensatedPoint = ShooterMath.calcVelocityCompensatedPoint(
-      speakerPosition,
+      point,
       swerveDrive.getPose(),
       swerveDrive.getFieldVelocity(),
       shooterWheels.getVelocity()
@@ -112,6 +113,12 @@ public class Shooter extends SubsystemBase {
     shooterWheels.setTargetVelocity(WHEELS.TARGET_SPEED);
 
     orientToPointDelayCompensated(velocityCompensatedPoint);
+
+    System.out.println(ShooterMath.calcPivotAngle(
+      velocityCompensatedPoint,
+      swerveDrive.getPose(),
+      shooterWheels.getVelocity()
+    ));
   }
 
   public double getShotChance() {

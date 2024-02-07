@@ -370,7 +370,8 @@ public final class Constants {
       public static final double GEARBOX_STEP_UP = 2.0;
       public static final double ENCODER_CONVERSION_FACTOR = 2.0 * Math.PI * GEARBOX_STEP_UP;
       public static final double WHEEL_RADIUS = Units.inchesToMeters(2.0);
-      public static final double WHEEL_MOI = 0.5 * Units.lbsToKilograms(5 - 1.4) * Math.pow(WHEEL_RADIUS, 2.0);
+      public static final double WHEEL_MOI = 0.00018540712;
+      public static final double TOTAL_MOI = 0.00018540712 * 12.0;
       public static final double PROJECTILE_MASS = Units.lbsToKilograms(0.5);
       public static final double TARGET_SPEED    = Units.rotationsPerMinuteToRadiansPerSecond(5000);
 
@@ -396,7 +397,7 @@ public final class Constants {
       public static final double ANGLE_TOLERANCE   = Units.degreesToRadians(0.5);
       public static final double ANGLE_PRECISION   = Units.degreesToRadians(0.5);
       public static final double HEADING_PRECISION = Units.degreesToRadians(0.5);
-      public static final Translation3d POSITION = new Translation3d(0.0, 0.0, Units.inchesToMeters(18.0));
+      public static final Translation3d POSITION = new Translation3d(0.0, 0.0, Units.inchesToMeters(0.0));
       public static final double LENGTH = Units.inchesToMeters(15.0);
       public static final double MASS = Units.lbsToKilograms(14.3);
       public static final double MOI = (1.0 / 3.0) * MASS * Math.pow(LENGTH, 2.0);

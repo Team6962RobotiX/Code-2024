@@ -41,7 +41,7 @@ import frc.robot.util.StatusChecks;
 import frc.robot.util.Logging.Logger;
 
 public class ShooterPivot extends SubsystemBase {
-  private Rotation2d targetAngle = null;
+  private Rotation2d targetAngle = PIVOT.MIN_ANGLE;
   private ArmFeedforward feedforward = new ArmFeedforward(PIVOT.PROFILE.kS, PIVOT.PROFILE.kG, PIVOT.PROFILE.kV, PIVOT.PROFILE.kA);
   private SparkPIDController pid;
   private CANSparkMax motor;

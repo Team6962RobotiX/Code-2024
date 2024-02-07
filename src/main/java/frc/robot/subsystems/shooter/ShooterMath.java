@@ -35,7 +35,7 @@ public class ShooterMath {
   public static double calcProjectileVelocity(double shooterWheelVelocity) {
     // Derived from https://www.reca.lc/shooterWheel
     double shooterWheelSurfaceSpeed = shooterWheelVelocity * WHEELS.WHEEL_RADIUS;
-    double speedTransferPercentage = (WHEELS.WHEEL_MOI * 20.0) / (WHEELS.PROJECTILE_MASS * WHEELS.WHEEL_RADIUS * 2.0 * WHEELS.WHEEL_RADIUS * 2.0 * 7.0 + WHEELS.WHEEL_MOI * 40.0);
+    double speedTransferPercentage = (WHEELS.TOTAL_MOI * 20.0) / (WHEELS.PROJECTILE_MASS * WHEELS.WHEEL_RADIUS * 2.0 * WHEELS.WHEEL_RADIUS * 2.0 * 7.0 + WHEELS.TOTAL_MOI * 40.0);
     return shooterWheelSurfaceSpeed * speedTransferPercentage;
   }
 
