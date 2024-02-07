@@ -105,7 +105,7 @@ public class XBoxSwerve extends Command {
     if (controller.getAButton()) {
       swerveDrive.goToNearestPose(List.of(Field.AUTO_MOVE_POSITIONS.values().toArray(new Pose2d[] {})), controller).schedule();
     }
-
+    
     swerveDrive.driveFieldRelative(velocity.getX(), velocity.getY(), angularVelocity);
 
     if (leftStick.getNorm() > 0.05 && (controller.getLeftBumper() || controller.getRightBumper())) {

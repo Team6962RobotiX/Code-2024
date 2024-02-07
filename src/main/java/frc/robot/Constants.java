@@ -210,10 +210,10 @@ public final class Constants {
     public record MODULE_CONFIG (int ID, int CAN_DRIVE, int CAN_STEER, int CAN_ENCODER, double ENCODER_OFFSET) {}
 
     public static final MODULE_CONFIG[] MODULES = new MODULE_CONFIG[] {
-      new MODULE_CONFIG(0, 20, 21, 22, 0.1936363333),
-      new MODULE_CONFIG(1, 40, 41, 42, -0.0054961111),
-      new MODULE_CONFIG(2, 10, 11, 12, 0.4096846667),
-      new MODULE_CONFIG(3, 30, 31, 32, 0.031494),
+      new MODULE_CONFIG(0, 20, 21, 22, 0.6936363333),
+      new MODULE_CONFIG(1, 40, 41, 42, -0.5054961111),
+      new MODULE_CONFIG(2, 10, 11, 12, 0.9096846667),
+      new MODULE_CONFIG(3, 30, 31, 32, 0.531494),
       new MODULE_CONFIG(4, 20, 21, 22, -0.5917972222),
       new MODULE_CONFIG(5, 40, 41, 42, -0.1811527778),
       new MODULE_CONFIG(6, 10, 11, 12, 0.1533194444),
