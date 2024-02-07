@@ -103,7 +103,6 @@ public class SwerveModule extends SubsystemBase {
     MagnetSensorConfigs magConfig = new MagnetSensorConfigs();
     magConfig.withAbsoluteSensorRange(AbsoluteSensorRangeValue.Signed_PlusMinusHalf);
     magConfig.withMagnetOffset(encoderOffset);
-    magConfig.withSensorDirection(SensorDirectionValue.CounterClockwise_Positive);
 
     // Configure a lot of stuff, handling REVLibErrors gracefully
     ConfigUtils.configure(List.of(

@@ -89,6 +89,7 @@ public class XBoxSwerve extends Command {
 
     // Zero heading when Y is pressed
     if (controller.getYButton()) {
+      System.out.println("ZEROED");
       Rotation2d newHeading = new Rotation2d();
       swerveDrive.resetGyroHeading(newHeading);
     }

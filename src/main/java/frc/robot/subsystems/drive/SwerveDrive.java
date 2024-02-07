@@ -16,6 +16,7 @@ import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
 import com.pathplanner.lib.util.PIDConstants;
 import com.pathplanner.lib.util.ReplanningConfig;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
@@ -157,13 +158,15 @@ public class SwerveDrive extends SubsystemBase {
   @Override
   public void periodic() {
     if (!ENABLED_SYSTEMS.ENABLE_DRIVE) return;
-    
+        
     // Update current heading based on gyroscope or wheel speeds
     if (gyro.isConnected() && !RobotBase.isSimulation()) {
-      gyroHeading = gyro.getRotation2d();
+      gyroHeading = gyro.getRotation2d().unaryMinus();
     } else {
       gyroHeading = gyroHeading.plus(new Rotation2d(getMeasuredChassisSpeeds().omegaRadiansPerSecond * 0.02));
     }
+
+    gyroHeading = Rotation2d.fromRadians(MathUtil.angleModulus(gyroHeading.getRadians()));
 
     // Update pose based on measured heading and swerve module positions
     poseEstimator.update(gyroHeading.plus(gyroOffset), getModulePositions());
