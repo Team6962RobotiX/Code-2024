@@ -75,7 +75,7 @@ public class SwerveModule extends SubsystemBase {
 
     driveMotor           = new CANSparkMax(config.CAN_DRIVE(), MotorType.kBrushless);
     steerMotor           = new CANSparkMax(config.CAN_STEER(), MotorType.kBrushless);
-    absoluteSteerEncoder = new CANcoder(config.CAN_STEER());
+    absoluteSteerEncoder = new CANcoder(config.CAN_ENCODER());
     steerEncoder         = steerMotor.getEncoder();
     driveEncoder         = driveMotor.getEncoder();
     drivePID             = driveMotor.getPIDController();

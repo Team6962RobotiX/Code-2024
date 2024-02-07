@@ -18,7 +18,7 @@ import frc.robot.Constants.LIMELIGHT;
 import frc.robot.subsystems.drive.SwerveDrive;
 
 
-public class AprilTagPose extends SubsystemBase {
+public class AprilTagPose1 extends SubsystemBase {
   private static String getLimelightNameWithClosestTarget(String[] names) {
     Map<String, Double> namesWithTags = new HashMap<>();
     for (String name : names) {
