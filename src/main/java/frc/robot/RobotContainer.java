@@ -17,9 +17,9 @@ import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.robot.Constants.CAN;
 import frc.robot.Constants.DEVICES;
 import frc.robot.commands.drive.XBoxSwerve;
-import frc.robot.subsystems.Intake;
 import frc.robot.commands.intake.XBoxIntake;
 import frc.robot.subsystems.drive.SwerveDrive;
+import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.transfer.Transfer;
 import frc.robot.util.Logging.Logger;
@@ -41,7 +41,6 @@ public class RobotContainer {
   private final Intake intake = new Intake(elevator);
 
   private final SendableChooser<Command> calibrationChooser = new SendableChooser<>();
-  private final Intake intake = new Intake();
   
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
