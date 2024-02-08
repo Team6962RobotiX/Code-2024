@@ -16,6 +16,7 @@ import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
 import com.pathplanner.lib.util.PIDConstants;
 import com.pathplanner.lib.util.ReplanningConfig;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
@@ -102,7 +103,7 @@ public class SwerveDrive extends SubsystemBase {
     // Set up pose estimator and rotation controller
     poseEstimator = new SwerveDrivePoseEstimator(
       kinematics,
-      gyroHeading.plus(gyroOffset),
+      SWERVE_DRIVE.STARTING_POSE.getRotation(),
       getModulePositions(),
       SWERVE_DRIVE.STARTING_POSE,
       VecBuilder.fill(0.05, 0.05, Units.degreesToRadians(2)),
@@ -123,7 +124,7 @@ public class SwerveDrive extends SubsystemBase {
     new Thread(() -> {
       try {
         Thread.sleep(1000);
-        resetGyroHeading(SWERVE_DRIVE.STARTING_POSE.getRotation());
+        gyroOffset = gyroOffset.minus(gyro.getRotation2d());
       } catch (Exception e) {}
     }).start();
     
@@ -164,6 +165,8 @@ public class SwerveDrive extends SubsystemBase {
     } else {
       gyroHeading = gyroHeading.plus(new Rotation2d(getMeasuredChassisSpeeds().omegaRadiansPerSecond * 0.02));
     }
+
+    gyroHeading = Rotation2d.fromRadians(MathUtil.angleModulus(gyroHeading.getRadians()));
 
     // Update pose based on measured heading and swerve module positions
     poseEstimator.update(gyroHeading.plus(gyroOffset), getModulePositions());
@@ -232,7 +235,7 @@ public class SwerveDrive extends SubsystemBase {
     driveFieldRelative(ChassisSpeeds.fromRobotRelativeSpeeds(robotRelativeSpeeds, getAllianceAwareHeading()));
   }
 
-  private void driveAttainableSpeeds(ChassisSpeeds fieldRelativeSpeeds) {
+  private void driveAttainableSpeeds(ChassisSpeeds fieldRelativeSpeeds) {    
     double targetAngularSpeed = toLinear((fieldRelativeSpeeds.omegaRadiansPerSecond));
     double lastMeasuredAngularSpeed = toLinear((lastMeasuredChassisSpeeds.omegaRadiansPerSecond));
     double measuredAngularSpeed = toLinear((getMeasuredChassisSpeeds().omegaRadiansPerSecond));

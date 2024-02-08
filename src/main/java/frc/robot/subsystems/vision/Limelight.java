@@ -7,6 +7,7 @@ package frc.robot.subsystems.vision;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -167,7 +168,7 @@ public class Limelight extends SubsystemBase {
   private static Pose3d intoPose3d(double[] values) {
     return new Pose3d(
       new Translation3d(values[0], values[1], values[2]),
-      new Rotation3d(values[3], values[4], values[5])
+      new Rotation3d(Units.degreesToRadians(values[3]), Units.degreesToRadians(values[4]), Units.degreesToRadians(values[5]))
     );
   }
 }

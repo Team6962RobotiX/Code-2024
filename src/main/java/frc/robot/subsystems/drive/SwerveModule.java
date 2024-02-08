@@ -75,7 +75,7 @@ public class SwerveModule extends SubsystemBase {
 
     driveMotor           = new CANSparkMax(config.CAN_DRIVE(), MotorType.kBrushless);
     steerMotor           = new CANSparkMax(config.CAN_STEER(), MotorType.kBrushless);
-    absoluteSteerEncoder = new CANcoder(config.CAN_STEER());
+    absoluteSteerEncoder = new CANcoder(config.CAN_ENCODER());
     steerEncoder         = steerMotor.getEncoder();
     driveEncoder         = driveMotor.getEncoder();
     drivePID             = driveMotor.getPIDController();
@@ -103,7 +103,6 @@ public class SwerveModule extends SubsystemBase {
     MagnetSensorConfigs magConfig = new MagnetSensorConfigs();
     magConfig.withAbsoluteSensorRange(AbsoluteSensorRangeValue.Signed_PlusMinusHalf);
     magConfig.withMagnetOffset(encoderOffset);
-    magConfig.withSensorDirection(SensorDirectionValue.CounterClockwise_Positive);
 
     // Configure a lot of stuff, handling REVLibErrors gracefully
     ConfigUtils.configure(List.of(
