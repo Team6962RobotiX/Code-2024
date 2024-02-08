@@ -37,11 +37,12 @@ public final class Constants {
 
   // ENABLED SYSTEMS
   public static final class ENABLED_SYSTEMS {
-    public static final boolean ENABLE_DRIVE     = true;
+    public static final boolean ENABLE_DRIVE     = false;
     public static final boolean ENABLE_LIMELIGHT = false;
     public static final boolean ENABLE_DASHBOARD = true;
-    public static final boolean ENABLE_SHOOTER   = true;
+    public static final boolean ENABLE_SHOOTER   = false;
     public static final boolean ENABLE_INTAKE   = true;
+    public static final boolean ENABLE_TRANSFER = true;
   }
 
   public static final class LOGGING {
@@ -50,7 +51,8 @@ public final class Constants {
 
   // DEVICES
   public static final class DEVICES {
-    public static final int USB_XBOX_CONTROLLER = 0;
+    public static final int DRIVE_XBOX_CONTROLLER = 0;
+    public static final int OPERATOR_XBOX_CONTROLLER = 1;
   }
 
   // DASHBOARD (ShuffleBoard)
@@ -261,7 +263,12 @@ public final class Constants {
     public static final int PDH = 5;
     public static final int SHOOTER_WHEELS = 6;
     public static final int SHOOTER_PIVOT = 7;
-    public static final int INTAKE = 8;
+    public static final int INTAKE = 7;
+    public static final int CENTERING = 27;
+    public static final int TRANSFER_IN = 3;
+    public static final int TRANSFER_OUT = 12;
+    public static final int AMP_PIVOT = 2;
+    public static final int AMP_WHEELS = 17;
   }
   
   public static final class NEO {

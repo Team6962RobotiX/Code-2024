@@ -2,7 +2,7 @@
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
 
-package frc.robot.subsystems;
+package frc.robot.subsystems.intake;
 
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
@@ -19,7 +19,8 @@ import frc.robot.Constants.ENABLED_SYSTEMS;
 
 
 public class Intake extends SubsystemBase {
-  private CANSparkMax motor;
+  private CANSparkMax intakeMotor;
+  private CANSparkMax centeringMotor;
   private IntakeState state = IntakeState.OFF;
  
   public static enum IntakeState {
@@ -31,7 +32,8 @@ public class Intake extends SubsystemBase {
   public Intake() {
     if (!ENABLED_SYSTEMS.ENABLE_INTAKE) return;
     
-    motor = new CANSparkMax(CAN.INTAKE, MotorType.kBrushless);
+    intakeMotor = new CANSparkMax(CAN.INTAKE, MotorType.kBrushless);
+    centeringMotor = new CANSparkMax(CAN.CENTERING, MotorType.kBrushless);
   }
 
   public void setState(IntakeState newState) {
@@ -44,13 +46,16 @@ public class Intake extends SubsystemBase {
 
     switch(state) {
       case OFF:
-        motor.set(0);
+        intakeMotor.set(0);
+        centeringMotor.set(0);
         break;
       case FORWARD:
-        motor.set(1.0);
+        intakeMotor.set(0.45);
+        centeringMotor.set(0.45);
         break;
       case REVERSE:
-        motor.set(-1.0);
+        intakeMotor.set(-0.45);
+        centeringMotor.set(-0.45);
         break;
     }
   }
