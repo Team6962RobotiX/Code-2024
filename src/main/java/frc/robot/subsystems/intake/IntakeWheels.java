@@ -9,8 +9,8 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.commands.*;
 import frc.robot.Constants;
 
-public class TransferWheels extends SubsystemBase {
-  public TransferWheels() {
+public class IntakeWheels extends SubsystemBase {
+  public IntakeWheels() {
   }
 
   @Override
