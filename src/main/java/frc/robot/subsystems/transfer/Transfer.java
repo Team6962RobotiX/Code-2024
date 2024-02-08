@@ -1,28 +1,30 @@
-// Copyright (c) FIRST and other WPILib contributors.
-// Open Source Software; you can modify and/or share it under the terms of
-// the WPILib BSD license file in the root directory of this project.
-
 package frc.robot.subsystems.transfer;
 
-import com.revrobotics.CANSparkMax;
-import com.revrobotics.CANSparkLowLevel.MotorType;
-
-import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
-import frc.robot.commands.*;
-import frc.robot.Constants;
-
 public class Transfer extends SubsystemBase {
-  public Transfer() {
-  }
+    public static enum NoteDestination {
+        WAIT,
+        SHOOTER,
+        AMP
+    }
 
-  @Override
-  public void periodic() {
-  }
+    public Transfer() {
+        super();
+    }
 
-  @Override
-  public void simulationPeriodic() {
-    
-  }
+    public void setNoteDestination(NoteDestination destination) {
+        if (destination == NoteDestination.WAIT) {
+            // Hold the note in the elevator
+        } else if (destination == NoteDestination.SHOOTER) {
+            // Move the note to the shooter
+        } else if (destination == NoteDestination.AMP) {
+            // Move the note to the amp
+        }
+    }
+
+    public boolean isHoldingNote() {
+        // Return whether the elevator is holding a note
+        return false;
+    }
 }

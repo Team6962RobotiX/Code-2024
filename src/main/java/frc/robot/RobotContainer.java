@@ -4,8 +4,6 @@
 
 package frc.robot;
 
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution;
@@ -18,15 +16,12 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.robot.Constants.CAN;
 import frc.robot.Constants.DEVICES;
-import frc.robot.Constants.NEO;
-import frc.robot.Constants.SHOOTER.WHEELS;
 import frc.robot.commands.drive.XBoxSwerve;
 import frc.robot.subsystems.Intake;
+import frc.robot.commands.intake.XBoxIntake;
 import frc.robot.subsystems.drive.SwerveDrive;
 import frc.robot.subsystems.shooter.Shooter;
-import frc.robot.subsystems.shooter.ShooterPivot;
-import frc.robot.subsystems.shooter.ShooterWheels;
-import frc.robot.subsystems.vision.AprilTagPose;
+import frc.robot.subsystems.transfer.Transfer;
 import frc.robot.util.Logging.Logger;
 
 
@@ -41,7 +36,10 @@ public class RobotContainer {
   // The robot's subsystems and commands
   private final XboxController xboxController = new XboxController(DEVICES.USB_XBOX_CONTROLLER);
   private final SwerveDrive swerveDrive = new SwerveDrive();
-  // private final Shooter shooter = new Shooter(swerveDrive);
+  private final Shooter shooter = new Shooter(swerveDrive);
+  private final Transfer elevator = new Transfer();
+  private final Intake intake = new Intake(elevator);
+
   private final SendableChooser<Command> calibrationChooser = new SendableChooser<>();
   private final Intake intake = new Intake();
   
@@ -54,6 +52,7 @@ public class RobotContainer {
     Logger.startLog();
 
     swerveDrive.setDefaultCommand(new XBoxSwerve(swerveDrive, () -> xboxController));
+    intake.setDefaultCommand(new XBoxIntake(intake, xboxController));
     
     calibrationChooser.setDefaultOption("Calibrate Drive Motor (FL)", swerveDrive.modules[0].calibrateDriveMotor());
     calibrationChooser.setDefaultOption("Calibrate Steer Motor (FL)", swerveDrive.modules[0].calibrateSteerMotor());
