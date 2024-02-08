@@ -89,6 +89,7 @@ public class XBoxSwerve extends Command {
 
     // Zero heading when Y is pressed
     if (controller.getYButton()) {
+      System.out.println("ZEROED");
       Rotation2d newHeading = new Rotation2d();
       swerveDrive.resetGyroHeading(newHeading);
     }
@@ -104,7 +105,7 @@ public class XBoxSwerve extends Command {
     if (controller.getAButton()) {
       swerveDrive.goToNearestPose(List.of(Field.AUTO_MOVE_POSITIONS.values().toArray(new Pose2d[] {})), controller).schedule();
     }
-
+    
     swerveDrive.driveFieldRelative(velocity.getX(), velocity.getY(), angularVelocity);
 
     if (leftStick.getNorm() > 0.05 && (controller.getLeftBumper() || controller.getRightBumper())) {

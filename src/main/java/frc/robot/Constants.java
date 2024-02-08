@@ -33,7 +33,7 @@ import frc.robot.subsystems.drive.SwerveDrive;
  */
 public final class Constants {
 
-  public static final boolean IS_BLUE_TEAM = DriverStation.getAlliance().equals(Alliance.Blue) || RobotBase.isSimulation();
+  public static final boolean IS_BLUE_TEAM = !(DriverStation.getAlliance().isPresent() && DriverStation.getAlliance().get() == DriverStation.Alliance.Red);
 
   // ENABLED SYSTEMS
   public static final class ENABLED_SYSTEMS {
@@ -70,7 +70,7 @@ public final class Constants {
     public static final double   INSPECTION_WEIGHT                  = Units.lbsToKilograms(41);
     public static final double   BATTER_WEIGHT                      = Units.lbsToKilograms(12.89);
     public static final double   ROBOT_MASS                         = INSPECTION_WEIGHT + BATTER_WEIGHT; // kg
-    public static final double   FRICTION_COEFFICIENT               = 1.0; // 1.0 when on carpet 0.5 on KLS flooring
+    public static final double   FRICTION_COEFFICIENT               = 0.5; // 1.0 when on carpet 0.5 on KLS flooring
     public static final int      MODULE_COUNT                       = 4;
     public static final double   CHASSIS_WIDTH                      = Units.inchesToMeters(28);
     public static final double   CHASSIS_LENGTH                     = Units.inchesToMeters(28);
@@ -90,7 +90,7 @@ public final class Constants {
     public static final double   TELEOPERATED_DRIVE_POWER           = 0.5; // Percent driving power
     public static final double   TELEOPERATED_BOOST_POWER           = 1.0; // Percent power when using the triggers
     public static final double   TELEOPERATED_ROTATE_POWER          = 0.5; // Percent rotating power
-    public static final double   VELOCITY_DEADBAND                  = 0.01; // Velocity we stop moving at
+    public static final double   VELOCITY_DEADBAND                  = 0.05; // Velocity we stop moving at
     
     // ODOMETER
     public static final Pose2d   STARTING_POSE                      = Field.pose2d(0.0, 0.0, 0.0);
@@ -111,7 +111,7 @@ public final class Constants {
     public static final double   BUMPER_WIDTH                       = SWERVE_DRIVE.CHASSIS_WIDTH + SWERVE_DRIVE.BUMPER_THICKNESS * 2.0;
     public static final double   BUMPER_LENGTH                      = SWERVE_DRIVE.CHASSIS_LENGTH + SWERVE_DRIVE.BUMPER_THICKNESS * 2.0;
     public static final double   MAX_CURRENT_DRAW                   = (BATTERY_VOLTAGE - BROWNOUT_VOLTAGE) / BATTERY_RESISTANCE;
-    public static final boolean  IS_PROTOTYPE_CHASSIS               = !new DigitalInput(0).get() || true;
+    public static final boolean  IS_PROTOTYPE_CHASSIS               = !new DigitalInput(0).get();
 
     
     // GEAR AND WHEEL RATIOS
@@ -211,10 +211,10 @@ public final class Constants {
     public record MODULE_CONFIG (int ID, int CAN_DRIVE, int CAN_STEER, int CAN_ENCODER, double ENCODER_OFFSET) {}
 
     public static final MODULE_CONFIG[] MODULES = new MODULE_CONFIG[] {
-      new MODULE_CONFIG(0, 20, 21, 22, 0.1936363333),
-      new MODULE_CONFIG(1, 40, 41, 42, -0.0054961111),
-      new MODULE_CONFIG(2, 10, 11, 12, 0.4096846667),
-      new MODULE_CONFIG(3, 30, 31, 32, 0.031494),
+      new MODULE_CONFIG(0, 20, 21, 22, 0.6936363333),
+      new MODULE_CONFIG(1, 40, 41, 42, -0.5054961111),
+      new MODULE_CONFIG(2, 10, 11, 12, 0.9096846667),
+      new MODULE_CONFIG(3, 30, 31, 32, 0.531494),
       new MODULE_CONFIG(4, 20, 21, 22, -0.5917972222),
       new MODULE_CONFIG(5, 40, 41, 42, -0.1811527778),
       new MODULE_CONFIG(6, 10, 11, 12, 0.1533194444),
