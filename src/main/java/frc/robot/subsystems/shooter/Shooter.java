@@ -114,11 +114,11 @@ public class Shooter extends SubsystemBase {
 
     orientToPointDelayCompensated(velocityCompensatedPoint);
 
-    System.out.println(ShooterMath.calcPivotAngle(
-      velocityCompensatedPoint,
-      swerveDrive.getPose(),
-      shooterWheels.getVelocity()
-    ));
+    // System.out.println(ShooterMath.calcPivotAngle(
+    //   velocityCompensatedPoint,
+    //   swerveDrive.getPose(),
+    //   shooterWheels.getVelocity()
+    // ));
   }
 
   public double getShotChance() {

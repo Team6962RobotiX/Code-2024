@@ -62,20 +62,18 @@ public class SwerveDrive extends SubsystemBase {
   private SwerveDrivePoseEstimator poseEstimator;
   private Field2d field = new Field2d();
   private Rotation2d gyroHeading = Rotation2d.fromDegrees(0.0);
-  private boolean deliberatelyRotating = false;
-  private boolean parked = false;
   private Rotation2d gyroOffset = SWERVE_DRIVE.STARTING_POSE.getRotation();
 
   private ChassisSpeeds drivenChassisSpeeds = new ChassisSpeeds();
-  private ChassisSpeeds lastMeasuredChassisSpeeds = new ChassisSpeeds();
 
-  private boolean parkOverride = false;
-
-  private PIDController rotateController = new PIDController(
+  private PIDController alignmentController = new PIDController(
     SWERVE_DRIVE.ABSOLUTE_ROTATION_GAINS.kP,
     SWERVE_DRIVE.ABSOLUTE_ROTATION_GAINS.kI,
     SWERVE_DRIVE.ABSOLUTE_ROTATION_GAINS.kD
   );
+
+  private boolean isAligning = false;
+  private boolean parked = false;
 
   SWERVE_DRIVE.MODULE_CONFIG[] equippedModules;
 
@@ -110,8 +108,8 @@ public class SwerveDrive extends SubsystemBase {
       VecBuilder.fill(1.0, 1.0, Units.degreesToRadians(30))
     );
 
-    rotateController.enableContinuousInput(-Math.PI, Math.PI);
-    rotateController.setTolerance(SWERVE_DRIVE.ABSOLUTE_ROTATION_GAINS.TOLERANCE);
+    alignmentController.enableContinuousInput(-Math.PI, Math.PI);
+    alignmentController.setTolerance(SWERVE_DRIVE.ABSOLUTE_ROTATION_GAINS.TOLERANCE);
     setTargetHeading(SWERVE_DRIVE.STARTING_POSE.getRotation());
 
     // If possible, connect to the gyroscope
@@ -131,7 +129,7 @@ public class SwerveDrive extends SubsystemBase {
     SmartDashboard.putData("Field", field);
     Logger.autoLog("SwerveDrive/pose", () -> this.getPose());
     Logger.autoLog("SwerveDrive/measuredHeading", () -> this.getHeading().getDegrees());
-    Logger.autoLog("SwerveDrive/targetHeading", () -> Units.radiansToDegrees(rotateController.getSetpoint()));
+    Logger.autoLog("SwerveDrive/targetHeading", () -> Units.radiansToDegrees(alignmentController.getSetpoint()));
     Logger.autoLog("SwerveDrive/targetStates", this::getTargetModuleStates);
     Logger.autoLog("SwerveDrive/measuredStates", this::getMeasuredModuleStates);
     Logger.autoLog("test", Field.SPEAKER);
@@ -237,31 +235,9 @@ public class SwerveDrive extends SubsystemBase {
 
   private void driveAttainableSpeeds(ChassisSpeeds fieldRelativeSpeeds) {    
     double targetAngularSpeed = toLinear((fieldRelativeSpeeds.omegaRadiansPerSecond));
-    double lastMeasuredAngularSpeed = toLinear((lastMeasuredChassisSpeeds.omegaRadiansPerSecond));
-    double measuredAngularSpeed = toLinear((getMeasuredChassisSpeeds().omegaRadiansPerSecond));
+    double alignmentAngularVelocity = alignmentController.calculate(getHeading().getRadians());
 
-    if (Math.abs(targetAngularSpeed) > SWERVE_DRIVE.VELOCITY_DEADBAND) {
-      deliberatelyRotating = true;
-      setTargetHeading(getHeading());
-      rotateController.reset();
-    }
-    if (Math.abs(measuredAngularSpeed) < SWERVE_DRIVE.VELOCITY_DEADBAND || Math.signum(lastMeasuredAngularSpeed) != Math.signum(measuredAngularSpeed)) {
-      if (deliberatelyRotating) {
-        setTargetHeading(getHeading());
-        rotateController.reset();
-      }
-      deliberatelyRotating = false;
-    }
-
-    lastMeasuredChassisSpeeds = getMeasuredChassisSpeeds();
-
-    double rotationCompensation = rotateController.calculate(getHeading().getRadians());
-
-    if (!parked || rotateController.getPositionError() > Units.degreesToRadians(5.0)) {
-      if (!deliberatelyRotating) {
-        fieldRelativeSpeeds.omegaRadiansPerSecond += rotationCompensation;
-      }
-    }
+    if (isAligning) fieldRelativeSpeeds.omegaRadiansPerSecond += alignmentAngularVelocity;
 
     SwerveModuleState[] moduleStates = kinematics.toSwerveModuleStates(ChassisSpeeds.fromFieldRelativeSpeeds(fieldRelativeSpeeds, getAllianceAwareHeading()));
     SwerveDriveKinematics.desaturateWheelSpeeds(moduleStates, SWERVE_DRIVE.PHYSICS.MAX_LINEAR_VELOCITY);
@@ -303,15 +279,16 @@ public class SwerveDrive extends SubsystemBase {
       for (SwerveModuleState moduleState : getMeasuredModuleStates()) if (Math.abs(moduleState.speedMetersPerSecond) > SWERVE_DRIVE.VELOCITY_DEADBAND) moving = true;
     }
     parked = false;
-    if (!moving && !parkOverride) {
+    if (!moving && !isAligning) {
       parkModules();
       return;
     }
-    parkOverride = false;
+
+    if (alignmentAngularVelocity == 0.0) isAligning = false;
 
     driveModules(drivenModuleStates);
   }
-
+  
   private void driveModules(SwerveModuleState[] moduleStates) {
     // Drive the swerve modules at the calculated speeds
     for (int i = 0; i < SWERVE_DRIVE.MODULE_COUNT; i++) {
@@ -324,8 +301,8 @@ public class SwerveDrive extends SubsystemBase {
    * @param heading 
    */
   public void setTargetHeading(Rotation2d heading) {
-    rotateController.setSetpoint(heading.getRadians());
-    parkOverride = true;
+    alignmentController.setSetpoint(heading.getRadians());
+    isAligning = true;
   }
 
   /**
@@ -338,7 +315,7 @@ public class SwerveDrive extends SubsystemBase {
   }
 
   public Rotation2d getTargetHeading() {
-    return Rotation2d.fromRadians(rotateController.getSetpoint());
+    return Rotation2d.fromRadians(alignmentController.getSetpoint());
   }
   
   /**
@@ -458,8 +435,8 @@ public class SwerveDrive extends SubsystemBase {
    */
   public void resetGyroHeading(Rotation2d newHeading) {
     gyroOffset = newHeading.minus(gyroHeading);
-    rotateController.reset();
-    rotateController.setSetpoint(newHeading.getRadians());
+    alignmentController.reset();
+    alignmentController.setSetpoint(newHeading.getRadians());
   }
 
   /**

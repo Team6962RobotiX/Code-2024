@@ -41,9 +41,9 @@ public class XBoxSwerve extends Command {
   private Translation2d velocity = new Translation2d();
   private double angularVelocity = 0.0;
   
-  public XBoxSwerve(SwerveDrive swerveDrive, Supplier<XboxController> xboxSupplier) {
+  public XBoxSwerve(SwerveDrive swerveDrive, XboxController xboxController) {
     this.swerveDrive = swerveDrive;
-    controller = xboxSupplier.get();
+    this.controller = xboxController;
     // controller.setRumble(RumbleType.kBothRumble, 1.0);
     addRequirements(swerveDrive);
   }
@@ -76,7 +76,8 @@ public class XBoxSwerve extends Command {
     }
 
     // Deadbands
-    leftStick = InputMath.circular(leftStick, 0.05);
+    leftStick = InputMath.addCircularDeadband(leftStick, 0.05);
+    rightStick = InputMath.addCircularDeadband(rightStick, 0.05);
 
     angularVelocity += -rightStick.getX() * MathUtils.map(Math.max(leftTrigger, rightTrigger), 0, 1, NOMINAL_ANGULAR_VELOCITY, MAX_ANGULAR_VELOCITY);
     
@@ -89,7 +90,6 @@ public class XBoxSwerve extends Command {
 
     // Zero heading when Y is pressed
     if (controller.getYButton()) {
-      System.out.println("ZEROED");
       Rotation2d newHeading = new Rotation2d();
       swerveDrive.resetGyroHeading(newHeading);
     }
