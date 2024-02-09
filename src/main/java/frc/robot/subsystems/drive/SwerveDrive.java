@@ -40,6 +40,7 @@ import edu.wpi.first.wpilibj.smartdashboard.FieldObject2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.Constants.ENABLED_SYSTEMS;
@@ -132,7 +133,6 @@ public class SwerveDrive extends SubsystemBase {
     Logger.autoLog("SwerveDrive/targetHeading", () -> Units.radiansToDegrees(alignmentController.getSetpoint()));
     Logger.autoLog("SwerveDrive/targetStates", this::getTargetModuleStates);
     Logger.autoLog("SwerveDrive/measuredStates", this::getMeasuredModuleStates);
-    Logger.autoLog("test", Field.SPEAKER);
 
     StatusChecks.addCheck("Gyro Connection", gyro::isConnected);
 
@@ -679,5 +679,43 @@ public class SwerveDrive extends SubsystemBase {
   
   public boolean shouldFlipPaths() {
     return DriverStation.getAlliance().equals(Alliance.Red);
+  }
+
+  /**
+   * Go to a position on the field
+   * @param goalPosition Field-relative position on the field to go to
+   * @param orientation Field-relative orientation to rotate to
+   * @return A command to run
+   */
+  public Command goTo(Translation2d goalPosition, Rotation2d orientation) {
+    Rotation2d angle = goalPosition.minus(getPose().getTranslation()).getAngle();
+
+    List<Translation2d> bezierPoints = PathPlannerPath.bezierFromPoses(
+      new Pose2d(getPose().getTranslation(), angle),
+      new Pose2d(goalPosition, angle)
+    );
+
+    PathPlannerPath path = new PathPlannerPath(
+      bezierPoints,
+      new PathConstraints(
+        SWERVE_DRIVE.PHYSICS.MAX_LINEAR_VELOCITY, 
+        SWERVE_DRIVE.PHYSICS.MAX_LINEAR_ACCELERATION,
+        SWERVE_DRIVE.PHYSICS.MAX_ANGULAR_VELOCITY, 
+        SWERVE_DRIVE.PHYSICS.MAX_ANGULAR_ACCELERATION
+      ),
+      new GoalEndState(
+        0.0,
+        orientation
+      )
+    );
+
+    return Commands.sequence(
+      AutoBuilder.followPath(path),
+      Commands.runOnce(() -> setTargetHeading(orientation))
+    );
+  }
+
+  public boolean shouldFlipPaths() {
+    return false;
   }
 }

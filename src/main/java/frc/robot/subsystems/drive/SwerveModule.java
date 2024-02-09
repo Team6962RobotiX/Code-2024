@@ -11,6 +11,17 @@ import static edu.wpi.first.units.Units.Volts;
 
 import java.util.List;
 
+import com.revrobotics.CANSparkMax;
+import com.revrobotics.CANSparkLowLevel.MotorType;
+import com.revrobotics.SparkPIDController.AccelStrategy;
+import com.revrobotics.SparkPIDController.ArbFFUnits;
+import com.revrobotics.RelativeEncoder;
+import com.revrobotics.SparkPIDController;
+import com.revrobotics.CANSparkBase.ControlType;
+import com.revrobotics.CANSparkBase.IdleMode;
+import com.ctre.phoenix6.BaseStatusSignal;
+import com.ctre.phoenix6.configs.CANcoderConfiguration;
+import com.ctre.phoenix6.configs.CANcoderConfigurator;
 import com.ctre.phoenix6.configs.MagnetSensorConfigs;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.signals.AbsoluteSensorRangeValue;
@@ -34,10 +45,12 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.Voltage;
 import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import frc.robot.Constants.CAN;
 import frc.robot.Constants.NEO;
 import frc.robot.Constants.SWERVE_DRIVE;
 import frc.robot.Constants.SWERVE_DRIVE.DRIVE_MOTOR_PROFILE;
@@ -58,6 +71,9 @@ public class SwerveModule extends SubsystemBase {
   private MODULE_CONFIG config;
   private String name;
   private int corner;
+
+  public final int id;
+
   private boolean isCalibrating = false;
   
   private SimpleMotorFeedforward driveFF = new SimpleMotorFeedforward(
@@ -103,7 +119,7 @@ public class SwerveModule extends SubsystemBase {
     MagnetSensorConfigs magConfig = new MagnetSensorConfigs();
     magConfig.withAbsoluteSensorRange(AbsoluteSensorRangeValue.Signed_PlusMinusHalf);
     magConfig.withMagnetOffset(encoderOffset);
-
+    
     // Configure a lot of stuff, handling REVLibErrors gracefully
     ConfigUtils.configure(List.of(
       // Reset the drive motor controller to factory defaults
