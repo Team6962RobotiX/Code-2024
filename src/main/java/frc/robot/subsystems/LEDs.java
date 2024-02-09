@@ -13,7 +13,7 @@ import com.github.tommyettinger.colorful.oklab.ColorTools;
 public class LEDs extends SubsystemBase {
   static AddressableLED strip;
   static AddressableLEDBuffer buffer;
-  static int length = 10;
+  static int length = 200;
   
   public LEDs() {
     strip = new AddressableLED(1);
@@ -26,7 +26,7 @@ public class LEDs extends SubsystemBase {
 
   @Override
   public void periodic() {
-    setRainbow(0, length);
+    setColorWave(0, length, new int[] {255, 20, 0});
     strip.setData(buffer);
     clear();
   }
@@ -47,11 +47,26 @@ public class LEDs extends SubsystemBase {
   }
 
   public static void setRainbow(int start, int stop) {
-    double time = System.currentTimeMillis() / 1000.0;
+    double time = Timer.getFPGATimestamp();
+    System.out.println(time);
     for (int pixel = start; pixel < stop; pixel++) {
-      setColor(pixel, HCLtoRGB(new double[] {pixel / 10.0 + time / 10, 1.0, 0.5}));
+      setColor(pixel, HCLtoRGB(new double[] {(pixel / 100.0 + time * 1.0) % 1.0, 1.0, 0.5}));
     }
   }
+
+  public static void setColorWave(int start, int stop, int[] RGB) {
+    double time = Timer.getFPGATimestamp();
+    System.out.println(time);
+    for (int pixel = start; pixel < stop; pixel++) {
+      double val = (pixel / 200.0 + time * 2.5) % 1.0;
+      if (val < 0.5) {
+        setColor(pixel, RGB);
+      } else {
+        setColor(pixel, new int[] {0, 0, 0});
+      }
+    }
+  }
+
 
   public static void clear() {
     setColor(0, length, new int[] {0, 0, 0});
