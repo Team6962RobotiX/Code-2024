@@ -14,7 +14,6 @@ import java.util.List;
 import com.ctre.phoenix6.configs.MagnetSensorConfigs;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.signals.AbsoluteSensorRangeValue;
-import com.ctre.phoenix6.signals.SensorDirectionValue;
 import com.revrobotics.CANSparkBase.ControlType;
 import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkLowLevel.MotorType;
@@ -58,6 +57,7 @@ public class SwerveModule extends SubsystemBase {
   private MODULE_CONFIG config;
   private String name;
   private int corner;
+
   private boolean isCalibrating = false;
   
   private SimpleMotorFeedforward driveFF = new SimpleMotorFeedforward(
@@ -103,7 +103,7 @@ public class SwerveModule extends SubsystemBase {
     MagnetSensorConfigs magConfig = new MagnetSensorConfigs();
     magConfig.withAbsoluteSensorRange(AbsoluteSensorRangeValue.Signed_PlusMinusHalf);
     magConfig.withMagnetOffset(encoderOffset);
-
+    
     // Configure a lot of stuff, handling REVLibErrors gracefully
     ConfigUtils.configure(List.of(
       // Reset the drive motor controller to factory defaults

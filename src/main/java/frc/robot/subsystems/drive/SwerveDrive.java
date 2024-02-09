@@ -5,12 +5,14 @@
 package frc.robot.subsystems.drive;
 
 import java.util.List;
+import java.util.Optional;
 
 import com.choreo.lib.Choreo;
 import com.choreo.lib.ChoreoTrajectory;
 import com.kauailabs.navx.frc.AHRS;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.path.GoalEndState;
+import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
 import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
 import com.pathplanner.lib.util.PIDConstants;
@@ -45,7 +47,6 @@ import frc.robot.Constants;
 import frc.robot.Constants.ENABLED_SYSTEMS;
 import frc.robot.Constants.LIMELIGHT;
 import frc.robot.Constants.SWERVE_DRIVE;
-import frc.robot.Field;
 import frc.robot.subsystems.vision.AprilTagPose;
 import frc.robot.util.StatusChecks;
 import frc.robot.util.Logging.Logger;
@@ -675,6 +676,48 @@ public class SwerveDrive extends SubsystemBase {
   }
   
   public boolean shouldFlipPaths() {
-    return DriverStation.getAlliance().equals(Alliance.Red);
+    Optional<Alliance> optional = DriverStation.getAlliance();
+
+    if (!optional.isPresent()) {
+      System.out.println("Cannot determine alliance. Defaulting to blue");
+
+      return false;
+    }
+
+    return optional.get().equals(Alliance.Red);
+  }
+
+  /**
+   * Go to a position on the field
+   * @param goalPosition Field-relative position on the field to go to
+   * @param orientation Field-relative orientation to rotate to
+   * @return A command to run
+   */
+  public Command goTo(Translation2d goalPosition, Rotation2d orientation) {
+    Rotation2d angle = goalPosition.minus(getPose().getTranslation()).getAngle();
+
+    List<Translation2d> bezierPoints = PathPlannerPath.bezierFromPoses(
+      new Pose2d(getPose().getTranslation(), angle),
+      new Pose2d(goalPosition, angle)
+    );
+
+    PathPlannerPath path = new PathPlannerPath(
+      bezierPoints,
+      new PathConstraints(
+        SWERVE_DRIVE.PHYSICS.MAX_LINEAR_VELOCITY, 
+        SWERVE_DRIVE.PHYSICS.MAX_LINEAR_ACCELERATION,
+        SWERVE_DRIVE.PHYSICS.MAX_ANGULAR_VELOCITY, 
+        SWERVE_DRIVE.PHYSICS.MAX_ANGULAR_ACCELERATION
+      ),
+      new GoalEndState(
+        0.0,
+        orientation
+      )
+    );
+
+    return Commands.sequence(
+      AutoBuilder.followPath(path),
+      Commands.runOnce(() -> setTargetHeading(orientation))
+    );
   }
 }

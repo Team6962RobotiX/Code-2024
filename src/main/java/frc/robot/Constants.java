@@ -204,6 +204,10 @@ public final class Constants {
     // MODULES
     // In order of: front left, front right, back left, back right, where the battery is in the back
 
+    // public static final String[] MODULE_NAMES          = { "FL", "FR", "BL", "BR" };
+    // public static final double[] STEER_ENCODER_OFFSETS_PROTO = { -213.047, 24.785, -34.805, -11.602 };
+    // public static final double[] STEER_ENCODER_OFFSETS_COMP  = { 69.70908 + 180.0, 88.0214 + 180.0, 57.48648 + 180.0, 191.33784 + 180.0 };
+
     // public static final double[] STEER_ENCODER_OFFSETS_PROTO = { -213.047, 24.785, -34.805, -11.602 };
     // public static final double[] STEER_ENCODER_OFFSETS_COMP  = { 69.70908, 88.0214, 57.48648, 191.33784 };
     
