@@ -64,7 +64,7 @@ public final class MathUtils {
       return 0.0;
     }
 
-    public static Translation2d circular(Translation2d input, double deadband) {
+    public static Translation2d addCircularDeadband(Translation2d input, double deadband) {
       double magnitude = input.getNorm();
       double direction = input.getAngle().getRadians();
       if (Math.abs(magnitude) <= deadband) return new Translation2d();

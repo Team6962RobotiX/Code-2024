@@ -16,9 +16,11 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.Unit;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.simulation.FlywheelSim;
+import frc.robot.Constants.NEO;
 import frc.robot.Constants.SWERVE_DRIVE;
 import frc.robot.Constants.SWERVE_MATH;
 import frc.robot.Constants.SWERVE_DRIVE.DRIVE_MOTOR_PROFILE;
+import frc.robot.Constants.SWERVE_DRIVE.MODULE_CONFIG;
 import frc.robot.Constants.SWERVE_DRIVE.STEER_MOTOR_PROFILE;
 import frc.robot.util.MathUtils.SwerveMath;
 import frc.robot.util.Logging.Logger;
@@ -26,13 +28,13 @@ import frc.robot.util.Logging.Logger;
 public class SwerveModuleSim extends SwerveModule {
   private FlywheelSim driveMotor = new FlywheelSim(
     LinearSystemId.identifyVelocitySystem(DRIVE_MOTOR_PROFILE.kV * SWERVE_DRIVE.WHEEL_RADIUS, DRIVE_MOTOR_PROFILE.kA * SWERVE_DRIVE.WHEEL_RADIUS),
-    new DCMotor(12.0, 3.28, 181, 1.3, Units.rotationsPerMinuteToRadiansPerSecond(5880), 1),
+    NEO.STATS,
     SWERVE_DRIVE.DRIVE_MOTOR_GEARING
   );
-
+  
   private FlywheelSim steerMotor = new FlywheelSim(
     LinearSystemId.identifyVelocitySystem(STEER_MOTOR_PROFILE.kV, STEER_MOTOR_PROFILE.kA),
-    new DCMotor(12.0, 3.28, 181, 1.3, Units.rotationsPerMinuteToRadiansPerSecond(5880), 1),
+    NEO.STATS,
     SWERVE_DRIVE.STEER_MOTOR_GEARING
   );
 
@@ -59,11 +61,11 @@ public class SwerveModuleSim extends SwerveModule {
 
   private SwerveModuleState lastDrivenState = new SwerveModuleState();
   
-  public SwerveModuleSim(int id) {
-    super(id);
+  public SwerveModuleSim(MODULE_CONFIG config, int corner, String name) {
+    super(config, corner, name);
     steerPID.enableContinuousInput(-Math.PI, Math.PI);
 
-    String logPath = "module_" + SWERVE_DRIVE.MODULE_NAMES[id] + "/";
+    String logPath = "module_" + name + "/";
     Logger.autoLog(logPath + "current",                 () -> getTotalCurrent());
     Logger.autoLog(logPath + "getAbsoluteSteerDegrees", () -> getMeasuredState().angle.getDegrees());
     Logger.autoLog(logPath + "measuredState",           () -> getMeasuredState());
