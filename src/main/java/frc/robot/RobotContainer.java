@@ -11,11 +11,14 @@ import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.Constants.CAN;
 import frc.robot.Constants.DEVICES;
 import frc.robot.commands.drive.XBoxSwerve;
 import frc.robot.subsystems.drive.SwerveDrive;
+import frc.robot.subsystems.intake.IntakeWheels;
+import frc.robot.subsystems.transfer.TransferWheels;
 import frc.robot.util.Logging.Logger;
 
 
@@ -28,11 +31,14 @@ import frc.robot.util.Logging.Logger;
 public class RobotContainer {
 
   // The robot's subsystems and commands
-  private final CommandXboxController xboxController = new CommandXboxController(DEVICES.USB_XBOX_CONTROLLER);
+  private final CommandXboxController operatorController = new CommandXboxController(DEVICES.OPERATOR_XBOX_CONTROLLER);
+  private final CommandXboxController driveController = new CommandXboxController(DEVICES.DRIVE_XBOX_CONTROLLER);
   private final SwerveDrive swerveDrive = new SwerveDrive();
   // private final Shooter shooter = new Shooter(swerveDrive);
   
   private final SendableChooser<Command> calibrationChooser = new SendableChooser<>();
+  private final IntakeWheels intake = new IntakeWheels();
+  private final TransferWheels transfer = new TransferWheels();
   
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
@@ -42,7 +48,7 @@ public class RobotContainer {
     Logger.autoLog("PDH", new PowerDistribution(CAN.PDH, ModuleType.kRev));
     Logger.startLog();
 
-    swerveDrive.setDefaultCommand(new XBoxSwerve(swerveDrive, xboxController.getHID()));
+    swerveDrive.setDefaultCommand(new XBoxSwerve(swerveDrive, driveController.getHID()));
     
     calibrationChooser.setDefaultOption("Calibrate Drive Motor (FL)", swerveDrive.modules[0].calibrateDriveMotor());
     calibrationChooser.setDefaultOption("Calibrate Steer Motor (FL)", swerveDrive.modules[0].calibrateSteerMotor());
@@ -55,12 +61,15 @@ public class RobotContainer {
   }
 
   private void configureBindings() {
-    
+    operatorController.leftTrigger(0.1).whileTrue(Commands.startEnd(() -> intake.setState(IntakeWheels.IntakeState.REVERSE), () -> intake.setState(IntakeWheels.IntakeState.OFF)));
+    operatorController.rightTrigger(0.1).whileTrue(Commands.startEnd(() -> intake.setState(IntakeWheels.IntakeState.FORWARD), () -> intake.setState(IntakeWheels.IntakeState.OFF)));
+    operatorController.leftBumper().whileTrue(Commands.startEnd(() -> transfer.setState(TransferWheels.TransferState.AMP), () -> transfer.setState(TransferWheels.TransferState.OFF)));
+    operatorController.rightBumper().whileTrue(Commands.startEnd(() -> transfer.setState(TransferWheels.TransferState.SHOOTER), () -> transfer.setState(TransferWheels.TransferState.OFF)));
   }
-
   public Command getAutonomousCommand() {
     // return swerveDrive.goTo(new Translation2d(5.0, 5.0), Rotation2d.fromDegrees(90.0));
-    return swerveDrive.followChoreoTrajectory("simple", true);
+    // return swerveDrive.followChoreoTrajectory("simple", true);
+    return null;
   }
 
   public void disabledPeriodic() {
