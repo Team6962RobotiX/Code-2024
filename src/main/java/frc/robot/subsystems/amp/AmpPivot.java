@@ -6,6 +6,8 @@ package frc.robot.subsystems.amp;
 
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
+import static edu.wpi.first.units.Units.Radians;
+import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.Volts;
 
 import java.util.List;
@@ -33,9 +35,10 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants.CAN;
+import frc.robot.Constants.DIO;
 import frc.robot.Constants.ENABLED_SYSTEMS;
 import frc.robot.Constants.NEO;
-import frc.robot.Constants.SHOOTER.PIVOT;
+import frc.robot.Constants.AMP.PIVOT;
 import frc.robot.util.ConfigUtils;
 import frc.robot.util.StatusChecks;
 import frc.robot.util.Logging.Logger;
@@ -55,7 +58,7 @@ public class AmpPivot extends SubsystemBase {
     motor = new CANSparkMax(CAN.AMP_PIVOT, MotorType.kBrushless);
     pid = motor.getPIDController();
     encoder = motor.getEncoder();
-    absoluteEncoder = new DutyCycleEncoder(1);
+    absoluteEncoder = new DutyCycleEncoder(DIO.AMP_PIVOT);
 
     double startingAngle = absoluteEncoder.getAbsolutePosition() * 2.0 * Math.PI;
     
@@ -88,7 +91,7 @@ public class AmpPivot extends SubsystemBase {
     Logger.autoLog(logPath + "position",                () -> encoder.getPosition());
     Logger.autoLog(logPath + "velocity",                () -> encoder.getVelocity());
 
-    StatusChecks.addCheck("Shooter Pivot Motor", () -> motor.getFaults() == 0);
+    StatusChecks.addCheck("Amp Pivot Motor", () -> motor.getFaults() == 0);
   }
 
   public void setTargetAngle(Rotation2d angle) {
@@ -134,13 +137,13 @@ public class AmpPivot extends SubsystemBase {
       new SysIdRoutine.Config(),
       new SysIdRoutine.Mechanism(
         (Measure<Voltage> volts) -> {
-          motor.set(volts.in(Volts) / RobotController.getBatteryVoltage());
+          motor.setVoltage(volts.in(Volts));
         },
         log -> {
-          log.motor("shooter-pivot")
-            .voltage(Volts.of(motor.get() * RobotController.getBatteryVoltage()))
-            .linearPosition(Meters.of(encoder.getPosition()))
-            .linearVelocity(MetersPerSecond.of(encoder.getVelocity()));
+          log.motor("amp-pivot")
+            .voltage(Volts.of(motor.getAppliedOutput() * motor.getBusVoltage()))
+            .angularPosition(Radians.of(encoder.getPosition()))
+            .angularVelocity(RadiansPerSecond.of(encoder.getVelocity()));
         },
         this
       )
@@ -149,7 +152,17 @@ public class AmpPivot extends SubsystemBase {
     return Commands.sequence(
       Commands.runOnce(() -> isCalibrating = true),
       calibrationRoutine.quasistatic(SysIdRoutine.Direction.kForward),
+      Commands.runOnce(() -> motor.stopMotor()),
+      Commands.waitSeconds(1.0),
+      calibrationRoutine.quasistatic(SysIdRoutine.Direction.kReverse),
+      Commands.runOnce(() -> motor.stopMotor()),
+      Commands.waitSeconds(1.0),
       calibrationRoutine.dynamic(SysIdRoutine.Direction.kForward),
+      Commands.runOnce(() -> motor.stopMotor()),
+      Commands.waitSeconds(1.0),
+      calibrationRoutine.dynamic(SysIdRoutine.Direction.kReverse),
+      Commands.runOnce(() -> motor.stopMotor()),
+      Commands.waitSeconds(1.0),
       Commands.runOnce(() -> isCalibrating = false)
     );
   }

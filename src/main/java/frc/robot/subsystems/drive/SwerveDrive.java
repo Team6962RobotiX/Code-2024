@@ -256,7 +256,7 @@ public class SwerveDrive extends SubsystemBase {
     double angularForce = Math.abs((SWERVE_DRIVE.PHYSICS.ROTATIONAL_INERTIA * angularAcceleration) / SWERVE_DRIVE.PHYSICS.DRIVE_RADIUS);
 
     double frictionForce = 9.80 * SWERVE_DRIVE.ROBOT_MASS * SWERVE_DRIVE.FRICTION_COEFFICIENT;
-
+    
     if (linearForce + angularForce > frictionForce) {
       double factor = (linearForce + angularForce) / frictionForce;
       linearAcceleration = linearAcceleration.div(factor);

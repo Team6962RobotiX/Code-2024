@@ -33,6 +33,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants.CAN;
+import frc.robot.Constants.DIO;
 import frc.robot.Constants.ENABLED_SYSTEMS;
 import frc.robot.Constants.NEO;
 import frc.robot.Constants.SHOOTER.PIVOT;
@@ -55,7 +56,7 @@ public class ShooterPivot extends SubsystemBase {
     motor = new CANSparkMax(CAN.SHOOTER_PIVOT, MotorType.kBrushless);
     pid = motor.getPIDController();
     encoder = motor.getEncoder();
-    absoluteEncoder = new DutyCycleEncoder(1);
+    absoluteEncoder = new DutyCycleEncoder(DIO.SHOOTER_PIVOT);
 
     double startingAngle = absoluteEncoder.getAbsolutePosition() * 2.0 * Math.PI;
     

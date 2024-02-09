@@ -274,6 +274,11 @@ public final class Constants {
     public static final int AMP_PIVOT = 2;
     public static final int AMP_WHEELS = 17;
   }
+
+  public static final class DIO {
+    public static final int AMP_PIVOT = 1;
+    public static final int SHOOTER_PIVOT = 2;
+  }
   
   public static final class NEO {
     public static final double RPM = 5880;
@@ -442,19 +447,25 @@ public final class Constants {
     public static final class PIVOT {
       public static final double GEARBOX_REDUCTION = 60.6666;
       public static final double ENCODER_CONVERSION_FACTOR = 2.0 * Math.PI / GEARBOX_REDUCTION;
+      public static final double ANGLE_TOLERANCE   = Units.degreesToRadians(0.5);
+      public static final double LENGTH = Units.inchesToMeters(9.5);
+      public static final double MASS = Units.lbsToKilograms(4.0);
+      public static final double MOI = (1.0 / 3.0) * MASS * Math.pow(LENGTH, 2.0);
+      public static final Rotation2d MAX_ANGLE = Rotation2d.fromDegrees(90.0);
+      public static final Rotation2d MIN_ANGLE = Rotation2d.fromDegrees(-45.0);
       
       public static final class PROFILE {
         public static final double kP = 0.0;
         public static final double kI = 0.0;
         public static final double kD = 0.0;
         public static final double kS = 0.0;
-        public static final double kG = 0.0;
-        public static final double kV = 0.0;
+        public static final double kG = 0.21;
+        public static final double kV = NEO.STATS.freeSpeedRadPerSec * GEARBOX_REDUCTION;
         public static final double kA = 0.0;
         public static final double RAMP_RATE = 0.1;
         public static final int    CURRENT_LIMIT = 40;
         public static final double SMART_MOTION_MAX_VELOCITY = NEO.RPM / 60.0 * 2.0 * Math.PI / GEARBOX_REDUCTION; // rad/s
-        // public static final double SMART_MOTION_MAX_ACCELERATION = (NEO.maxTorqueCurrentLimited(CURRENT_LIMIT) * GEARBOX_REDUCTION) / MOI; // rad/s^2
+        public static final double SMART_MOTION_MAX_ACCELERATION = (NEO.maxTorqueCurrentLimited(CURRENT_LIMIT) * GEARBOX_REDUCTION) / MOI; // rad/s^2
       }
     }
   }
