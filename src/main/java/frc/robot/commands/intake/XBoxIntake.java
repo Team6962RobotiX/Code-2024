@@ -2,13 +2,13 @@ package frc.robot.commands.intake;
 
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
-import frc.robot.subsystems.intake.Intake;
+import frc.robot.subsystems.intake.IntakeWheels;
 
 public class XBoxIntake extends Command {
-    Intake intake;
+    IntakeWheels intake;
     XboxController controller;
 
-    public XBoxIntake(Intake intake, XboxController controller) {
+    public XBoxIntake(IntakeWheels intake, XboxController controller) {
         super();
 
         this.intake = intake;
@@ -20,9 +20,9 @@ public class XBoxIntake extends Command {
     @Override
     public void execute() {
         if (controller.getBButtonPressed()) {
-            intake.setState(Intake.IntakeState.FORWARD);
+            intake.setState(IntakeWheels.IntakeState.FORWARD);
         } else {
-            intake.setState(Intake.IntakeState.OFF);
+            intake.setState(IntakeWheels.IntakeState.OFF);
         }
     }
 }
