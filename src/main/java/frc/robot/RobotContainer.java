@@ -19,6 +19,8 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.CAN;
 import frc.robot.Constants.DEVICES;
 import frc.robot.commands.drive.XBoxSwerve;
+import frc.robot.subsystems.amp.AmpWheels;
+import frc.robot.subsystems.amp.AmpWheels.AmpState;
 import frc.robot.subsystems.drive.SwerveDrive;
 import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.shooter.Shooter;
@@ -46,6 +48,7 @@ public class RobotContainer {
   private final SendableChooser<Command> calibrationChooser = new SendableChooser<>();
   private final Intake intake = new Intake();
   private final Transfer transfer = new Transfer();
+  private final AmpWheels amp = new AmpWheels();
   
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
@@ -68,12 +71,13 @@ public class RobotContainer {
   }
 
   private void configureBindings() {
-    operatorController.leftTrigger(0.1).whileTrue(Commands.startEnd(() -> intake.setState(Intake.IntakeState.REVERSE), () -> intake.setState(Intake.IntakeState.OFF)));
+    operatorController.leftTrigger(0.1).whileTrue(Commands.startEnd(() -> amp.setState(AmpWheels.AmpState.OUT), () -> amp.setState(AmpWheels.AmpState.OFF)));
     operatorController.rightTrigger(0.1).whileTrue(Commands.startEnd(() -> intake.setState(Intake.IntakeState.FORWARD), () -> intake.setState(Intake.IntakeState.OFF)));
     operatorController.leftBumper().whileTrue(Commands.startEnd(() -> transfer.setState(Transfer.TransferState.AMP), () -> transfer.setState(Transfer.TransferState.OFF)));
+    operatorController.leftBumper().whileTrue(Commands.startEnd(() -> amp.setState(AmpWheels.AmpState.IN), () -> amp.setState(AmpWheels.AmpState.OFF)));
     operatorController.rightBumper().whileTrue(Commands.startEnd(() -> transfer.setState(Transfer.TransferState.SHOOTER), () -> transfer.setState(Transfer.TransferState.OFF)));
   }
-  public Command getAutonomousCommand() {
+    public Command getAutonomousCommand() {
     // return swerveDrive.goTo(new Translation2d(5.0, 5.0), Rotation2d.fromDegrees(90.0));
     // return swerveDrive.followChoreoTrajectory("simple", true);
     return null;

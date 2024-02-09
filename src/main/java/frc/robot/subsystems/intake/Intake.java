@@ -51,11 +51,11 @@ public class Intake extends SubsystemBase {
         break;
       case FORWARD:
         intakeMotor.set(0.45);
-        centeringMotor.set(0.45);
+        centeringMotor.set(0.2);
         break;
       case REVERSE:
         intakeMotor.set(-0.45);
-        centeringMotor.set(-0.45);
+        centeringMotor.set(-0.2);
         break;
     }
   }
