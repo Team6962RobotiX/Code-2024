@@ -18,6 +18,7 @@ import frc.robot.Constants.CAN;
 import frc.robot.Constants.DEVICES;
 import frc.robot.commands.drive.XBoxSwerve;
 import frc.robot.subsystems.amp.AmpPivot;
+import frc.robot.subsystems.LEDs;
 import frc.robot.subsystems.amp.AmpWheels;
 import frc.robot.subsystems.amp.AmpWheels.AmpState;
 import frc.robot.subsystems.drive.SwerveDrive;
@@ -35,6 +36,8 @@ import frc.robot.util.Logging.Logger;
  * subsystems, commands, and trigger mappings) should be declared here.
  */
 public class RobotContainer {
+
+  private final LEDs ledStrip = new LEDs();
 
   // The robot's subsystems and commands
   private final CommandXboxController operatorController = new CommandXboxController(DEVICES.OPERATOR_XBOX_CONTROLLER);
@@ -100,6 +103,6 @@ public class RobotContainer {
   }
 
   public void testInit() {
-    calibrationChooser.getSelected().schedule();
+    // calibrationChooser.getSelected().schedule();
   }
 }
