@@ -15,6 +15,8 @@ import com.revrobotics.RelativeEncoder;
 import edu.wpi.first.hal.PowerDistributionFaults;
 import edu.wpi.first.hal.can.CANStatus;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.networktables.NetworkTable;
@@ -70,6 +72,8 @@ public final class Logger {
     else if (obj instanceof SwerveModulePosition[]) log(key, (SwerveModulePosition[]) obj);
     else if (obj instanceof CANStatus) log(key, (CANStatus) obj);
     else if (obj instanceof PowerDistribution) log(key, (PowerDistribution) obj);
+    else if (obj instanceof Translation2d) log(key, (Translation2d) obj);
+    else if (obj instanceof Translation3d) log(key, (Translation3d) obj);
     else table.getEntry(key).setValue(obj);
   }
 
@@ -85,6 +89,14 @@ public final class Logger {
   public static void log(String path, RelativeEncoder encoder) {
     log(path + "/position", encoder.getPosition());
     log(path + "/velocity", encoder.getVelocity());
+  }
+
+  public static void log(String path, Translation3d translation) {
+    log(path, new double[] {translation.getX(), translation.getY(), translation.getZ()});
+  }
+
+  public static void log(String path, Translation2d translation) {
+    log(path, new double[] {translation.getX(), translation.getY()});
   }
 
   public static void log(String path, CANcoder encoder) {

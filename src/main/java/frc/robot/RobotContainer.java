@@ -4,22 +4,15 @@
 
 package frc.robot;
 
-import com.choreo.lib.Choreo;
-import com.choreo.lib.ChoreoTrajectory;
-
-import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.math.system.plant.DCMotor;
-import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj.XboxController;
-import edu.wpi.first.wpilibj.smartdashboard.Field2d;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
@@ -34,7 +27,10 @@ import frc.robot.Constants.NEO;
 import frc.robot.Constants.SWERVE_DRIVE;
 import frc.robot.Constants.SWERVE_DRIVE.DRIVE_MOTOR_PROFILE;
 import frc.robot.util.Logging.Logger;
+import frc.robot.subsystems.shooter.ShooterPivot;
+import frc.robot.subsystems.shooter.ShooterWheels;
 import frc.robot.subsystems.vision.Camera;
+import frc.robot.util.Logging.Logger;
 
 
 /**
@@ -47,11 +43,18 @@ public class RobotContainer {
 
   // The robot's subsystems and commands
   private final XboxController controller = new XboxController(DEVICES.USB_XBOX_CONTROLLER);
+  private final XboxController xboxController = new XboxController(DEVICES.USB_XBOX_CONTROLLER);
   private final SwerveDrive swerveDrive = new SwerveDrive();
+  private final ShooterWheels shooterWheels = new ShooterWheels(swerveDrive);
+  private final ShooterPivot shooterPivot = new ShooterPivot(shooterWheels, swerveDrive);
 
-  //Simulation only - getPose() does not work in real life
-  private final Camera camera = new Camera("default", swerveDrive::getPose);
+  // Simulation only - getPose() does not work in real life
+  private final Camera camera = new Camera(Constants.LIMELIGHT.NAME, swerveDrive::getPose, swerveDrive);
 
+  
+
+  private final SendableChooser<Command> calibrationChooser = new SendableChooser<>();
+  
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
     DataLogManager.start();
@@ -60,14 +63,16 @@ public class RobotContainer {
     Logger.autoLog("PDH", new PowerDistribution(CAN.PDH, ModuleType.kRev));
     Logger.startLog();
 
-    swerveDrive.setDefaultCommand(new XBoxSwerve(swerveDrive, () -> controller));
-    //Positive y moves the camera left, Positive x moves the camera forward - TEMPORARY
-    swerveDrive.resetPose(new Pose2d(new Translation2d(2, 2), new Rotation2d()));
+    swerveDrive.setDefaultCommand(new XBoxSwerve(swerveDrive, () -> xboxController));
+    
+    calibrationChooser.setDefaultOption("Calibrate Drive Motor (FL)", swerveDrive.modules[0].calibrateDriveMotor());
+    calibrationChooser.setDefaultOption("Calibrate Steer Motor (FL)", swerveDrive.modules[0].calibrateSteerMotor());
+    SmartDashboard.putData("Swerve Module Calibration", calibrationChooser);
+
     // Configure the trigger bindings
     configureBindings();
     
     SwerveDrive.printChoreoConfig();
-
   }
 
   private void configureBindings() {
@@ -77,9 +82,15 @@ public class RobotContainer {
   }
 
   public Command getAutonomousCommand() {
+    // return swerveDrive.goTo(new Translation2d(5.0, 5.0), Rotation2d.fromDegrees(90.0));
     return swerveDrive.followChoreoTrajectory("simple", true);
   }
 
   public void disabledPeriodic() {
   }
+
+  public void testInit() {
+    calibrationChooser.getSelected().schedule();
+  }
+
 }
