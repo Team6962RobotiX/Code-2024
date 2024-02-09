@@ -23,18 +23,16 @@ import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation3d;
 
-
-/** An example command that uses an example subsystem. */
-public class AutoOrient extends Command {
-  private final SwerveDrive sDrive;
+public class MoveToNote extends Command {
+  private final SwerveDrive swerveDrive;
   private final Camera camera;
 
-  public AutoOrient(Camera camera, SwerveDrive sDrive) {
+  public MoveToNote(Camera camera, SwerveDrive swerveDrive) {
     
-    this.sDrive = sDrive;
+    this.swerveDrive = swerveDrive;
     this.camera = camera;
     // Use addRequirements() here to declare subsystem dependencies.
-    addRequirements(camera, sDrive);
+    addRequirements(camera, swerveDrive);
   }
 
   // Called when the command is initially scheduled.
@@ -45,59 +43,7 @@ public class AutoOrient extends Command {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-
-    sDrive.setTargetHeading(Rotation2d.fromDegrees(90));
-
-
-    //TESTING ON FIDUCIAL ID 6
-    if (camera.getFiducialId() == 6){
-
-      Pose2d currentPose = sDrive.getPose();
-
-      Translation2d currentTrans2d = currentPose.getTranslation();
-
-      Translation2d targetTrans2d = new Translation2d(1.85, 7.24);
-
-      Rotation2d currentRot2d =  currentPose.getRotation();
-
-
-      //double currentAngle = Math.acos(currentRot2d.getQuaternion().getX()) * 180/Math.PI;
-
-      //System.out.println("Angle: " + currentAngle);
-
-
-      double targetAngle = 90.0;
-
-
-      double xDiff = currentTrans2d.getX() - targetTrans2d.getX();
-      double yDiff = currentTrans2d.getY()-targetTrans2d.getY();
-
-      
-      double distance = Math.sqrt(Math.pow(xDiff,2) + Math.pow(yDiff,2));
-
-
-
-      double initialDist = 4;
-      double initialSpeed = 0.9;
-      double finalDist = 0.8;
-      double finalSpeed = 0.36;
-      double maxSpeed = ((finalSpeed - initialSpeed)/(finalDist - initialDist)) *(distance - initialDist) + initialSpeed;
-
-      maxSpeed = maxSpeed * 2; 
-
-
-      sDrive.driveFieldRelative(xDiff/distance*-maxSpeed, yDiff/distance*-maxSpeed, 0);
-
-      }
-      
-    
-    }
-
-
-
-
-
-  
+  }
 
   // Called once the command ends or is interrupted.
   @Override
