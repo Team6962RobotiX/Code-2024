@@ -5,12 +5,14 @@
 package frc.robot.subsystems.drive;
 
 import java.util.List;
+import java.util.Optional;
 
 import com.choreo.lib.Choreo;
 import com.choreo.lib.ChoreoTrajectory;
 import com.kauailabs.navx.frc.AHRS;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.path.GoalEndState;
+import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
 import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
 import com.pathplanner.lib.util.PIDConstants;
@@ -40,13 +42,11 @@ import edu.wpi.first.wpilibj.smartdashboard.FieldObject2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.Constants.ENABLED_SYSTEMS;
 import frc.robot.Constants.LIMELIGHT;
 import frc.robot.Constants.SWERVE_DRIVE;
-import frc.robot.Field;
 import frc.robot.subsystems.vision.AprilTagPose;
 import frc.robot.util.StatusChecks;
 import frc.robot.util.Logging.Logger;
@@ -678,7 +678,15 @@ public class SwerveDrive extends SubsystemBase {
   }
   
   public boolean shouldFlipPaths() {
-    return DriverStation.getAlliance().equals(Alliance.Red);
+    Optional<Alliance> optional = DriverStation.getAlliance();
+
+    if (!optional.isPresent()) {
+      System.out.println("Cannot determine alliance. Defaulting to blue");
+
+      return false;
+    }
+
+    return optional.get().equals(Alliance.Red);
   }
 
   /**
@@ -713,9 +721,5 @@ public class SwerveDrive extends SubsystemBase {
       AutoBuilder.followPath(path),
       Commands.runOnce(() -> setTargetHeading(orientation))
     );
-  }
-
-  public boolean shouldFlipPaths() {
-    return false;
   }
 }
