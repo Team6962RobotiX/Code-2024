@@ -29,7 +29,7 @@ public class AmpWheels extends SubsystemBase {
   }
 
   public AmpWheels() {
-    if (!ENABLED_SYSTEMS.ENABLE_INTAKE) return;
+    if (!ENABLED_SYSTEMS.ENABLE_AMP) return;
     
     intakeMotor = new CANSparkMax(CAN.AMP_WHEELS, MotorType.kBrushless);
   }
@@ -40,7 +40,7 @@ public class AmpWheels extends SubsystemBase {
 
   @Override
   public void periodic() {
-    if (!ENABLED_SYSTEMS.ENABLE_INTAKE) return;
+    if (!ENABLED_SYSTEMS.ENABLE_AMP) return;
 
     switch(state) {
       case OFF:

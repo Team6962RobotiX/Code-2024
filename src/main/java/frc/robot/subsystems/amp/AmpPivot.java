@@ -53,7 +53,7 @@ public class AmpPivot extends SubsystemBase {
   private boolean isCalibrating = false;
 
   public AmpPivot() {
-    if (!ENABLED_SYSTEMS.ENABLE_SHOOTER) return;
+    if (!ENABLED_SYSTEMS.ENABLE_AMP) return;
     
     motor = new CANSparkMax(CAN.AMP_PIVOT, MotorType.kBrushless);
     pid = motor.getPIDController();
@@ -114,7 +114,7 @@ public class AmpPivot extends SubsystemBase {
 
   @Override
   public void periodic() {
-    if (!ENABLED_SYSTEMS.ENABLE_SHOOTER) return;
+    if (!ENABLED_SYSTEMS.ENABLE_AMP) return;
     if (isCalibrating) return;
     if (targetAngle == null) return;
 
