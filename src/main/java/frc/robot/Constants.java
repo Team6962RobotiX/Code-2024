@@ -37,12 +37,13 @@ public final class Constants {
 
   // ENABLED SYSTEMS
   public static final class ENABLED_SYSTEMS {
-    public static final boolean ENABLE_DRIVE     = false;
+    public static final boolean ENABLE_DRIVE     = true;
     public static final boolean ENABLE_LIMELIGHT = false;
     public static final boolean ENABLE_DASHBOARD = true;
-    public static final boolean ENABLE_SHOOTER   = false;
+    public static final boolean ENABLE_SHOOTER   = true;
     public static final boolean ENABLE_INTAKE   = true;
     public static final boolean ENABLE_TRANSFER = true;
+    public static final boolean ENABLE_AMP = false;
   }
 
   public static final class LOGGING {
@@ -264,13 +265,14 @@ public final class Constants {
     public static final int[] SWERVE_DRIVE_SPARK_MAX = { 20, 40, 10, 30 };
     public static final int[] SWERVE_STEER_SPARK_MAX = { 21, 41, 11, 31 };
     public static final int[] SWERVE_STEER_CANCODERS = { 22, 42, 12, 32 };
-    public static final int PDH = 5;
+    public static final int PDH = 1;
     public static final int SHOOTER_WHEELS = 6;
     public static final int SHOOTER_PIVOT = 7;
-    public static final int INTAKE = 7;
+    public static final int SHOOTER_FEED = 19;
+    public static final int INTAKE = 24;
     public static final int CENTERING = 27;
-    public static final int TRANSFER_IN = 3;
-    public static final int TRANSFER_OUT = 12;
+    public static final int TRANSFER_IN = 22;
+    public static final int TRANSFER_OUT = 25;
     public static final int AMP_PIVOT = 2;
     public static final int AMP_WHEELS = 17;
   }

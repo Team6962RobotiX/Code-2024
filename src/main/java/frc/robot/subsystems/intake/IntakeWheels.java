@@ -50,11 +50,11 @@ public class IntakeWheels extends SubsystemBase {
         centeringMotor.set(0);
         break;
       case IN:
-        intakeMotor.set(0.45);
+        intakeMotor.set(-0.45);
         centeringMotor.set(0.2);
         break;
       case OUT:
-        intakeMotor.set(-0.45);
+        intakeMotor.set(0.45);
         centeringMotor.set(-0.2);
         break;
     }
