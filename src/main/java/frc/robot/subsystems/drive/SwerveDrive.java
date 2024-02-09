@@ -132,7 +132,6 @@ public class SwerveDrive extends SubsystemBase {
     Logger.autoLog("SwerveDrive/targetHeading", () -> Units.radiansToDegrees(alignmentController.getSetpoint()));
     Logger.autoLog("SwerveDrive/targetStates", this::getTargetModuleStates);
     Logger.autoLog("SwerveDrive/measuredStates", this::getMeasuredModuleStates);
-    Logger.autoLog("test", Field.SPEAKER);
 
     StatusChecks.addCheck("Gyro Connection", gyro::isConnected);
 
@@ -186,8 +185,6 @@ public class SwerveDrive extends SubsystemBase {
 
     // Update robot pose
     field.setRobotPose(getPose());
-
-    // System.out.println(getHeading());
   }
 
   @Override
