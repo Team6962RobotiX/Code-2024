@@ -20,7 +20,7 @@ public class XBoxIntake extends Command {
     @Override
     public void execute() {
         if (controller.getBButtonPressed()) {
-            intake.setState(IntakeWheels.IntakeState.FORWARD);
+            intake.setState(IntakeWheels.IntakeState.IN);
         } else {
             intake.setState(IntakeWheels.IntakeState.OFF);
         }

@@ -24,8 +24,8 @@ public class IntakeWheels extends SubsystemBase {
   private IntakeState state = IntakeState.OFF;
  
   public static enum IntakeState {
-    FORWARD,
-    REVERSE,
+    IN,
+    OUT,
     OFF
   }
 
@@ -49,13 +49,13 @@ public class IntakeWheels extends SubsystemBase {
         intakeMotor.set(0);
         centeringMotor.set(0);
         break;
-      case FORWARD:
+      case IN:
         intakeMotor.set(0.45);
-        centeringMotor.set(0.45);
+        centeringMotor.set(0.2);
         break;
-      case REVERSE:
+      case OUT:
         intakeMotor.set(-0.45);
-        centeringMotor.set(-0.45);
+        centeringMotor.set(-0.2);
         break;
     }
   }
