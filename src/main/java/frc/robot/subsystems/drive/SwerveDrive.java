@@ -164,8 +164,6 @@ public class SwerveDrive extends SubsystemBase {
       gyroHeading = gyroHeading.plus(new Rotation2d(getMeasuredChassisSpeeds().omegaRadiansPerSecond * 0.02));
     }
 
-    // gyroHeading = Rotation2d.fromRadians(MathUtil.angleModulus(gyroHeading.getRadians()));
-    System.out.println(getHeading());
     // Update pose based on measured heading and swerve module positions
     poseEstimator.update(gyroHeading.plus(gyroOffset), getModulePositions());
     AprilTagPose.injectVisionData(LIMELIGHT.APRILTAG_CAMERA_NAMES, this);    

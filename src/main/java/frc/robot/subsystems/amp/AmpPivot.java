@@ -52,6 +52,7 @@ public class AmpPivot extends SubsystemBase {
     pid = motor.getPIDController();
     encoder = motor.getEncoder();
     absoluteEncoder = new DutyCycleEncoder(DIO.AMP_PIVOT);
+    absoluteEncoder.setPositionOffset(PIVOT.ABSOLUTE_POSITION_OFFSET);
 
     double startingAngle = absoluteEncoder.getAbsolutePosition() * 2.0 * Math.PI;
     

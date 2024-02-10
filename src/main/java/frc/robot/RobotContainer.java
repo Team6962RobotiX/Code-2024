@@ -63,8 +63,6 @@ public class RobotContainer {
     Logger.autoLog("PDH", new PowerDistribution(CAN.PDH, ModuleType.kRev));
     Logger.startLog();
 
-    System.out.println(NEO.maxTorqueCurrentLimited(40));
-
     swerveDrive.setDefaultCommand(new XBoxSwerve(swerveDrive, driveController.getHID()));
     
     // calibrationChooser.setDefaultOption("Calibrate Drive Motor (FL)", swerveDrive.modules[0].calibrateDriveMotor());

@@ -425,7 +425,8 @@ public final class Constants {
       public static final double MASS = Units.lbsToKilograms(14.3);
       public static final double MOI = (1.0 / 3.0) * MASS * Math.pow(CoM_DISTANCE, 2.0);
       public static final Rotation2d MAX_ANGLE = Rotation2d.fromDegrees(90.0);
-      public static final Rotation2d MIN_ANGLE = Rotation2d.fromDegrees(0.0);      
+      public static final Rotation2d MIN_ANGLE = Rotation2d.fromDegrees(0.0);
+      public static final double ABSOLUTE_POSITION_OFFSET = 0.0;
 
       public static final class PROFILE {
         public static final int    CURRENT_LIMIT = 40;
@@ -456,7 +457,8 @@ public final class Constants {
       public static final double MOI = (1.0 / 3.0) * MASS * Math.pow(CoM_DISTANCE, 2.0);
       public static final Rotation2d MAX_ANGLE = Rotation2d.fromDegrees(90.0);
       public static final Rotation2d MIN_ANGLE = Rotation2d.fromDegrees(-45.0);
-      
+      public static final double ABSOLUTE_POSITION_OFFSET = 0.0;
+
       public static final class PROFILE {
         public static final int    CURRENT_LIMIT = 40;
         public static final double kP = 0.0;
