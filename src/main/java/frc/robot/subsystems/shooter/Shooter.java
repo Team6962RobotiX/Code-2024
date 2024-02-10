@@ -92,6 +92,8 @@ public class Shooter extends SubsystemBase {
 
     shooterMechanism.setAngle(shooterPivot.getMeasuredAngle());
 
+    // Logger.autoLog("Speaker", Field.SPEAKER);
+
     aim(Field.SPEAKER);
   }
 

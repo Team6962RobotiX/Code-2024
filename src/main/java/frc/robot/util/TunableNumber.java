@@ -3,8 +3,6 @@ package frc.robot.util;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-import com.revrobotics.SparkMaxPIDController;
-
 import edu.wpi.first.networktables.GenericEntry;
 import edu.wpi.first.wpilibj.shuffleboard.BuiltInWidgets;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;

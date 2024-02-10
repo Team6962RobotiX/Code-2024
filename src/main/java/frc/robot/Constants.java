@@ -218,24 +218,35 @@ public final class Constants {
     public record MODULE_CONFIG (int ID, int CAN_DRIVE, int CAN_STEER, int CAN_ENCODER, double ENCODER_OFFSET) {}
 
     public static final MODULE_CONFIG[] MODULES = new MODULE_CONFIG[] {
-      new MODULE_CONFIG(0, 20, 21, 22, 0.6936363333),
-      new MODULE_CONFIG(1, 40, 41, 42, -0.5054961111),
-      new MODULE_CONFIG(2, 10, 11, 12, 0.9096846667),
-      new MODULE_CONFIG(3, 30, 31, 32, 0.531494),
+/*
+* 20 -> 43
+* 21 -> 44
+* 22 -> 45
+* 40 -> 46
+* 41 -> 47
+* 42 -> 48
+* 10 -> 49
+* 11 -> 50
+* 12 -> 51
+* 30 -> 52
+* 31 -> 53
+* 32 -> 54
+*/
+
+      new MODULE_CONFIG(0, 31, 32, 33, 0.6936363333),
+      new MODULE_CONFIG(1, 34, 35, 36, -0.5054961111),
+      new MODULE_CONFIG(2, 37, 38, 39, 0.9096846667),
+      new MODULE_CONFIG(3, 40, 41, 42, 0.531494),
       new MODULE_CONFIG(4, 20, 21, 22, -0.5917972222),
       new MODULE_CONFIG(5, 40, 41, 42, -0.1811527778),
       new MODULE_CONFIG(6, 10, 11, 12, 0.1533194444),
       new MODULE_CONFIG(7, 30, 31, 32, -0.5322277778),
-      // new MODULE(0, 31, 32, 33, 0.0),
-      // new MODULE(1, 34, 35, 36, 0.0),
-      // new MODULE(2, 37, 38, 39, 0.0),
-      // new MODULE(3, 40, 41, 42, 0.0),
-      // new MODULE(4, 43, 44, 45, 0.0),
-      // new MODULE(5, 46, 47, 48, 0.0),
-      // new MODULE(6, 49, 50, 51, 0.0),
-      // new MODULE(7, 52, 53, 54, 0.0),
-      // new MODULE(8, 55, 56, 57, 0.0),
-      // new MODULE(9, 58, 59, 60, 0.0),
+      // new MODULE_CONFIG(4, 43, 44, 45, -0.5917972222),
+      // new MODULE_CONFIG(5, 46, 47, 48, -0.1811527778),
+      // new MODULE_CONFIG(6, 49, 50, 51, 0.1533194444),
+      // new MODULE_CONFIG(7, 52, 53, 54, -0.5322277778),
+      // new MODULE_CONFIG(8, 55, 56, 57, 0.0),
+      // new MODULE_CONFIG(9, 58, 59, 60, 0.0),
     };
 
     public static final String[] MODULE_NAMES = {

@@ -6,6 +6,8 @@ package frc.robot.subsystems.drive;
 
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
+import static edu.wpi.first.units.Units.Radians;
+import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.units.Units.Volts;
 
@@ -304,15 +306,16 @@ public class SwerveModule extends SubsystemBase {
         log -> {
           log.motor("module-steer-" + name)
               .voltage(Volts.of(steerMotor.getBusVoltage() * steerMotor.getAppliedOutput()))
-              .linearPosition(Meters.of(steerEncoder.getPosition()))
-              .linearVelocity(MetersPerSecond.of(steerEncoder.getVelocity()));
+              .angularPosition(Radians.of(steerEncoder.getPosition()))
+              .angularVelocity(RadiansPerSecond.of(steerEncoder.getVelocity()));
         },
         this
       )
     );
 
     return Commands.sequence(
-      Commands.runOnce(() -> isCalibrating = true),
+      Commands.runOnce(() -> doCalibrationPrep()),
+      Commands.waitSeconds(1.0),
       calibrationRoutine.quasistatic(SysIdRoutine.Direction.kForward),
       Commands.runOnce(() -> steerMotor.stopMotor()),
       Commands.waitSeconds(1.0),
@@ -325,7 +328,7 @@ public class SwerveModule extends SubsystemBase {
       calibrationRoutine.dynamic(SysIdRoutine.Direction.kReverse),
       Commands.runOnce(() -> steerMotor.stopMotor()),
       Commands.waitSeconds(1.0),
-      Commands.runOnce(() -> isCalibrating = false)
+      Commands.runOnce(() -> undoCalibrationPrep())
     );
   }
 
@@ -347,7 +350,8 @@ public class SwerveModule extends SubsystemBase {
     );
 
     return Commands.sequence(
-      Commands.runOnce(() -> isCalibrating = true),
+      Commands.runOnce(() -> doCalibrationPrep()),
+      Commands.waitSeconds(1.0),
       calibrationRoutine.quasistatic(SysIdRoutine.Direction.kForward),
       Commands.runOnce(() -> driveMotor.stopMotor()),
       Commands.waitSeconds(1.0),
@@ -360,7 +364,19 @@ public class SwerveModule extends SubsystemBase {
       calibrationRoutine.dynamic(SysIdRoutine.Direction.kReverse),
       Commands.runOnce(() -> driveMotor.stopMotor()),
       Commands.waitSeconds(1.0),
-      Commands.runOnce(() -> isCalibrating = false)
+      Commands.runOnce(() -> undoCalibrationPrep())
     );
+  }
+
+  private void doCalibrationPrep() {
+    driveMotor.setSmartCurrentLimit(NEO.SAFE_STALL_CURRENT, NEO.SAFE_STALL_CURRENT);
+    steerMotor.setSmartCurrentLimit(NEO.SAFE_STALL_CURRENT, NEO.SAFE_STALL_CURRENT);
+    isCalibrating = true;
+  }
+
+  private void undoCalibrationPrep() {
+    driveMotor.setSmartCurrentLimit(Math.min(DRIVE_MOTOR_PROFILE.CURRENT_LIMIT, NEO.SAFE_STALL_CURRENT), DRIVE_MOTOR_PROFILE.CURRENT_LIMIT);
+    steerMotor.setSmartCurrentLimit(Math.min(STEER_MOTOR_PROFILE.CURRENT_LIMIT, NEO.SAFE_STALL_CURRENT), STEER_MOTOR_PROFILE.CURRENT_LIMIT);
+    isCalibrating = false;
   }
 }

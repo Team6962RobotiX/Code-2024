@@ -34,7 +34,7 @@ public final class Field {
   );
 
 
-  public static final Translation3d SPEAKER = point3d(0.0, 5.5, 2.0);
+  public static final Translation3d SPEAKER = point3d(0.2, 5.5, 2.05);
   public static final double SPEAKER_WIDTH = 1.0;
   public static final double SPEAKER_HEIGHT = 0.5;
   public static final double NOTE_THICKNESS = Units.inchesToMeters(1.0);
