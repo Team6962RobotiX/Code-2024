@@ -4,53 +4,34 @@
 
 package frc.robot.subsystems.shooter;
 
-import static edu.wpi.first.units.Units.Meters;
-import static edu.wpi.first.units.Units.MetersPerSecond;
+import static edu.wpi.first.units.Units.Radians;
+import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.Volts;
 
 import java.util.List;
 
+import com.revrobotics.CANSparkBase.ControlType;
+import com.revrobotics.CANSparkBase.IdleMode;
+import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkPIDController;
 import com.revrobotics.SparkPIDController.ArbFFUnits;
-import com.revrobotics.CANSparkBase.ControlType;
-import com.revrobotics.CANSparkBase.IdleMode;
-import com.revrobotics.CANSparkLowLevel.MotorType;
 
-import edu.wpi.first.math.Nat;
-import edu.wpi.first.math.VecBuilder;
-import edu.wpi.first.math.controller.ArmFeedforward;
-import edu.wpi.first.math.controller.LinearQuadraticRegulator;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
-import edu.wpi.first.math.estimator.KalmanFilter;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation3d;
-import edu.wpi.first.math.numbers.N1;
-import edu.wpi.first.math.system.LinearSystem;
-import edu.wpi.first.math.system.LinearSystemLoop;
-import edu.wpi.first.math.system.plant.LinearSystemId;
-import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.Voltage;
-import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
-import frc.robot.commands.*;
-import frc.robot.subsystems.drive.SwerveDrive;
-import frc.robot.util.ConfigUtils;
-import frc.robot.util.StatusChecks;
-import frc.robot.util.Logging.Logger;
-import frc.robot.Constants;
 import frc.robot.Constants.CAN;
 import frc.robot.Constants.ENABLED_SYSTEMS;
 import frc.robot.Constants.NEO;
-import frc.robot.Constants.SHOOTER;
-import frc.robot.Constants.SHOOTER.PIVOT;
 import frc.robot.Constants.SHOOTER.WHEELS;
-import frc.robot.Constants.SWERVE_DRIVE;
+import frc.robot.util.ConfigUtils;
+import frc.robot.util.StatusChecks;
+import frc.robot.util.Logging.Logger;
 
 public class ShooterWheels extends SubsystemBase {
   private double targetVelocity = 0.0;
@@ -77,10 +58,10 @@ public class ShooterWheels extends SubsystemBase {
       () -> motor.setClosedLoopRampRate(WHEELS.PROFILE.RAMP_RATE),
       () -> encoder.setPositionConversionFactor(WHEELS.ENCODER_CONVERSION_FACTOR),
       () -> encoder.setVelocityConversionFactor(WHEELS.ENCODER_CONVERSION_FACTOR / 60.0),
-      () -> pid.setP(PIVOT.PROFILE.kP, 0),
-      () -> pid.setI(PIVOT.PROFILE.kI, 0),
-      () -> pid.setD(PIVOT.PROFILE.kD, 0),
-      () -> pid.setFF(PIVOT.PROFILE.kV / 12.0, 0),
+      () -> pid.setP(WHEELS.PROFILE.kP, 0),
+      () -> pid.setI(WHEELS.PROFILE.kI, 0),
+      () -> pid.setD(WHEELS.PROFILE.kD, 0),
+      () -> pid.setFF(WHEELS.PROFILE.kV / 12.0, 0),
       () -> motor.burnFlash()
     ));
 
@@ -126,13 +107,13 @@ public class ShooterWheels extends SubsystemBase {
       new SysIdRoutine.Config(),
       new SysIdRoutine.Mechanism(
         (Measure<Voltage> volts) -> {
-          motor.set(volts.in(Volts) / RobotController.getBatteryVoltage());
+          motor.setVoltage(volts.in(Volts));
         },
         log -> {
           log.motor("shooter-wheels")
-            .voltage(Volts.of(motor.get() * RobotController.getBatteryVoltage()))
-            .linearPosition(Meters.of(encoder.getPosition()))
-            .linearVelocity(MetersPerSecond.of(encoder.getVelocity()));
+            .voltage(Volts.of(motor.getAppliedOutput() * motor.getBusVoltage()))
+            .angularPosition(Radians.of(encoder.getPosition()))
+            .angularVelocity(RadiansPerSecond.of(encoder.getVelocity()));
         },
         this
       )
@@ -141,7 +122,17 @@ public class ShooterWheels extends SubsystemBase {
     return Commands.sequence(
       Commands.runOnce(() -> isCalibrating = true),
       calibrationRoutine.quasistatic(SysIdRoutine.Direction.kForward),
+      Commands.runOnce(() -> motor.stopMotor()),
+      Commands.waitSeconds(1.0),
+      calibrationRoutine.quasistatic(SysIdRoutine.Direction.kReverse),
+      Commands.runOnce(() -> motor.stopMotor()),
+      Commands.waitSeconds(1.0),
       calibrationRoutine.dynamic(SysIdRoutine.Direction.kForward),
+      Commands.runOnce(() -> motor.stopMotor()),
+      Commands.waitSeconds(1.0),
+      calibrationRoutine.dynamic(SysIdRoutine.Direction.kReverse),
+      Commands.runOnce(() -> motor.stopMotor()),
+      Commands.waitSeconds(1.0),
       Commands.runOnce(() -> isCalibrating = false)
     );
   }

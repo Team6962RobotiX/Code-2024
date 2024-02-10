@@ -56,7 +56,6 @@ public class LEDs extends SubsystemBase {
 
   public static void setColorWave(int start, int stop, int[] RGB) {
     double time = Timer.getFPGATimestamp();
-    System.out.println(time);
     for (int pixel = start; pixel < stop; pixel++) {
       double val = (pixel / 200.0 + time * 2.5) % 1.0;
       if (val < 0.5) {

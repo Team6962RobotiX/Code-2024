@@ -164,8 +164,8 @@ public class SwerveDrive extends SubsystemBase {
       gyroHeading = gyroHeading.plus(new Rotation2d(getMeasuredChassisSpeeds().omegaRadiansPerSecond * 0.02));
     }
 
-    gyroHeading = Rotation2d.fromRadians(MathUtil.angleModulus(gyroHeading.getRadians()));
-
+    // gyroHeading = Rotation2d.fromRadians(MathUtil.angleModulus(gyroHeading.getRadians()));
+    System.out.println(getHeading());
     // Update pose based on measured heading and swerve module positions
     poseEstimator.update(gyroHeading.plus(gyroOffset), getModulePositions());
     AprilTagPose.injectVisionData(LIMELIGHT.APRILTAG_CAMERA_NAMES, this);    
@@ -256,7 +256,7 @@ public class SwerveDrive extends SubsystemBase {
     double angularForce = Math.abs((SWERVE_DRIVE.PHYSICS.ROTATIONAL_INERTIA * angularAcceleration) / SWERVE_DRIVE.PHYSICS.DRIVE_RADIUS);
 
     double frictionForce = 9.80 * SWERVE_DRIVE.ROBOT_MASS * SWERVE_DRIVE.FRICTION_COEFFICIENT;
-    
+
     if (linearForce + angularForce > frictionForce) {
       double factor = (linearForce + angularForce) / frictionForce;
       linearAcceleration = linearAcceleration.div(factor);
@@ -525,17 +525,6 @@ public class SwerveDrive extends SubsystemBase {
   Motor Max Speed: %.0f RPM
   Motor Max Torque: %.3f N * m
 
-------- MOTOR CALCULATOR -------
-  NEO
-  Current Limit: %s A
-
-(You've done it right when these all check out)
------- THEORETICAL -------
-  Floor Speed: %.3f m/s
-  Floor Accel: %.3f m/s^2
-  Ang Speed: %.3f rad/s
-  Ang Accel: %.3f rad/s^2
-
 
         """,
         SWERVE_DRIVE.ROBOT_MASS,
@@ -547,12 +536,7 @@ public class SwerveDrive extends SubsystemBase {
         SWERVE_DRIVE.WHEEL_RADIUS,
         SWERVE_DRIVE.DRIVE_MOTOR_GEARING,
         SWERVE_DRIVE.PHYSICS.MAX_MOTOR_SPEED,
-        SWERVE_DRIVE.PHYSICS.MAX_MOTOR_TORQUE,
-        SWERVE_DRIVE.PHYSICS.SLIPLESS_CURRENT_LIMIT,
-        SWERVE_DRIVE.PHYSICS.MAX_LINEAR_VELOCITY,
-        SWERVE_DRIVE.PHYSICS.MAX_LINEAR_ACCELERATION,
-        SWERVE_DRIVE.PHYSICS.MAX_ANGULAR_VELOCITY,
-        SWERVE_DRIVE.PHYSICS.MAX_ANGULAR_ACCELERATION
+        SWERVE_DRIVE.PHYSICS.MAX_MOTOR_TORQUE
       )
     );
   }

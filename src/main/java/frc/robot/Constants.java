@@ -71,8 +71,8 @@ public final class Constants {
 
     ///////////////////////// CONFIG /////////////////////////
     public static final double   INSPECTION_WEIGHT                  = Units.lbsToKilograms(41);
-    public static final double   BATTER_WEIGHT                      = Units.lbsToKilograms(12.89);
-    public static final double   ROBOT_MASS                         = INSPECTION_WEIGHT + BATTER_WEIGHT; // kg
+    public static final double   BATTERY_WEIGHT                      = Units.lbsToKilograms(12.89);
+    public static final double   ROBOT_MASS                         = INSPECTION_WEIGHT + BATTERY_WEIGHT; // kg
     public static final double   FRICTION_COEFFICIENT               = 0.5; // 1.0 when on carpet 0.5 on KLS flooring
     public static final int      MODULE_COUNT                       = 4;
     public static final double   CHASSIS_WIDTH                      = Units.inchesToMeters(28);
@@ -169,7 +169,7 @@ public final class Constants {
       public static final double kI                 = 0.00000; // Integral Gain
       public static final double kD                 = 0.00000; // Derivative Gain
       public static final double kS                 = 0.00000; // volts
-      public static final double kV                 = 2.74130; // volts per m/s
+      public static final double kV                 = 12.0 / PHYSICS.MAX_LINEAR_VELOCITY; // volts per m/s
       public static final double kA                 = 0.17317; // volts per m/s^2, free spinning
       
       // CALCULATED
@@ -186,7 +186,7 @@ public final class Constants {
       public static final double kI                 = 0.00000; // Integral Gain
       public static final double kD                 = 0.01456; // Derivative Gain
       public static final double kS                 = 0.00000; // volts
-      public static final double kV                 = 0.44192; // volts per rad/s
+      public static final double kV                 = 12.0 / (NEO.STATS.freeSpeedRadPerSec / STEER_MOTOR_GEARING); // volts per rad/s
       public static final double kA                 = 0.03813; // volts per rad/s^2
       
       // CALCULATED
@@ -283,8 +283,8 @@ public final class Constants {
   }
   
   public static final class NEO {
-    public static final double RPM = 5880;
-    public static final DCMotor STATS = new DCMotor(12.0, 3.28, 181, 1.3, Units.rotationsPerMinuteToRadiansPerSecond(RPM), 1);
+    public static final double RPM = 5676;
+    public static final DCMotor STATS = new DCMotor(12.0, 2.6, 105, 1.8, Units.rotationsPerMinuteToRadiansPerSecond(RPM), 1);
     public static final double SAFE_TEMPERATURE = 60;
     public static final int SAFE_STALL_CURRENT = 40;
 
@@ -400,9 +400,12 @@ public final class Constants {
       // z is top-to-bottom
       
       public static final class PROFILE {
+        public static final double kP = 0.0;
+        public static final double kI = 0.0;
+        public static final double kD = 0.0;
         public static final double kS = 0.0; // volts per rad/s
-        public static final double kV = 0.1; // volts per rad/s
-        public static final double kA = 0.1; // volts per rad/s^2
+        public static final double kV = 12.0 / (NEO.STATS.freeSpeedRadPerSec * GEARBOX_STEP_UP); // volts per rad/s
+        public static final double kA = 0.0; // volts per rad/s^2
         public static final double RAMP_RATE = 0.1;
         public static final int    CURRENT_LIMIT = 40;
       }
@@ -413,27 +416,25 @@ public final class Constants {
     public static final class PIVOT {
       public static final double GEARBOX_REDUCTION = 400.0;
       public static final double ENCODER_CONVERSION_FACTOR = 2.0 * Math.PI / GEARBOX_REDUCTION;
-      public static final double ROTATION_DELAY    = 0.3; // seconds
-      public static final double ANGLE_TOLERANCE   = Units.degreesToRadians(0.5);
-      public static final double ANGLE_PRECISION   = Units.degreesToRadians(0.5);
+      public static final double ROTATION_DELAY = 0.3; // seconds
+      public static final double ANGLE_TOLERANCE = Units.degreesToRadians(0.5);
+      public static final double ANGLE_PRECISION = Units.degreesToRadians(0.5);
       public static final double HEADING_PRECISION = Units.degreesToRadians(0.5);
       public static final Translation3d POSITION = new Translation3d(0.0, 0.0, Units.inchesToMeters(0.0));
-      public static final double LENGTH = Units.inchesToMeters(15.0);
+      public static final double CoM_DISTANCE = Units.inchesToMeters(15.0);
       public static final double MASS = Units.lbsToKilograms(14.3);
-      public static final double MOI = (1.0 / 3.0) * MASS * Math.pow(LENGTH, 2.0);
+      public static final double MOI = (1.0 / 3.0) * MASS * Math.pow(CoM_DISTANCE, 2.0);
       public static final Rotation2d MAX_ANGLE = Rotation2d.fromDegrees(90.0);
-      public static final Rotation2d MIN_ANGLE = Rotation2d.fromDegrees(0.0);
+      public static final Rotation2d MIN_ANGLE = Rotation2d.fromDegrees(0.0);      
 
       public static final class PROFILE {
+        public static final int    CURRENT_LIMIT = 40;
         public static final double kP = 0.0;
         public static final double kI = 0.0;
         public static final double kD = 0.0;
-        public static final double kS = 0.0;
-        public static final double kG = 0.0;
-        public static final double kV = 0.0;
-        public static final double kA = 0.0;
+        public static final double kG = ((CoM_DISTANCE * 9.80 * MASS) / (NEO.maxTorqueCurrentLimited(CURRENT_LIMIT) * GEARBOX_REDUCTION)) * 12.0;
+        public static final double kV = 12.0 / (NEO.STATS.freeSpeedRadPerSec / GEARBOX_REDUCTION);
         public static final double RAMP_RATE = 0.1;
-        public static final int    CURRENT_LIMIT = 40;
         public static final double SMART_MOTION_MAX_VELOCITY = NEO.RPM / 60.0 * 2.0 * Math.PI / GEARBOX_REDUCTION; // rad/s
         public static final double SMART_MOTION_MAX_ACCELERATION = (NEO.maxTorqueCurrentLimited(CURRENT_LIMIT) * GEARBOX_REDUCTION) / MOI; // rad/s^2
       }
@@ -449,23 +450,21 @@ public final class Constants {
     public static final class PIVOT {
       public static final double GEARBOX_REDUCTION = 60.6666;
       public static final double ENCODER_CONVERSION_FACTOR = 2.0 * Math.PI / GEARBOX_REDUCTION;
-      public static final double ANGLE_TOLERANCE   = Units.degreesToRadians(0.5);
-      public static final double LENGTH = Units.inchesToMeters(9.5);
+      public static final double ANGLE_TOLERANCE = Units.degreesToRadians(0.5);
+      public static final double CoM_DISTANCE = Units.inchesToMeters(9.5);
       public static final double MASS = Units.lbsToKilograms(4.0);
-      public static final double MOI = (1.0 / 3.0) * MASS * Math.pow(LENGTH, 2.0);
+      public static final double MOI = (1.0 / 3.0) * MASS * Math.pow(CoM_DISTANCE, 2.0);
       public static final Rotation2d MAX_ANGLE = Rotation2d.fromDegrees(90.0);
       public static final Rotation2d MIN_ANGLE = Rotation2d.fromDegrees(-45.0);
       
       public static final class PROFILE {
+        public static final int    CURRENT_LIMIT = 40;
         public static final double kP = 0.0;
         public static final double kI = 0.0;
         public static final double kD = 0.0;
-        public static final double kS = 0.0;
-        public static final double kG = 0.21;
-        public static final double kV = NEO.STATS.freeSpeedRadPerSec * GEARBOX_REDUCTION;
-        public static final double kA = 0.0;
+        public static final double kG = ((CoM_DISTANCE * 9.80 * MASS) / (NEO.maxTorqueCurrentLimited(CURRENT_LIMIT) * GEARBOX_REDUCTION)) * 12.0;
+        public static final double kV = 12.0 / (NEO.STATS.freeSpeedRadPerSec / GEARBOX_REDUCTION);
         public static final double RAMP_RATE = 0.1;
-        public static final int    CURRENT_LIMIT = 40;
         public static final double SMART_MOTION_MAX_VELOCITY = NEO.RPM / 60.0 * 2.0 * Math.PI / GEARBOX_REDUCTION; // rad/s
         public static final double SMART_MOTION_MAX_ACCELERATION = (NEO.maxTorqueCurrentLimited(CURRENT_LIMIT) * GEARBOX_REDUCTION) / MOI; // rad/s^2
       }

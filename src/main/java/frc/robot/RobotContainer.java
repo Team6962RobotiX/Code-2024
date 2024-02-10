@@ -16,6 +16,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.Constants.CAN;
 import frc.robot.Constants.DEVICES;
+import frc.robot.Constants.NEO;
 import frc.robot.commands.drive.XBoxSwerve;
 import frc.robot.subsystems.amp.AmpPivot;
 import frc.robot.subsystems.LEDs;
@@ -42,7 +43,7 @@ public class RobotContainer {
   // The robot's subsystems and commands
   private final CommandXboxController operatorController = new CommandXboxController(DEVICES.OPERATOR_XBOX_CONTROLLER);
   private final CommandXboxController driveController = new CommandXboxController(DEVICES.DRIVE_XBOX_CONTROLLER);
-  // private final SwerveDrive swerveDrive = new SwerveDrive();
+  private final SwerveDrive swerveDrive = new SwerveDrive();
   // private final Shooter shooter = new Shooter(swerveDrive);
   
   private final SendableChooser<Command> calibrationChooser = new SendableChooser<>();
@@ -62,7 +63,9 @@ public class RobotContainer {
     Logger.autoLog("PDH", new PowerDistribution(CAN.PDH, ModuleType.kRev));
     Logger.startLog();
 
-    // swerveDrive.setDefaultCommand(new XBoxSwerve(swerveDrive, driveController.getHID()));
+    System.out.println(NEO.maxTorqueCurrentLimited(40));
+
+    swerveDrive.setDefaultCommand(new XBoxSwerve(swerveDrive, driveController.getHID()));
     
     // calibrationChooser.setDefaultOption("Calibrate Drive Motor (FL)", swerveDrive.modules[0].calibrateDriveMotor());
     // calibrationChooser.setDefaultOption("Calibrate Steer Motor (FL)", swerveDrive.modules[0].calibrateSteerMotor());

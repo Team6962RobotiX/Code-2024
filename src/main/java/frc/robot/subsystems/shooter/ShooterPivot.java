@@ -4,8 +4,8 @@
 
 package frc.robot.subsystems.shooter;
 
-import static edu.wpi.first.units.Units.Meters;
-import static edu.wpi.first.units.Units.MetersPerSecond;
+import static edu.wpi.first.units.Units.Radians;
+import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.Volts;
 
 import java.util.List;
@@ -13,13 +13,9 @@ import java.util.List;
 import com.revrobotics.CANSparkBase.ControlType;
 import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkLowLevel.MotorType;
-import com.revrobotics.SparkMaxAlternateEncoder.Type;
-import com.revrobotics.AbsoluteEncoder;
-import com.revrobotics.CANEncoder;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkPIDController;
-import com.revrobotics.SparkPIDController.AccelStrategy;
 import com.revrobotics.SparkPIDController.ArbFFUnits;
 
 import edu.wpi.first.math.controller.ArmFeedforward;
@@ -27,23 +23,22 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.Voltage;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
-import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import frc.robot.Constants.SHOOTER.PIVOT;
 import frc.robot.Constants.CAN;
 import frc.robot.Constants.DIO;
 import frc.robot.Constants.ENABLED_SYSTEMS;
 import frc.robot.Constants.NEO;
-import frc.robot.Constants.SHOOTER.PIVOT;
 import frc.robot.util.ConfigUtils;
 import frc.robot.util.StatusChecks;
 import frc.robot.util.Logging.Logger;
 
 public class ShooterPivot extends SubsystemBase {
   private Rotation2d targetAngle = PIVOT.MIN_ANGLE;
-  private ArmFeedforward feedforward = new ArmFeedforward(PIVOT.PROFILE.kS, PIVOT.PROFILE.kG, PIVOT.PROFILE.kV, PIVOT.PROFILE.kA);
+  private ArmFeedforward feedforward = new ArmFeedforward(0.0, PIVOT.PROFILE.kG, 0.0, 0.0);
   private SparkPIDController pid;
   private CANSparkMax motor;
   private RelativeEncoder encoder;
@@ -102,6 +97,10 @@ public class ShooterPivot extends SubsystemBase {
     targetAngle = angle;
   }
 
+  public boolean isPastLimit() {
+    return getMeasuredAngle().getRadians() > PIVOT.MAX_ANGLE.getRadians() || getMeasuredAngle().getRadians() < PIVOT.MIN_ANGLE.getRadians();
+  }
+
   public Rotation2d getMeasuredAngle() {
     return Rotation2d.fromRadians(encoder.getPosition());
   }
@@ -122,7 +121,7 @@ public class ShooterPivot extends SubsystemBase {
       0,
       feedforward.calculate(targetAngle.getRadians(), 0.0),
       ArbFFUnits.kVoltage
-    );    
+    );
   }
 
   @Override
@@ -135,13 +134,13 @@ public class ShooterPivot extends SubsystemBase {
       new SysIdRoutine.Config(),
       new SysIdRoutine.Mechanism(
         (Measure<Voltage> volts) -> {
-          motor.set(volts.in(Volts) / RobotController.getBatteryVoltage());
+          motor.setVoltage(volts.in(Volts));
         },
         log -> {
           log.motor("shooter-pivot")
-            .voltage(Volts.of(motor.get() * RobotController.getBatteryVoltage()))
-            .linearPosition(Meters.of(encoder.getPosition()))
-            .linearVelocity(MetersPerSecond.of(encoder.getVelocity()));
+            .voltage(Volts.of(motor.getAppliedOutput() * motor.getBusVoltage()))
+            .angularPosition(Radians.of(encoder.getPosition()))
+            .angularVelocity(RadiansPerSecond.of(encoder.getVelocity()));
         },
         this
       )
@@ -149,8 +148,18 @@ public class ShooterPivot extends SubsystemBase {
 
     return Commands.sequence(
       Commands.runOnce(() -> isCalibrating = true),
-      calibrationRoutine.quasistatic(SysIdRoutine.Direction.kForward),
-      calibrationRoutine.dynamic(SysIdRoutine.Direction.kForward),
+      calibrationRoutine.quasistatic(SysIdRoutine.Direction.kForward).until(this::isPastLimit),
+      Commands.runOnce(() -> motor.stopMotor()),
+      Commands.waitSeconds(1.0),
+      calibrationRoutine.quasistatic(SysIdRoutine.Direction.kReverse).until(this::isPastLimit),
+      Commands.runOnce(() -> motor.stopMotor()),
+      Commands.waitSeconds(1.0),
+      calibrationRoutine.dynamic(SysIdRoutine.Direction.kForward).until(this::isPastLimit),
+      Commands.runOnce(() -> motor.stopMotor()),
+      Commands.waitSeconds(1.0),
+      calibrationRoutine.dynamic(SysIdRoutine.Direction.kReverse).until(this::isPastLimit),
+      Commands.runOnce(() -> motor.stopMotor()),
+      Commands.waitSeconds(1.0),
       Commands.runOnce(() -> isCalibrating = false)
     );
   }

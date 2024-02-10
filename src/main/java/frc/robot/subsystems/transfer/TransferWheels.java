@@ -22,7 +22,6 @@ public class TransferWheels extends SubsystemBase {
   public static enum TransferState {
     AMP,
     SHOOTER,
-    REVERSE,
     OFF,
   }
 
@@ -42,18 +41,18 @@ public class TransferWheels extends SubsystemBase {
     if (!ENABLED_SYSTEMS.ENABLE_TRANSFER) return;
 
     switch(state) {
-        case OFF:
-            transferIn.set(0);
-            transferOut.set(0);
-            break;
-        case AMP:
-            transferIn.set(-0.25);
-            transferOut.set(0.25);
-            break;
-        case SHOOTER:
-            transferIn.set(-0.25);
-            transferOut.set(-0.25);
-            break; 
+      case OFF:
+        transferIn.set(0);
+        transferOut.set(0);
+        break;
+      case AMP:
+        transferIn.set(-0.25);
+        transferOut.set(0.25);
+        break;
+      case SHOOTER:
+        transferIn.set(-0.25);
+        transferOut.set(-0.25);
+        break;
     }
   }
 

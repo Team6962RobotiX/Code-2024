@@ -70,7 +70,7 @@ public class Shooter extends SubsystemBase {
 
   private Mechanism2d mechanism = new Mechanism2d(0, 0);
   private MechanismRoot2d pivotMechanism = mechanism.getRoot("pivot", PIVOT.POSITION.getX(), PIVOT.POSITION.getZ());
-  private MechanismLigament2d shooterMechanism = pivotMechanism.append(new MechanismLigament2d("shooter", PIVOT.LENGTH, 0.0));
+  private MechanismLigament2d shooterMechanism = pivotMechanism.append(new MechanismLigament2d("shooter", PIVOT.CoM_DISTANCE, 0.0));
 
   private double headingVelocity;
   private Rotation2d targetHeading = new Rotation2d();
