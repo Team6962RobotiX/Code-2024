@@ -294,8 +294,8 @@ public final class Constants {
   }
   
   public static final class NEO {
-    public static final double RPM = 5676;
-    public static final DCMotor STATS = new DCMotor(12.0, 2.6, 105, 1.8, Units.rotationsPerMinuteToRadiansPerSecond(RPM), 1);
+    public static final double RPM = 5880;
+    public static final DCMotor STATS = new DCMotor(12.0, 3.28, 181, 1.3, Units.rotationsPerMinuteToRadiansPerSecond(RPM), 1);
     public static final double SAFE_TEMPERATURE = 60;
     public static final int SAFE_STALL_CURRENT = 40;
 
