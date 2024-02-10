@@ -19,12 +19,70 @@ public class ShooterMath {
    * @param shooterWheelVelocity shooter wheel velocity in rad/s
    * @return
    */
-  public static Rotation2d calcPivotAngle(Translation3d targetPoint, Pose2d currentPose, double shooterWheelVelocity) {
-    double targetHeight = targetPoint.getZ() - PIVOT.POSITION.getZ();
-    double targetDistance = calcShooterLocationOnField(currentPose).toTranslation2d().getDistance(targetPoint.toTranslation2d());
+  
+  
+  // gets the position you should shoot from, using the given shooter angle
+  public static double calcShootingPos(Translation3d targetPoint, double shooterWheelVelocity, Rotation2d PivotAngle){
+
+    
+    // vertical distance between release point and target
+    double targetHeight = targetPoint.getZ() - PIVOT.POSITION.getZ(); 
     double projectileVelocity = calcProjectileVelocity(shooterWheelVelocity);
     double gravity = 9.80;
-    return Rotation2d.fromRadians(Math.atan((Math.pow(projectileVelocity, 2.0) - Math.sqrt(Math.pow(projectileVelocity, 4.0) - gravity * (gravity * Math.pow(targetDistance, 2.0) + 2.0 * targetHeight * Math.pow(projectileVelocity, 2.0)))) / (gravity * targetDistance)));
+    double shootingDistance;
+    
+    try{
+      shootingDistance = 
+      //numerator:
+      (
+      ((Math.pow(projectileVelocity, 2)*Math.tan(PivotAngle.getDegrees()))
+      /gravity) 
+      - 
+        ((
+        Math.sqrt(
+        -2*gravity*targetHeight*(Math.pow(projectileVelocity, 2))
+        * Math.pow(Math.tan(PivotAngle.getDegrees()), 2)
+        )
+        + (Math.pow(projectileVelocity, 4)*Math.pow(Math.tan(PivotAngle.getDegrees()) ,2))
+        - (2 * gravity * targetHeight * Math.pow(projectileVelocity, 2))
+      )/2)
+      )
+      // denominator 
+      /
+      (
+        Math.pow(Math.tan(PivotAngle.getDegrees()),2) + 1
+      )
+      ;
+
+    }
+    catch(Exception e){
+      shootingDistance =  -0.1;
+    }
+
+    //todo: maybe return a band of pose2ds
+    return shootingDistance;
+
+  }
+  
+
+
+  public static Rotation2d calcPivotAngle(Translation3d targetPoint, Pose2d currentPose, double shooterWheelVelocity) {
+    // vertical distance between release point and target
+    double targetHeight = targetPoint.getZ() - PIVOT.POSITION.getZ();
+    // 
+    double targetDistance = calcShooterLocationOnField(currentPose).toTranslation2d().getDistance(targetPoint.toTranslation2d());
+    // in meters per second
+    double projectileVelocity = calcProjectileVelocity(shooterWheelVelocity);
+    double gravity = 9.80;
+    try{
+      return Rotation2d.fromRadians(Math.atan((Math.pow(projectileVelocity, 2.0) - Math.sqrt(Math.pow(projectileVelocity, 4.0) - gravity * (gravity * Math.pow(targetDistance, 2.0) + 2.0 * targetHeight * Math.pow(projectileVelocity, 2.0))))/ (gravity * targetDistance)));
+    }
+    catch(Exception e)
+    {
+      System.out.print("CalvPivotAngle failed. Most likely because the point was too high or velocity was too slow");
+      return new Rotation2d(0, 0);
+    }
+    
   }
 
   /**
