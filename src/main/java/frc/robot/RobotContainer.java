@@ -41,17 +41,17 @@ public class RobotContainer {
   private final LEDs ledStrip = new LEDs();
 
   // The robot's subsystems and commands
-  private final CommandXboxController operatorController = new CommandXboxController(DEVICES.OPERATOR_XBOX_CONTROLLER);
+  // private final CommandXboxController operatorController = new CommandXboxController(DEVICES.OPERATOR_XBOX_CONTROLLER);
   private final CommandXboxController driveController = new CommandXboxController(DEVICES.DRIVE_XBOX_CONTROLLER);
   private final SwerveDrive swerveDrive = new SwerveDrive();
   // private final Shooter shooter = new Shooter(swerveDrive);
   
   private final SendableChooser<Command> calibrationChooser = new SendableChooser<>();
   private DutyCycleEncoder encoder;
-  private final IntakeWheels intake = new IntakeWheels();
-  private final TransferWheels transfer = new TransferWheels();
-  private final AmpWheels amp = new AmpWheels();
-  private final FeedWheels feedWheels = new FeedWheels();
+  // private final IntakeWheels intake = new IntakeWheels();
+  // private final TransferWheels transfer = new TransferWheels();
+  // private final AmpWheels amp = new AmpWheels();
+  // private final FeedWheels feedWheels = new FeedWheels();
   // private final AmpWheels ampPivot = new AmpPivot();
 
   
@@ -65,9 +65,9 @@ public class RobotContainer {
 
     swerveDrive.setDefaultCommand(new XBoxSwerve(swerveDrive, driveController.getHID()));
     
-    // calibrationChooser.setDefaultOption("Calibrate Drive Motor (FL)", swerveDrive.modules[0].calibrateDriveMotor());
-    // calibrationChooser.setDefaultOption("Calibrate Steer Motor (FL)", swerveDrive.modules[0].calibrateSteerMotor());
-    // SmartDashboard.putData("Swerve Module Calibration", calibrationChooser);
+    calibrationChooser.setDefaultOption("Calibrate Drive Motor (FL)", swerveDrive.modules[0].calibrateDriveMotor());
+    calibrationChooser.setDefaultOption("Calibrate Steer Motor (FL)", swerveDrive.modules[0].calibrateSteerMotor());
+    SmartDashboard.putData("Swerve Module Calibration", calibrationChooser);
 
     // Configure the trigger bindings
     configureBindings();
@@ -78,18 +78,18 @@ public class RobotContainer {
   }
 
   private void configureBindings() {
-    Command ampCommand = Commands.parallel(Commands.startEnd(() -> transfer.setState(TransferWheels.TransferState.AMP), 
-                                                             () -> transfer.setState(TransferWheels.TransferState.OFF)),
-                                           Commands.startEnd(() -> amp.setState(AmpWheels.AmpState.IN), 
-                                                             () -> amp.setState(AmpWheels.AmpState.OFF)));
-    Command shooterCommand = Commands.parallel(Commands.startEnd(() -> transfer.setState(TransferWheels.TransferState.SHOOTER),
-                                                                 () -> transfer.setState(TransferWheels.TransferState.OFF)),
-                                               Commands.startEnd(() -> feedWheels.setState(FeedWheels.ShooterState.FORWARD),
-                                                                 () -> feedWheels.setState(FeedWheels.ShooterState.OFF)));
-    operatorController.leftTrigger(0.1).whileTrue(Commands.startEnd(() -> amp.setState(AmpWheels.AmpState.OUT), () -> amp.setState(AmpWheels.AmpState.OFF)));
-    operatorController.rightTrigger(0.1).whileTrue(Commands.startEnd(() -> intake.setState(IntakeWheels.IntakeState.IN), () -> intake.setState(IntakeWheels.IntakeState.OFF)));
-    operatorController.leftStick().whileTrue(ampCommand);
-    operatorController.rightStick().whileTrue(shooterCommand);
+    // Command ampCommand = Commands.parallel(Commands.startEnd(() -> transfer.setState(TransferWheels.TransferState.AMP), 
+    //                                                          () -> transfer.setState(TransferWheels.TransferState.OFF)),
+    //                                        Commands.startEnd(() -> amp.setState(AmpWheels.AmpState.IN), 
+    //                                                          () -> amp.setState(AmpWheels.AmpState.OFF)));
+    // Command shooterCommand = Commands.parallel(Commands.startEnd(() -> transfer.setState(TransferWheels.TransferState.SHOOTER),
+    //                                                              () -> transfer.setState(TransferWheels.TransferState.OFF)),
+    //                                            Commands.startEnd(() -> feedWheels.setState(FeedWheels.ShooterState.FORWARD),
+    //                                                              () -> feedWheels.setState(FeedWheels.ShooterState.OFF)));
+    // operatorController.leftTrigger(0.1).whileTrue(Commands.startEnd(() -> amp.setState(AmpWheels.AmpState.OUT), () -> amp.setState(AmpWheels.AmpState.OFF)));
+    // operatorController.rightTrigger(0.1).whileTrue(Commands.startEnd(() -> intake.setState(IntakeWheels.IntakeState.IN), () -> intake.setState(IntakeWheels.IntakeState.OFF)));
+    // operatorController.leftStick().whileTrue(ampCommand);
+    // operatorController.rightStick().whileTrue(shooterCommand);
     // operatorController.rightBumper().whileTrue(Commands.startEnd(() -> transfer.setState(TransferWheels.TransferState.SHOOTER), () -> transfer.setState(TransferWheels.TransferState.OFF)));
   }
     public Command getAutonomousCommand() {
@@ -104,6 +104,6 @@ public class RobotContainer {
   }
 
   public void testInit() {
-    // calibrationChooser.getSelected().schedule();
+    calibrationChooser.getSelected().schedule();
   }
 }

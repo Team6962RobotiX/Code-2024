@@ -165,12 +165,12 @@ public final class Constants {
 
     public static final class DRIVE_MOTOR_PROFILE {
       // FROM WPILIB SYSTEM IDENTIFICATION, FREE SPINNING
-      public static final double kP                 = 0.00010; // Proportion Gain
+      public static final double kP                 = 0.00000; // Proportion Gain
       public static final double kI                 = 0.00000; // Integral Gain
       public static final double kD                 = 0.00000; // Derivative Gain
-      public static final double kS                 = 0.00000; // volts
+      public static final double kS                 = 0.081073; // volts
       public static final double kV                 = 12.0 / PHYSICS.MAX_LINEAR_VELOCITY; // volts per m/s
-      public static final double kA                 = 0.17317; // volts per m/s^2, free spinning
+      public static final double kA                 = 0.30787; // volts per m/s^2, free spinning
       
       // CALCULATED
       public static final int    CURRENT_LIMIT      = PHYSICS.SLIPLESS_CURRENT_LIMIT; // Amps
@@ -182,15 +182,15 @@ public final class Constants {
 
     public static final class STEER_MOTOR_PROFILE {
       // FROM WPILIB SYSTEM IDENTIFICATION
-      public static final double kP                 = 0.47250; // Proportion Gain
-      public static final double kI                 = 0.00000; // Integral Gain
-      public static final double kD                 = 0.01456; // Derivative Gain
-      public static final double kS                 = 0.00000; // volts
+      public static final double kP                 = 0.9; // Proportion Gain
+      public static final double kI                 = 0.0; // Integral Gain
+      public static final double kD                 = 0.1; // Derivative Gain
+      public static final double kS                 = 0.13134; // volts
       public static final double kV                 = 12.0 / (NEO.STATS.freeSpeedRadPerSec / STEER_MOTOR_GEARING); // volts per rad/s
-      public static final double kA                 = 0.03813; // volts per rad/s^2
+      public static final double kA                 = 0.22773; // volts per rad/s^2
       
       // CALCULATED
-      public static final int    CURRENT_LIMIT      = 30; // Amps
+      public static final int    CURRENT_LIMIT      = 20; // Amps
       public static final double RAMP_RATE          = 0.1; // Seconds it takes to reach full power
       
       // PREFERENCE

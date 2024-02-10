@@ -155,7 +155,7 @@ public class SwerveDrive extends SubsystemBase {
   @Override
   public void periodic() {
     if (!ENABLED_SYSTEMS.ENABLE_DRIVE) return;
-    
+
     // Update current heading based on gyroscope or wheel speeds
     if (gyro.isConnected() && !RobotBase.isSimulation()) {
       gyroHeading = gyro.getRotation2d();
@@ -266,7 +266,7 @@ public class SwerveDrive extends SubsystemBase {
     drivenChassisSpeeds = new ChassisSpeeds(attainableLinearVelocity.getX(), attainableLinearVelocity.getY(), attainableAngularVelocity);
 
     SwerveModuleState[] drivenModuleStates = kinematics.toSwerveModuleStates(ChassisSpeeds.fromFieldRelativeSpeeds(drivenChassisSpeeds, getAllianceAwareHeading()));
-
+    
     boolean moving = false;
     for (SwerveModuleState moduleState : kinematics.toSwerveModuleStates(fieldRelativeSpeeds)) if (Math.abs(moduleState.speedMetersPerSecond) > SWERVE_DRIVE.VELOCITY_DEADBAND) moving = true;
     for (SwerveModuleState moduleState : drivenModuleStates) if (Math.abs(moduleState.speedMetersPerSecond) > SWERVE_DRIVE.VELOCITY_DEADBAND) moving = true;
@@ -278,7 +278,7 @@ public class SwerveDrive extends SubsystemBase {
       parkModules();
       return;
     }
-
+    
     if (alignmentAngularVelocity == 0.0) isAligning = false;
 
     driveModules(drivenModuleStates);

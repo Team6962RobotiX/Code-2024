@@ -102,6 +102,8 @@ public class SwerveModule extends SubsystemBase {
     encoderOffset %= 2;
     encoderOffset = (encoderOffset > 1.0) ? encoderOffset - 2.0 : (encoderOffset < -1.0) ? encoderOffset + 2.0 : encoderOffset;
 
+    System.out.println(encoderOffset);
+
     MagnetSensorConfigs magConfig = new MagnetSensorConfigs();
     magConfig.withAbsoluteSensorRange(AbsoluteSensorRangeValue.Signed_PlusMinusHalf);
     magConfig.withMagnetOffset(encoderOffset);
@@ -190,7 +192,7 @@ public class SwerveModule extends SubsystemBase {
     if (Math.abs(getMeasuredState().speedMetersPerSecond) < SWERVE_DRIVE.VELOCITY_DEADBAND && SwerveMath.angleDistance(getMeasuredState().angle.getRadians(), getTargetState().angle.getRadians()) < Units.degreesToRadians(1.0)) {
       seedSteerEncoder();
     }
-
+    
     drive(targetState);
   }
   
@@ -206,9 +208,9 @@ public class SwerveModule extends SubsystemBase {
     
     drivePID.setReference(
       speedMetersPerSecond,
-      ControlType.kVelocity,
+      ControlType.kVelocity, 
       0,
-      driveFF.calculate(speedMetersPerSecond, wheelAcceleration),
+      driveFF.calculate(speedMetersPerSecond, 0.0),
       ArbFFUnits.kVoltage
     );
     
@@ -298,7 +300,7 @@ public class SwerveModule extends SubsystemBase {
 
   public Command calibrateSteerMotor() {
     SysIdRoutine calibrationRoutine = new SysIdRoutine(
-      new SysIdRoutine.Config(Volts.of(1).per(Seconds.of(1)), Volts.of(3), Seconds.of(10)),
+      new SysIdRoutine.Config(),
       new SysIdRoutine.Mechanism(
         (Measure<Voltage> volts) -> {
           steerMotor.setVoltage(volts.in(Volts));
@@ -334,7 +336,7 @@ public class SwerveModule extends SubsystemBase {
 
   public Command calibrateDriveMotor() {
     SysIdRoutine calibrationRoutine = new SysIdRoutine(
-      new SysIdRoutine.Config(Volts.of(1).per(Seconds.of(1)), Volts.of(3), Seconds.of(10)),
+      new SysIdRoutine.Config(),
       new SysIdRoutine.Mechanism(
         (Measure<Voltage> volts) -> {
           driveMotor.setVoltage(volts.in(Volts));
