@@ -276,6 +276,7 @@ public class SwerveDrive extends SubsystemBase {
     parked = false;
     if (!moving && !isAligning) {
       parkModules();
+      isAligning = false;
       return;
     }
     
