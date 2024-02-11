@@ -44,7 +44,7 @@ public class ShooterWheels extends SubsystemBase {
   public ShooterWheels() {
     if (!ENABLED_SYSTEMS.ENABLE_SHOOTER) return;
 
-    motor = new CANSparkMax(CAN.SHOOTER_WHEELS, MotorType.kBrushless);
+    motor = new CANSparkMax(CAN.SHOOTER_WHEELS_BOTTOM, MotorType.kBrushless);
     encoder = motor.getEncoder();
     pid = motor.getPIDController();
     

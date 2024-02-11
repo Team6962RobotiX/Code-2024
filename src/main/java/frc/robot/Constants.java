@@ -40,10 +40,10 @@ public final class Constants {
     public static final boolean ENABLE_DRIVE     = true;
     public static final boolean ENABLE_LIMELIGHT = false;
     public static final boolean ENABLE_DASHBOARD = true;
-    public static final boolean ENABLE_SHOOTER   = true;
+    public static final boolean ENABLE_SHOOTER   = false;
     public static final boolean ENABLE_INTAKE   = true;
     public static final boolean ENABLE_TRANSFER = true;
-    public static final boolean ENABLE_AMP = false;
+    public static final boolean ENABLE_AMP = true;
   }
 
   public static final class LOGGING {
@@ -237,10 +237,10 @@ public final class Constants {
       new MODULE_CONFIG(1, 34, 35, 36, -0.5054961111),
       new MODULE_CONFIG(2, 37, 38, 39, 0.9096846667),
       new MODULE_CONFIG(3, 40, 41, 42, 0.531494),
-      new MODULE_CONFIG(4, 20, 21, 22, -0.5917972222),
-      new MODULE_CONFIG(5, 40, 41, 42, -0.1811527778),
-      new MODULE_CONFIG(6, 10, 11, 12, 0.1533194444),
-      new MODULE_CONFIG(7, 30, 31, 32, -0.5322277778),
+      new MODULE_CONFIG(4, 43, 44, 45, -0.5917972222),
+      new MODULE_CONFIG(5, 46, 47, 48, -0.1811527778),
+      new MODULE_CONFIG(6, 49, 50, 51, 0.1533194444),
+      new MODULE_CONFIG(7, 52, 53, 54, -0.5322277778),
       // new MODULE_CONFIG(4, 43, 44, 45, -0.5917972222),
       // new MODULE_CONFIG(5, 46, 47, 48, -0.1811527778),
       // new MODULE_CONFIG(6, 49, 50, 51, 0.1533194444),
@@ -273,18 +273,19 @@ public final class Constants {
 
   public static final class CAN {
     // In order of: front left, front right, back left, back right, where the battery is in the back
-    public static final int[] SWERVE_DRIVE_SPARK_MAX = { 20, 40, 10, 30 };
-    public static final int[] SWERVE_STEER_SPARK_MAX = { 21, 41, 11, 31 };
-    public static final int[] SWERVE_STEER_CANCODERS = { 22, 42, 12, 32 };
+    public static final int[] SWERVEMODUL_DRIVE_SPARK_MAX = { 43, 46, 49, 52 };
+    public static final int[] SWERVE_STEER_SPARK_MAX = { 44, 47, 50, 53 };
+    public static final int[] SWERVE_STEER_CANCODERS = { 45, 48, 51, 54 };
     public static final int PDH = 1;
-    public static final int SHOOTER_WHEELS = 6;
+    public static final int SHOOTER_WHEELS_TOP = 21;
+    public static final int SHOOTER_WHEELS_BOTTOM = 20;
     public static final int SHOOTER_PIVOT = 7;
     public static final int SHOOTER_FEED = 19;
-    public static final int INTAKE = 24;
+    public static final int INTAKE = 23;
     public static final int CENTERING = 27;
     public static final int TRANSFER_IN = 22;
     public static final int TRANSFER_OUT = 25;
-    public static final int AMP_PIVOT = 2;
+    public static final int AMP_PIVOT = 24;
     public static final int AMP_WHEELS = 17;
   }
 
@@ -467,8 +468,8 @@ public final class Constants {
       public static final double MASS = Units.lbsToKilograms(4.0);
       public static final double MOI = (1.0 / 3.0) * MASS * Math.pow(CoM_DISTANCE, 2.0);
       public static final Rotation2d MAX_ANGLE = Rotation2d.fromDegrees(90.0);
-      public static final Rotation2d MIN_ANGLE = Rotation2d.fromDegrees(-45.0);
-      public static final double ABSOLUTE_POSITION_OFFSET = 0.0;
+      public static final Rotation2d MIN_ANGLE = Rotation2d.fromDegrees(-30.0);
+      public static final double ABSOLUTE_POSITION_OFFSET = -0.944;
 
       public static final class PROFILE {
         public static final int    CURRENT_LIMIT = 40;
@@ -477,9 +478,7 @@ public final class Constants {
         public static final double kD = 0.0;
         public static final double kG = ((CoM_DISTANCE * 9.80 * MASS) / (NEO.maxTorqueCurrentLimited(CURRENT_LIMIT) * GEARBOX_REDUCTION)) * 12.0;
         public static final double kV = 12.0 / (NEO.STATS.freeSpeedRadPerSec / GEARBOX_REDUCTION);
-        public static final double RAMP_RATE = 0.1;
-        public static final double SMART_MOTION_MAX_VELOCITY = NEO.RPM / 60.0 * 2.0 * Math.PI / GEARBOX_REDUCTION; // rad/s
-        public static final double SMART_MOTION_MAX_ACCELERATION = (NEO.maxTorqueCurrentLimited(CURRENT_LIMIT) * GEARBOX_REDUCTION) / MOI; // rad/s^2
+        public static final double RAMP_RATE = 0.001;
       }
     }
   }

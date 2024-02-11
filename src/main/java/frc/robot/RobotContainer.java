@@ -4,6 +4,7 @@
 
 package frc.robot;
 
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
@@ -41,7 +42,7 @@ public class RobotContainer {
   private final LEDs ledStrip = new LEDs();
 
   // The robot's subsystems and commands
-  // private final CommandXboxController operatorController = new CommandXboxController(DEVICES.OPERATOR_XBOX_CONTROLLER);
+  private final CommandXboxController operatorController = new CommandXboxController(DEVICES.OPERATOR_XBOX_CONTROLLER);
   private final CommandXboxController driveController = new CommandXboxController(DEVICES.DRIVE_XBOX_CONTROLLER);
   private final SwerveDrive swerveDrive = new SwerveDrive();
   // private final Shooter shooter = new Shooter(swerveDrive);
@@ -52,7 +53,7 @@ public class RobotContainer {
   // private final TransferWheels transfer = new TransferWheels();
   // private final AmpWheels amp = new AmpWheels();
   // private final FeedWheels feedWheels = new FeedWheels();
-  // private final AmpWheels ampPivot = new AmpPivot();
+  private final AmpPivot ampPivot = new AmpPivot();
 
   
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
@@ -73,11 +74,13 @@ public class RobotContainer {
     configureBindings();
 
     SwerveDrive.printChoreoConfig();
-
-    encoder = new DutyCycleEncoder(Constants.DIO.AMP_PIVOT);
-  }
+ }
 
   private void configureBindings() {
+    operatorController.leftBumper().onTrue(Commands.runOnce(() -> ampPivot.setTargetAngle(Rotation2d.fromDegrees(0))));    
+    operatorController.rightBumper().onTrue(Commands.runOnce(() -> ampPivot.setTargetAngle(Rotation2d.fromDegrees(30.0))));    
+
+
     // Command ampCommand = Commands.parallel(Commands.startEnd(() -> transfer.setState(TransferWheels.TransferState.AMP), 
     //                                                          () -> transfer.setState(TransferWheels.TransferState.OFF)),
     //                                        Commands.startEnd(() -> amp.setState(AmpWheels.AmpState.IN), 
@@ -99,8 +102,6 @@ public class RobotContainer {
   }
 
   public void disabledPeriodic() {
-    
-    //System.out.println(encoder.getAbsolutePosition());
   }
 
   public void testInit() {

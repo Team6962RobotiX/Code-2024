@@ -16,10 +16,12 @@ import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkPIDController;
+import com.revrobotics.SparkPIDController.AccelStrategy;
 import com.revrobotics.SparkPIDController.ArbFFUnits;
 
 import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.Voltage;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
@@ -37,7 +39,7 @@ import frc.robot.util.StatusChecks;
 import frc.robot.util.Logging.Logger;
 
 public class AmpPivot extends SubsystemBase {
-  private Rotation2d targetAngle = PIVOT.MIN_ANGLE;
+  private Rotation2d targetAngle = Rotation2d.fromDegrees(0.0);
   private ArmFeedforward feedforward = new ArmFeedforward(0.0, PIVOT.PROFILE.kG, 0.0, 0.0);
   private SparkPIDController pid;
   private CANSparkMax motor;
@@ -52,31 +54,28 @@ public class AmpPivot extends SubsystemBase {
     pid = motor.getPIDController();
     encoder = motor.getEncoder();
     absoluteEncoder = new DutyCycleEncoder(DIO.AMP_PIVOT);
-    absoluteEncoder.setPositionOffset(PIVOT.ABSOLUTE_POSITION_OFFSET);
-
-    double startingAngle = absoluteEncoder.getAbsolutePosition() * 2.0 * Math.PI;
     
     ConfigUtils.configure(List.of(
       () -> motor.restoreFactoryDefaults(),
-      () -> { motor.setInverted(false); return true; },
+      () -> { motor.setInverted(true); return true; },
       () -> motor.setIdleMode(IdleMode.kBrake),
       () -> motor.enableVoltageCompensation(12.0),
       () -> motor.setSmartCurrentLimit(NEO.SAFE_STALL_CURRENT, PIVOT.PROFILE.CURRENT_LIMIT),
       () -> motor.setClosedLoopRampRate(PIVOT.PROFILE.RAMP_RATE),
       () -> encoder.setPositionConversionFactor(PIVOT.ENCODER_CONVERSION_FACTOR),
       () -> encoder.setVelocityConversionFactor(PIVOT.ENCODER_CONVERSION_FACTOR / 60.0),
-      () -> encoder.setPosition(startingAngle),
       () -> pid.setP(PIVOT.PROFILE.kP, 0),
       () -> pid.setI(PIVOT.PROFILE.kI, 0),
       () -> pid.setD(PIVOT.PROFILE.kD, 0),
       () -> pid.setFF(PIVOT.PROFILE.kV / 12.0, 0),
-      () -> pid.setSmartMotionMaxVelocity(PIVOT.PROFILE.SMART_MOTION_MAX_VELOCITY, 0),
-      () -> pid.setSmartMotionMaxAccel(PIVOT.PROFILE.SMART_MOTION_MAX_ACCELERATION, 0),
       () -> pid.setPositionPIDWrappingEnabled(true),
       () -> pid.setPositionPIDWrappingMinInput(-Math.PI),
       () -> pid.setPositionPIDWrappingMaxInput(Math.PI),
       () -> motor.burnFlash()
     ));
+
+    // pid.setOutputRange(-1.0, 1.0);
+    // pid.setSmartMotionAccelStrategy(AccelStrategy.kTrapezoidal, 0);
 
     String logPath = "amp-pivot/";
     Logger.autoLog(logPath + "current",                 () -> motor.getOutputCurrent());
@@ -110,6 +109,19 @@ public class AmpPivot extends SubsystemBase {
     return encoder.getVelocity();
   }
 
+  public double getAbsoluteAngle() {
+    double absoluteAngle = (absoluteEncoder.getAbsolutePosition() + PIVOT.ABSOLUTE_POSITION_OFFSET);
+    while (absoluteAngle < 0) absoluteAngle++;
+    absoluteAngle %= 1.0;
+    
+    absoluteAngle *= Math.PI * 2.0;
+    if (absoluteAngle > Math.PI) {
+      absoluteAngle -= Math.PI * 2.0;
+    }
+
+    return absoluteAngle;
+  }
+
   @Override
   public void periodic() {
     if (!ENABLED_SYSTEMS.ENABLE_AMP) return;
@@ -118,11 +130,16 @@ public class AmpPivot extends SubsystemBase {
 
     pid.setReference(
       targetAngle.getRadians(),
-      ControlType.kSmartMotion,
-      0,
-      feedforward.calculate(targetAngle.getRadians(), 0.0),
-      ArbFFUnits.kVoltage
+      ControlType.kPosition,
+      0
     );
+
+    if (Math.abs(encoder.getVelocity()) < 0.001) {
+      encoder.setPosition(getAbsoluteAngle());
+    }
+
+    System.out.println("absolute: " + getAbsoluteAngle());
+    System.out.println("relative: " + encoder.getPosition());
   }
 
   @Override
