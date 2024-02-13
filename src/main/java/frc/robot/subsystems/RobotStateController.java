@@ -10,7 +10,7 @@ import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.transfer.Transfer;
 
-public class StateManager extends SubsystemBase {
+public class RobotStateController extends SubsystemBase {
   private SwerveDrive swerveDrive;
   private Amp amp;
   private Intake intake;
@@ -27,7 +27,7 @@ public class StateManager extends SubsystemBase {
     SHOOT
   }
 
-  public StateManager(Amp amp, SwerveDrive swerveDrive, Intake intake, Shooter shooter, Transfer transfer) {
+  public RobotStateController(Amp amp, SwerveDrive swerveDrive, Intake intake, Shooter shooter, Transfer transfer) {
     this.swerveDrive = swerveDrive;
     this.amp = amp;
     this.intake = intake;

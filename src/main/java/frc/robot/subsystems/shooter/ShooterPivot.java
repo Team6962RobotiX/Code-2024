@@ -89,7 +89,7 @@ public class ShooterPivot extends SubsystemBase {
   }
 
   public boolean doneMoving() {
-    return Math.abs(getPosition().minus(controller.getTargetAngle()).getRadians()) < PIVOT.ANGLE_TOLERANCE;
+    return Math.abs(getPosition().minus(controller.getTargetAngle()).getRadians()) < PIVOT.ANGLE_TOLERANCE.getRadians();
   }
 
   public Command calibrate() {

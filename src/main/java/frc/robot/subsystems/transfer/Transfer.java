@@ -13,6 +13,8 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 import frc.robot.commands.*;
 import frc.robot.util.ConfigUtils;
+import frc.robot.util.StatusChecks;
+import frc.robot.util.Logging.Logger;
 import frc.robot.Constants;
 import frc.robot.Constants.AMP.PIVOT;
 import frc.robot.Constants.CAN;
@@ -55,6 +57,19 @@ public class Transfer extends SubsystemBase {
       () -> transferOut.setClosedLoopRampRate(PIVOT.PROFILE.RAMP_RATE),
       () -> transferOut.burnFlash()
     ));
+
+    String logPath = "transfer-in-wheels/";
+    Logger.autoLog(logPath + "current",                 () -> transferIn.getOutputCurrent());
+    Logger.autoLog(logPath + "appliedOutput",           () -> transferIn.getAppliedOutput());
+    Logger.autoLog(logPath + "motorTemperature",        () -> transferIn.getMotorTemperature());
+
+    logPath = "transfer-out-wheels/";
+    Logger.autoLog(logPath + "current",                 () -> transferOut.getOutputCurrent());
+    Logger.autoLog(logPath + "appliedOutput",           () -> transferOut.getAppliedOutput());
+    Logger.autoLog(logPath + "motorTemperature",        () -> transferOut.getMotorTemperature());
+
+    StatusChecks.addCheck("Transfer In Motor", () -> transferIn.getFaults() == 0);
+    StatusChecks.addCheck("Transfer Out Motor", () -> transferOut.getFaults() == 0);
   }
 
   public void setState(State newState) {

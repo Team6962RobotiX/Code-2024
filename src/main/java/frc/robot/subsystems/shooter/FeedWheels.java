@@ -17,6 +17,8 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 import frc.robot.commands.*;
 import frc.robot.util.ConfigUtils;
+import frc.robot.util.StatusChecks;
+import frc.robot.util.Logging.Logger;
 import frc.robot.Constants;
 import frc.robot.Presets;
 import frc.robot.Constants.AMP.PIVOT;
@@ -49,6 +51,13 @@ public class FeedWheels extends SubsystemBase {
       () -> motor.setClosedLoopRampRate(PIVOT.PROFILE.RAMP_RATE),
       () -> motor.burnFlash()
     ));
+
+    String logPath = "shooter-feed-wheels/";
+    Logger.autoLog(logPath + "current",                 () -> motor.getOutputCurrent());
+    Logger.autoLog(logPath + "appliedOutput",           () -> motor.getAppliedOutput());
+    Logger.autoLog(logPath + "motorTemperature",        () -> motor.getMotorTemperature());
+
+    StatusChecks.addCheck("Shooter Feed Wheels Motor", () -> motor.getFaults() == 0);
   }
 
   public void setState(State newState) {

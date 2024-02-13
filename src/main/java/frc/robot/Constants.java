@@ -158,9 +158,9 @@ public final class Constants {
       public static final double kP                 = 0.00000; // Proportion Gain
       public static final double kI                 = 0.00000; // Integral Gain
       public static final double kD                 = 0.00000; // Derivative Gain
-      public static final double kS                 = 0.081073; // volts
+      public static final double kS                 = 0.00000; // volts
       public static final double kV                 = 12.0 / PHYSICS.MAX_LINEAR_VELOCITY; // volts per m/s
-      public static final double kA                 = 0.30787; // volts per m/s^2, free spinning
+      public static final double kA                 = 0.10000; // volts per m/s^2, free spinning
       
       // CALCULATED
       public static final int    CURRENT_LIMIT      = PHYSICS.SLIPLESS_CURRENT_LIMIT; // Amps
@@ -172,12 +172,12 @@ public final class Constants {
 
     public static final class STEER_MOTOR_PROFILE {
       // FROM WPILIB SYSTEM IDENTIFICATION
-      public static final double kP                 = 0.9; // Proportion Gain
-      public static final double kI                 = 0.0; // Integral Gain
-      public static final double kD                 = 0.1; // Derivative Gain
-      public static final double kS                 = 0.13134; // volts
+      public static final double kP                 = 0.90000; // Proportion Gain
+      public static final double kI                 = 0.00000; // Integral Gain
+      public static final double kD                 = 0.10000; // Derivative Gain
+      public static final double kS                 = 0.00000; // volts
       public static final double kV                 = 12.0 / (NEO.STATS.freeSpeedRadPerSec / STEER_MOTOR_GEARING); // volts per rad/s
-      public static final double kA                 = 0.22773; // volts per rad/s^2
+      public static final double kA                 = 0.02000; // volts per rad/s^2
       
       // CALCULATED
       public static final int    CURRENT_LIMIT      = 20; // Amps
@@ -192,7 +192,7 @@ public final class Constants {
       public static final double kP = 3.0;
       public static final double kI = 0.0;
       public static final double kD = 0.0;
-      public static final double TOLERANCE = Units.degreesToRadians(0.5);
+      public static final Rotation2d TOLERANCE = Rotation2d.fromDegrees(0.5);
     }
     
     // MODULES
@@ -325,9 +325,9 @@ public final class Constants {
       public static final double GEARBOX_REDUCTION = 400.0;
       public static final double ENCODER_CONVERSION_FACTOR = 2.0 * Math.PI / GEARBOX_REDUCTION;
       public static final double ROTATION_DELAY = 0.3; // seconds
-      public static final double ANGLE_TOLERANCE = Units.degreesToRadians(0.5);
-      public static final double ANGLE_PRECISION = Units.degreesToRadians(0.5);
-      public static final double HEADING_PRECISION = Units.degreesToRadians(0.5);
+      public static final Rotation2d ANGLE_TOLERANCE = Rotation2d.fromDegrees(0.5);
+      public static final Rotation2d ANGLE_PRECISION = Rotation2d.fromDegrees(0.5);
+      public static final Rotation2d HEADING_PRECISION = Rotation2d.fromDegrees(0.5);
       public static final Translation3d POSITION = new Translation3d(0.0, 0.0, Units.inchesToMeters(0.0));
       public static final double CoM_DISTANCE = Units.inchesToMeters(15.0);
       public static final double MASS = Units.lbsToKilograms(14.3);
@@ -347,7 +347,7 @@ public final class Constants {
     public static final class PIVOT {
       public static final double GEARBOX_REDUCTION = 60.6666;
       public static final double ENCODER_CONVERSION_FACTOR = 2.0 * Math.PI / GEARBOX_REDUCTION;
-      public static final double ANGLE_TOLERANCE = Units.degreesToRadians(0.5);
+      public static final Rotation2d ANGLE_TOLERANCE = Rotation2d.fromDegrees(0.5);
       public static final double CoM_DISTANCE = Units.inchesToMeters(9.5);
       public static final double MASS = Units.lbsToKilograms(4.0);
       public static final double MOI = (1.0 / 3.0) * MASS * Math.pow(CoM_DISTANCE, 2.0);

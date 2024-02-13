@@ -49,7 +49,7 @@ public class ShooterMath {
     double speakerLateralDegreesOfView = Units.radiansToDegrees(2.0 * Math.atan((Field.SPEAKER_WIDTH - Field.NOTE_LENGTH) / 2.0 / totalDistance));
     speakerVerticalDegreesOfView *= Math.cos(Math.PI / 2.0 - Math.atan((Field.SPEAKER.getZ() - PIVOT.POSITION.getZ()) / floorDistance) - Units.degreesToRadians(14.0));
     
-    double veritcalDegreesOfAccuracy = Units.radiansToDegrees(PIVOT.ANGLE_PRECISION) * 2.0;
+    double veritcalDegreesOfAccuracy = PIVOT.ANGLE_PRECISION.getDegrees() * 2.0;
     double lateralDegreesOfAccuracy  = 0.5 * 2.0;
     
     Translation3d aimingPoint = calcVelocityCompensatedPoint(targetPoint, currentPose, currentVelocity, shooterWheelVelocity);

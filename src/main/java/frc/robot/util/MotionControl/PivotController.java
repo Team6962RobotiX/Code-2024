@@ -35,6 +35,8 @@ public class PivotController {
   private TrapezoidProfile profile;
   // Onboard spark max PID controller. Runs at 1kHz
   private SparkPIDController pid;
+  // CAN Spark Max motor controller;
+  private CANSparkMax motor;
   // Built-in relative NEO encoder
   private RelativeEncoder encoder;
   // Rev absolute through-bore encoder
@@ -55,6 +57,7 @@ public class PivotController {
     encoder = motor.getEncoder();
     absoluteEncoder = new DutyCycleEncoder(absoluteEncoderDIO);
 
+    this.motor = motor;
     this.minAngle = minAngle;
     this.maxAngle = maxAngle;
     encoder.setPositionConversionFactor(2.0 * Math.PI / gearing);
@@ -76,7 +79,20 @@ public class PivotController {
 
   public void run() {
     if (targetAngle == null) return; // If we havent set a target angle yet, do nothing
+    if (!absoluteEncoder.isConnected()) {
+      motor.stopMotor();
+      return;
+    }
+
+    // Re-seed the relative encoder with the absolute encoder when not moving
+    if (Math.abs(encoder.getVelocity()) < 0.001) {
+      encoder.setPosition(getAbsolutePosition().getRadians());
+    }
     
+    if (setpointState == null) {
+      setpointState = new State(getAbsolutePosition().getRadians(), getVelocity().getRadians());
+    };
+
     // Calculate the setpoint following a trapazoidal profile (smooth ramp up and down acceleration curves)
     State targetState = new State(targetAngle.getRadians(), 0.0);
     setpointState = profile.calculate(0.02, setpointState, targetState);
@@ -90,11 +106,6 @@ public class PivotController {
       feedforward.calculate(setpointState.position, setpointState.velocity),
       ArbFFUnits.kVoltage
     );
-
-    // Re-seed the relative encoder with the absolute encoder when not moving
-    if (Math.abs(encoder.getVelocity()) < 0.001) {
-      encoder.setPosition(getAbsolutePosition().getRadians());
-    }
   }
 
   public void setTargetAngle(Rotation2d angle) {
@@ -130,5 +141,9 @@ public class PivotController {
 
   public Rotation2d getVelocity() {
     return Rotation2d.fromRadians(encoder.getVelocity());
+  }
+
+  public boolean isAbsoluteEncoderConnected() {
+    return absoluteEncoder.isConnected();
   }
 }

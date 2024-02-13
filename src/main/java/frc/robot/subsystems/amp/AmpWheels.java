@@ -17,6 +17,8 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 import frc.robot.commands.*;
 import frc.robot.util.ConfigUtils;
+import frc.robot.util.StatusChecks;
+import frc.robot.util.Logging.Logger;
 import frc.robot.Constants;
 import frc.robot.Presets;
 import frc.robot.Constants.CAN;
@@ -49,6 +51,13 @@ public class AmpWheels extends SubsystemBase {
       () -> motor.setClosedLoopRampRate(NEO.SAFE_RAMP_RATE),
       () -> motor.burnFlash()
     ));
+
+    String logPath = "amp-wheels/";
+    Logger.autoLog(logPath + "current",                 () -> motor.getOutputCurrent());
+    Logger.autoLog(logPath + "appliedOutput",           () -> motor.getAppliedOutput());
+    Logger.autoLog(logPath + "motorTemperature",        () -> motor.getMotorTemperature());
+
+    StatusChecks.addCheck("Amp Wheels Motor", () -> motor.getFaults() == 0);
   }
 
   public void setState(State newState) {

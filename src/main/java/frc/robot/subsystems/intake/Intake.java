@@ -17,6 +17,8 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 import frc.robot.commands.*;
 import frc.robot.util.ConfigUtils;
+import frc.robot.util.StatusChecks;
+import frc.robot.util.Logging.Logger;
 import frc.robot.Constants;
 import frc.robot.Presets;
 import frc.robot.Constants.AMP.PIVOT;
@@ -60,6 +62,19 @@ public class Intake extends SubsystemBase {
       () -> centeringMotor.setClosedLoopRampRate(NEO.SAFE_RAMP_RATE),
       () -> centeringMotor.burnFlash()
     ));
+
+    String logPath = "intake-wheels/";
+    Logger.autoLog(logPath + "current",                 () -> intakeMotor.getOutputCurrent());
+    Logger.autoLog(logPath + "appliedOutput",           () -> intakeMotor.getAppliedOutput());
+    Logger.autoLog(logPath + "motorTemperature",        () -> intakeMotor.getMotorTemperature());
+
+    logPath = "intake-centering-wheels/";
+    Logger.autoLog(logPath + "current",                 () -> centeringMotor.getOutputCurrent());
+    Logger.autoLog(logPath + "appliedOutput",           () -> centeringMotor.getAppliedOutput());
+    Logger.autoLog(logPath + "motorTemperature",        () -> centeringMotor.getMotorTemperature());
+
+    StatusChecks.addCheck("Intake Motor", () -> intakeMotor.getFaults() == 0);
+    StatusChecks.addCheck("Intake Centering Motor", () -> centeringMotor.getFaults() == 0);
   }
 
   public void setState(State newState) {

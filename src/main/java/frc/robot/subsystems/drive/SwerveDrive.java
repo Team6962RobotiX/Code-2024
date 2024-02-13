@@ -110,7 +110,7 @@ public class SwerveDrive extends SubsystemBase {
     );
 
     alignmentController.enableContinuousInput(-Math.PI, Math.PI);
-    alignmentController.setTolerance(SWERVE_DRIVE.ABSOLUTE_ROTATION_GAINS.TOLERANCE);
+    alignmentController.setTolerance(SWERVE_DRIVE.ABSOLUTE_ROTATION_GAINS.TOLERANCE.getRadians());
     setTargetHeading(SWERVE_DRIVE.STARTING_POSE.getRotation());
 
     // If possible, connect to the gyroscope

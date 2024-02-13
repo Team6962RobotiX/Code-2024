@@ -71,6 +71,7 @@ public class AmpPivot extends SubsystemBase {
     Logger.autoLog(logPath + "absolutePosition",        () -> controller.getAbsolutePosition().getRadians());
 
     StatusChecks.addCheck("Amp Pivot Motor", () -> motor.getFaults() == 0);
+    StatusChecks.addCheck("Amp Pivot Absolute Encoder", () -> controller.isAbsoluteEncoderConnected());
   }
 
   @Override
@@ -89,7 +90,7 @@ public class AmpPivot extends SubsystemBase {
   }
 
   public boolean doneMoving() {
-    return Math.abs(getPosition().minus(controller.getTargetAngle()).getRadians()) < PIVOT.ANGLE_TOLERANCE;
+    return Math.abs(getPosition().minus(controller.getTargetAngle()).getRadians()) < PIVOT.ANGLE_TOLERANCE.getRadians();
   }
 
   public Command calibrate() {
