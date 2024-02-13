@@ -23,7 +23,7 @@ import frc.robot.commands.drive.XBoxSwerve;
 import frc.robot.subsystems.amp.Amp;
 import frc.robot.subsystems.amp.AmpPivot;
 import frc.robot.subsystems.LEDs;
-import frc.robot.subsystems.StateManager;
+import frc.robot.subsystems.RobotStateController;
 import frc.robot.subsystems.amp.AmpWheels;
 import frc.robot.subsystems.amp.AmpWheels.State;
 import frc.robot.subsystems.drive.SwerveDrive;
@@ -54,7 +54,7 @@ public class RobotContainer {
   private final Transfer transfer;
   private final Amp amp;
 
-  private final StateManager stateManager;
+  private final RobotStateController stateController;
 
   
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
@@ -70,7 +70,7 @@ public class RobotContainer {
     intake = new Intake();
     transfer = new Transfer();
     amp = new Amp();
-    stateManager = new StateManager(amp, swerveDrive, intake, shooter, transfer);
+    stateController = new RobotStateController(amp, swerveDrive, intake, shooter, transfer);
 
     swerveDrive.setDefaultCommand(new XBoxSwerve(swerveDrive, driveController.getHID()));
 
