@@ -6,35 +6,52 @@ package frc.robot.subsystems.shooter;
 
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
+
+import java.util.List;
+
+import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 import frc.robot.commands.*;
+import frc.robot.util.ConfigUtils;
 import frc.robot.Constants;
+import frc.robot.Presets;
+import frc.robot.Constants.AMP.PIVOT;
 import frc.robot.Constants.CAN;
 import frc.robot.Constants.ENABLED_SYSTEMS;
+import frc.robot.Constants.NEO;
 
 
 
 public class FeedWheels extends SubsystemBase {
-  private CANSparkMax feedMotor;
-  private ShooterState state = ShooterState.OFF;
+  private CANSparkMax motor;
+  private State state = State.OFF;
  
-  public static enum ShooterState {
-    FORWARD,
-    REVERSE,
+  public static enum State {
+    IN,
+    OUT,
     OFF
   }
 
   public FeedWheels() {
     if (!ENABLED_SYSTEMS.ENABLE_SHOOTER) return;
+    motor = new CANSparkMax(CAN.SHOOTER_FEED, MotorType.kBrushless);
     
-    feedMotor = new CANSparkMax(CAN.SHOOTER_FEED, MotorType.kBrushless);
+    ConfigUtils.configure(List.of(
+      () -> motor.restoreFactoryDefaults(),
+      () -> { motor.setInverted(true); return true; },
+      () -> motor.setIdleMode(IdleMode.kBrake),
+      () -> motor.enableVoltageCompensation(12.0),
+      () -> motor.setSmartCurrentLimit(NEO.SAFE_STALL_CURRENT, PIVOT.PROFILE.CURRENT_LIMIT),
+      () -> motor.setClosedLoopRampRate(PIVOT.PROFILE.RAMP_RATE),
+      () -> motor.burnFlash()
+    ));
   }
 
-  public void setState(ShooterState newState) {
+  public void setState(State newState) {
     state = newState;
   }
 
@@ -44,13 +61,13 @@ public class FeedWheels extends SubsystemBase {
 
     switch(state) {
       case OFF:
-        feedMotor.set(0);
+        motor.set(0);
         break;
-      case FORWARD:
-        feedMotor.set(0.3);
+      case IN:
+        motor.set(Presets.SHOOTER.FEED.POWER);
         break;
-      case REVERSE:
-        feedMotor.set(-0.3);
+      case OUT:
+        motor.set(-Presets.SHOOTER.FEED.POWER);
         break;
     }
   }

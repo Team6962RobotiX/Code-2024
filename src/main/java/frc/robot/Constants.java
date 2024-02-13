@@ -3,25 +3,15 @@
 // the WPILib BSD license file in the root directory of this project.
 package frc.robot;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.function.Supplier;
-
 import com.pathplanner.lib.path.PathConstraints;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
-import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.RobotBase;
-import edu.wpi.first.wpilibj.XboxController;
-import edu.wpi.first.wpilibj.DriverStation.Alliance;
-import frc.robot.subsystems.drive.SwerveDrive;
 
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide numerical or boolean
@@ -218,21 +208,6 @@ public final class Constants {
     public record MODULE_CONFIG (int ID, int CAN_DRIVE, int CAN_STEER, int CAN_ENCODER, double ENCODER_OFFSET) {}
 
     public static final MODULE_CONFIG[] MODULES = new MODULE_CONFIG[] {
-/*
-* 20 -> 43
-* 21 -> 44
-* 22 -> 45
-* 40 -> 46
-* 41 -> 47
-* 42 -> 48
-* 10 -> 49
-* 11 -> 50
-* 12 -> 51
-* 30 -> 52
-* 31 -> 53
-* 32 -> 54
-*/
-
       new MODULE_CONFIG(0, 31, 32, 33, 0.6936363333),
       new MODULE_CONFIG(1, 34, 35, 36, -0.5054961111),
       new MODULE_CONFIG(2, 37, 38, 39, 0.9096846667),
@@ -241,12 +216,8 @@ public final class Constants {
       new MODULE_CONFIG(5, 46, 47, 48, -0.1811527778),
       new MODULE_CONFIG(6, 49, 50, 51, 0.1533194444),
       new MODULE_CONFIG(7, 52, 53, 54, -0.5322277778),
-      // new MODULE_CONFIG(4, 43, 44, 45, -0.5917972222),
-      // new MODULE_CONFIG(5, 46, 47, 48, -0.1811527778),
-      // new MODULE_CONFIG(6, 49, 50, 51, 0.1533194444),
-      // new MODULE_CONFIG(7, 52, 53, 54, -0.5322277778),
-      // new MODULE_CONFIG(8, 55, 56, 57, 0.0),
-      // new MODULE_CONFIG(9, 58, 59, 60, 0.0),
+      new MODULE_CONFIG(8, 55, 56, 57, 0.0), // TODO
+      new MODULE_CONFIG(9, 58, 59, 60, 0.0), // TODO
     };
 
     public static final String[] MODULE_NAMES = {
@@ -299,85 +270,11 @@ public final class Constants {
     public static final DCMotor STATS = new DCMotor(12.0, 3.28, 181, 1.3, Units.rotationsPerMinuteToRadiansPerSecond(RPM), 1);
     public static final double SAFE_TEMPERATURE = 60;
     public static final int SAFE_STALL_CURRENT = 40;
+    public static final double SAFE_RAMP_RATE = 0.1;
 
     public static double maxTorqueCurrentLimited(int currentLimit) {
       return STATS.stallTorqueNewtonMeters / STATS.stallCurrentAmps * currentLimit;
     }
-  }
-
-  public static final class SWERVE_MATH {
-    public static double angleDistance(double alpha, double beta) {
-      double phi = Math.abs(beta - alpha) % (2.0 * Math.PI);
-      return phi > Math.PI ? (2.0 * Math.PI) - phi : phi;
-    }
-
-    /**
-     * Logical inverse of the Pose exponential from 254. Taken from team 3181.
-     *
-     * @param transform Pose to perform the log on.
-     * @return {@link Twist2d} of the transformed pose.
-     */
-    public static Twist2d PoseLog(final Pose2d transform) {
-      final double kEps          = 1E-9;
-      final double dtheta        = transform.getRotation().getRadians();
-      final double half_dtheta   = 0.5 * dtheta;
-      final double cos_minus_one = transform.getRotation().getCos() - 1.0;
-      double       halftheta_by_tan_of_halfdtheta;
-      if (Math.abs(cos_minus_one) < kEps) {
-        halftheta_by_tan_of_halfdtheta = 1.0 - 1.0 / 12.0 * dtheta * dtheta;
-      } else {
-        halftheta_by_tan_of_halfdtheta = -(half_dtheta * transform.getRotation().getSin()) / cos_minus_one;
-      }
-      final Translation2d translation_part = transform.getTranslation().rotateBy(new Rotation2d(halftheta_by_tan_of_halfdtheta, -half_dtheta));
-      return new Twist2d(translation_part.getX(), translation_part.getY(), dtheta);
-    }
-  }
-
-  public static final class INPUT_MATH {
-    public static double addLinearDeadband(double input, double deadband) { // input ranges from -1 to 1
-      if (Math.abs(input) <= deadband) return 0.0;
-      if (input > 0) return map(input, deadband, 1.0, 0.0, 1.0);
-      return map(input, -deadband, -1.0, 0.0, -1.0);
-    }
-
-    public static double mapBothSides(double X, double A, double B, double C, double D) {
-      if (X > 0.0) return map(X, A, B, C, D);
-      if (X < 0.0) return map(X, -A, -B, -C, -D);
-      return 0.0;
-    }
-
-    public static Translation2d circular(Translation2d input, double deadband, double snapRadians) {
-      double magnitude = input.getNorm();
-      double direction = input.getAngle().getRadians();
-      if (mod(direction, Math.PI / 2.0) <= snapRadians / 2.0 || mod(direction, Math.PI / 2.0) >= (Math.PI / 2.0) - (snapRadians / 2.0)) {
-        direction = Math.round(direction / (Math.PI / 2.0)) * (Math.PI / 2.0);
-      }
-      if (Math.abs(magnitude) <= deadband) return new Translation2d();
-      magnitude = nonLinear(map(magnitude, deadband, 1.0, 0.0, 1.0));
-      return new Translation2d(magnitude * Math.cos(direction), magnitude * Math.sin(direction));
-    }
-
-    public static double nonLinear(double x) {
-      return (1 - Math.cos(Math.abs(x) * Math.PI / 2.0)) * Math.signum(x);
-    }
-  }
-
-  public static boolean isIdle(XboxController xboxController) {
-    if (xboxController.getRawAxis(0) != 0) {
-      return false;
-    }
-    if (xboxController.getRawAxis(1) != 0) {
-      return false;
-    }
-    return true;
-  }
-
-  public static double map(double X, double A, double B, double C, double D) {
-    return (X - A) / (B - A) * (D - C) + C;
-  }
-
-  public static double mod(double x, double r) {
-    return ((x % r) + r) % r;
   }
 
   public static final class PHOTON_LIB {
@@ -405,7 +302,6 @@ public final class Constants {
       public static final double WHEEL_MOI = 0.00018540712;
       public static final double TOTAL_MOI = 0.00018540712 * 12.0;
       public static final double PROJECTILE_MASS = Units.lbsToKilograms(0.5);
-      public static final double TARGET_SPEED    = Units.rotationsPerMinuteToRadiansPerSecond(5000);
 
       // x is front-to-back
       // y is left-to-right
@@ -436,30 +332,18 @@ public final class Constants {
       public static final double CoM_DISTANCE = Units.inchesToMeters(15.0);
       public static final double MASS = Units.lbsToKilograms(14.3);
       public static final double MOI = (1.0 / 3.0) * MASS * Math.pow(CoM_DISTANCE, 2.0);
-      public static final Rotation2d MAX_ANGLE = Rotation2d.fromDegrees(90.0);
-      public static final Rotation2d MIN_ANGLE = Rotation2d.fromDegrees(0.0);
       public static final double ABSOLUTE_POSITION_OFFSET = 0.0;
 
       public static final class PROFILE {
         public static final int    CURRENT_LIMIT = 40;
         public static final double kP = 0.0;
-        public static final double kI = 0.0;
-        public static final double kD = 0.0;
-        public static final double kG = ((CoM_DISTANCE * 9.80 * MASS) / (NEO.maxTorqueCurrentLimited(CURRENT_LIMIT) * GEARBOX_REDUCTION)) * 12.0;
-        public static final double kV = 12.0 / (NEO.STATS.freeSpeedRadPerSec / GEARBOX_REDUCTION);
         public static final double RAMP_RATE = 0.1;
-        public static final double SMART_MOTION_MAX_VELOCITY = NEO.RPM / 60.0 * 2.0 * Math.PI / GEARBOX_REDUCTION; // rad/s
-        public static final double SMART_MOTION_MAX_ACCELERATION = (NEO.maxTorqueCurrentLimited(CURRENT_LIMIT) * GEARBOX_REDUCTION) / MOI; // rad/s^2
+        public static final double MAX_ACCELERATION = (NEO.maxTorqueCurrentLimited(CURRENT_LIMIT) * GEARBOX_REDUCTION) / MOI; // rad/s^2
       }
     }
   }
 
   public static final class AMP {
-    public static final class WHEELS {
-      public static final class PROFILE {
-      }
-    }
-
     public static final class PIVOT {
       public static final double GEARBOX_REDUCTION = 60.6666;
       public static final double ENCODER_CONVERSION_FACTOR = 2.0 * Math.PI / GEARBOX_REDUCTION;
@@ -467,18 +351,13 @@ public final class Constants {
       public static final double CoM_DISTANCE = Units.inchesToMeters(9.5);
       public static final double MASS = Units.lbsToKilograms(4.0);
       public static final double MOI = (1.0 / 3.0) * MASS * Math.pow(CoM_DISTANCE, 2.0);
-      public static final Rotation2d MAX_ANGLE = Rotation2d.fromDegrees(90.0);
-      public static final Rotation2d MIN_ANGLE = Rotation2d.fromDegrees(-30.0);
       public static final double ABSOLUTE_POSITION_OFFSET = -0.944;
 
       public static final class PROFILE {
         public static final int    CURRENT_LIMIT = 40;
         public static final double kP = 0.0;
-        public static final double kI = 0.0;
-        public static final double kD = 0.0;
-        public static final double kG = ((CoM_DISTANCE * 9.80 * MASS) / (NEO.maxTorqueCurrentLimited(CURRENT_LIMIT) * GEARBOX_REDUCTION)) * 12.0;
-        public static final double kV = 12.0 / (NEO.STATS.freeSpeedRadPerSec / GEARBOX_REDUCTION);
-        public static final double RAMP_RATE = 0.001;
+        public static final double RAMP_RATE = 0.1;
+        public static final double MAX_ACCELERATION = (NEO.maxTorqueCurrentLimited(CURRENT_LIMIT) * GEARBOX_REDUCTION) / MOI; // rad/s^2
       }
     }
   }

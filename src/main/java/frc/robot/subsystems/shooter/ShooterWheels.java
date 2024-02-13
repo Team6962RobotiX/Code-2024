@@ -29,6 +29,7 @@ import frc.robot.Constants.CAN;
 import frc.robot.Constants.ENABLED_SYSTEMS;
 import frc.robot.Constants.NEO;
 import frc.robot.Constants.SHOOTER.WHEELS;
+import frc.robot.Presets;
 import frc.robot.util.ConfigUtils;
 import frc.robot.util.StatusChecks;
 import frc.robot.util.Logging.Logger;
@@ -80,7 +81,7 @@ public class ShooterWheels extends SubsystemBase {
   }
 
   public double getVelocity() {
-    return WHEELS.TARGET_SPEED;
+    return Presets.SHOOTER.WHEELS.TARGET_SPEED;
   }
 
   @Override

@@ -4,6 +4,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Twist2d;
+import edu.wpi.first.wpilibj.XboxController;
 
 /**
  * Some math utility functions for the swerve drive and input processing.
@@ -99,5 +100,15 @@ public final class MathUtils {
   */
   public static double mod(double x, double r) {
     return ((x % r) + r) % r;
+  }
+
+  public static boolean isIdle(XboxController xboxController) {
+    if (xboxController.getRawAxis(0) != 0) {
+      return false;
+    }
+    if (xboxController.getRawAxis(1) != 0) {
+      return false;
+    }
+    return true;
   }
 }

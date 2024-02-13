@@ -47,6 +47,7 @@ import frc.robot.Constants.ENABLED_SYSTEMS;
 import frc.robot.Constants.LIMELIGHT;
 import frc.robot.Constants.SWERVE_DRIVE;
 import frc.robot.subsystems.vision.AprilTagPose;
+import frc.robot.util.MathUtils;
 import frc.robot.util.StatusChecks;
 import frc.robot.util.Logging.Logger;
 
@@ -626,7 +627,7 @@ public class SwerveDrive extends SubsystemBase {
     return Commands.sequence(
       pathfindingCommand,
       goToSimple(pose, xboxController)
-    ).onlyWhile(() -> Constants.isIdle(xboxController));
+    ).onlyWhile(() -> MathUtils.isIdle(xboxController));
   }
 
   private Command goToSimple(Pose2d pose, XboxController xboxController) {
@@ -650,11 +651,11 @@ public class SwerveDrive extends SubsystemBase {
     return Commands.sequence(
       AutoBuilder.followPath(path),
       Commands.runOnce(() -> setTargetHeading(pose.getRotation()))
-    ).onlyWhile(() -> Constants.isIdle(xboxController));
+    ).onlyWhile(() -> MathUtils.isIdle(xboxController));
   }
 
   public Command goToNearestPose(List<Pose2d> poses, XboxController xboxController) {
-   return goTo(getPose().nearest(poses), xboxController).onlyWhile(() -> Constants.isIdle(xboxController));
+   return goTo(getPose().nearest(poses), xboxController).onlyWhile(() -> MathUtils.isIdle(xboxController));
   }
   
   public boolean shouldFlipPaths() {

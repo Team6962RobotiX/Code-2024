@@ -6,23 +6,31 @@ package frc.robot.subsystems.amp;
 
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
+
+import java.util.List;
+
+import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 import frc.robot.commands.*;
+import frc.robot.util.ConfigUtils;
 import frc.robot.Constants;
+import frc.robot.Presets;
 import frc.robot.Constants.CAN;
 import frc.robot.Constants.ENABLED_SYSTEMS;
+import frc.robot.Constants.NEO;
+import frc.robot.Constants.AMP.PIVOT;
 
 
 
 public class AmpWheels extends SubsystemBase {
-  private CANSparkMax intakeMotor;
-  private AmpState state = AmpState.OFF;
+  private CANSparkMax motor;
+  private State state = State.OFF;
  
-  public static enum AmpState {
+  public static enum State {
     IN,
     OUT,
     OFF
@@ -30,11 +38,20 @@ public class AmpWheels extends SubsystemBase {
 
   public AmpWheels() {
     if (!ENABLED_SYSTEMS.ENABLE_AMP) return;
-    
-    intakeMotor = new CANSparkMax(CAN.AMP_WHEELS, MotorType.kBrushless);
+    motor = new CANSparkMax(CAN.AMP_WHEELS, MotorType.kBrushless);
+
+    ConfigUtils.configure(List.of(
+      () -> motor.restoreFactoryDefaults(),
+      () -> { motor.setInverted(false); return true; },
+      () -> motor.setIdleMode(IdleMode.kBrake),
+      () -> motor.enableVoltageCompensation(12.0),
+      () -> motor.setSmartCurrentLimit(NEO.SAFE_STALL_CURRENT, PIVOT.PROFILE.CURRENT_LIMIT),
+      () -> motor.setClosedLoopRampRate(NEO.SAFE_RAMP_RATE),
+      () -> motor.burnFlash()
+    ));
   }
 
-  public void setState(AmpState newState) {
+  public void setState(State newState) {
     state = newState;
   }
 
@@ -44,13 +61,13 @@ public class AmpWheels extends SubsystemBase {
 
     switch(state) {
       case OFF:
-        intakeMotor.set(0);
+        motor.set(0);
         break;
       case IN:
-        intakeMotor.set(0.45);
+        motor.set(Presets.AMP.WHEELS.POWER);
         break;
       case OUT:
-        intakeMotor.set(-0.45);
+        motor.set(-Presets.AMP.WHEELS.POWER);
         break;
     }
   }

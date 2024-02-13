@@ -18,7 +18,6 @@ import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.simulation.FlywheelSim;
 import frc.robot.Constants.NEO;
 import frc.robot.Constants.SWERVE_DRIVE;
-import frc.robot.Constants.SWERVE_MATH;
 import frc.robot.Constants.SWERVE_DRIVE.DRIVE_MOTOR_PROFILE;
 import frc.robot.Constants.SWERVE_DRIVE.MODULE_CONFIG;
 import frc.robot.Constants.SWERVE_DRIVE.STEER_MOTOR_PROFILE;
@@ -88,7 +87,7 @@ public class SwerveModuleSim extends SwerveModule {
     double wheelAcceleration = (speedMetersPerSecond - lastDrivenState.speedMetersPerSecond) / 0.02;
 
     for (int i = 0; i < 20; i++) {
-      double driveVolts = driveFF.calculate(speedMetersPerSecond, wheelAcceleration) + 12.0 * drivePID.calculate(getMeasuredState().speedMetersPerSecond, speedMetersPerSecond);
+      double driveVolts = driveFF.calculate(speedMetersPerSecond, 0.0) + 12.0 * drivePID.calculate(getMeasuredState().speedMetersPerSecond, speedMetersPerSecond);
       double steerVolts = 12.0 * steerPID.calculate(getMeasuredState().angle.getRadians(), radians);
       
       driveVoltRamp += (MathUtil.clamp(driveVolts - driveVoltRamp, -12.0 / DRIVE_MOTOR_PROFILE.RAMP_RATE / 1000.0, 12.0 / DRIVE_MOTOR_PROFILE.RAMP_RATE / 1000.0));

@@ -4,69 +4,25 @@
 
 package frc.robot.subsystems.shooter;
 
-import static edu.wpi.first.units.Units.Meters;
-import static edu.wpi.first.units.Units.MetersPerSecond;
-import static edu.wpi.first.units.Units.Volts;
-
-import java.util.List;
-
-import com.revrobotics.CANSparkMax;
-import com.revrobotics.RelativeEncoder;
-import com.revrobotics.SparkPIDController;
-import com.revrobotics.CANSparkBase.IdleMode;
-import com.revrobotics.CANSparkLowLevel.MotorType;
-
-import edu.wpi.first.math.Nat;
-import edu.wpi.first.math.VecBuilder;
-import edu.wpi.first.math.controller.ArmFeedforward;
-import edu.wpi.first.math.controller.LinearQuadraticRegulator;
-import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.math.estimator.KalmanFilter;
-import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Rotation3d;
-import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.math.numbers.N1;
-import edu.wpi.first.math.system.LinearSystem;
-import edu.wpi.first.math.system.LinearSystemLoop;
-import edu.wpi.first.math.system.plant.LinearSystemId;
-import edu.wpi.first.math.trajectory.TrapezoidProfile;
-import edu.wpi.first.math.util.Units;
-import edu.wpi.first.units.Measure;
-import edu.wpi.first.units.Unit;
-import edu.wpi.first.units.Voltage;
-import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.smartdashboard.Mechanism2d;
 import edu.wpi.first.wpilibj.smartdashboard.MechanismLigament2d;
 import edu.wpi.first.wpilibj.smartdashboard.MechanismRoot2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
-import frc.robot.commands.*;
-import frc.robot.subsystems.drive.SwerveDrive;
-import frc.robot.util.ConfigUtils;
-import frc.robot.util.StatusChecks;
-import frc.robot.util.Logging.Logger;
-import frc.robot.Constants;
-import frc.robot.Field;
-import frc.robot.Constants.CAN;
 import frc.robot.Constants.ENABLED_SYSTEMS;
-import frc.robot.Constants.NEO;
-import frc.robot.Constants.SHOOTER;
 import frc.robot.Constants.SHOOTER.PIVOT;
-import frc.robot.Constants.SHOOTER.WHEELS;
-import frc.robot.Constants.SWERVE_DRIVE;
-import frc.robot.Constants.SWERVE_DRIVE.DRIVE_MOTOR_PROFILE;
-import frc.robot.Constants.SWERVE_DRIVE.STEER_MOTOR_PROFILE;
+import frc.robot.Field;
+import frc.robot.Presets;
+import frc.robot.subsystems.amp.AmpWheels;
+import frc.robot.subsystems.drive.SwerveDrive;
 
 public class Shooter extends SubsystemBase {
   private SwerveDrive swerveDrive;
   private ShooterWheels shooterWheels;
   private ShooterPivot shooterPivot;
+  private FeedWheels feedWheels;
 
   private Mechanism2d mechanism = new Mechanism2d(0, 0);
   private MechanismRoot2d pivotMechanism = mechanism.getRoot("pivot", PIVOT.POSITION.getX(), PIVOT.POSITION.getZ());
@@ -75,12 +31,22 @@ public class Shooter extends SubsystemBase {
   private double headingVelocity;
   private Rotation2d targetHeading = new Rotation2d();
 
+  private State state = State.OFF;
+  public static enum State {
+    DOWN,
+    IN,
+    AIM,
+    SHOOT,
+    OFF
+  }
+
   public Shooter(SwerveDrive swerveDrive) {
     if (!ENABLED_SYSTEMS.ENABLE_SHOOTER) return;
 
     this.shooterWheels = new ShooterWheels();
     this.shooterPivot = new ShooterPivot();
     this.swerveDrive = swerveDrive;
+    this.feedWheels = new FeedWheels();
 
     SmartDashboard.putData("ShooterMechanism", mechanism);
   }
@@ -89,12 +55,44 @@ public class Shooter extends SubsystemBase {
   @Override
   public void periodic() {
     if (!ENABLED_SYSTEMS.ENABLE_SHOOTER) return;
-
-    shooterMechanism.setAngle(shooterPivot.getMeasuredAngle());
-
-    // Logger.autoLog("Speaker", Field.SPEAKER);
+    shooterMechanism.setAngle(shooterPivot.getPosition());
+    
+    switch(state) {
+      case DOWN:
+        shooterPivot.setTargetAngle(Presets.SHOOTER.PIVOT.INTAKE_ANGLE);
+        shooterWheels.setTargetVelocity(0.0);
+        feedWheels.setState(FeedWheels.State.OFF);
+        break;
+      case IN:
+        shooterPivot.setTargetAngle(Presets.SHOOTER.PIVOT.INTAKE_ANGLE);
+        shooterWheels.setTargetVelocity(0.0);
+        feedWheels.setState(FeedWheels.State.IN);
+        break;
+      case AIM:
+        aim(Field.SPEAKER);
+        shooterWheels.setTargetVelocity(0.0);
+        feedWheels.setState(FeedWheels.State.OFF);
+        break;
+      case SHOOT:
+        aim(Field.SPEAKER);
+        shooterWheels.setTargetVelocity(Presets.SHOOTER.WHEELS.TARGET_SPEED);
+        if (getShotChance() > 0.9) {
+          feedWheels.setState(FeedWheels.State.IN);
+        } else {
+          feedWheels.setState(FeedWheels.State.OFF);
+        }
+        break;
+      case OFF:
+        shooterPivot.setTargetAngle(shooterPivot.getPosition());
+        shooterWheels.setTargetVelocity(0.0);
+        feedWheels.setState(FeedWheels.State.OFF);
+    }
 
     aim(Field.SPEAKER);
+  }
+
+  public void setState(State newState) {
+    state = newState;
   }
 
   public void aim(Translation3d point) {
@@ -112,15 +110,11 @@ public class Shooter extends SubsystemBase {
       shooterWheels.getVelocity()
     ));
 
-    shooterWheels.setTargetVelocity(WHEELS.TARGET_SPEED);
-
     orientToPointDelayCompensated(velocityCompensatedPoint);
+  }
 
-    // System.out.println(ShooterMath.calcPivotAngle(
-    //   velocityCompensatedPoint,
-    //   swerveDrive.getPose(),
-    //   shooterWheels.getVelocity()
-    // ));
+  public boolean doneMoving() {
+    return shooterPivot.doneMoving();
   }
 
   public double getShotChance() {
@@ -128,7 +122,7 @@ public class Shooter extends SubsystemBase {
       Field.SPEAKER,
       swerveDrive.getPose(),
       swerveDrive.getFieldVelocity(),
-      shooterPivot.getMeasuredAngle(),
+      shooterPivot.getPosition(),
       shooterWheels.getVelocity()
     );
   }

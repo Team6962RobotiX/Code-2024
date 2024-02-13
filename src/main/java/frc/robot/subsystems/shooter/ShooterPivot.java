@@ -10,24 +10,19 @@ import static edu.wpi.first.units.Units.Volts;
 
 import java.util.List;
 
-import com.revrobotics.CANSparkBase.ControlType;
 import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
-import com.revrobotics.RelativeEncoder;
-import com.revrobotics.SparkPIDController;
-import com.revrobotics.SparkPIDController.ArbFFUnits;
 
-import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.Voltage;
-import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants.SHOOTER.PIVOT;
+import frc.robot.Presets;
 import frc.robot.Constants.CAN;
 import frc.robot.Constants.DIO;
 import frc.robot.Constants.ENABLED_SYSTEMS;
@@ -35,99 +30,66 @@ import frc.robot.Constants.NEO;
 import frc.robot.util.ConfigUtils;
 import frc.robot.util.StatusChecks;
 import frc.robot.util.Logging.Logger;
+import frc.robot.util.MotionControl.PivotController;
 
 public class ShooterPivot extends SubsystemBase {
-  private Rotation2d targetAngle = PIVOT.MIN_ANGLE;
-  private ArmFeedforward feedforward = new ArmFeedforward(0.0, PIVOT.PROFILE.kG, 0.0, 0.0);
-  private SparkPIDController pid;
   private CANSparkMax motor;
-  private RelativeEncoder encoder;
-  private DutyCycleEncoder absoluteEncoder;
+  private PivotController controller;
   private boolean isCalibrating = false;
 
   public ShooterPivot() {
     if (!ENABLED_SYSTEMS.ENABLE_SHOOTER) return;
     
     motor = new CANSparkMax(CAN.SHOOTER_PIVOT, MotorType.kBrushless);
-    pid = motor.getPIDController();
-    encoder = motor.getEncoder();
-    absoluteEncoder = new DutyCycleEncoder(DIO.SHOOTER_PIVOT);
-    absoluteEncoder.setPositionOffset(PIVOT.ABSOLUTE_POSITION_OFFSET);
-
-    double startingAngle = absoluteEncoder.getAbsolutePosition() * 2.0 * Math.PI;
     
+    // Configure everything robustly
     ConfigUtils.configure(List.of(
       () -> motor.restoreFactoryDefaults(),
-      () -> { motor.setInverted(false); return true; },
+      () -> { motor.setInverted(true); return true; },
       () -> motor.setIdleMode(IdleMode.kBrake),
       () -> motor.enableVoltageCompensation(12.0),
       () -> motor.setSmartCurrentLimit(NEO.SAFE_STALL_CURRENT, PIVOT.PROFILE.CURRENT_LIMIT),
-      () -> motor.setClosedLoopRampRate(PIVOT.PROFILE.RAMP_RATE),
-      () -> encoder.setPositionConversionFactor(PIVOT.ENCODER_CONVERSION_FACTOR),
-      () -> encoder.setVelocityConversionFactor(PIVOT.ENCODER_CONVERSION_FACTOR / 60.0),
-      () -> encoder.setPosition(startingAngle),
-      () -> pid.setP(PIVOT.PROFILE.kP, 0),
-      () -> pid.setI(PIVOT.PROFILE.kI, 0),
-      () -> pid.setD(PIVOT.PROFILE.kD, 0),
-      () -> pid.setFF(PIVOT.PROFILE.kV / 12.0, 0),
-      () -> pid.setSmartMotionMaxVelocity(PIVOT.PROFILE.SMART_MOTION_MAX_VELOCITY, 0),
-      () -> pid.setSmartMotionMaxAccel(PIVOT.PROFILE.SMART_MOTION_MAX_ACCELERATION, 0),
-      () -> pid.setPositionPIDWrappingEnabled(true),
-      () -> pid.setPositionPIDWrappingMinInput(-Math.PI),
-      () -> pid.setPositionPIDWrappingMaxInput(Math.PI),
-      () -> motor.burnFlash()
+      () -> motor.setClosedLoopRampRate(PIVOT.PROFILE.RAMP_RATE)
     ));
+
+    controller = new PivotController(
+      motor,
+      DIO.AMP_PIVOT,
+      PIVOT.ABSOLUTE_POSITION_OFFSET,
+      PIVOT.PROFILE.kP,
+      PIVOT.GEARBOX_REDUCTION,
+      PIVOT.PROFILE.MAX_ACCELERATION,
+      Presets.SHOOTER.PIVOT.MIN_ANGLE,
+      Presets.SHOOTER.PIVOT.MAX_ANGLE
+    );
 
     String logPath = "shooter-pivot/";
     Logger.autoLog(logPath + "current",                 () -> motor.getOutputCurrent());
     Logger.autoLog(logPath + "appliedOutput",           () -> motor.getAppliedOutput());
     Logger.autoLog(logPath + "motorTemperature",        () -> motor.getMotorTemperature());
-    Logger.autoLog(logPath + "position",                () -> encoder.getPosition());
-    Logger.autoLog(logPath + "velocity",                () -> encoder.getVelocity());
+    Logger.autoLog(logPath + "position",                () -> controller.getPosition().getRadians());
+    Logger.autoLog(logPath + "absolutePosition",        () -> controller.getAbsolutePosition().getRadians());
 
-    StatusChecks.addCheck("Shooter Pivot Motor", () -> motor.getFaults() == 0);
-  }
-
-  public void setTargetAngle(Rotation2d angle) {
-    if (targetAngle.getRadians() > PIVOT.MAX_ANGLE.getRadians()) {
-      targetAngle = PIVOT.MAX_ANGLE;
-    }
-    if (targetAngle.getRadians() < PIVOT.MIN_ANGLE.getRadians()) {
-      targetAngle = PIVOT.MIN_ANGLE;
-    }
-    targetAngle = angle;
-  }
-
-  public boolean isPastLimit() {
-    return getMeasuredAngle().getRadians() > PIVOT.MAX_ANGLE.getRadians() || getMeasuredAngle().getRadians() < PIVOT.MIN_ANGLE.getRadians();
-  }
-
-  public Rotation2d getMeasuredAngle() {
-    return Rotation2d.fromRadians(encoder.getPosition());
-  }
-
-  public double getMeasuredVelocity() {
-    return encoder.getVelocity();
+    StatusChecks.addCheck("Amp Pivot Motor", () -> motor.getFaults() == 0);
   }
 
   @Override
   public void periodic() {
-    if (!ENABLED_SYSTEMS.ENABLE_SHOOTER) return;
+    if (!ENABLED_SYSTEMS.ENABLE_AMP) return;
     if (isCalibrating) return;
-    if (targetAngle == null) return;
-
-    pid.setReference(
-      targetAngle.getRadians(),
-      ControlType.kSmartMotion,
-      0,
-      feedforward.calculate(targetAngle.getRadians(), 0.0),
-      ArbFFUnits.kVoltage
-    );
+    controller.run();
   }
 
-  @Override
-  public void simulationPeriodic() {
-  // This method will be called once per scheduler run during simulation
+  public void setTargetAngle(Rotation2d angle) {
+    controller.setTargetAngle(angle);    
+  }
+
+  public Rotation2d getPosition() {
+    return controller.getPosition();
+  }
+
+  public boolean doneMoving() {
+    return Math.abs(getPosition().minus(controller.getTargetAngle()).getRadians()) < PIVOT.ANGLE_TOLERANCE;
   }
 
   public Command calibrate() {
@@ -140,8 +102,8 @@ public class ShooterPivot extends SubsystemBase {
         log -> {
           log.motor("shooter-pivot")
             .voltage(Volts.of(motor.getAppliedOutput() * motor.getBusVoltage()))
-            .angularPosition(Radians.of(encoder.getPosition()))
-            .angularVelocity(RadiansPerSecond.of(encoder.getVelocity()));
+            .angularPosition(Radians.of(controller.getPosition().getRadians()))
+            .angularVelocity(RadiansPerSecond.of(controller.getVelocity().getRadians()));
         },
         this
       )
@@ -149,16 +111,16 @@ public class ShooterPivot extends SubsystemBase {
 
     return Commands.sequence(
       Commands.runOnce(() -> isCalibrating = true),
-      calibrationRoutine.quasistatic(SysIdRoutine.Direction.kForward).until(this::isPastLimit),
+      calibrationRoutine.quasistatic(SysIdRoutine.Direction.kForward).until(controller::isPastLimit),
       Commands.runOnce(() -> motor.stopMotor()),
       Commands.waitSeconds(1.0),
-      calibrationRoutine.quasistatic(SysIdRoutine.Direction.kReverse).until(this::isPastLimit),
+      calibrationRoutine.quasistatic(SysIdRoutine.Direction.kReverse).until(controller::isPastLimit),
       Commands.runOnce(() -> motor.stopMotor()),
       Commands.waitSeconds(1.0),
-      calibrationRoutine.dynamic(SysIdRoutine.Direction.kForward).until(this::isPastLimit),
+      calibrationRoutine.dynamic(SysIdRoutine.Direction.kForward).until(controller::isPastLimit),
       Commands.runOnce(() -> motor.stopMotor()),
       Commands.waitSeconds(1.0),
-      calibrationRoutine.dynamic(SysIdRoutine.Direction.kReverse).until(this::isPastLimit),
+      calibrationRoutine.dynamic(SysIdRoutine.Direction.kReverse).until(controller::isPastLimit),
       Commands.runOnce(() -> motor.stopMotor()),
       Commands.waitSeconds(1.0),
       Commands.runOnce(() -> isCalibrating = false)
