@@ -120,6 +120,7 @@ public class SwerveModule extends SubsystemBase {
       () -> driveMotor.setSmartCurrentLimit(Math.min(DRIVE_MOTOR_PROFILE.CURRENT_LIMIT, NEO.SAFE_STALL_CURRENT), DRIVE_MOTOR_PROFILE.CURRENT_LIMIT),
       // Set the rate at which the drive motor can change speeds
       () -> driveMotor.setClosedLoopRampRate(DRIVE_MOTOR_PROFILE.RAMP_RATE),
+      () -> driveMotor.setOpenLoopRampRate(NEO.SAFE_RAMP_RATE),
       // Configure the drive motor encoder based on the wheel size and gearbox, allowing it to convert between
       // motor rotations and meters traveled on the field
       () -> driveEncoder.setPositionConversionFactor(SWERVE_DRIVE.DRIVE_ENCODER_CONVERSION_FACTOR),
@@ -144,6 +145,7 @@ public class SwerveModule extends SubsystemBase {
       () -> steerMotor.setSmartCurrentLimit(Math.min(STEER_MOTOR_PROFILE.CURRENT_LIMIT, NEO.SAFE_STALL_CURRENT), STEER_MOTOR_PROFILE.CURRENT_LIMIT),
       // Set the rate at which the steering motor can change speeds
       () -> steerMotor.setClosedLoopRampRate(STEER_MOTOR_PROFILE.RAMP_RATE),
+      () -> steerMotor.setOpenLoopRampRate(NEO.SAFE_RAMP_RATE),
       // Configure the steering motor encoder based on the gearbox, allowing it to convert between
       // motor rotations and change in the angle of the wheel
       () -> steerEncoder.setPositionConversionFactor(SWERVE_DRIVE.STEER_ENCODER_CONVERSION_FACTOR),

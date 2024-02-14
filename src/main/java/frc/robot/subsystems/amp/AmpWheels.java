@@ -51,6 +51,7 @@ public class AmpWheels extends SubsystemBase {
       () -> motor.enableVoltageCompensation(12.0),
       () -> motor.setSmartCurrentLimit(NEO.SAFE_STALL_CURRENT, PIVOT.PROFILE.CURRENT_LIMIT),
       () -> motor.setClosedLoopRampRate(NEO.SAFE_RAMP_RATE),
+      () -> motor.setOpenLoopRampRate(NEO.SAFE_RAMP_RATE),
       () -> motor.burnFlash()
     ));
 
@@ -80,11 +81,9 @@ public class AmpWheels extends SubsystemBase {
         break;
       case IN:
         motor.set(-Presets.AMP.WHEELS.POWER);
-        detector.run();
         break;
       case OUT:
         motor.set(Presets.AMP.WHEELS.POWER);
-        detector.run();
         break;
     }
   }
@@ -96,7 +95,7 @@ public class AmpWheels extends SubsystemBase {
   public boolean hasJustReceivedNote() {
     return detector.hasJustReceivedNote();
   }
-  
+
   @Override
   public void simulationPeriodic() {
     // This method will be called once per scheduler run during simulation

@@ -46,6 +46,7 @@ public class TransferInWheels extends SubsystemBase {
       () -> motor.enableVoltageCompensation(12.0),
       () -> motor.setSmartCurrentLimit(NEO.SAFE_STALL_CURRENT, PIVOT.PROFILE.CURRENT_LIMIT),
       () -> motor.setClosedLoopRampRate(PIVOT.PROFILE.RAMP_RATE),
+      () -> motor.setOpenLoopRampRate(NEO.SAFE_RAMP_RATE),
       () -> motor.burnFlash()
     ));
 
@@ -72,10 +73,8 @@ public class TransferInWheels extends SubsystemBase {
     switch(state) {
       case IN:
         motor.set(Presets.TRANSFER.IN_POWER);
-        detector.run();
       case OUT:
         motor.set(-Presets.TRANSFER.IN_POWER);
-        detector.run();
       case OFF:
         motor.set(0);
     }

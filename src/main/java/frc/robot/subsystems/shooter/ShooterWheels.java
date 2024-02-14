@@ -57,6 +57,7 @@ public class ShooterWheels extends SubsystemBase {
       () -> motor.enableVoltageCompensation(12.0),
       () -> motor.setSmartCurrentLimit(NEO.SAFE_STALL_CURRENT, WHEELS.PROFILE.CURRENT_LIMIT),
       () -> motor.setClosedLoopRampRate(WHEELS.PROFILE.RAMP_RATE),
+      () -> motor.setOpenLoopRampRate(NEO.SAFE_RAMP_RATE),
       () -> encoder.setPositionConversionFactor(WHEELS.ENCODER_CONVERSION_FACTOR),
       () -> encoder.setVelocityConversionFactor(WHEELS.ENCODER_CONVERSION_FACTOR / 60.0),
       () -> pid.setP(WHEELS.PROFILE.kP, 0),

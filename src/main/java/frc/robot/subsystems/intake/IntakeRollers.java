@@ -53,6 +53,7 @@ public class IntakeRollers extends SubsystemBase {
       () -> motor.enableVoltageCompensation(12.0),
       () -> motor.setSmartCurrentLimit(NEO.SAFE_STALL_CURRENT, NEO.SAFE_STALL_CURRENT),
       () -> motor.setClosedLoopRampRate(NEO.SAFE_RAMP_RATE),
+      () -> motor.setOpenLoopRampRate(NEO.SAFE_RAMP_RATE),
       () -> motor.burnFlash()
     ));
 
@@ -78,10 +79,8 @@ public class IntakeRollers extends SubsystemBase {
     switch(state) {
       case IN:
         motor.set(Presets.INTAKE.INTAKE_ROLLER_POWER);
-        detector.run();
       case OUT:
         motor.set(-Presets.INTAKE.INTAKE_ROLLER_POWER);
-        detector.run();
       case OFF:
         motor.set(0);
     }

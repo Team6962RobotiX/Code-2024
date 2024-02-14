@@ -49,6 +49,7 @@ public class FeedWheels extends SubsystemBase {
       () -> motor.enableVoltageCompensation(12.0),
       () -> motor.setSmartCurrentLimit(NEO.SAFE_STALL_CURRENT, PIVOT.PROFILE.CURRENT_LIMIT),
       () -> motor.setClosedLoopRampRate(PIVOT.PROFILE.RAMP_RATE),
+      () -> motor.setOpenLoopRampRate(NEO.SAFE_RAMP_RATE),
       () -> motor.burnFlash()
     ));
 
@@ -78,11 +79,9 @@ public class FeedWheels extends SubsystemBase {
         break;
       case IN:
         motor.set(Presets.SHOOTER.FEED.POWER);
-        detector.run();
         break;
       case OUT:
         motor.set(-Presets.SHOOTER.FEED.POWER);
-        detector.run();
         break;
     }
   }
