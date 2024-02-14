@@ -47,48 +47,32 @@ public class RobotStateController extends SubsystemBase {
         );
       case PICKUP:
         return Commands.sequence(
-          runOnce(() -> amp.setState(Amp.State.DOWN)),
-          runOnce(() -> intake.setState(Intake.State.IN)),
-          runOnce(() -> shooter.setState(Shooter.State.OFF)),
-          runOnce(() -> transfer.setState(Transfer.State.OFF))
+          runOnce(() -> intake.setState(Intake.State.IN)).until(() -> intake.hasNote())
         );
       case LOAD_AMP:
         return Commands.sequence(
-          runOnce(() -> intake.setState(Intake.State.OFF)),
-          runOnce(() -> shooter.setState(Shooter.State.OFF)),
-          runOnce(() -> amp.setState(Amp.State.DOWN)),
-          Commands.waitUntil(() -> amp.doneMoving()),
+          runOnce(() -> amp.setState(Amp.State.IN)).until(() -> amp.doneMoving()),
           runOnce(() -> transfer.setState(Transfer.State.AMP)),
-          runOnce(() -> amp.setState(Amp.State.IN)),
-          Commands.waitSeconds(Presets.AMP.WHEELS.LOAD_TIME),
+          runOnce(() -> amp.setState(Amp.State.IN)).until(() -> intake.hasNote()),
           runOnce(() -> amp.setState(Amp.State.OFF)),
           runOnce(() -> transfer.setState(Transfer.State.OFF))
         );
       case LOAD_SHOOTER:
         return Commands.sequence(
-          runOnce(() -> intake.setState(Intake.State.OFF)),
-          runOnce(() -> shooter.setState(Shooter.State.DOWN)),
-          runOnce(() -> amp.setState(Amp.State.OFF)),
-          Commands.waitUntil(() -> shooter.doneMoving()),
+          runOnce(() -> shooter.setState(Shooter.State.IN)).until(() -> shooter.doneMoving()),
           runOnce(() -> transfer.setState(Transfer.State.SHOOTER)),
-          runOnce(() -> shooter.setState(Shooter.State.IN)),
-          Commands.waitSeconds(Presets.SHOOTER.WHEELS.LOAD_TIME),
+          runOnce(() -> shooter.setState(Shooter.State.IN)).until(() -> shooter.hasNote()),
           runOnce(() -> shooter.setState(Shooter.State.OFF)),
           runOnce(() -> transfer.setState(Transfer.State.OFF))
         );
       case PLACE_AMP:
         return Commands.sequence(
-          runOnce(() -> intake.setState(Intake.State.OFF)),
-          runOnce(() -> shooter.setState(Shooter.State.OFF)),
           runOnce(() -> amp.setState(Amp.State.OUT)),
           runOnce(() -> transfer.setState(Transfer.State.OFF))
         );
       case SHOOT:
         return Commands.sequence(
-          runOnce(() -> intake.setState(Intake.State.OFF)),
-          runOnce(() -> shooter.setState(Shooter.State.SHOOT)),
-          runOnce(() -> amp.setState(Amp.State.OFF)),
-          runOnce(() -> transfer.setState(Transfer.State.OFF))
+          runOnce(() -> shooter.setState(Shooter.State.SHOOT))
         );
     }
     return null;

@@ -16,12 +16,14 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 import frc.robot.commands.*;
+import frc.robot.subsystems.notes.NoteDetector;
 import frc.robot.util.ConfigUtils;
 import frc.robot.util.StatusChecks;
 import frc.robot.util.Logging.Logger;
 import frc.robot.Constants;
 import frc.robot.Presets;
 import frc.robot.Constants.AMP.PIVOT;
+import frc.robot.Constants.SHOOTER.FEED_WHEELS;
 import frc.robot.Constants.CAN;
 import frc.robot.Constants.ENABLED_SYSTEMS;
 import frc.robot.Constants.NEO;
@@ -30,6 +32,7 @@ import frc.robot.Constants.NEO;
 
 public class FeedWheels extends SubsystemBase {
   private CANSparkMax motor;
+  private NoteDetector detector;
   private State state = State.OFF;
  
   public static enum State {
@@ -51,6 +54,8 @@ public class FeedWheels extends SubsystemBase {
       () -> motor.setClosedLoopRampRate(PIVOT.PROFILE.RAMP_RATE),
       () -> motor.burnFlash()
     ));
+
+    detector = new NoteDetector(motor, FEED_WHEELS.NOTE_DETECTION_CURRENT);
 
     String logPath = "shooter-feed-wheels/";
     Logger.autoLog(logPath + "current",                 () -> motor.getOutputCurrent());
@@ -79,6 +84,10 @@ public class FeedWheels extends SubsystemBase {
         motor.set(-Presets.SHOOTER.FEED.POWER);
         break;
     }
+  }
+
+  public boolean hasNote() {
+    return detector.hasNote();
   }
 
   @Override

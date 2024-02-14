@@ -40,7 +40,6 @@ public class Amp extends SubsystemBase {
   public static enum State {
     IN,
     OUT,
-    DOWN,
     OFF
   }
 
@@ -55,18 +54,16 @@ public class Amp extends SubsystemBase {
     if (!ENABLED_SYSTEMS.ENABLE_AMP) return;
     switch(state) {
       case IN:
-        wheels.setState(AmpWheels.State.IN);
         pivot.setTargetAngle(Presets.AMP.PIVOT.INTAKE_ANGLE);
+        if (pivot.doneMoving()) {
+          wheels.setState(AmpWheels.State.IN);
+        }
         break;
       case OUT:
         pivot.setTargetAngle(Presets.AMP.PIVOT.OUTPUT_ANGLE);
         if (pivot.doneMoving()) {
           wheels.setState(AmpWheels.State.OUT);
         }
-        break;
-      case DOWN:
-        wheels.setState(AmpWheels.State.OFF);
-        pivot.setTargetAngle(Presets.AMP.PIVOT.INTAKE_ANGLE);
         break;
       case OFF:
         wheels.setState(AmpWheels.State.OFF);
@@ -77,6 +74,10 @@ public class Amp extends SubsystemBase {
 
   public void setState(State newState) {
     state = newState;
+  }
+
+  public boolean hasNote() {
+    return wheels.hasNote();
   }
 
   public boolean doneMoving() {

@@ -16,6 +16,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 import frc.robot.commands.*;
+import frc.robot.subsystems.notes.NoteDetector;
 import frc.robot.util.ConfigUtils;
 import frc.robot.util.StatusChecks;
 import frc.robot.util.Logging.Logger;
@@ -25,12 +26,14 @@ import frc.robot.Constants.CAN;
 import frc.robot.Constants.ENABLED_SYSTEMS;
 import frc.robot.Constants.NEO;
 import frc.robot.Constants.AMP.PIVOT;
+import frc.robot.Constants.AMP.WHEELS;
 
 
 
 public class AmpWheels extends SubsystemBase {
   private CANSparkMax motor;
   private State state = State.OFF;
+  private NoteDetector detector;
  
   public static enum State {
     IN,
@@ -51,6 +54,8 @@ public class AmpWheels extends SubsystemBase {
       () -> motor.setClosedLoopRampRate(NEO.SAFE_RAMP_RATE),
       () -> motor.burnFlash()
     ));
+
+    detector = new NoteDetector(motor, WHEELS.NOTE_DETECTION_CURRENT);
 
     String logPath = "amp-wheels/";
     Logger.autoLog(logPath + "current",                 () -> motor.getOutputCurrent());
@@ -79,6 +84,10 @@ public class AmpWheels extends SubsystemBase {
         motor.set(-Presets.AMP.WHEELS.POWER);
         break;
     }
+  }
+
+  public boolean hasNote() {
+    return detector.hasNote();
   }
 
   @Override

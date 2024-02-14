@@ -33,7 +33,6 @@ public class Shooter extends SubsystemBase {
 
   private State state = State.OFF;
   public static enum State {
-    DOWN,
     IN,
     AIM,
     SHOOT,
@@ -58,15 +57,12 @@ public class Shooter extends SubsystemBase {
     shooterMechanism.setAngle(shooterPivot.getPosition());
     
     switch(state) {
-      case DOWN:
-        shooterPivot.setTargetAngle(Presets.SHOOTER.PIVOT.INTAKE_ANGLE);
-        shooterWheels.setTargetVelocity(0.0);
-        feedWheels.setState(FeedWheels.State.OFF);
-        break;
       case IN:
         shooterPivot.setTargetAngle(Presets.SHOOTER.PIVOT.INTAKE_ANGLE);
         shooterWheels.setTargetVelocity(0.0);
-        feedWheels.setState(FeedWheels.State.IN);
+        if (shooterPivot.doneMoving()) {
+          feedWheels.setState(FeedWheels.State.IN);
+        }
         break;
       case AIM:
         aim(Field.SPEAKER);
@@ -125,6 +121,10 @@ public class Shooter extends SubsystemBase {
       shooterPivot.getPosition(),
       shooterWheels.getVelocity()
     );
+  }
+
+  public boolean hasNote() {
+    return feedWheels.hasNote();
   }
 
   @Override

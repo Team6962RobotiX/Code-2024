@@ -16,12 +16,14 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 import frc.robot.commands.*;
+import frc.robot.subsystems.notes.NoteDetector;
 import frc.robot.util.ConfigUtils;
 import frc.robot.util.StatusChecks;
 import frc.robot.util.Logging.Logger;
 import frc.robot.Constants;
 import frc.robot.Presets;
 import frc.robot.Constants.AMP.PIVOT;
+import frc.robot.Constants.AMP.WHEELS;
 import frc.robot.Constants.CAN;
 import frc.robot.Constants.ENABLED_SYSTEMS;
 import frc.robot.Constants.NEO;
@@ -31,6 +33,7 @@ import frc.robot.Constants.NEO;
 public class Intake extends SubsystemBase {
   private CANSparkMax intakeMotor;
   private CANSparkMax centeringMotor;
+  private NoteDetector detector;
   private State state = State.OFF;
  
   public static enum State {
@@ -75,6 +78,8 @@ public class Intake extends SubsystemBase {
 
     StatusChecks.addCheck("Intake Motor", () -> intakeMotor.getFaults() == 0);
     StatusChecks.addCheck("Intake Centering Motor", () -> centeringMotor.getFaults() == 0);
+
+    detector = new NoteDetector(intakeMotor, WHEELS.NOTE_DETECTION_CURRENT);
   }
 
   public void setState(State newState) {
@@ -99,6 +104,10 @@ public class Intake extends SubsystemBase {
         centeringMotor.set(-Presets.INTAKE.CENTERING_WHEEL_POWER);
         break;
     }
+  }
+
+  public boolean hasNote() {
+    return detector.hasNote();
   }
 
   @Override
