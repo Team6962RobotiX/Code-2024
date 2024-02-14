@@ -27,6 +27,6 @@ public class NoteDetector {
   }
 
   public void run() {
-    double impulse = filter.calculate(motor.getOutputCurrent() / motor.getAppliedOutput());
+    impulse = filter.calculate(motor.getOutputCurrent() / motor.getAppliedOutput());
   }
 }
