@@ -46,12 +46,12 @@ public class TransferWheels extends SubsystemBase {
         transferOut.set(0);
         break;
       case AMP:
-        transferIn.set(-0.25);
-        transferOut.set(0.25);
+        transferIn.set(0.25);
+        transferOut.set(-0.25);
         break;
       case SHOOTER:
-        transferIn.set(-0.25);
-        transferOut.set(-0.25);
+        transferIn.set(0.25);
+        transferOut.set(0.25);
         break;
     }
   }
