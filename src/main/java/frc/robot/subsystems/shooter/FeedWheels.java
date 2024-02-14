@@ -28,8 +28,6 @@ import frc.robot.Constants.CAN;
 import frc.robot.Constants.ENABLED_SYSTEMS;
 import frc.robot.Constants.NEO;
 
-
-
 public class FeedWheels extends SubsystemBase {
   private CANSparkMax motor;
   private NoteDetector detector;

@@ -10,6 +10,8 @@ import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.transfer.Transfer;
 
+// This class is a subsystem that controls the state of the robot. It is used to coordinate the actions of the intake, shooter, transfer, and amp subsystems.
+
 public class RobotStateController extends SubsystemBase {
   private SwerveDrive swerveDrive;
   private Amp amp;
@@ -36,6 +38,12 @@ public class RobotStateController extends SubsystemBase {
     setState(state).schedule();
   }
 
+  /**
+   * Sets the state of the robot
+   * @param state
+   * @return
+   */
+
   public Command setState(State state) {
     switch(state) {
       case OFF:
@@ -47,21 +55,26 @@ public class RobotStateController extends SubsystemBase {
         );
       case PICKUP:
         return Commands.sequence(
-          runOnce(() -> intake.setState(Intake.State.IN)).until(() -> intake.hasNote())
+          runOnce(() -> intake.setState(Intake.State.IN)),
+          Commands.waitUntil(() -> intake.hasNote()),
+          runOnce(() -> intake.setState(Intake.State.OFF))
         );
       case LOAD_AMP:
         return Commands.sequence(
-          runOnce(() -> amp.setState(Amp.State.IN)).until(() -> amp.doneMoving()),
+          runOnce(() -> amp.setState(Amp.State.IN)),
+          Commands.waitUntil(() -> amp.doneMoving()),
           runOnce(() -> transfer.setState(Transfer.State.AMP)),
-          runOnce(() -> amp.setState(Amp.State.IN)).until(() -> intake.hasNote()),
+          Commands.waitUntil(() -> amp.hasNote()),
           runOnce(() -> amp.setState(Amp.State.OFF)),
           runOnce(() -> transfer.setState(Transfer.State.OFF))
         );
       case LOAD_SHOOTER:
         return Commands.sequence(
-          runOnce(() -> shooter.setState(Shooter.State.IN)).until(() -> shooter.doneMoving()),
+          runOnce(() -> shooter.setState(Shooter.State.IN)),
+          Commands.waitUntil(() -> shooter.doneMoving()),
           runOnce(() -> transfer.setState(Transfer.State.SHOOTER)),
-          runOnce(() -> shooter.setState(Shooter.State.IN)).until(() -> shooter.hasNote()),
+          runOnce(() -> shooter.setState(Shooter.State.IN)),
+          Commands.waitUntil(() -> shooter.hasNote()),
           runOnce(() -> shooter.setState(Shooter.State.OFF)),
           runOnce(() -> transfer.setState(Transfer.State.OFF))
         );

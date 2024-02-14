@@ -286,6 +286,10 @@ public class SwerveDrive extends SubsystemBase {
     driveModules(drivenModuleStates);
   }
   
+  /**
+   * Drives the swerve modules at the calculated speeds
+   * @param moduleStates The calculated speeds and directions for each module
+   */
   private void driveModules(SwerveModuleState[] moduleStates) {
     // Drive the swerve modules at the calculated speeds
     for (int i = 0; i < SWERVE_DRIVE.MODULE_COUNT; i++) {
@@ -294,8 +298,8 @@ public class SwerveDrive extends SubsystemBase {
   }
 
   /**
-   * 
-   * @param heading 
+   * Sets the target heading for the robot
+   * @param heading The target heading for the robot
    */
   public void setTargetHeading(Rotation2d heading) {
     alignmentController.setSetpoint(heading.getRadians());
@@ -303,7 +307,7 @@ public class SwerveDrive extends SubsystemBase {
   }
 
   /**
-   * 
+   * Faces a point on the field
    * @param point The point on the field we want to face
    */
   public void facePoint(Translation2d point) {
@@ -311,6 +315,11 @@ public class SwerveDrive extends SubsystemBase {
     setTargetHeading(point.minus(currentPosition).getAngle());
   }
 
+
+  /**
+   * 
+   * @return The target heading for the robot
+   */
   public Rotation2d getTargetHeading() {
     return Rotation2d.fromRadians(alignmentController.getSetpoint());
   }
@@ -540,6 +549,12 @@ public class SwerveDrive extends SubsystemBase {
     );
   }
 
+  /**
+   * Follow a choreo trajectory
+   * @param pathName Name of the path to follow
+   * @param first Whether or not this is the first command in autonomous mode
+   * @return A command to run
+   */
   public Command followChoreoTrajectory(String pathName, boolean first) {
 
     ChoreoTrajectory trajectory = Choreo.getTrajectory(pathName);
@@ -630,6 +645,12 @@ public class SwerveDrive extends SubsystemBase {
     ).onlyWhile(() -> MathUtils.isIdle(xboxController));
   }
 
+  /**
+   * Go to a position on the field (without object avoidence)
+   * @param pose Field-relative pose on the field to go to
+   * @param xboxController Xbox controller to cancel the command
+   * @return A command to run
+   */
   private Command goToSimple(Pose2d pose, XboxController xboxController) {
     Rotation2d angle = pose.getTranslation().minus(getPose().getTranslation()).getAngle();
 
@@ -654,6 +675,12 @@ public class SwerveDrive extends SubsystemBase {
     ).onlyWhile(() -> MathUtils.isIdle(xboxController));
   }
 
+  /**
+   * Go to the nearest pose in a list of poses
+   * @param poses List of poses to go to
+   * @param xboxController Xbox controller to cancel the command
+   * @return A command to run
+   */
   public Command goToNearestPose(List<Pose2d> poses, XboxController xboxController) {
    return goTo(getPose().nearest(poses), xboxController).onlyWhile(() -> MathUtils.isIdle(xboxController));
   }
