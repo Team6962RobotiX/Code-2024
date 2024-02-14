@@ -244,14 +244,11 @@ public final class Constants {
 
   public static final class CAN {
     // In order of: front left, front right, back left, back right, where the battery is in the back
-    public static final int[] SWERVEMODUL_DRIVE_SPARK_MAX = { 43, 46, 49, 52 };
-    public static final int[] SWERVE_STEER_SPARK_MAX = { 44, 47, 50, 53 };
-    public static final int[] SWERVE_STEER_CANCODERS = { 45, 48, 51, 54 };
     public static final int PDH = 1;
-    public static final int SHOOTER_WHEELS_TOP = 21;
-    public static final int SHOOTER_WHEELS_BOTTOM = 20;
-    public static final int SHOOTER_PIVOT = 7;
-    public static final int SHOOTER_FEED = 19;
+    public static final int SHOOTER_WHEELS_TOP = 19;
+    public static final int SHOOTER_WHEELS_BOTTOM = 26;
+    public static final int SHOOTER_PIVOT = 18;
+    public static final int SHOOTER_FEED = 20;
     public static final int INTAKE = 23;
     public static final int CENTERING = 27;
     public static final int TRANSFER_IN = 22;
