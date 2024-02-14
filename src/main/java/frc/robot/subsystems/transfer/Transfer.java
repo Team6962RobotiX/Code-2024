@@ -9,11 +9,12 @@ import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 import frc.robot.commands.*;
-import frc.robot.subsystems.notes.NoteDetector;
 import frc.robot.util.ConfigUtils;
+import frc.robot.util.NoteDetector;
 import frc.robot.util.StatusChecks;
 import frc.robot.util.Logging.Logger;
 import frc.robot.Constants;
@@ -21,15 +22,13 @@ import frc.robot.Constants.AMP.PIVOT;
 import frc.robot.Constants.CAN;
 import frc.robot.Constants.ENABLED_SYSTEMS;
 import frc.robot.Constants.NEO;
-import frc.robot.Constants.TRANSFER;
+import frc.robot.Presets;
 
 
 
 public class Transfer extends SubsystemBase {
-  private CANSparkMax transferIn;
-  private CANSparkMax transferOut;
-  private NoteDetector detector;
-  private State state = State.OFF;
+  private TransferInWheels transferIn;
+  private TransferOutWheels transferOut;
  
   public static enum State {
     IN,
@@ -41,73 +40,48 @@ public class Transfer extends SubsystemBase {
   public Transfer() {
     if (!ENABLED_SYSTEMS.ENABLE_TRANSFER) return;
     
-    transferIn = new CANSparkMax(CAN.TRANSFER_IN, MotorType.kBrushless);
-    transferOut = new CANSparkMax(CAN.TRANSFER_OUT, MotorType.kBrushless);
-
-    ConfigUtils.configure(List.of(
-      () -> transferIn.restoreFactoryDefaults(),
-      () -> { transferIn.setInverted(true); return true; },
-      () -> transferIn.setIdleMode(IdleMode.kBrake),
-      () -> transferIn.enableVoltageCompensation(12.0),
-      () -> transferIn.setSmartCurrentLimit(NEO.SAFE_STALL_CURRENT, PIVOT.PROFILE.CURRENT_LIMIT),
-      () -> transferIn.setClosedLoopRampRate(PIVOT.PROFILE.RAMP_RATE),
-      () -> transferIn.burnFlash(),
-
-      () -> transferOut.restoreFactoryDefaults(),
-      () -> { transferOut.setInverted(true); return true; },
-      () -> transferOut.setIdleMode(IdleMode.kBrake),
-      () -> transferOut.enableVoltageCompensation(12.0),
-      () -> transferOut.setSmartCurrentLimit(NEO.SAFE_STALL_CURRENT, PIVOT.PROFILE.CURRENT_LIMIT),
-      () -> transferOut.setClosedLoopRampRate(PIVOT.PROFILE.RAMP_RATE),
-      () -> transferOut.burnFlash()
-    ));
-
-    detector = new NoteDetector(transferIn, TRANSFER.NOTE_DETECTION_CURRENT);
-
-    String logPath = "transfer-in-wheels/";
-    Logger.autoLog(logPath + "current",                 () -> transferIn.getOutputCurrent());
-    Logger.autoLog(logPath + "appliedOutput",           () -> transferIn.getAppliedOutput());
-    Logger.autoLog(logPath + "motorTemperature",        () -> transferIn.getMotorTemperature());
-    Logger.autoLog(logPath + "hasNote",                 () -> detector.hasNote());
-    
-    logPath = "transfer-out-wheels/";
-    Logger.autoLog(logPath + "current",                 () -> transferOut.getOutputCurrent());
-    Logger.autoLog(logPath + "appliedOutput",           () -> transferOut.getAppliedOutput());
-    Logger.autoLog(logPath + "motorTemperature",        () -> transferOut.getMotorTemperature());
-
-    StatusChecks.addCheck("Transfer In Motor", () -> transferIn.getFaults() == 0);
-    StatusChecks.addCheck("Transfer Out Motor", () -> transferOut.getFaults() == 0);
+    transferIn = new TransferInWheels();
+    transferOut = new TransferOutWheels();
   }
 
-  public void setState(State newState) {
-    state = newState;
+  public Command setState(State state) {
+    switch(state) {
+      case OFF:
+        return Commands.sequence( 
+          transferIn.setState(TransferInWheels.State.OFF),
+          transferOut.setState(TransferOutWheels.State.OFF)
+        );
+      case IN:
+        return Commands.sequence( 
+          transferIn.setState(TransferInWheels.State.IN),
+          transferOut.setState(TransferOutWheels.State.OFF)
+        );
+      case AMP:
+        return Commands.sequence( 
+          transferIn.setState(TransferInWheels.State.IN),
+          transferOut.setState(TransferOutWheels.State.AMP)
+        );
+      case SHOOTER:
+        return Commands.sequence( 
+          transferIn.setState(TransferInWheels.State.IN),
+          transferOut.setState(TransferOutWheels.State.SHOOTER)
+        );
+    }
+    return null;
   }
-
+  
   @Override
   public void periodic() {
     if (!ENABLED_SYSTEMS.ENABLE_TRANSFER) return;
-
-    switch(state) {
-      case OFF:
-        transferIn.set(0);
-        transferOut.set(0);
-        break;
-      case IN:
-        transferIn.set(TRANSFER.POWER);
-        transferOut.set(0);
-      case AMP:
-        transferIn.set(-TRANSFER.POWER);
-        transferOut.set(TRANSFER.POWER);
-        break;
-      case SHOOTER:
-        transferIn.set(-TRANSFER.POWER);
-        transferOut.set(-TRANSFER.POWER);
-        break;
-    }
   }
 
-  public boolean hasNote() {
-    return detector.hasNote();
+  
+  public boolean hasJustReleaseddNote() {
+    return transferIn.hasJustReleaseddNote();
+  }
+
+  public boolean hasJustReceivedNote() {
+    return transferIn.hasJustReceivedNote();
   }
 
   @Override

@@ -2,7 +2,7 @@
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
 
-package frc.robot.subsystems.amp;
+package frc.robot.subsystems.intake;
 
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
@@ -13,58 +13,54 @@ import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 import frc.robot.commands.*;
+import frc.robot.subsystems.amp.AmpWheels;
 import frc.robot.util.ConfigUtils;
 import frc.robot.util.NoteDetector;
 import frc.robot.util.StatusChecks;
 import frc.robot.util.Logging.Logger;
 import frc.robot.Constants;
 import frc.robot.Presets;
+import frc.robot.Constants.AMP.PIVOT;
 import frc.robot.Constants.CAN;
 import frc.robot.Constants.ENABLED_SYSTEMS;
 import frc.robot.Constants.NEO;
-import frc.robot.Constants.AMP.PIVOT;
 
-
-
-public class AmpWheels extends SubsystemBase {
+public class CenteringWheels extends SubsystemBase {
   private CANSparkMax motor;
   private State state = State.OFF;
-  private NoteDetector detector;
- 
+
   public static enum State {
     IN,
     OUT,
     OFF
   }
 
-  public AmpWheels() {
-    if (!ENABLED_SYSTEMS.ENABLE_AMP) return;
-    motor = new CANSparkMax(CAN.AMP_WHEELS, MotorType.kBrushless);
+  public CenteringWheels() {
+    if (!ENABLED_SYSTEMS.ENABLE_INTAKE) return;
+    
+    motor = new CANSparkMax(CAN.CENTERING, MotorType.kBrushless);
 
     ConfigUtils.configure(List.of(
       () -> motor.restoreFactoryDefaults(),
       () -> { motor.setInverted(false); return true; },
       () -> motor.setIdleMode(IdleMode.kBrake),
       () -> motor.enableVoltageCompensation(12.0),
-      () -> motor.setSmartCurrentLimit(NEO.SAFE_STALL_CURRENT, PIVOT.PROFILE.CURRENT_LIMIT),
+      () -> motor.setSmartCurrentLimit(NEO.SAFE_STALL_CURRENT, NEO.SAFE_STALL_CURRENT),
       () -> motor.setClosedLoopRampRate(NEO.SAFE_RAMP_RATE),
       () -> motor.setOpenLoopRampRate(NEO.SAFE_RAMP_RATE),
       () -> motor.burnFlash()
     ));
 
-    detector = new NoteDetector(motor);
-
-    String logPath = "amp-wheels/";
+    String logPath = "intake-centering-wheels/";
     Logger.autoLog(logPath + "current",                 () -> motor.getOutputCurrent());
     Logger.autoLog(logPath + "appliedOutput",           () -> motor.getAppliedOutput());
     Logger.autoLog(logPath + "motorTemperature",        () -> motor.getMotorTemperature());
-    Logger.autoLog(logPath + "hasJustReleaseddNote",    () -> detector.hasJustReleaseddNote());
-    Logger.autoLog(logPath + "hasJustReceivedNote",     () -> detector.hasJustReceivedNote());
 
-    StatusChecks.addCheck("Amp Wheels Motor", () -> motor.getFaults() == 0);
+    StatusChecks.addCheck("Intake Centering Motor", () -> motor.getFaults() == 0);
   }
 
   public Command setState(State state) {
@@ -73,27 +69,15 @@ public class AmpWheels extends SubsystemBase {
 
   @Override
   public void periodic() {
-    if (!ENABLED_SYSTEMS.ENABLE_AMP) return;
-
+    if (!ENABLED_SYSTEMS.ENABLE_INTAKE) return;
     switch(state) {
+      case IN:
+        motor.set(Presets.INTAKE.CENTERING_WHEEL_POWER);
+      case OUT:
+        motor.set(-Presets.INTAKE.CENTERING_WHEEL_POWER);
       case OFF:
         motor.set(0);
-        break;
-      case IN:
-        motor.set(-Presets.AMP.WHEELS.POWER);
-        break;
-      case OUT:
-        motor.set(Presets.AMP.WHEELS.POWER);
-        break;
     }
-  }
-
-  public boolean hasJustReleaseddNote() {
-    return detector.hasJustReleaseddNote();
-  }
-
-  public boolean hasJustReceivedNote() {
-    return detector.hasJustReceivedNote();
   }
 
   @Override

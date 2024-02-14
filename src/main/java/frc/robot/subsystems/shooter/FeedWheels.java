@@ -16,14 +16,13 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 import frc.robot.commands.*;
-import frc.robot.subsystems.notes.NoteDetector;
 import frc.robot.util.ConfigUtils;
+import frc.robot.util.NoteDetector;
 import frc.robot.util.StatusChecks;
 import frc.robot.util.Logging.Logger;
 import frc.robot.Constants;
 import frc.robot.Presets;
 import frc.robot.Constants.AMP.PIVOT;
-import frc.robot.Constants.SHOOTER.FEED_WHEELS;
 import frc.robot.Constants.CAN;
 import frc.robot.Constants.ENABLED_SYSTEMS;
 import frc.robot.Constants.NEO;
@@ -50,22 +49,24 @@ public class FeedWheels extends SubsystemBase {
       () -> motor.enableVoltageCompensation(12.0),
       () -> motor.setSmartCurrentLimit(NEO.SAFE_STALL_CURRENT, PIVOT.PROFILE.CURRENT_LIMIT),
       () -> motor.setClosedLoopRampRate(PIVOT.PROFILE.RAMP_RATE),
+      () -> motor.setOpenLoopRampRate(NEO.SAFE_RAMP_RATE),
       () -> motor.burnFlash()
     ));
 
-    detector = new NoteDetector(motor, FEED_WHEELS.NOTE_DETECTION_CURRENT);
+    detector = new NoteDetector(motor);
 
     String logPath = "shooter-feed-wheels/";
     Logger.autoLog(logPath + "current",                 () -> motor.getOutputCurrent());
     Logger.autoLog(logPath + "appliedOutput",           () -> motor.getAppliedOutput());
     Logger.autoLog(logPath + "motorTemperature",        () -> motor.getMotorTemperature());
-    Logger.autoLog(logPath + "hasNote",                 () -> detector.hasNote());
+    Logger.autoLog(logPath + "hasJustReleaseddNote",    () -> detector.hasJustReleaseddNote());
+    Logger.autoLog(logPath + "hasJustReceivedNote",     () -> detector.hasJustReceivedNote());
 
     StatusChecks.addCheck("Shooter Feed Wheels Motor", () -> motor.getFaults() == 0);
   }
 
-  public void setState(State newState) {
-    state = newState;
+  public Command setState(State state) {
+    return runOnce(() -> this.state = state);
   }
 
   @Override
@@ -85,8 +86,12 @@ public class FeedWheels extends SubsystemBase {
     }
   }
 
-  public boolean hasNote() {
-    return detector.hasNote();
+  public boolean hasJustReleaseddNote() {
+    return detector.hasJustReleaseddNote();
+  }
+
+  public boolean hasJustReceivedNote() {
+    return detector.hasJustReceivedNote();
   }
 
   @Override

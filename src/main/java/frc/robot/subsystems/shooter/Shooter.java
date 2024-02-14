@@ -10,6 +10,8 @@ import edu.wpi.first.wpilibj.smartdashboard.Mechanism2d;
 import edu.wpi.first.wpilibj.smartdashboard.MechanismLigament2d;
 import edu.wpi.first.wpilibj.smartdashboard.MechanismRoot2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.ENABLED_SYSTEMS;
 import frc.robot.Constants.SHOOTER.PIVOT;
@@ -31,7 +33,6 @@ public class Shooter extends SubsystemBase {
   private double headingVelocity;
   private Rotation2d targetHeading = new Rotation2d();
 
-  private State state = State.OFF;
   public static enum State {
     IN,
     AIM,
@@ -55,43 +56,42 @@ public class Shooter extends SubsystemBase {
   public void periodic() {
     if (!ENABLED_SYSTEMS.ENABLE_SHOOTER) return;
     shooterMechanism.setAngle(shooterPivot.getPosition());
-    
+  }
+
+  public Command setState(State state) {
     switch(state) {
       case IN:
-        shooterPivot.setTargetAngle(Presets.SHOOTER.PIVOT.INTAKE_ANGLE);
-        shooterWheels.setTargetVelocity(0.0);
-        if (shooterPivot.doneMoving()) {
-          feedWheels.setState(FeedWheels.State.IN);
-        }
-        break;
+        return Commands.sequence( 
+          shooterPivot.setTargetAngle(Presets.SHOOTER.PIVOT.INTAKE_ANGLE),
+          shooterWheels.setTargetVelocity(0.0),
+          Commands.waitUntil(() -> shooterPivot.doneMoving()),
+          feedWheels.setState(FeedWheels.State.IN),
+          Commands.waitUntil(() -> hasJustReceivedNote()),
+          feedWheels.setState(FeedWheels.State.OFF)
+        );
       case AIM:
-        aim(Field.SPEAKER);
-        shooterWheels.setTargetVelocity(0.0);
-        feedWheels.setState(FeedWheels.State.OFF);
-        break;
+        return Commands.sequence( 
+          aim(Field.SPEAKER),
+          shooterWheels.setTargetVelocity(0.0),
+          feedWheels.setState(FeedWheels.State.OFF)
+        );
       case SHOOT:
-        aim(Field.SPEAKER);
-        shooterWheels.setTargetVelocity(Presets.SHOOTER.WHEELS.TARGET_SPEED);
-        if (getShotChance() > 0.9) {
-          feedWheels.setState(FeedWheels.State.IN);
-        } else {
-          feedWheels.setState(FeedWheels.State.OFF);
-        }
-        break;
+        return Commands.sequence( 
+          setState(State.AIM),
+          shooterWheels.setTargetVelocity(Presets.SHOOTER.WHEELS.TARGET_SPEED),
+          feedWheels.setState(FeedWheels.State.IN).onlyIf(() -> getShotChance() > 0.9)
+        );
       case OFF:
-        shooterPivot.setTargetAngle(shooterPivot.getPosition());
-        shooterWheels.setTargetVelocity(0.0);
-        feedWheels.setState(FeedWheels.State.OFF);
+        return Commands.sequence( 
+          shooterPivot.setTargetAngle(shooterPivot.getPosition()),
+          shooterWheels.setTargetVelocity(0.0),
+          feedWheels.setState(FeedWheels.State.OFF)
+        );
     }
-
-    aim(Field.SPEAKER);
+    return null;
   }
 
-  public void setState(State newState) {
-    state = newState;
-  }
-
-  public void aim(Translation3d point) {
+  public Command aim(Translation3d point) {
     // Calculate point to aim towards, accounting for current velocity
     Translation3d velocityCompensatedPoint = ShooterMath.calcVelocityCompensatedPoint(
       point,
@@ -106,7 +106,7 @@ public class Shooter extends SubsystemBase {
       shooterWheels.getVelocity()
     ));
 
-    orientToPointDelayCompensated(velocityCompensatedPoint);
+    return runOnce(() -> orientToPointDelayCompensated(velocityCompensatedPoint));
   }
 
   public boolean doneMoving() {
@@ -123,8 +123,12 @@ public class Shooter extends SubsystemBase {
     );
   }
 
-  public boolean hasNote() {
-    return feedWheels.hasNote();
+  public boolean hasJustReleaseddNote() {
+    return feedWheels.hasJustReleaseddNote();
+  }
+
+  public boolean hasJustReceivedNote() {
+    return feedWheels.hasJustReceivedNote();
   }
 
   @Override

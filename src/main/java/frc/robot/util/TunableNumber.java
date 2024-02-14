@@ -12,15 +12,16 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 public class TunableNumber extends SubsystemBase {
   private String name;
   private Consumer<Double> setter;
-  private Supplier<Double> getter;
+  private double currentNumber;
   private GenericEntry entry;
   private ShuffleboardTab tab;
 
-  public TunableNumber(String name, Supplier<Double> getter, Consumer<Double> setter) {
+  public TunableNumber(String name, Consumer<Double> setter, double defaultNumber) {
     this.name = name;
     this.setter = setter;
     tab = Shuffleboard.getTab("Tunable Numbers");
-    entry = tab.add(name, getter.get())
+    currentNumber = defaultNumber;
+    entry = tab.add(name, currentNumber)
       .withWidget(BuiltInWidgets.kNumberSlider)
       .getEntry();
   }
@@ -29,8 +30,9 @@ public class TunableNumber extends SubsystemBase {
   public void periodic() {
     double new_n = entry.getDouble(0);
 
-    if (new_n != getter.get()) {
+    if (new_n != currentNumber) {
       setter.accept(new_n);
+      currentNumber = new_n;
     }
   }
 }

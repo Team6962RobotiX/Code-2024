@@ -35,10 +35,10 @@ import frc.robot.util.MotionControl.PivotController;
 public class Amp extends SubsystemBase {
   private AmpPivot pivot;
   private AmpWheels wheels;
-  private State state = State.OFF;
  
   public static enum State {
     IN,
+    UP,
     OUT,
     OFF
   }
@@ -52,32 +52,46 @@ public class Amp extends SubsystemBase {
   @Override
   public void periodic() {
     if (!ENABLED_SYSTEMS.ENABLE_AMP) return;
+  }
+
+  public Command setState(State state) {
     switch(state) {
       case IN:
-        pivot.setTargetAngle(Presets.AMP.PIVOT.INTAKE_ANGLE);
-        if (pivot.doneMoving()) {
-          wheels.setState(AmpWheels.State.IN);
-        }
-        break;
+        return Commands.sequence( 
+          pivot.setTargetAngle(Presets.AMP.PIVOT.INTAKE_ANGLE),
+          Commands.waitUntil(() -> pivot.doneMoving()),
+          wheels.setState(AmpWheels.State.IN),
+          Commands.waitUntil(() -> hasJustReceivedNote()),
+          wheels.setState(AmpWheels.State.OFF)
+        );
+      case UP:
+        return Commands.sequence( 
+          pivot.setTargetAngle(Presets.AMP.PIVOT.OUTPUT_ANGLE),
+          wheels.setState(AmpWheels.State.OFF)
+        );
       case OUT:
-        pivot.setTargetAngle(Presets.AMP.PIVOT.OUTPUT_ANGLE);
-        if (pivot.doneMoving()) {
-          wheels.setState(AmpWheels.State.OUT);
-        }
-        break;
+        return Commands.sequence( 
+          pivot.setTargetAngle(Presets.AMP.PIVOT.OUTPUT_ANGLE),
+          Commands.waitUntil(() -> pivot.doneMoving()),
+          wheels.setState(AmpWheels.State.OUT),
+          Commands.waitSeconds(1.0),
+          wheels.setState(AmpWheels.State.OFF)
+        );
       case OFF:
-        wheels.setState(AmpWheels.State.OFF);
-        pivot.setTargetAngle(pivot.getPosition());
-        break;
+        return Commands.sequence( 
+          wheels.setState(AmpWheels.State.OFF),
+          pivot.setTargetAngle(pivot.getPosition())
+        );
     }
+    return null;
   }
 
-  public void setState(State newState) {
-    state = newState;
+  public boolean hasJustReleaseddNote() {
+    return wheels.hasJustReleaseddNote();
   }
 
-  public boolean hasNote() {
-    return wheels.hasNote();
+  public boolean hasJustReceivedNote() {
+    return wheels.hasJustReceivedNote();
   }
 
   public boolean doneMoving() {

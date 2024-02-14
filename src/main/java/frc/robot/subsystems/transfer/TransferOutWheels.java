@@ -1,8 +1,4 @@
-// Copyright (c) FIRST and other WPILib contributors.
-// Open Source Software; you can modify and/or share it under the terms of
-// the WPILib BSD license file in the root directory of this project.
-
-package frc.robot.subsystems.amp;
+package frc.robot.subsystems.transfer;
 
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
@@ -13,6 +9,7 @@ import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 import frc.robot.commands.*;
@@ -21,79 +18,60 @@ import frc.robot.util.NoteDetector;
 import frc.robot.util.StatusChecks;
 import frc.robot.util.Logging.Logger;
 import frc.robot.Constants;
-import frc.robot.Presets;
+import frc.robot.Constants.AMP.PIVOT;
 import frc.robot.Constants.CAN;
 import frc.robot.Constants.ENABLED_SYSTEMS;
 import frc.robot.Constants.NEO;
-import frc.robot.Constants.AMP.PIVOT;
+import frc.robot.Presets;
 
-
-
-public class AmpWheels extends SubsystemBase {
+public class TransferOutWheels extends SubsystemBase {
   private CANSparkMax motor;
   private State state = State.OFF;
-  private NoteDetector detector;
- 
   public static enum State {
-    IN,
-    OUT,
-    OFF
+    AMP,
+    SHOOTER,
+    OFF,
   }
 
-  public AmpWheels() {
-    if (!ENABLED_SYSTEMS.ENABLE_AMP) return;
-    motor = new CANSparkMax(CAN.AMP_WHEELS, MotorType.kBrushless);
+  public TransferOutWheels() {
+    if (!ENABLED_SYSTEMS.ENABLE_TRANSFER) return;
+    
+    motor = new CANSparkMax(CAN.TRANSFER_OUT, MotorType.kBrushless);
 
     ConfigUtils.configure(List.of(
       () -> motor.restoreFactoryDefaults(),
-      () -> { motor.setInverted(false); return true; },
+      () -> { motor.setInverted(true); return true; },
       () -> motor.setIdleMode(IdleMode.kBrake),
       () -> motor.enableVoltageCompensation(12.0),
       () -> motor.setSmartCurrentLimit(NEO.SAFE_STALL_CURRENT, PIVOT.PROFILE.CURRENT_LIMIT),
-      () -> motor.setClosedLoopRampRate(NEO.SAFE_RAMP_RATE),
+      () -> motor.setClosedLoopRampRate(PIVOT.PROFILE.RAMP_RATE),
       () -> motor.setOpenLoopRampRate(NEO.SAFE_RAMP_RATE),
       () -> motor.burnFlash()
     ));
 
-    detector = new NoteDetector(motor);
-
-    String logPath = "amp-wheels/";
+    String logPath = "transfer-out-wheels/";
     Logger.autoLog(logPath + "current",                 () -> motor.getOutputCurrent());
     Logger.autoLog(logPath + "appliedOutput",           () -> motor.getAppliedOutput());
     Logger.autoLog(logPath + "motorTemperature",        () -> motor.getMotorTemperature());
-    Logger.autoLog(logPath + "hasJustReleaseddNote",    () -> detector.hasJustReleaseddNote());
-    Logger.autoLog(logPath + "hasJustReceivedNote",     () -> detector.hasJustReceivedNote());
-
-    StatusChecks.addCheck("Amp Wheels Motor", () -> motor.getFaults() == 0);
+    
+    StatusChecks.addCheck("Transfer Out Motor", () -> motor.getFaults() == 0);
   }
 
   public Command setState(State state) {
     return runOnce(() -> this.state = state);
   }
-
+  
   @Override
   public void periodic() {
-    if (!ENABLED_SYSTEMS.ENABLE_AMP) return;
-
+    if (!ENABLED_SYSTEMS.ENABLE_TRANSFER) return;
     switch(state) {
+      case AMP:
+        motor.set(Presets.TRANSFER.OUT_POWER);
+      case SHOOTER:
+        motor.set(-Presets.TRANSFER.OUT_POWER);
       case OFF:
         motor.set(0);
-        break;
-      case IN:
-        motor.set(-Presets.AMP.WHEELS.POWER);
-        break;
-      case OUT:
-        motor.set(Presets.AMP.WHEELS.POWER);
-        break;
     }
-  }
-
-  public boolean hasJustReleaseddNote() {
-    return detector.hasJustReleaseddNote();
-  }
-
-  public boolean hasJustReceivedNote() {
-    return detector.hasJustReceivedNote();
   }
 
   @Override

@@ -14,12 +14,14 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.State;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.AMP.PIVOT;
 import frc.robot.Constants.ENABLED_SYSTEMS;
 import frc.robot.Constants.NEO;
 import frc.robot.util.ConfigUtils;
+import frc.robot.util.TunableNumber;
 
 /*
  * Uses oboard 1kHz PID, Feedforward, and Trapazoidal Profiles to
@@ -45,7 +47,7 @@ public class PivotController {
   private Rotation2d minAngle, maxAngle;
 
   public PivotController(CANSparkMax motor, int absoluteEncoderDIO, double absolutePositionOffset, double kP, double gearing, double maxAcceleration, Rotation2d minAngle, Rotation2d maxAngle) {
-    this(motor, absoluteEncoderDIO, absolutePositionOffset, kP, 0.0, 0.0, 0.0, 0.0, 12.0 / (NEO.STATS.freeSpeedRadPerSec / gearing), 0.0, NEO.STATS.freeSpeedRadPerSec / gearing, gearing, maxAcceleration, minAngle, maxAngle);
+    this(motor, absoluteEncoderDIO, absolutePositionOffset, kP, 0.0, 0.0, 0.0, 0.0, 12.0 / (NEO.STATS.freeSpeedRadPerSec / gearing), 0.0, gearing, NEO.STATS.freeSpeedRadPerSec / gearing, maxAcceleration, minAngle, maxAngle);
   }
 
   public PivotController(CANSparkMax motor, int absoluteEncoderDIO, double absolutePositionOffset, double kP, double kI, double kD, double kS, double kG, double kV, double kA, double gearing, double maxVelocity, double maxAcceleration, Rotation2d minAngle, Rotation2d maxAngle) {
@@ -60,7 +62,6 @@ public class PivotController {
     this.motor = motor;
     this.minAngle = minAngle;
     this.maxAngle = maxAngle;
-    encoder.setPositionConversionFactor(2.0 * Math.PI / gearing);
 
     // Configure everything robustly
     ConfigUtils.configure(List.of(
@@ -69,12 +70,13 @@ public class PivotController {
       () -> pid.setP(kP, 0),
       () -> pid.setI(kI, 0),
       () -> pid.setD(kD, 0),
-      () -> pid.setFF(kV / 12.0, 0),
       () -> pid.setPositionPIDWrappingEnabled(true),
       () -> pid.setPositionPIDWrappingMinInput(-Math.PI),
       () -> pid.setPositionPIDWrappingMaxInput(Math.PI),
       () -> motor.burnFlash()
     ));
+
+    new TunableNumber("Pivot PID", pid::setP, 0.01);
   }
 
   public void run() {
@@ -83,6 +85,8 @@ public class PivotController {
       motor.stopMotor();
       return;
     }
+
+    // System.out.println(getPosition().getDegrees());
 
     // Re-seed the relative encoder with the absolute encoder when not moving
     if (Math.abs(encoder.getVelocity()) < 0.001) {
@@ -95,6 +99,8 @@ public class PivotController {
 
     // Calculate the setpoint following a trapazoidal profile (smooth ramp up and down acceleration curves)
     State targetState = new State(targetAngle.getRadians(), 0.0);
+
+
     setpointState = profile.calculate(0.02, setpointState, targetState);
 
     // Set onboard PID controller to follow
@@ -102,10 +108,11 @@ public class PivotController {
       setpointState.position,
       ControlType.kPosition,
       0,
-      // Add our feedforward voltage on top of the onboard PID control
       feedforward.calculate(setpointState.position, setpointState.velocity),
       ArbFFUnits.kVoltage
     );
+
+    System.out.println(getPosition());
   }
 
   public void setTargetAngle(Rotation2d angle) {

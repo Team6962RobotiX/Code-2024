@@ -46,7 +46,7 @@ public class AmpPivot extends SubsystemBase {
     ConfigUtils.configure(List.of(
       () -> motor.restoreFactoryDefaults(),
       () -> { motor.setInverted(true); return true; },
-      () -> motor.setIdleMode(IdleMode.kBrake),
+      () -> motor.setIdleMode(IdleMode.kCoast),
       () -> motor.enableVoltageCompensation(12.0),
       () -> motor.setSmartCurrentLimit(NEO.SAFE_STALL_CURRENT, PIVOT.PROFILE.CURRENT_LIMIT),
       () -> motor.setClosedLoopRampRate(PIVOT.PROFILE.RAMP_RATE)
@@ -85,8 +85,8 @@ public class AmpPivot extends SubsystemBase {
     return controller.getPosition();
   }
 
-  public void setTargetAngle(Rotation2d angle) {
-    controller.setTargetAngle(angle);    
+  public Command setTargetAngle(Rotation2d angle) {
+    return runOnce(() -> controller.setTargetAngle(angle));    
   }
 
   public boolean doneMoving() {

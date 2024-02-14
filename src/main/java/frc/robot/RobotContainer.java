@@ -10,6 +10,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.RobotState;
+import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -25,12 +26,13 @@ import frc.robot.subsystems.amp.AmpPivot;
 import frc.robot.subsystems.LEDs;
 import frc.robot.subsystems.RobotStateController;
 import frc.robot.subsystems.amp.AmpWheels;
-import frc.robot.subsystems.amp.AmpWheels.State;
 import frc.robot.subsystems.drive.SwerveDrive;
 import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.shooter.FeedWheels;
 import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.transfer.Transfer;
+import frc.robot.subsystems.RobotStateController.State;
+
 import frc.robot.util.Logging.Logger;
 
 
@@ -74,6 +76,7 @@ public class RobotContainer {
 
     swerveDrive.setDefaultCommand(new XBoxSwerve(swerveDrive, driveController.getHID()));
 
+    System.out.println(Constants.SWERVE_DRIVE.MAX_CURRENT_DRAW);
 
     // Configure the trigger bindings
     configureBindings();
@@ -82,7 +85,10 @@ public class RobotContainer {
   }
   
   private void configureBindings() {
-
+    
+    operatorController.a().onTrue(amp.setState(Amp.State.OUT));
+    operatorController.b().onTrue(amp.setState(Amp.State.IN));
+    operatorController.rightBumper().onTrue(stateController.setState(State.PICKUP));
   }
 
   public Command getAutonomousCommand() {

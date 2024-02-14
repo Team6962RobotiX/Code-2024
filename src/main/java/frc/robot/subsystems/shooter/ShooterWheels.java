@@ -57,6 +57,7 @@ public class ShooterWheels extends SubsystemBase {
       () -> motor.enableVoltageCompensation(12.0),
       () -> motor.setSmartCurrentLimit(NEO.SAFE_STALL_CURRENT, WHEELS.PROFILE.CURRENT_LIMIT),
       () -> motor.setClosedLoopRampRate(WHEELS.PROFILE.RAMP_RATE),
+      () -> motor.setOpenLoopRampRate(NEO.SAFE_RAMP_RATE),
       () -> encoder.setPositionConversionFactor(WHEELS.ENCODER_CONVERSION_FACTOR),
       () -> encoder.setVelocityConversionFactor(WHEELS.ENCODER_CONVERSION_FACTOR / 60.0),
       () -> pid.setP(WHEELS.PROFILE.kP, 0),
@@ -76,8 +77,8 @@ public class ShooterWheels extends SubsystemBase {
     StatusChecks.addCheck("Shooter Wheels Motor", () -> motor.getFaults() == 0);
   }
 
-  public void setTargetVelocity(double angularVelocity) {
-    targetVelocity = angularVelocity;
+  public Command setTargetVelocity(double angularVelocity) {
+    return runOnce(() -> targetVelocity = angularVelocity);
   }
 
   public double getVelocity() {

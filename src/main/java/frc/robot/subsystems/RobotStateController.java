@@ -48,44 +48,45 @@ public class RobotStateController extends SubsystemBase {
     switch(state) {
       case OFF:
         return Commands.sequence(
-          runOnce(() -> amp.setState(Amp.State.OFF)),
-          runOnce(() -> intake.setState(Intake.State.OFF)),
-          runOnce(() -> shooter.setState(Shooter.State.OFF)),
-          runOnce(() -> transfer.setState(Transfer.State.OFF))
+          amp.setState(Amp.State.OFF),
+          intake.setState(Intake.State.OFF),
+          shooter.setState(Shooter.State.OFF),
+          transfer.setState(Transfer.State.OFF)
         );
       case PICKUP:
         return Commands.sequence(
-          runOnce(() -> intake.setState(Intake.State.IN)),
-          Commands.waitUntil(() -> intake.hasNote()),
-          runOnce(() -> intake.setState(Intake.State.OFF))
+          intake.setState(Intake.State.IN),
+          transfer.setState(Transfer.State.IN),
+          Commands.waitSeconds(1.0),
+          intake.setState(Intake.State.OFF),
+          transfer.setState(Transfer.State.OFF)
         );
       case LOAD_AMP:
         return Commands.sequence(
-          runOnce(() -> amp.setState(Amp.State.IN)),
-          Commands.waitUntil(() -> amp.doneMoving()),
-          runOnce(() -> transfer.setState(Transfer.State.AMP)),
-          Commands.waitUntil(() -> amp.hasNote()),
-          runOnce(() -> amp.setState(Amp.State.OFF)),
-          runOnce(() -> transfer.setState(Transfer.State.OFF))
+          amp.setState(Amp.State.IN),
+          transfer.setState(Transfer.State.AMP),
+          Commands.waitUntil(() -> amp.hasJustReceivedNote()),
+          amp.setState(Amp.State.OFF),
+          transfer.setState(Transfer.State.OFF)
         );
       case LOAD_SHOOTER:
         return Commands.sequence(
-          runOnce(() -> shooter.setState(Shooter.State.IN)),
+          shooter.setState(Shooter.State.IN),
           Commands.waitUntil(() -> shooter.doneMoving()),
-          runOnce(() -> transfer.setState(Transfer.State.SHOOTER)),
-          runOnce(() -> shooter.setState(Shooter.State.IN)),
-          Commands.waitUntil(() -> shooter.hasNote()),
-          runOnce(() -> shooter.setState(Shooter.State.OFF)),
-          runOnce(() -> transfer.setState(Transfer.State.OFF))
+          transfer.setState(Transfer.State.SHOOTER),
+          shooter.setState(Shooter.State.IN),
+          Commands.waitUntil(() -> shooter.hasJustReceivedNote()),
+          shooter.setState(Shooter.State.OFF),
+          transfer.setState(Transfer.State.OFF)
         );
       case PLACE_AMP:
         return Commands.sequence(
-          runOnce(() -> amp.setState(Amp.State.OUT)),
-          runOnce(() -> transfer.setState(Transfer.State.OFF))
+          amp.setState(Amp.State.OUT),
+          transfer.setState(Transfer.State.OFF)
         );
       case SHOOT:
         return Commands.sequence(
-          runOnce(() -> shooter.setState(Shooter.State.SHOOT))
+          shooter.setState(Shooter.State.SHOOT)
         );
     }
     return null;
