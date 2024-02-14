@@ -10,6 +10,8 @@ import edu.wpi.first.wpilibj.smartdashboard.Mechanism2d;
 import edu.wpi.first.wpilibj.smartdashboard.MechanismLigament2d;
 import edu.wpi.first.wpilibj.smartdashboard.MechanismRoot2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.ENABLED_SYSTEMS;
 import frc.robot.Constants.SHOOTER.PIVOT;
@@ -31,7 +33,6 @@ public class Shooter extends SubsystemBase {
   private double headingVelocity;
   private Rotation2d targetHeading = new Rotation2d();
 
-  private State state = State.OFF;
   public static enum State {
     IN,
     AIM,
@@ -55,40 +56,39 @@ public class Shooter extends SubsystemBase {
   public void periodic() {
     if (!ENABLED_SYSTEMS.ENABLE_SHOOTER) return;
     shooterMechanism.setAngle(shooterPivot.getPosition());
-    
-    switch(state) {
-      case IN:
-        shooterPivot.setTargetAngle(Presets.SHOOTER.PIVOT.INTAKE_ANGLE);
-        shooterWheels.setTargetVelocity(0.0);
-        if (shooterPivot.doneMoving()) {
-          feedWheels.setState(FeedWheels.State.IN);
-        }
-        break;
-      case AIM:
-        aim(Field.SPEAKER);
-        shooterWheels.setTargetVelocity(0.0);
-        feedWheels.setState(FeedWheels.State.OFF);
-        break;
-      case SHOOT:
-        aim(Field.SPEAKER);
-        shooterWheels.setTargetVelocity(Presets.SHOOTER.WHEELS.TARGET_SPEED);
-        if (getShotChance() > 0.9) {
-          feedWheels.setState(FeedWheels.State.IN);
-        } else {
-          feedWheels.setState(FeedWheels.State.OFF);
-        }
-        break;
-      case OFF:
-        shooterPivot.setTargetAngle(shooterPivot.getPosition());
-        shooterWheels.setTargetVelocity(0.0);
-        feedWheels.setState(FeedWheels.State.OFF);
-    }
-
-    aim(Field.SPEAKER);
   }
 
-  public void setState(State newState) {
-    state = newState;
+  public Command setState(State state) {
+    switch(state) {
+      case IN:
+        return Commands.sequence( 
+          runOnce(() -> shooterPivot.setTargetAngle(Presets.SHOOTER.PIVOT.INTAKE_ANGLE)),
+          runOnce(() -> shooterWheels.setTargetVelocity(0.0)),
+          Commands.waitUntil(() -> shooterPivot.doneMoving()),
+          runOnce(() -> feedWheels.setState(FeedWheels.State.IN)),
+          Commands.waitUntil(() -> hasNote()),
+          runOnce(() -> feedWheels.setState(FeedWheels.State.OFF))
+        );
+      case AIM:
+        return Commands.sequence( 
+          runOnce(() -> aim(Field.SPEAKER)),
+          runOnce(() -> shooterWheels.setTargetVelocity(0.0)),
+          runOnce(() -> feedWheels.setState(FeedWheels.State.OFF))
+        );
+      case SHOOT:
+        return Commands.sequence( 
+          setState(State.AIM),
+          Commands.runOnce(() -> shooterWheels.setTargetVelocity(Presets.SHOOTER.WHEELS.TARGET_SPEED)),
+          Commands.runOnce(() -> feedWheels.setState(FeedWheels.State.IN)).onlyIf(() -> getShotChance() > 0.9)
+        );
+      case OFF:
+        return Commands.sequence( 
+          runOnce(() -> shooterPivot.setTargetAngle(shooterPivot.getPosition())),
+          runOnce(() -> shooterWheels.setTargetVelocity(0.0)),
+          runOnce(() -> feedWheels.setState(FeedWheels.State.OFF))
+        );
+    }
+    return null;
   }
 
   public void aim(Translation3d point) {

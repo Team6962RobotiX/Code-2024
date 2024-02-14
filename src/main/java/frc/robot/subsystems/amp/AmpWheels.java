@@ -79,10 +79,10 @@ public class AmpWheels extends SubsystemBase {
         motor.set(0);
         break;
       case IN:
-        motor.set(Presets.AMP.WHEELS.POWER);
+        motor.set(-Presets.AMP.WHEELS.POWER);
         break;
       case OUT:
-        motor.set(-Presets.AMP.WHEELS.POWER);
+        motor.set(Presets.AMP.WHEELS.POWER);
         break;
     }
   }

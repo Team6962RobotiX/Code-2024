@@ -9,6 +9,7 @@ import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 import frc.robot.commands.*;
@@ -22,6 +23,7 @@ import frc.robot.Constants.CAN;
 import frc.robot.Constants.ENABLED_SYSTEMS;
 import frc.robot.Constants.NEO;
 import frc.robot.Constants.TRANSFER;
+import frc.robot.Presets;
 
 
 
@@ -29,7 +31,6 @@ public class Transfer extends SubsystemBase {
   private CANSparkMax transferIn;
   private CANSparkMax transferOut;
   private NoteDetector detector;
-  private State state = State.OFF;
  
   public static enum State {
     IN,
@@ -79,31 +80,35 @@ public class Transfer extends SubsystemBase {
     StatusChecks.addCheck("Transfer Out Motor", () -> transferOut.getFaults() == 0);
   }
 
-  public void setState(State newState) {
-    state = newState;
+  public Command setState(State state) {
+    switch(state) {
+      case OFF:
+        return Commands.sequence( 
+          runOnce(() -> transferIn.set(0)),
+          runOnce(() -> transferOut.set(0))
+        );
+      case IN:
+        return Commands.sequence( 
+          runOnce(() -> transferIn.set(TRANSFER.POWER)),
+          runOnce(() -> transferOut.set(0))
+        );
+      case AMP:
+        return Commands.sequence( 
+          runOnce(() -> transferIn.set(-TRANSFER.POWER)),
+          runOnce(() -> transferOut.set(TRANSFER.POWER))
+        );
+      case SHOOTER:
+        return Commands.sequence( 
+          runOnce(() -> transferIn.set(-TRANSFER.POWER)),
+          runOnce(() -> transferOut.set(-TRANSFER.POWER))
+        );
+    }
+    return null;
   }
-
+  
   @Override
   public void periodic() {
     if (!ENABLED_SYSTEMS.ENABLE_TRANSFER) return;
-
-    switch(state) {
-      case OFF:
-        transferIn.set(0);
-        transferOut.set(0);
-        break;
-      case IN:
-        transferIn.set(TRANSFER.POWER);
-        transferOut.set(0);
-      case AMP:
-        transferIn.set(-TRANSFER.POWER);
-        transferOut.set(TRANSFER.POWER);
-        break;
-      case SHOOTER:
-        transferIn.set(-TRANSFER.POWER);
-        transferOut.set(-TRANSFER.POWER);
-        break;
-    }
   }
 
   public boolean hasNote() {

@@ -35,10 +35,10 @@ import frc.robot.util.MotionControl.PivotController;
 public class Amp extends SubsystemBase {
   private AmpPivot pivot;
   private AmpWheels wheels;
-  private State state = State.OFF;
  
   public static enum State {
     IN,
+    UP,
     OUT,
     OFF
   }
@@ -52,28 +52,38 @@ public class Amp extends SubsystemBase {
   @Override
   public void periodic() {
     if (!ENABLED_SYSTEMS.ENABLE_AMP) return;
-    switch(state) {
-      case IN:
-        pivot.setTargetAngle(Presets.AMP.PIVOT.INTAKE_ANGLE);
-        if (pivot.doneMoving()) {
-          wheels.setState(AmpWheels.State.IN);
-        }
-        break;
-      case OUT:
-        pivot.setTargetAngle(Presets.AMP.PIVOT.OUTPUT_ANGLE);
-        if (pivot.doneMoving()) {
-          wheels.setState(AmpWheels.State.OUT);
-        }
-        break;
-      case OFF:
-        wheels.setState(AmpWheels.State.OFF);
-        pivot.setTargetAngle(pivot.getPosition());
-        break;
-    }
   }
 
-  public void setState(State newState) {
-    state = newState;
+  public Command setState(State state) {
+    switch(state) {
+      case IN:
+        return Commands.sequence( 
+          runOnce(() -> pivot.setTargetAngle(Presets.AMP.PIVOT.INTAKE_ANGLE)),
+          Commands.waitUntil(() -> pivot.doneMoving()),
+          runOnce(() -> wheels.setState(AmpWheels.State.IN)),
+          Commands.waitUntil(() -> hasNote()),
+          runOnce(() -> wheels.setState(AmpWheels.State.OFF))
+        );
+      case UP:
+        return Commands.sequence( 
+          runOnce(() -> pivot.setTargetAngle(Presets.AMP.PIVOT.OUTPUT_ANGLE)),
+          runOnce(() -> wheels.setState(AmpWheels.State.OFF))
+        );
+      case OUT:
+        return Commands.sequence( 
+          runOnce(() -> pivot.setTargetAngle(Presets.AMP.PIVOT.OUTPUT_ANGLE)),
+          Commands.waitUntil(() -> pivot.doneMoving()),
+          runOnce(() -> wheels.setState(AmpWheels.State.OUT)),
+          Commands.waitSeconds(1.0),
+          runOnce(() -> wheels.setState(AmpWheels.State.OFF))
+        );
+      case OFF:
+        return Commands.sequence( 
+          runOnce(() -> wheels.setState(AmpWheels.State.OFF)),
+          runOnce(() -> pivot.setTargetAngle(pivot.getPosition()))
+        );
+    }
+    return null;
   }
 
   public boolean hasNote() {

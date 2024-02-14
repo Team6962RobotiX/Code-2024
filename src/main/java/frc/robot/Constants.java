@@ -61,7 +61,7 @@ public final class Constants {
 
     ///////////////////////// CONFIG /////////////////////////
     public static final double   INSPECTION_WEIGHT                  = Units.lbsToKilograms(41);
-    public static final double   BATTERY_WEIGHT                      = Units.lbsToKilograms(12.89);
+    public static final double   BATTERY_WEIGHT                     = Units.lbsToKilograms(12.89);
     public static final double   ROBOT_MASS                         = INSPECTION_WEIGHT + BATTERY_WEIGHT; // kg
     public static final double   FRICTION_COEFFICIENT               = 0.5; // 1.0 when on carpet 0.5 on KLS flooring
     public static final int      MODULE_COUNT                       = 4;
@@ -74,7 +74,7 @@ public final class Constants {
     public static final double   DRIVE_MOTOR_GEARING                = 6.75;
     public static final double   STEER_MOTOR_GEARING                = 150.0 / 7.0;
     public static final double   GEARBOX_EFFICIENCY                 = 0.8;
-    public static final double   BATTERY_RESISTANCE                 = 0.015; // ohms
+    public static final double   BATTERY_RESISTANCE                 = 0.02; // ohms
     public static final double   BATTERY_VOLTAGE                    = 12.6; // volts
     public static final double   BROWNOUT_VOLTAGE                   = 6.8; // volts
 
@@ -358,9 +358,9 @@ public final class Constants {
 
       public static final class PROFILE {
         public static final int    CURRENT_LIMIT = 40;
-        public static final double kP = 0.0;
+        public static final double kP = 1.0;
         public static final double RAMP_RATE = 0.1;
-        public static final double MAX_ACCELERATION = (NEO.maxTorqueCurrentLimited(CURRENT_LIMIT) * GEARBOX_REDUCTION) / MOI; // rad/s^2
+        public static final double MAX_ACCELERATION = 40.0; // rad/s^2
       }
     }
   }

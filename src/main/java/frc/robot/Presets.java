@@ -49,11 +49,11 @@ public final class Presets {
     }
 
     public static final class PIVOT {
-      public static final Rotation2d MAX_ANGLE = Rotation2d.fromDegrees(90.0);
-      public static final Rotation2d MIN_ANGLE = Rotation2d.fromDegrees(-30.0);
+      public static final Rotation2d MAX_ANGLE = Rotation2d.fromDegrees(45.0);
+      public static final Rotation2d MIN_ANGLE = Rotation2d.fromDegrees(-67.0);
       
-      public static final Rotation2d INTAKE_ANGLE = Rotation2d.fromDegrees(-30.0);
       public static final Rotation2d OUTPUT_ANGLE = Rotation2d.fromDegrees(45.0);
+      public static final Rotation2d INTAKE_ANGLE = Rotation2d.fromDegrees(-67.0);
     }
   }
 

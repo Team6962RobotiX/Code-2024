@@ -13,9 +13,11 @@ import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 import frc.robot.commands.*;
+import frc.robot.subsystems.amp.AmpWheels;
 import frc.robot.subsystems.notes.NoteDetector;
 import frc.robot.util.ConfigUtils;
 import frc.robot.util.StatusChecks;
@@ -34,7 +36,6 @@ public class Intake extends SubsystemBase {
   private CANSparkMax intakeMotor;
   private CANSparkMax centeringMotor;
   private NoteDetector detector;
-  private State state = State.OFF;
  
   public static enum State {
     IN,
@@ -83,28 +84,30 @@ public class Intake extends SubsystemBase {
     StatusChecks.addCheck("Intake Centering Motor", () -> centeringMotor.getFaults() == 0);
   }
 
-  public void setState(State newState) {
-    state = newState;
+  public Command setState(State state) {
+    switch(state) {
+      case IN:
+        return Commands.sequence( 
+          runOnce(() -> intakeMotor.set(-Presets.INTAKE.INTAKE_ROLLER_POWER)),
+          runOnce(() -> centeringMotor.set(Presets.INTAKE.CENTERING_WHEEL_POWER))
+        );
+      case OUT:
+        return Commands.sequence( 
+          runOnce(() -> intakeMotor.set(Presets.INTAKE.INTAKE_ROLLER_POWER)),
+          runOnce(() -> centeringMotor.set(-Presets.INTAKE.CENTERING_WHEEL_POWER))
+        );
+      case OFF:
+        return Commands.sequence( 
+          runOnce(() -> intakeMotor.set(0.0)),
+          runOnce(() -> centeringMotor.set(0.0))
+        );
+    }
+    return null;
   }
 
   @Override
   public void periodic() {
     if (!ENABLED_SYSTEMS.ENABLE_INTAKE) return;
-
-    switch(state) {
-      case OFF:
-        intakeMotor.set(0);
-        centeringMotor.set(0);
-        break;
-      case IN:
-        intakeMotor.set(-Presets.INTAKE.INTAKE_ROLLER_POWER);
-        centeringMotor.set(Presets.INTAKE.CENTERING_WHEEL_POWER);
-        break;
-      case OUT:
-        intakeMotor.set(Presets.INTAKE.INTAKE_ROLLER_POWER);
-        centeringMotor.set(-Presets.INTAKE.CENTERING_WHEEL_POWER);
-        break;
-    }
   }
 
   public boolean hasNote() {
