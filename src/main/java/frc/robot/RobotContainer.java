@@ -76,19 +76,21 @@ public class RobotContainer {
 
     swerveDrive.setDefaultCommand(new XBoxSwerve(swerveDrive, driveController.getHID()));
 
-    System.out.println(Constants.SWERVE_DRIVE.MAX_CURRENT_DRAW);
-
     // Configure the trigger bindings
     configureBindings();
 
     SwerveDrive.printChoreoConfig();
+
   }
   
   private void configureBindings() {
     
     operatorController.a().onTrue(amp.setState(Amp.State.OUT));
-    operatorController.b().onTrue(amp.setState(Amp.State.IN));
-    operatorController.rightBumper().onTrue(stateController.setState(State.PICKUP));
+    operatorController.b().onTrue(amp.setState(Amp.State.DOWN));
+    operatorController.rightBumper().whileTrue(intake.setState(Intake.State.IN));
+    operatorController.rightBumper().onFalse(intake.setState(Intake.State.OFF)); 
+    operatorController.leftStick().whileTrue(Commands.parallel(transfer.setState(Transfer.State.AMP), amp.setState(Amp.State.IN)));
+    operatorController.leftStick().onFalse(Commands.parallel(transfer.setState(Transfer.State.OFF), amp.setState(Amp.State.OFF)));
   }
 
   public Command getAutonomousCommand() {

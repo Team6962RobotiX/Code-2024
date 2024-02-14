@@ -3,8 +3,6 @@ package frc.robot.util.Logging;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.function.Supplier;
 
 import com.ctre.phoenix6.hardware.CANcoder;
@@ -21,8 +19,10 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.RobotController;
+import edu.wpi.first.wpilibj.Timer;
 import frc.robot.Constants.LOGGING;
 
 public final class Logger {
@@ -30,16 +30,8 @@ public final class Logger {
   private static Map<String, Supplier<Object>> entries = new HashMap<String, Supplier<Object>>();
 
   public static void startLog() {
-    TimerTask task = new TimerTask() {
-      @Override
-      public void run() {
-        logAll();
-      }
-    };
-
-    Timer timer = new Timer();
-    
-    timer.schedule(task, 0, (long) (LOGGING.LOGGING_PERIOD_MS));
+    Notifier notifier = new Notifier(() -> Logger.logAll());
+    notifier.startPeriodic(LOGGING.LOGGING_PERIOD_MS / 1000.0);
   }
 
   private static void logAll() {

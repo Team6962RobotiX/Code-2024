@@ -98,8 +98,6 @@ public class PhotonLib extends SubsystemBase {
       System.out.println("");
       System.out.print(e);
     }
-
-    System.out.println(tagLayout);
    
     visionSim.addAprilTags(tagLayout);
 

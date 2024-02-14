@@ -74,13 +74,13 @@ public class Intake extends SubsystemBase {
     if (!ENABLED_SYSTEMS.ENABLE_INTAKE) return;
   }
 
-  public boolean hasJustReleaseddNote() {
+  /*public boolean hasJustReleaseddNote() {
     return intakeRollers.hasJustReleaseddNote();
   }
 
   public boolean hasJustReceivedNote() {
     return intakeRollers.hasJustReceivedNote();
-  }
+  }*/ 
 
   @Override
   public void simulationPeriodic() {

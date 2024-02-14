@@ -4,6 +4,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Presets;
+import frc.robot.Constants.ENABLED_SYSTEMS;
 import frc.robot.subsystems.amp.Amp;
 import frc.robot.subsystems.drive.SwerveDrive;
 import frc.robot.subsystems.intake.Intake;
@@ -19,7 +20,6 @@ public class RobotStateController extends SubsystemBase {
   private Shooter shooter;
   private Transfer transfer;
 
-  private State state = State.OFF;
   public enum State {
     OFF,
     PICKUP,
@@ -35,7 +35,6 @@ public class RobotStateController extends SubsystemBase {
     this.intake = intake;
     this.shooter = shooter;
     this.transfer = transfer;
-    setState(state).schedule();
   }
 
   /**
@@ -54,13 +53,7 @@ public class RobotStateController extends SubsystemBase {
           transfer.setState(Transfer.State.OFF)
         );
       case PICKUP:
-        return Commands.sequence(
-          intake.setState(Intake.State.IN),
-          transfer.setState(Transfer.State.IN),
-          Commands.waitSeconds(1.0),
-          intake.setState(Intake.State.OFF),
-          transfer.setState(Transfer.State.OFF)
-        );
+        return intake.setState(Intake.State.IN);
       case LOAD_AMP:
         return Commands.sequence(
           amp.setState(Amp.State.IN),

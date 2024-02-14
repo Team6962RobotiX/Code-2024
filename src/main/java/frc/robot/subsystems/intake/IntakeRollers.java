@@ -44,12 +44,12 @@ public class IntakeRollers extends SubsystemBase {
   public IntakeRollers() {
     if (!ENABLED_SYSTEMS.ENABLE_INTAKE) return;
     
-    motor = new CANSparkMax(CAN.CENTERING, MotorType.kBrushless);
+    motor = new CANSparkMax(CAN.INTAKE, MotorType.kBrushless);
 
     ConfigUtils.configure(List.of(
       () -> motor.restoreFactoryDefaults(),
       () -> { motor.setInverted(false); return true; },
-      () -> motor.setIdleMode(IdleMode.kBrake),
+      () -> motor.setIdleMode(IdleMode.kCoast),
       () -> motor.enableVoltageCompensation(12.0),
       () -> motor.setSmartCurrentLimit(NEO.SAFE_STALL_CURRENT, NEO.SAFE_STALL_CURRENT),
       () -> motor.setClosedLoopRampRate(NEO.SAFE_RAMP_RATE),
@@ -73,16 +73,21 @@ public class IntakeRollers extends SubsystemBase {
     return runOnce(() -> this.state = state);
   }
 
+
   @Override
   public void periodic() {
     if (!ENABLED_SYSTEMS.ENABLE_INTAKE) return;
+
     switch(state) {
       case IN:
-        motor.set(Presets.INTAKE.INTAKE_ROLLER_POWER);
-      case OUT:
         motor.set(-Presets.INTAKE.INTAKE_ROLLER_POWER);
+        break;
+      case OUT:
+        motor.set(Presets.INTAKE.INTAKE_ROLLER_POWER);
+        break;
       case OFF:
         motor.set(0);
+        break;
     }
   }
 

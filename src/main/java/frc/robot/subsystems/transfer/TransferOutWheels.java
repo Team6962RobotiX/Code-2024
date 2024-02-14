@@ -66,11 +66,14 @@ public class TransferOutWheels extends SubsystemBase {
     if (!ENABLED_SYSTEMS.ENABLE_TRANSFER) return;
     switch(state) {
       case AMP:
-        motor.set(Presets.TRANSFER.OUT_POWER);
-      case SHOOTER:
         motor.set(-Presets.TRANSFER.OUT_POWER);
+        break;
+      case SHOOTER:
+        motor.set(Presets.TRANSFER.OUT_POWER);
+        break;
       case OFF:
         motor.set(0);
+        break;
     }
   }
 

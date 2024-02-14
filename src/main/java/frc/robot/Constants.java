@@ -37,7 +37,7 @@ public final class Constants {
   }
 
   public static final class LOGGING {
-    public static final int LOGGING_PERIOD_MS = 20;
+    public static final int LOGGING_PERIOD_MS = 100;
   }
 
   // DEVICES

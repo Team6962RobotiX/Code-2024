@@ -73,10 +73,13 @@ public class TransferInWheels extends SubsystemBase {
     switch(state) {
       case IN:
         motor.set(Presets.TRANSFER.IN_POWER);
+        break;
       case OUT:
         motor.set(-Presets.TRANSFER.IN_POWER);
+        break;
       case OFF:
         motor.set(0);
+        break;
     }
   }
 

@@ -37,9 +37,10 @@ public class Amp extends SubsystemBase {
   private AmpWheels wheels;
  
   public static enum State {
-    IN,
+    DOWN,
     UP,
     OUT,
+    IN,
     OFF
   }
 
@@ -56,14 +57,10 @@ public class Amp extends SubsystemBase {
 
   public Command setState(State state) {
     switch(state) {
+      case DOWN:
+        return pivot.setTargetAngle(Presets.AMP.PIVOT.INTAKE_ANGLE);
       case IN:
-        return Commands.sequence( 
-          pivot.setTargetAngle(Presets.AMP.PIVOT.INTAKE_ANGLE),
-          Commands.waitUntil(() -> pivot.doneMoving()),
-          wheels.setState(AmpWheels.State.IN),
-          Commands.waitUntil(() -> hasJustReceivedNote()),
-          wheels.setState(AmpWheels.State.OFF)
-        );
+        return wheels.setState(AmpWheels.State.IN);
       case UP:
         return Commands.sequence( 
           pivot.setTargetAngle(Presets.AMP.PIVOT.OUTPUT_ANGLE),

@@ -111,8 +111,6 @@ public class PivotController {
       feedforward.calculate(setpointState.position, setpointState.velocity),
       ArbFFUnits.kVoltage
     );
-
-    System.out.println(getPosition());
   }
 
   public void setTargetAngle(Rotation2d angle) {

@@ -102,8 +102,6 @@ public class SwerveModule extends SubsystemBase {
     encoderOffset %= 2;
     encoderOffset = (encoderOffset > 1.0) ? encoderOffset - 2.0 : (encoderOffset < -1.0) ? encoderOffset + 2.0 : encoderOffset;
 
-    System.out.println(encoderOffset);
-
     MagnetSensorConfigs magConfig = new MagnetSensorConfigs();
     magConfig.withAbsoluteSensorRange(AbsoluteSensorRangeValue.Signed_PlusMinusHalf);
     magConfig.withMagnetOffset(encoderOffset);

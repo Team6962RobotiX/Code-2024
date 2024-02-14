@@ -73,10 +73,13 @@ public class CenteringWheels extends SubsystemBase {
     switch(state) {
       case IN:
         motor.set(Presets.INTAKE.CENTERING_WHEEL_POWER);
+        break;
       case OUT:
         motor.set(-Presets.INTAKE.CENTERING_WHEEL_POWER);
+        break;
       case OFF:
         motor.set(0);
+        break;
     }
   }
 

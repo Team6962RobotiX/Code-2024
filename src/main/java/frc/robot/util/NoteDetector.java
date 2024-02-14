@@ -8,6 +8,7 @@ import edu.wpi.first.math.filter.MedianFilter;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.Presets;
+import frc.robot.util.Logging.Logger;
 
 /**
  * Used for detecting notes based on current draw from a motor
@@ -21,6 +22,7 @@ public class NoteDetector extends SubsystemBase {
   
   public NoteDetector(CANSparkMax motor) {
     this.motor = motor;
+    Logger.autoLog("NoteDetectors/" + motor.getDeviceId() + "/CURRENT_SPIKE", () -> impulse);
   }
 
   public boolean hasJustReceivedNote() {

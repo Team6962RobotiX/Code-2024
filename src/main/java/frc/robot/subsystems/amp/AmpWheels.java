@@ -47,7 +47,7 @@ public class AmpWheels extends SubsystemBase {
     ConfigUtils.configure(List.of(
       () -> motor.restoreFactoryDefaults(),
       () -> { motor.setInverted(false); return true; },
-      () -> motor.setIdleMode(IdleMode.kBrake),
+      () -> motor.setIdleMode(IdleMode.kCoast),
       () -> motor.enableVoltageCompensation(12.0),
       () -> motor.setSmartCurrentLimit(NEO.SAFE_STALL_CURRENT, PIVOT.PROFILE.CURRENT_LIMIT),
       () -> motor.setClosedLoopRampRate(NEO.SAFE_RAMP_RATE),
