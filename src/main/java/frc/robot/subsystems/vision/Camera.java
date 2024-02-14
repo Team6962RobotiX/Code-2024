@@ -136,10 +136,19 @@ public class Camera extends SubsystemBase {
     helpME = LimelightHelpers.getCameraPose3d_TargetSpace(name);
     System.out.println("botpose: " + helpME);  
     inst = NetworkTableInstance.getDefault();
-    inet = inst.getTable("limelight");
+    NetworkTable inet = inst.getTable("limelight");
     NetworkTableEntry ty = inet.getEntry("ty");
+    NetworkTableEntry tx = inet.getEntry("tx");
+    double x = tx.getDouble(0.0);
     double y = ty.getDouble(0.0);
-    System.out.println("Distance: " + Constants.PHOTON_LIB.CHAIR_HEIGHT_OFF_GROUND*Math.tan(Math.PI/2+y*Math.PI/180));
+    System.out.println("Ty: " + y);
+    System.out.println("Tx: " + x);
+    System.out.println("hi");
+
+    if (y != 0.0){
+      //2.51 meters
+      System.out.println("Distance: " + 0.79*Math.tan((90-y)*Math.PI/180));
+    }
 
    
   }
