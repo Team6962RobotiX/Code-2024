@@ -66,7 +66,7 @@ public class Shooter extends SubsystemBase {
           shooterWheels.setTargetVelocity(0.0),
           Commands.waitUntil(() -> shooterPivot.doneMoving()),
           feedWheels.setState(FeedWheels.State.IN),
-          Commands.waitUntil(() -> hasNote()),
+          Commands.waitUntil(() -> hasJustReceivedNote()),
           feedWheels.setState(FeedWheels.State.OFF)
         );
       case AIM:
@@ -123,8 +123,12 @@ public class Shooter extends SubsystemBase {
     );
   }
 
-  public boolean hasNote() {
-    return feedWheels.hasNote();
+  public boolean hasJustReleaseddNote() {
+    return feedWheels.hasJustReleaseddNote();
+  }
+
+  public boolean hasJustReceivedNote() {
+    return feedWheels.hasJustReceivedNote();
   }
 
   @Override

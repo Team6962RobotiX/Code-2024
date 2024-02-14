@@ -22,7 +22,6 @@ import frc.robot.Constants.AMP.PIVOT;
 import frc.robot.Constants.CAN;
 import frc.robot.Constants.ENABLED_SYSTEMS;
 import frc.robot.Constants.NEO;
-import frc.robot.Constants.TRANSFER;
 import frc.robot.Presets;
 
 public class TransferInWheels extends SubsystemBase {
@@ -50,13 +49,15 @@ public class TransferInWheels extends SubsystemBase {
       () -> motor.burnFlash()
     ));
 
-    detector = new NoteDetector(motor, TRANSFER.NOTE_DETECTION_CURRENT);
+    detector = new NoteDetector(motor);
 
     String logPath = "transfer-in-wheels/";
     Logger.autoLog(logPath + "current",                 () -> motor.getOutputCurrent());
     Logger.autoLog(logPath + "appliedOutput",           () -> motor.getAppliedOutput());
     Logger.autoLog(logPath + "motorTemperature",        () -> motor.getMotorTemperature());
-    Logger.autoLog(logPath + "hasNote",                 () -> detector.hasNote());
+    Logger.autoLog(logPath + "hasJustReleaseddNote",    () -> detector.hasJustReleaseddNote());
+    Logger.autoLog(logPath + "hasJustReceivedNote",     () -> detector.hasJustReceivedNote());
+
     
     StatusChecks.addCheck("Transfer In Motor", () -> motor.getFaults() == 0);
   }
@@ -80,8 +81,12 @@ public class TransferInWheels extends SubsystemBase {
     }
   }
 
-  public boolean hasNote() {
-    return detector.hasNote();
+  public boolean hasJustReleaseddNote() {
+    return detector.hasJustReleaseddNote();
+  }
+
+  public boolean hasJustReceivedNote() {
+    return detector.hasJustReceivedNote();
   }
 
   @Override

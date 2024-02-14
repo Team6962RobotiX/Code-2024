@@ -65,7 +65,7 @@ public class RobotStateController extends SubsystemBase {
         return Commands.sequence(
           amp.setState(Amp.State.IN),
           transfer.setState(Transfer.State.AMP),
-          Commands.waitUntil(() -> amp.hasNote()),
+          Commands.waitUntil(() -> amp.hasJustReceivedNote()),
           amp.setState(Amp.State.OFF),
           transfer.setState(Transfer.State.OFF)
         );
@@ -75,7 +75,7 @@ public class RobotStateController extends SubsystemBase {
           Commands.waitUntil(() -> shooter.doneMoving()),
           transfer.setState(Transfer.State.SHOOTER),
           shooter.setState(Shooter.State.IN),
-          Commands.waitUntil(() -> shooter.hasNote()),
+          Commands.waitUntil(() -> shooter.hasJustReceivedNote()),
           shooter.setState(Shooter.State.OFF),
           transfer.setState(Transfer.State.OFF)
         );

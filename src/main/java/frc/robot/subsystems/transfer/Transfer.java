@@ -13,8 +13,8 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 import frc.robot.commands.*;
-import frc.robot.subsystems.notes.NoteDetector;
 import frc.robot.util.ConfigUtils;
+import frc.robot.util.NoteDetector;
 import frc.robot.util.StatusChecks;
 import frc.robot.util.Logging.Logger;
 import frc.robot.Constants;
@@ -22,7 +22,6 @@ import frc.robot.Constants.AMP.PIVOT;
 import frc.robot.Constants.CAN;
 import frc.robot.Constants.ENABLED_SYSTEMS;
 import frc.robot.Constants.NEO;
-import frc.robot.Constants.TRANSFER;
 import frc.robot.Presets;
 
 
@@ -76,8 +75,13 @@ public class Transfer extends SubsystemBase {
     if (!ENABLED_SYSTEMS.ENABLE_TRANSFER) return;
   }
 
-  public boolean hasNote() {
-    return transferIn.hasNote();
+  
+  public boolean hasJustReleaseddNote() {
+    return transferIn.hasJustReleaseddNote();
+  }
+
+  public boolean hasJustReceivedNote() {
+    return transferIn.hasJustReceivedNote();
   }
 
   @Override

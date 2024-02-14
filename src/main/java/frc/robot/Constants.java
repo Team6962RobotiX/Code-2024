@@ -292,10 +292,6 @@ public final class Constants {
   }
 
   public static final class SHOOTER {
-    public static final class FEED_WHEELS {
-      public static final double NOTE_DETECTION_CURRENT = 10.0;
-    }
-
     public static final class WHEELS {
       public static final double GEARBOX_STEP_UP = 2.0;
       public static final double ENCODER_CONVERSION_FACTOR = 2.0 * Math.PI * GEARBOX_STEP_UP;
@@ -343,10 +339,6 @@ public final class Constants {
   }
 
   public static final class AMP {
-    public static final class WHEELS {
-      public static final double NOTE_DETECTION_CURRENT = 10.0;
-    }
-
     public static final class PIVOT {
       public static final double GEARBOX_REDUCTION = 60.6666;
       public static final double ENCODER_CONVERSION_FACTOR = 2.0 * Math.PI / GEARBOX_REDUCTION;
@@ -363,13 +355,5 @@ public final class Constants {
         public static final double MAX_ACCELERATION = 40.0; // rad/s^2
       }
     }
-  }
-
-  public static final class TRANSFER {
-    public static final double NOTE_DETECTION_CURRENT = 10.0;
-  }
-
-  public static final class INTAKE {
-    public static final double NOTE_DETECTION_CURRENT = 10.0;
   }
 }

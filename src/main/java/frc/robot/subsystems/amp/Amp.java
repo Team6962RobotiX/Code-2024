@@ -61,7 +61,7 @@ public class Amp extends SubsystemBase {
           pivot.setTargetAngle(Presets.AMP.PIVOT.INTAKE_ANGLE),
           Commands.waitUntil(() -> pivot.doneMoving()),
           wheels.setState(AmpWheels.State.IN),
-          Commands.waitUntil(() -> hasNote()),
+          Commands.waitUntil(() -> hasJustReceivedNote()),
           wheels.setState(AmpWheels.State.OFF)
         );
       case UP:
@@ -86,8 +86,12 @@ public class Amp extends SubsystemBase {
     return null;
   }
 
-  public boolean hasNote() {
-    return wheels.hasNote();
+  public boolean hasJustReleaseddNote() {
+    return wheels.hasJustReleaseddNote();
+  }
+
+  public boolean hasJustReceivedNote() {
+    return wheels.hasJustReceivedNote();
   }
 
   public boolean doneMoving() {

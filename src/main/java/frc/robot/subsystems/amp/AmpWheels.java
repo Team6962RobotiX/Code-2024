@@ -26,7 +26,6 @@ import frc.robot.Constants.CAN;
 import frc.robot.Constants.ENABLED_SYSTEMS;
 import frc.robot.Constants.NEO;
 import frc.robot.Constants.AMP.PIVOT;
-import frc.robot.Constants.AMP.WHEELS;
 
 
 
@@ -55,13 +54,14 @@ public class AmpWheels extends SubsystemBase {
       () -> motor.burnFlash()
     ));
 
-    detector = new NoteDetector(motor, WHEELS.NOTE_DETECTION_CURRENT);
+    detector = new NoteDetector(motor);
 
     String logPath = "amp-wheels/";
     Logger.autoLog(logPath + "current",                 () -> motor.getOutputCurrent());
     Logger.autoLog(logPath + "appliedOutput",           () -> motor.getAppliedOutput());
     Logger.autoLog(logPath + "motorTemperature",        () -> motor.getMotorTemperature());
-    Logger.autoLog(logPath + "hasNote",                 () -> detector.hasNote());
+    Logger.autoLog(logPath + "hasJustReleaseddNote",    () -> detector.hasJustReleaseddNote());
+    Logger.autoLog(logPath + "hasJustReceivedNote",     () -> detector.hasJustReceivedNote());
 
     StatusChecks.addCheck("Amp Wheels Motor", () -> motor.getFaults() == 0);
   }
@@ -89,10 +89,14 @@ public class AmpWheels extends SubsystemBase {
     }
   }
 
-  public boolean hasNote() {
-    return detector.hasNote();
+  public boolean hasJustReleaseddNote() {
+    return detector.hasJustReleaseddNote();
   }
 
+  public boolean hasJustReceivedNote() {
+    return detector.hasJustReceivedNote();
+  }
+  
   @Override
   public void simulationPeriodic() {
     // This method will be called once per scheduler run during simulation

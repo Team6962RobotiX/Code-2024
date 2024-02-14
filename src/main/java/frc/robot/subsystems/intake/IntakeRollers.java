@@ -24,7 +24,6 @@ import frc.robot.util.StatusChecks;
 import frc.robot.util.Logging.Logger;
 import frc.robot.Constants;
 import frc.robot.Presets;
-import frc.robot.Constants.AMP.WHEELS;
 import frc.robot.Constants.CAN;
 import frc.robot.Constants.ENABLED_SYSTEMS;
 import frc.robot.Constants.NEO;
@@ -57,13 +56,14 @@ public class IntakeRollers extends SubsystemBase {
       () -> motor.burnFlash()
     ));
 
-    detector = new NoteDetector(motor, WHEELS.NOTE_DETECTION_CURRENT);
+    detector = new NoteDetector(motor);
 
     String logPath = "intake-wheels/";
     Logger.autoLog(logPath + "current",                 () -> motor.getOutputCurrent());
     Logger.autoLog(logPath + "appliedOutput",           () -> motor.getAppliedOutput());
     Logger.autoLog(logPath + "motorTemperature",        () -> motor.getMotorTemperature());
-    Logger.autoLog(logPath + "hasNote",                 () -> detector.hasNote());
+    Logger.autoLog(logPath + "hasJustReleaseddNote",    () -> detector.hasJustReleaseddNote());
+    Logger.autoLog(logPath + "hasJustReceivedNote",     () -> detector.hasJustReceivedNote());
 
     StatusChecks.addCheck("Intake Motor", () -> motor.getFaults() == 0);
   }
@@ -87,8 +87,12 @@ public class IntakeRollers extends SubsystemBase {
     }
   }
 
-  public boolean hasNote() {
-    return detector.hasNote();
+  public boolean hasJustReleaseddNote() {
+    return detector.hasJustReleaseddNote();
+  }
+
+  public boolean hasJustReceivedNote() {
+    return detector.hasJustReceivedNote();
   }
 
   @Override

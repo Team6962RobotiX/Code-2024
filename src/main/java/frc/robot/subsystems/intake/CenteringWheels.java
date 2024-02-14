@@ -18,14 +18,13 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 import frc.robot.commands.*;
 import frc.robot.subsystems.amp.AmpWheels;
-import frc.robot.subsystems.notes.NoteDetector;
 import frc.robot.util.ConfigUtils;
+import frc.robot.util.NoteDetector;
 import frc.robot.util.StatusChecks;
 import frc.robot.util.Logging.Logger;
 import frc.robot.Constants;
 import frc.robot.Presets;
 import frc.robot.Constants.AMP.PIVOT;
-import frc.robot.Constants.AMP.WHEELS;
 import frc.robot.Constants.CAN;
 import frc.robot.Constants.ENABLED_SYSTEMS;
 import frc.robot.Constants.NEO;
