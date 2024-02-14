@@ -76,8 +76,8 @@ public class ShooterWheels extends SubsystemBase {
     StatusChecks.addCheck("Shooter Wheels Motor", () -> motor.getFaults() == 0);
   }
 
-  public void setTargetVelocity(double angularVelocity) {
-    targetVelocity = angularVelocity;
+  public Command setTargetVelocity(double angularVelocity) {
+    return runOnce(() -> targetVelocity = angularVelocity);
   }
 
   public double getVelocity() {

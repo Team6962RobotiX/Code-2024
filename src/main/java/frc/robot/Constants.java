@@ -367,11 +367,9 @@ public final class Constants {
 
   public static final class TRANSFER {
     public static final double NOTE_DETECTION_CURRENT = 10.0;
-    public static final double POWER = 0.25;
   }
 
   public static final class INTAKE {
     public static final double NOTE_DETECTION_CURRENT = 10.0;
-    public static final double POWER = 0.25;
   }
 }

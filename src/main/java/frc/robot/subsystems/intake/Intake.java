@@ -33,9 +33,8 @@ import frc.robot.Constants.NEO;
 
 
 public class Intake extends SubsystemBase {
-  private CANSparkMax intakeMotor;
-  private CANSparkMax centeringMotor;
-  private NoteDetector detector;
+  private CenteringWheels centeringWheels;
+  private IntakeRollers intakeRollers;
  
   public static enum State {
     IN,
@@ -45,61 +44,27 @@ public class Intake extends SubsystemBase {
 
   public Intake() {
     if (!ENABLED_SYSTEMS.ENABLE_INTAKE) return;
-    
-    intakeMotor = new CANSparkMax(CAN.INTAKE, MotorType.kBrushless);
-    centeringMotor = new CANSparkMax(CAN.CENTERING, MotorType.kBrushless);
 
-    ConfigUtils.configure(List.of(
-      () -> intakeMotor.restoreFactoryDefaults(),
-      () -> { intakeMotor.setInverted(false); return true; },
-      () -> intakeMotor.setIdleMode(IdleMode.kBrake),
-      () -> intakeMotor.enableVoltageCompensation(12.0),
-      () -> intakeMotor.setSmartCurrentLimit(NEO.SAFE_STALL_CURRENT, PIVOT.PROFILE.CURRENT_LIMIT),
-      () -> intakeMotor.setClosedLoopRampRate(NEO.SAFE_RAMP_RATE),
-      () -> intakeMotor.burnFlash(),
-
-      () -> centeringMotor.restoreFactoryDefaults(),
-      () -> { centeringMotor.setInverted(false); return true; },
-      () -> centeringMotor.setIdleMode(IdleMode.kBrake),
-      () -> centeringMotor.enableVoltageCompensation(12.0),
-      () -> centeringMotor.setSmartCurrentLimit(NEO.SAFE_STALL_CURRENT, PIVOT.PROFILE.CURRENT_LIMIT),
-      () -> centeringMotor.setClosedLoopRampRate(NEO.SAFE_RAMP_RATE),
-      () -> centeringMotor.burnFlash()
-    ));
-
-    detector = new NoteDetector(intakeMotor, WHEELS.NOTE_DETECTION_CURRENT);
-
-    String logPath = "intake-wheels/";
-    Logger.autoLog(logPath + "current",                 () -> intakeMotor.getOutputCurrent());
-    Logger.autoLog(logPath + "appliedOutput",           () -> intakeMotor.getAppliedOutput());
-    Logger.autoLog(logPath + "motorTemperature",        () -> intakeMotor.getMotorTemperature());
-    Logger.autoLog(logPath + "hasNote",                 () -> detector.hasNote());
-
-    logPath = "intake-centering-wheels/";
-    Logger.autoLog(logPath + "current",                 () -> centeringMotor.getOutputCurrent());
-    Logger.autoLog(logPath + "appliedOutput",           () -> centeringMotor.getAppliedOutput());
-    Logger.autoLog(logPath + "motorTemperature",        () -> centeringMotor.getMotorTemperature());
-
-    StatusChecks.addCheck("Intake Motor", () -> intakeMotor.getFaults() == 0);
-    StatusChecks.addCheck("Intake Centering Motor", () -> centeringMotor.getFaults() == 0);
+    intakeRollers = new IntakeRollers();
+    centeringWheels = new CenteringWheels();
   }
 
   public Command setState(State state) {
     switch(state) {
       case IN:
         return Commands.sequence( 
-          runOnce(() -> intakeMotor.set(-Presets.INTAKE.INTAKE_ROLLER_POWER)),
-          runOnce(() -> centeringMotor.set(Presets.INTAKE.CENTERING_WHEEL_POWER))
+          intakeRollers.setState(IntakeRollers.State.IN),
+          centeringWheels.setState(CenteringWheels.State.IN)
         );
       case OUT:
         return Commands.sequence( 
-          runOnce(() -> intakeMotor.set(Presets.INTAKE.INTAKE_ROLLER_POWER)),
-          runOnce(() -> centeringMotor.set(-Presets.INTAKE.CENTERING_WHEEL_POWER))
+          intakeRollers.setState(IntakeRollers.State.OUT),
+          centeringWheels.setState(CenteringWheels.State.OUT)
         );
       case OFF:
         return Commands.sequence( 
-          runOnce(() -> intakeMotor.set(0.0)),
-          runOnce(() -> centeringMotor.set(0.0))
+          intakeRollers.setState(IntakeRollers.State.OFF),
+          centeringWheels.setState(CenteringWheels.State.OFF)
         );
     }
     return null;
@@ -111,7 +76,7 @@ public class Intake extends SubsystemBase {
   }
 
   public boolean hasNote() {
-    return detector.hasNote();
+    return intakeRollers.hasNote();
   }
 
   @Override

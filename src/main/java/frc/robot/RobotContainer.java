@@ -88,8 +88,6 @@ public class RobotContainer {
     
     operatorController.a().onTrue(amp.setState(Amp.State.OUT));
     operatorController.b().onTrue(amp.setState(Amp.State.IN));
-    
-    
     operatorController.rightBumper().onTrue(stateController.setState(State.PICKUP));
   }
 

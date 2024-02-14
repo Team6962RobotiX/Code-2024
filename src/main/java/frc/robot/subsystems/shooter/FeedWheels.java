@@ -16,8 +16,8 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 import frc.robot.commands.*;
-import frc.robot.subsystems.notes.NoteDetector;
 import frc.robot.util.ConfigUtils;
+import frc.robot.util.NoteDetector;
 import frc.robot.util.StatusChecks;
 import frc.robot.util.Logging.Logger;
 import frc.robot.Constants;
@@ -64,8 +64,8 @@ public class FeedWheels extends SubsystemBase {
     StatusChecks.addCheck("Shooter Feed Wheels Motor", () -> motor.getFaults() == 0);
   }
 
-  public void setState(State newState) {
-    state = newState;
+  public Command setState(State state) {
+    return runOnce(() -> this.state = state);
   }
 
   @Override
@@ -78,9 +78,11 @@ public class FeedWheels extends SubsystemBase {
         break;
       case IN:
         motor.set(Presets.SHOOTER.FEED.POWER);
+        detector.run();
         break;
       case OUT:
         motor.set(-Presets.SHOOTER.FEED.POWER);
+        detector.run();
         break;
     }
   }

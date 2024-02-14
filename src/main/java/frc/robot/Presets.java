@@ -61,4 +61,9 @@ public final class Presets {
     public static final double CENTERING_WHEEL_POWER = 0.2;
     public static final double INTAKE_ROLLER_POWER = 0.3;
   }
+
+  public static final class TRANSFER {
+    public static final double IN_POWER = 0.25;
+    public static final double OUT_POWER = 0.25;
+  }
 }

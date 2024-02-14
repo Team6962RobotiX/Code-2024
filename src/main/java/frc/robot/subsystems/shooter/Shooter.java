@@ -62,36 +62,36 @@ public class Shooter extends SubsystemBase {
     switch(state) {
       case IN:
         return Commands.sequence( 
-          runOnce(() -> shooterPivot.setTargetAngle(Presets.SHOOTER.PIVOT.INTAKE_ANGLE)),
-          runOnce(() -> shooterWheels.setTargetVelocity(0.0)),
+          shooterPivot.setTargetAngle(Presets.SHOOTER.PIVOT.INTAKE_ANGLE),
+          shooterWheels.setTargetVelocity(0.0),
           Commands.waitUntil(() -> shooterPivot.doneMoving()),
-          runOnce(() -> feedWheels.setState(FeedWheels.State.IN)),
+          feedWheels.setState(FeedWheels.State.IN),
           Commands.waitUntil(() -> hasNote()),
-          runOnce(() -> feedWheels.setState(FeedWheels.State.OFF))
+          feedWheels.setState(FeedWheels.State.OFF)
         );
       case AIM:
         return Commands.sequence( 
-          runOnce(() -> aim(Field.SPEAKER)),
-          runOnce(() -> shooterWheels.setTargetVelocity(0.0)),
-          runOnce(() -> feedWheels.setState(FeedWheels.State.OFF))
+          aim(Field.SPEAKER),
+          shooterWheels.setTargetVelocity(0.0),
+          feedWheels.setState(FeedWheels.State.OFF)
         );
       case SHOOT:
         return Commands.sequence( 
           setState(State.AIM),
-          Commands.runOnce(() -> shooterWheels.setTargetVelocity(Presets.SHOOTER.WHEELS.TARGET_SPEED)),
-          Commands.runOnce(() -> feedWheels.setState(FeedWheels.State.IN)).onlyIf(() -> getShotChance() > 0.9)
+          shooterWheels.setTargetVelocity(Presets.SHOOTER.WHEELS.TARGET_SPEED),
+          feedWheels.setState(FeedWheels.State.IN).onlyIf(() -> getShotChance() > 0.9)
         );
       case OFF:
         return Commands.sequence( 
-          runOnce(() -> shooterPivot.setTargetAngle(shooterPivot.getPosition())),
-          runOnce(() -> shooterWheels.setTargetVelocity(0.0)),
-          runOnce(() -> feedWheels.setState(FeedWheels.State.OFF))
+          shooterPivot.setTargetAngle(shooterPivot.getPosition()),
+          shooterWheels.setTargetVelocity(0.0),
+          feedWheels.setState(FeedWheels.State.OFF)
         );
     }
     return null;
   }
 
-  public void aim(Translation3d point) {
+  public Command aim(Translation3d point) {
     // Calculate point to aim towards, accounting for current velocity
     Translation3d velocityCompensatedPoint = ShooterMath.calcVelocityCompensatedPoint(
       point,
@@ -106,7 +106,7 @@ public class Shooter extends SubsystemBase {
       shooterWheels.getVelocity()
     ));
 
-    orientToPointDelayCompensated(velocityCompensatedPoint);
+    return runOnce(() -> orientToPointDelayCompensated(velocityCompensatedPoint));
   }
 
   public boolean doneMoving() {

@@ -58,29 +58,29 @@ public class Amp extends SubsystemBase {
     switch(state) {
       case IN:
         return Commands.sequence( 
-          runOnce(() -> pivot.setTargetAngle(Presets.AMP.PIVOT.INTAKE_ANGLE)),
+          pivot.setTargetAngle(Presets.AMP.PIVOT.INTAKE_ANGLE),
           Commands.waitUntil(() -> pivot.doneMoving()),
-          runOnce(() -> wheels.setState(AmpWheels.State.IN)),
+          wheels.setState(AmpWheels.State.IN),
           Commands.waitUntil(() -> hasNote()),
-          runOnce(() -> wheels.setState(AmpWheels.State.OFF))
+          wheels.setState(AmpWheels.State.OFF)
         );
       case UP:
         return Commands.sequence( 
-          runOnce(() -> pivot.setTargetAngle(Presets.AMP.PIVOT.OUTPUT_ANGLE)),
-          runOnce(() -> wheels.setState(AmpWheels.State.OFF))
+          pivot.setTargetAngle(Presets.AMP.PIVOT.OUTPUT_ANGLE),
+          wheels.setState(AmpWheels.State.OFF)
         );
       case OUT:
         return Commands.sequence( 
-          runOnce(() -> pivot.setTargetAngle(Presets.AMP.PIVOT.OUTPUT_ANGLE)),
+          pivot.setTargetAngle(Presets.AMP.PIVOT.OUTPUT_ANGLE),
           Commands.waitUntil(() -> pivot.doneMoving()),
-          runOnce(() -> wheels.setState(AmpWheels.State.OUT)),
+          wheels.setState(AmpWheels.State.OUT),
           Commands.waitSeconds(1.0),
-          runOnce(() -> wheels.setState(AmpWheels.State.OFF))
+          wheels.setState(AmpWheels.State.OFF)
         );
       case OFF:
         return Commands.sequence( 
-          runOnce(() -> wheels.setState(AmpWheels.State.OFF)),
-          runOnce(() -> pivot.setTargetAngle(pivot.getPosition()))
+          wheels.setState(AmpWheels.State.OFF),
+          pivot.setTargetAngle(pivot.getPosition())
         );
     }
     return null;

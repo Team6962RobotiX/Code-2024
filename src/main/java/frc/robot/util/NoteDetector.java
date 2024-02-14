@@ -1,4 +1,4 @@
-package frc.robot.subsystems.notes;
+package frc.robot.util;
 
 import com.revrobotics.CANSparkMax;
 
@@ -6,7 +6,7 @@ import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.filter.MedianFilter;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
-public class NoteDetector extends SubsystemBase {
+public class NoteDetector {
   double currentThreshold;
   CANSparkMax motor;
   Debouncer debouncer = new Debouncer(0.25, Debouncer.DebounceType.kRising);
@@ -22,8 +22,7 @@ public class NoteDetector extends SubsystemBase {
     return hasNote;
   }
 
-  @Override
-  public void periodic() {
+  public void run() {
     double filteredCurrent = medianFilter.calculate(motor.getOutputCurrent());
     hasNote = debouncer.calculate(filteredCurrent > currentThreshold) || hasNote;
   }
