@@ -43,13 +43,13 @@ public class RobotContainer {
 
   // The robot's subsystems and commands
   private final XboxController controller = new XboxController(DEVICES.USB_XBOX_CONTROLLER);
-  private final XboxController xboxController = new XboxController(DEVICES.USB_XBOX_CONTROLLER);
-  private final SwerveDrive swerveDrive = new SwerveDrive();
-  private final ShooterWheels shooterWheels = new ShooterWheels(swerveDrive);
-  private final ShooterPivot shooterPivot = new ShooterPivot(shooterWheels, swerveDrive);
+  //private final XboxController xboxController = new XboxController(DEVICES.USB_XBOX_CONTROLLER);
+  //private final SwerveDrive swerveDrive = new SwerveDrive();
+  // private final ShooterWheels shooterWheels = new ShooterWheels(swerveDrive);
+  // private final ShooterPivot shooterPivot = new ShooterPivot(shooterWheels, swerveDrive);
 
   // Simulation only - getPose() does not work in real life
-  private final Camera camera = new Camera(Constants.LIMELIGHT.NAME, swerveDrive::getPose, swerveDrive);
+  private final Camera camera = new Camera(Constants.LIMELIGHT.NAME);
 
   
 
@@ -63,27 +63,28 @@ public class RobotContainer {
     Logger.autoLog("PDH", new PowerDistribution(CAN.PDH, ModuleType.kRev));
     Logger.startLog();
 
-    swerveDrive.setDefaultCommand(new XBoxSwerve(swerveDrive, () -> xboxController));
+    //swerveDrive.setDefaultCommand(new XBoxSwerve(swerveDrive, () -> xboxController));
     
-    calibrationChooser.setDefaultOption("Calibrate Drive Motor (FL)", swerveDrive.modules[0].calibrateDriveMotor());
-    calibrationChooser.setDefaultOption("Calibrate Steer Motor (FL)", swerveDrive.modules[0].calibrateSteerMotor());
+    //calibrationChooser.setDefaultOption("Calibrate Drive Motor (FL)", swerveDrive.modules[0].calibrateDriveMotor());
+    //calibrationChooser.setDefaultOption("Calibrate Steer Motor (FL)", swerveDrive.modules[0].calibrateSteerMotor());
     SmartDashboard.putData("Swerve Module Calibration", calibrationChooser);
 
     // Configure the trigger bindings
-    configureBindings();
+   // configureBindings();
     
     SwerveDrive.printChoreoConfig();
   }
 
-  private void configureBindings() {
-    new JoystickButton(controller, XboxController.Button.kA.value).whileTrue(new AutoDeccel(swerveDrive, camera));
-    new JoystickButton(controller, 6).whileTrue(new AutoOrient(camera, swerveDrive));
+  //private void configureBindings() {
+    //new JoystickButton(controller, XboxController.Button.kA.value).whileTrue(new AutoDeccel(swerveDrive, camera));
+    //new JoystickButton(controller, 6).whileTrue(new AutoOrient(camera, swerveDrive));
 
-  }
+  //}
 
   public Command getAutonomousCommand() {
+    return null;
     // return swerveDrive.goTo(new Translation2d(5.0, 5.0), Rotation2d.fromDegrees(90.0));
-    return swerveDrive.followChoreoTrajectory("simple", true);
+    //return swerveDrive.followChoreoTrajectory("simple", true);
   }
 
   public void disabledPeriodic() {

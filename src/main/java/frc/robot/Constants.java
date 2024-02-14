@@ -311,6 +311,7 @@ public final class Constants {
     
     public static final double CAM_PITCH = 0.0; //Degrees (CHANGE)
     public static final double CAM_HEIGHT_OFF_GROUND = 1.0; //Meters (CHANGE)
+    public static final double CHAIR_HEIGHT_OFF_GROUND = 0.8; //Meters
 
     public static final double FOV_HEIGHT = 59.6; //Degrees
     public static final double FOV_WIDTH = 49.7; //Degrees

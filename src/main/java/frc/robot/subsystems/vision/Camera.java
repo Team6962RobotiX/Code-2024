@@ -79,6 +79,7 @@ public class Camera extends SubsystemBase {
   private Supplier<Pose2d> poseSupplier;
   private SwerveDrive sDrive;
   private NetworkTableInstance inst;
+  private NetworkTable inet;
   private PhotonPoseEstimator photonPoseEstimator;
   private Pose2d previousPose;
 
@@ -135,16 +136,38 @@ public class Camera extends SubsystemBase {
     helpME = LimelightHelpers.getCameraPose3d_TargetSpace(name);
     System.out.println("botpose: " + helpME);  
     inst = NetworkTableInstance.getDefault();
-    NetworkTable inet = inst.getTable("limelight");
-    NetworkTableEntry tx = inet.getEntry("tx");
-    double x = tx.getDouble(0.0);
-    System.out.println("Distance: " + x);
+    inet = inst.getTable("limelight");
+    NetworkTableEntry ty = inet.getEntry("ty");
+    double y = ty.getDouble(0.0);
+    System.out.println("Distance: " + Constants.PHOTON_LIB.CHAIR_HEIGHT_OFF_GROUND*Math.tan(Math.PI/2+y*Math.PI/180));
 
    
   }
 
   public LimelightHelpers.Results getTargetingResults() {
     return limelightData.targetingResults;
+  }
+
+  public double getNoteDist(){
+    double y = getTY();
+    if (y != 0.0) {
+      return Constants.PHOTON_LIB.CHAIR_HEIGHT_OFF_GROUND*Math.tan(Math.PI/2+y*Math.PI/180);
+    }
+    else {
+      return 0;
+    }
+
+  }
+
+  public double getTY(){
+    NetworkTableEntry ty = inet.getEntry("ty");
+    return ty.getDouble(0.0);
+  }
+
+  public double getTX(){
+    NetworkTableEntry tx = inet.getEntry("tx");
+    return tx.getDouble(0.0);
+
   }
 
   public String getName() {
