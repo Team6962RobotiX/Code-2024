@@ -61,6 +61,7 @@ public class FeedWheels extends SubsystemBase {
     Logger.autoLog(logPath + "current",                 () -> motor.getOutputCurrent());
     Logger.autoLog(logPath + "appliedOutput",           () -> motor.getAppliedOutput());
     Logger.autoLog(logPath + "motorTemperature",        () -> motor.getMotorTemperature());
+    Logger.autoLog(logPath + "hasNote",                 () -> detector.hasNote());
 
     StatusChecks.addCheck("Shooter Feed Wheels Motor", () -> motor.getFaults() == 0);
   }

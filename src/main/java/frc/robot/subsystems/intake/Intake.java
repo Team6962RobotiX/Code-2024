@@ -66,10 +66,13 @@ public class Intake extends SubsystemBase {
       () -> centeringMotor.burnFlash()
     ));
 
+    detector = new NoteDetector(intakeMotor, WHEELS.NOTE_DETECTION_CURRENT);
+
     String logPath = "intake-wheels/";
     Logger.autoLog(logPath + "current",                 () -> intakeMotor.getOutputCurrent());
     Logger.autoLog(logPath + "appliedOutput",           () -> intakeMotor.getAppliedOutput());
     Logger.autoLog(logPath + "motorTemperature",        () -> intakeMotor.getMotorTemperature());
+    Logger.autoLog(logPath + "hasNote",                 () -> detector.hasNote());
 
     logPath = "intake-centering-wheels/";
     Logger.autoLog(logPath + "current",                 () -> centeringMotor.getOutputCurrent());
@@ -78,8 +81,6 @@ public class Intake extends SubsystemBase {
 
     StatusChecks.addCheck("Intake Motor", () -> intakeMotor.getFaults() == 0);
     StatusChecks.addCheck("Intake Centering Motor", () -> centeringMotor.getFaults() == 0);
-
-    detector = new NoteDetector(intakeMotor, WHEELS.NOTE_DETECTION_CURRENT);
   }
 
   public void setState(State newState) {

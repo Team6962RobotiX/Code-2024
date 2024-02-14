@@ -19,11 +19,7 @@ public class NoteDetector extends SubsystemBase {
   }
 
   public boolean hasNote() {
-    if (hasNote) {
-      hasNote = false;
-      return true;
-    }
-    return false;
+    return hasNote;
   }
 
   @Override

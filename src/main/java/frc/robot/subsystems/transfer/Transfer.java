@@ -68,7 +68,8 @@ public class Transfer extends SubsystemBase {
     Logger.autoLog(logPath + "current",                 () -> transferIn.getOutputCurrent());
     Logger.autoLog(logPath + "appliedOutput",           () -> transferIn.getAppliedOutput());
     Logger.autoLog(logPath + "motorTemperature",        () -> transferIn.getMotorTemperature());
-
+    Logger.autoLog(logPath + "hasNote",                 () -> detector.hasNote());
+    
     logPath = "transfer-out-wheels/";
     Logger.autoLog(logPath + "current",                 () -> transferOut.getOutputCurrent());
     Logger.autoLog(logPath + "appliedOutput",           () -> transferOut.getAppliedOutput());
