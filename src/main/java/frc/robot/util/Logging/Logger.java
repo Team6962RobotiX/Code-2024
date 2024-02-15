@@ -28,9 +28,17 @@ import frc.robot.Constants.LOGGING;
 public final class Logger {
   private static NetworkTable table = NetworkTableInstance.getDefault().getTable("Logs");
   private static Map<String, Supplier<Object>> entries = new HashMap<String, Supplier<Object>>();
+  private static Notifier notifier = new Notifier(
+    () -> {
+      try {
+        Logger.logAll();
+      } catch (Exception e) {
+        
+      }
+    }
+  );
 
   public static void startLog() {
-    Notifier notifier = new Notifier(() -> Logger.logAll());
     notifier.startPeriodic(LOGGING.LOGGING_PERIOD_MS / 1000.0);
   }
 

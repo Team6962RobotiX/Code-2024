@@ -20,6 +20,7 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.Constants.CAN;
 import frc.robot.Constants.DEVICES;
 import frc.robot.Constants.NEO;
+import frc.robot.Presets.SHOOTER;
 import frc.robot.commands.drive.XBoxSwerve;
 import frc.robot.subsystems.amp.Amp;
 import frc.robot.subsystems.amp.AmpPivot;
@@ -80,11 +81,12 @@ public class RobotContainer {
     configureBindings();
 
     SwerveDrive.printChoreoConfig();
-
   }
   
   private void configureBindings() {
-    
+    operatorController.y().onTrue(shooter.getFeedWheels().setState(FeedWheels.State.IN));
+
+
     operatorController.a().onTrue(amp.setState(Amp.State.OUT));
     operatorController.b().onTrue(amp.setState(Amp.State.DOWN));
     operatorController.rightBumper().whileTrue(intake.setState(Intake.State.IN));

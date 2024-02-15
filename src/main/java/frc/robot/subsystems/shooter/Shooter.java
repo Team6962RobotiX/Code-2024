@@ -91,6 +91,14 @@ public class Shooter extends SubsystemBase {
     return null;
   }
 
+  public ShooterWheels getShooterWheels() {
+    return shooterWheels;
+  }
+
+  public FeedWheels getFeedWheels() {
+    return feedWheels;
+  }
+
   public Command aim(Translation3d point) {
     // Calculate point to aim towards, accounting for current velocity
     Translation3d velocityCompensatedPoint = ShooterMath.calcVelocityCompensatedPoint(
@@ -140,6 +148,6 @@ public class Shooter extends SubsystemBase {
     Rotation2d newTargetHeading = pointToAimTo.toTranslation2d().minus(swerveDrive.getPose().getTranslation()).getAngle();
     headingVelocity = newTargetHeading.minus(targetHeading).getRadians() / 0.02;
     targetHeading = newTargetHeading;
-    swerveDrive.setTargetHeading(targetHeading.plus(Rotation2d.fromRadians(headingVelocity * PIVOT.ROTATION_DELAY)));
+    // swerveDrive.setTargetHeading(targetHeading.plus(Rotation2d.fromRadians(headingVelocity * PIVOT.ROTATION_DELAY)));
   }
 }

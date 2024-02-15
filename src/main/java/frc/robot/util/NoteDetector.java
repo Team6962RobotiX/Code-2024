@@ -5,6 +5,7 @@ import com.revrobotics.CANSparkMax;
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.math.filter.MedianFilter;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.Presets;
@@ -22,7 +23,7 @@ public class NoteDetector extends SubsystemBase {
   
   public NoteDetector(CANSparkMax motor) {
     this.motor = motor;
-    Logger.autoLog("NoteDetectors/" + motor.getDeviceId() + "/CURRENT_SPIKE", () -> impulse);
+    Logger.autoLog("NoteDetectors/" + motor.getDeviceId() + "/SPIKE", () -> impulse);
   }
 
   public boolean hasJustReceivedNote() {
@@ -35,9 +36,8 @@ public class NoteDetector extends SubsystemBase {
 
   @Override
   public void periodic() {
-    double appliedOutput = motor.getAppliedOutput();
     double output = motor.get();
-    if (appliedOutput == 0.0 || output == 0.0 || appliedOutput != output) {
+    if (output == 0.0) {
       impulse = 0.0;
       delay = 0;
       return;

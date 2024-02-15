@@ -36,7 +36,7 @@ import frc.robot.util.Logging.Logger;
 
 public class ShooterWheels extends SubsystemBase {
   private double targetVelocity = 0.0;
-  private CANSparkMax motor;
+  private CANSparkMax motor, motorFollower;
   private RelativeEncoder encoder;
   private SparkPIDController pid;
   private SimpleMotorFeedforward feedforward = new SimpleMotorFeedforward(WHEELS.PROFILE.kS, WHEELS.PROFILE.kV, WHEELS.PROFILE.kA);
@@ -46,13 +46,16 @@ public class ShooterWheels extends SubsystemBase {
     if (!ENABLED_SYSTEMS.ENABLE_SHOOTER) return;
 
     motor = new CANSparkMax(CAN.SHOOTER_WHEELS_BOTTOM, MotorType.kBrushless);
+    motorFollower = new CANSparkMax(CAN.SHOOTER_WHEELS_TOP, MotorType.kBrushless);
+    
     encoder = motor.getEncoder();
     pid = motor.getPIDController();
     
 
     ConfigUtils.configure(List.of(
       () -> motor.restoreFactoryDefaults(),
-      () -> { motor.setInverted(false); return true; },
+      () -> motorFollower.follow(motor, true),
+      () -> { motor.setInverted(true); return true; },
       () -> motor.setIdleMode(IdleMode.kCoast),
       () -> motor.enableVoltageCompensation(12.0),
       () -> motor.setSmartCurrentLimit(NEO.SAFE_STALL_CURRENT, WHEELS.PROFILE.CURRENT_LIMIT),
@@ -82,7 +85,7 @@ public class ShooterWheels extends SubsystemBase {
   }
 
   public double getVelocity() {
-    return Presets.SHOOTER.WHEELS.TARGET_SPEED;
+    return encoder.getVelocity();
   }
 
   @Override
@@ -93,9 +96,7 @@ public class ShooterWheels extends SubsystemBase {
     pid.setReference(
       targetVelocity,
       ControlType.kVelocity,
-      0,
-      feedforward.calculate(targetVelocity, 0.0),
-      ArbFFUnits.kVoltage
+      0
     );
   }
 

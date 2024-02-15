@@ -60,6 +60,10 @@ public class CenteringWheels extends SubsystemBase {
     Logger.autoLog(logPath + "appliedOutput",           () -> motor.getAppliedOutput());
     Logger.autoLog(logPath + "motorTemperature",        () -> motor.getMotorTemperature());
 
+    RelativeEncoder encoder = motor.getEncoder();
+
+    Logger.autoLog(logPath + "velocity",        () -> encoder.getVelocity());
+
     StatusChecks.addCheck("Intake Centering Motor", () -> motor.getFaults() == 0);
   }
 

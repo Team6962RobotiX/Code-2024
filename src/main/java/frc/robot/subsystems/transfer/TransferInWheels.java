@@ -42,7 +42,7 @@ public class TransferInWheels extends SubsystemBase {
     ConfigUtils.configure(List.of(
       () -> motor.restoreFactoryDefaults(),
       () -> { motor.setInverted(true); return true; },
-      () -> motor.setIdleMode(IdleMode.kBrake),
+      () -> motor.setIdleMode(IdleMode.kCoast),
       () -> motor.enableVoltageCompensation(12.0),
       () -> motor.setSmartCurrentLimit(NEO.SAFE_STALL_CURRENT, PIVOT.PROFILE.CURRENT_LIMIT),
       () -> motor.setClosedLoopRampRate(PIVOT.PROFILE.RAMP_RATE),

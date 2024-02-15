@@ -76,7 +76,7 @@ public class PivotController {
       () -> motor.burnFlash()
     ));
 
-    new TunableNumber("Pivot PID", pid::setP, 0.01);
+    new TunableNumber("Pivot PID " + motor.getDeviceId(), pid::setP, 0.01);
   }
 
   public void run() {

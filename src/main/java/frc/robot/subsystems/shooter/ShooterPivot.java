@@ -55,7 +55,7 @@ public class ShooterPivot extends SubsystemBase {
 
     controller = new PivotController(
       motor,
-      DIO.AMP_PIVOT,
+      DIO.SHOOTER_PIVOT,
       PIVOT.ABSOLUTE_POSITION_OFFSET,
       PIVOT.PROFILE.kP,
       PIVOT.GEARBOX_REDUCTION,
@@ -71,14 +71,14 @@ public class ShooterPivot extends SubsystemBase {
     Logger.autoLog(logPath + "position",                () -> controller.getPosition().getRadians());
     Logger.autoLog(logPath + "absolutePosition",        () -> controller.getAbsolutePosition().getRadians());
 
-    StatusChecks.addCheck("Amp Pivot Motor", () -> motor.getFaults() == 0);
+    StatusChecks.addCheck("Shooter Pivot Motor", () -> motor.getFaults() == 0);
   }
 
   @Override
   public void periodic() {
-    if (!ENABLED_SYSTEMS.ENABLE_AMP) return;
+    if (!ENABLED_SYSTEMS.ENABLE_SHOOTER) return;
     if (isCalibrating) return;
-    controller.run();
+    // controller.run();
   }
 
   public Command setTargetAngle(Rotation2d angle) {

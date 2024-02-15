@@ -72,15 +72,18 @@ public class Intake extends SubsystemBase {
   @Override
   public void periodic() {
     if (!ENABLED_SYSTEMS.ENABLE_INTAKE) return;
+    if (hasJustReceivedNote()) {
+      setState(State.OFF).schedule();
+    }
   }
 
-  /*public boolean hasJustReleaseddNote() {
+  public boolean hasJustReleaseddNote() {
     return intakeRollers.hasJustReleaseddNote();
   }
 
   public boolean hasJustReceivedNote() {
     return intakeRollers.hasJustReceivedNote();
-  }*/ 
+  }
 
   @Override
   public void simulationPeriodic() {

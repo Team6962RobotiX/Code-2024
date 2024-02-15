@@ -26,7 +26,8 @@ public class LEDs extends SubsystemBase {
 
   @Override
   public void periodic() {
-    setColorWave(0, length, new int[] {255, 20, 0});
+    // setColorWave(0, length, new int[] {255, 20, 0});
+    setRainbow(0, length);
     strip.setData(buffer);
     clear();
   }
