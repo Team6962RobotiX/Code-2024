@@ -57,7 +57,6 @@ public class RobotStateController extends SubsystemBase {
       case PICKUP:
         command = Commands.sequence(
           intake.setState(Intake.State.IN),
-          Commands.waitUntil(() -> intake.hasJustReceivedNote()),
           transfer.setState(Transfer.State.IN),
           Commands.waitUntil(() -> transfer.hasJustReceivedNote()),
           transfer.setState(Transfer.State.OFF),
@@ -67,9 +66,13 @@ public class RobotStateController extends SubsystemBase {
       case LOAD_AMP:
         command = Commands.sequence(
           amp.setState(Amp.State.DOWN),
-          transfer.setState(Transfer.State.AMP),
           amp.setState(Amp.State.IN),
-          transfer.setState(Transfer.State.OFF)
+          Commands.waitSeconds(0.25),
+          transfer.setState(Transfer.State.AMP),
+          Commands.waitUntil(() -> amp.hasJustReceivedNote()),
+          transfer.setState(Transfer.State.OFF),
+          amp.setState(Amp.State.OFF),
+          amp.setState(Amp.State.UP)
         );
         break;
       case LOAD_SHOOTER:
@@ -86,7 +89,7 @@ public class RobotStateController extends SubsystemBase {
       case PLACE_AMP:
         command = Commands.sequence(
           amp.setState(Amp.State.OUT),
-          transfer.setState(Transfer.State.OFF)
+          Commands.waitUntil(() -> amp.hasJustReleaseddNote())
         );
         break;
       case SHOOT:

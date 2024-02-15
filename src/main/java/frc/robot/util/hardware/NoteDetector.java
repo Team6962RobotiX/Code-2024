@@ -43,12 +43,12 @@ public class NoteDetector extends SubsystemBase {
       return;
     }
     
-    if (delay <= 0.1 / 0.02) {
+    if (delay <= 0.25 / 0.02) {
       impulse = 0.0;
       delay++;
       return;
     }
 
-    impulse = filter.calculate(motor.getOutputCurrent() / motor.get());
+    impulse = filter.calculate(motor.getOutputCurrent());
   }
 }

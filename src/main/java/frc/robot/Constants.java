@@ -338,7 +338,7 @@ public final class Constants {
     public static final class PIVOT {
       public static final double GEARBOX_REDUCTION = 60.6666;
       public static final double ENCODER_CONVERSION_FACTOR = 2.0 * Math.PI / GEARBOX_REDUCTION;
-      public static final Rotation2d ANGLE_TOLERANCE = Rotation2d.fromDegrees(0.5);
+      public static final Rotation2d ANGLE_TOLERANCE = Rotation2d.fromDegrees(5.0);
       public static final double CoM_DISTANCE = Units.inchesToMeters(9.5);
       public static final double MASS = Units.lbsToKilograms(4.0);
       public static final double MOI = (1.0 / 3.0) * MASS * Math.pow(CoM_DISTANCE, 2.0);

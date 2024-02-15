@@ -41,6 +41,7 @@ public class Amp extends SubsystemBase {
     OUT,
     IN,
     DOWN,
+    UP,
     OFF
   }
 
@@ -59,28 +60,24 @@ public class Amp extends SubsystemBase {
     switch(state) {
       case IN:
         return Commands.sequence( 
-          setState(State.DOWN),
-          wheels.setState(AmpWheels.State.IN),
-          Commands.waitUntil(() -> hasJustReceivedNote()),
-          wheels.setState(AmpWheels.State.OFF),
-          pivot.setTargetAngle(Presets.AMP.PIVOT.OUTPUT_ANGLE),
-          Commands.waitUntil(() -> pivot.doneMoving())
+          wheels.setState(AmpWheels.State.IN)
         );
       case DOWN:
         return Commands.sequence( 
           pivot.setTargetAngle(Presets.AMP.PIVOT.INTAKE_ANGLE),
           Commands.waitUntil(() -> pivot.doneMoving())
         );
+      case UP:
+        return Commands.sequence(
+          pivot.setTargetAngle(Presets.AMP.PIVOT.OUTPUT_ANGLE),
+          Commands.waitUntil(() -> pivot.doneMoving())
+        );
       case OUT:
         return Commands.sequence( 
-          pivot.setTargetAngle(Presets.AMP.PIVOT.OUTPUT_ANGLE),
-          Commands.waitUntil(() -> pivot.doneMoving()),
-          wheels.setState(AmpWheels.State.OUT),
-          Commands.waitUntil(() -> hasJustReleaseddNote()),
-          wheels.setState(AmpWheels.State.OFF)
+          wheels.setState(AmpWheels.State.OUT)
         );
       case OFF:
-        return Commands.sequence( 
+        return Commands.sequence(
           wheels.setState(AmpWheels.State.OFF),
           pivot.setTargetAngle(pivot.getPosition())
         );
