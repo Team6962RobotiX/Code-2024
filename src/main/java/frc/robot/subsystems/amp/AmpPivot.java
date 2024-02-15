@@ -81,7 +81,7 @@ public class AmpPivot extends SubsystemBase {
   }
 
   public boolean doneMoving() {
-    return Math.abs(getPosition().minus(controller.getTargetAngle()).getRadians()) < PIVOT.ANGLE_TOLERANCE.getRadians();
+    return Math.abs(getPosition().getRadians() - controller.getTargetAngle().getRadians()) < PIVOT.ANGLE_TOLERANCE.getRadians();
   }
 
   public Command calibrate() {

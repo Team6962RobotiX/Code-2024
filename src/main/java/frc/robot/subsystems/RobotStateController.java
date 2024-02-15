@@ -67,21 +67,21 @@ public class RobotStateController extends SubsystemBase {
         command = Commands.sequence(
           amp.setState(Amp.State.DOWN),
           amp.setState(Amp.State.IN),
-          Commands.waitSeconds(0.25),
           transfer.setState(Transfer.State.AMP),
-          Commands.waitUntil(() -> amp.hasJustReceivedNote()),
+          Commands.waitUntil(() -> transfer.hasJustReleaseddNote()),
           transfer.setState(Transfer.State.OFF),
           amp.setState(Amp.State.OFF),
-          amp.setState(Amp.State.UP)
+          amp.setState(Amp.State.UP),
+          Commands.waitUntil(() -> amp.doneMoving())
         );
         break;
       case LOAD_SHOOTER:
         command = Commands.sequence(
           shooter.setState(Shooter.State.IN),
-          Commands.waitUntil(() -> shooter.doneMoving()),
+          // Commands.waitUntil(() -> shooter.doneMoving()),
           transfer.setState(Transfer.State.SHOOTER),
-          shooter.setState(Shooter.State.IN),
-          Commands.waitUntil(() -> shooter.hasJustReceivedNote()),
+          Commands.waitUntil(() -> transfer.hasJustReleaseddNote()),
+          Commands.waitSeconds(0.25),
           shooter.setState(Shooter.State.OFF),
           transfer.setState(Transfer.State.OFF)
         );
@@ -89,7 +89,7 @@ public class RobotStateController extends SubsystemBase {
       case PLACE_AMP:
         command = Commands.sequence(
           amp.setState(Amp.State.OUT),
-          Commands.waitUntil(() -> amp.hasJustReleaseddNote())
+          Commands.waitSeconds(2.0)
         );
         break;
       case SHOOT:

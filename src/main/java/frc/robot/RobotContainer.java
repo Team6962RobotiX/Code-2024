@@ -83,9 +83,15 @@ public class RobotContainer {
   }
   
   private void configureBindings() {
-    operatorController.rightBumper().whileTrue(stateController.setState(State.PICKUP));
-    operatorController.leftStick().whileTrue(stateController.setState(State.LOAD_AMP));
-    operatorController.rightTrigger().whileTrue(stateController.setState(State.PLACE_AMP));
+    operatorController.a().onTrue(stateController.setState(State.PICKUP));
+    operatorController.y().onTrue(stateController.setState(State.LOAD_SHOOTER));
+
+    operatorController.x().onTrue(stateController.setState(State.SHOOT));
+
+
+    operatorController.leftBumper().onTrue(stateController.setState(State.PICKUP));
+    operatorController.rightBumper().onTrue(stateController.setState(State.LOAD_AMP));
+    operatorController.rightTrigger().onTrue(stateController.setState(State.PLACE_AMP));
   }
 
   public Command getAutonomousCommand() {

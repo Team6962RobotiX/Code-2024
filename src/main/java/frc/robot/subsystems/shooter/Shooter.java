@@ -14,6 +14,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.ENABLED_SYSTEMS;
+import frc.robot.Constants.SHOOTER;
 import frc.robot.Constants.SHOOTER.PIVOT;
 import frc.robot.Field;
 import frc.robot.Presets;
@@ -62,12 +63,10 @@ public class Shooter extends SubsystemBase {
     switch(state) {
       case IN:
         return Commands.sequence( 
-          shooterPivot.setTargetAngle(Presets.SHOOTER.PIVOT.INTAKE_ANGLE),
-          shooterWheels.setTargetVelocity(0.0),
-          Commands.waitUntil(() -> shooterPivot.doneMoving()),
-          feedWheels.setState(FeedWheels.State.IN),
-          Commands.waitUntil(() -> hasJustReceivedNote()),
-          feedWheels.setState(FeedWheels.State.OFF)
+          // shooterPivot.setTargetAngle(Presets.SHOOTER.PIVOT.INTAKE_ANGLE),
+          // shooterWheels.setTargetVelocity(0.0),
+          // Commands.waitUntil(() -> shooterPivot.doneMoving()),
+          feedWheels.setState(FeedWheels.State.IN)
         );
       case AIM:
         return Commands.sequence( 
@@ -77,9 +76,10 @@ public class Shooter extends SubsystemBase {
         );
       case SHOOT:
         return Commands.sequence( 
-          setState(State.AIM),
+          // setState(State.AIM),
           shooterWheels.setTargetVelocity(Presets.SHOOTER.WHEELS.TARGET_SPEED),
-          feedWheels.setState(FeedWheels.State.IN).onlyIf(() -> getShotChance() > 0.9)
+          feedWheels.setState(FeedWheels.State.IN).onlyIf(() -> Math.abs(getShooterWheels().getVelocity()) > Presets.SHOOTER.WHEELS.TARGET_SPEED * 0.85),
+          Commands.waitSeconds(1.0)
         );
       case OFF:
         return Commands.sequence( 
