@@ -1,4 +1,4 @@
-package frc.robot.util.Logging;
+package frc.robot.util.software.Logging;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;
@@ -23,6 +23,7 @@ import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.LOGGING;
 
 public final class Logger {
@@ -60,6 +61,10 @@ public final class Logger {
 
   public static void autoLog(String key, Object obj) {
     autoLog(key, () -> obj);
+  }
+
+  public static void autoLog(SubsystemBase subsystem, String key, Supplier<Object> supplier) {
+    autoLog(subsystem.getClass().getSimpleName() + "/" + key, supplier);
   }
 
   public static void log(String key, Object obj) {

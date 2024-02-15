@@ -30,9 +30,9 @@ import frc.robot.Constants.ENABLED_SYSTEMS;
 import frc.robot.Constants.NEO;
 import frc.robot.Constants.SHOOTER.WHEELS;
 import frc.robot.Presets;
-import frc.robot.util.ConfigUtils;
-import frc.robot.util.StatusChecks;
-import frc.robot.util.Logging.Logger;
+import frc.robot.util.hardware.SparkMaxUtil;
+import frc.robot.util.software.Logging.Logger;
+import frc.robot.util.software.Logging.StatusChecks;
 
 public class ShooterWheels extends SubsystemBase {
   private double targetVelocity = 0.0;
@@ -50,34 +50,14 @@ public class ShooterWheels extends SubsystemBase {
     
     encoder = motor.getEncoder();
     pid = motor.getPIDController();
-    
 
-    ConfigUtils.configure(List.of(
-      () -> motor.restoreFactoryDefaults(),
-      () -> motorFollower.follow(motor, true),
-      () -> { motor.setInverted(true); return true; },
-      () -> motor.setIdleMode(IdleMode.kCoast),
-      () -> motor.enableVoltageCompensation(12.0),
-      () -> motor.setSmartCurrentLimit(NEO.SAFE_STALL_CURRENT, WHEELS.PROFILE.CURRENT_LIMIT),
-      () -> motor.setClosedLoopRampRate(WHEELS.PROFILE.RAMP_RATE),
-      () -> motor.setOpenLoopRampRate(NEO.SAFE_RAMP_RATE),
-      () -> encoder.setPositionConversionFactor(WHEELS.ENCODER_CONVERSION_FACTOR),
-      () -> encoder.setVelocityConversionFactor(WHEELS.ENCODER_CONVERSION_FACTOR / 60.0),
-      () -> pid.setP(WHEELS.PROFILE.kP, 0),
-      () -> pid.setI(WHEELS.PROFILE.kI, 0),
-      () -> pid.setD(WHEELS.PROFILE.kD, 0),
-      () -> pid.setFF(WHEELS.PROFILE.kV / 12.0, 0),
-      () -> motor.burnFlash()
-    ));
+    SparkMaxUtil.configureAndLog(this, motor, true, IdleMode.kCoast);
+    SparkMaxUtil.configureEncoder(motor, WHEELS.ENCODER_CONVERSION_FACTOR);
+    SparkMaxUtil.configurePID(motor, WHEELS.PROFILE.kP, WHEELS.PROFILE.kI, WHEELS.PROFILE.kD, WHEELS.PROFILE.kV, false);
+    SparkMaxUtil.save(motor);
 
-    String logPath = "shooter-wheels/";
-    Logger.autoLog(logPath + "current",                 () -> motor.getOutputCurrent());
-    Logger.autoLog(logPath + "appliedOutput",           () -> motor.getAppliedOutput());
-    Logger.autoLog(logPath + "motorTemperature",        () -> motor.getMotorTemperature());
-    Logger.autoLog(logPath + "position",                () -> encoder.getPosition());
-    Logger.autoLog(logPath + "velocity",                () -> getVelocity());
-    
-    StatusChecks.addCheck("Shooter Wheels Motor", () -> motor.getFaults() == 0);
+    motorFollower.follow(motor, true);
+    SparkMaxUtil.save(motorFollower);
   }
 
   public Command setTargetVelocity(double angularVelocity) {

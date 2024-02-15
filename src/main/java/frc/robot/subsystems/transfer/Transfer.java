@@ -13,10 +13,10 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 import frc.robot.commands.*;
-import frc.robot.util.ConfigUtils;
-import frc.robot.util.NoteDetector;
-import frc.robot.util.StatusChecks;
-import frc.robot.util.Logging.Logger;
+import frc.robot.util.hardware.NoteDetector;
+import frc.robot.util.hardware.SparkMaxUtil;
+import frc.robot.util.software.Logging.Logger;
+import frc.robot.util.software.Logging.StatusChecks;
 import frc.robot.Constants;
 import frc.robot.Constants.AMP.PIVOT;
 import frc.robot.Constants.CAN;

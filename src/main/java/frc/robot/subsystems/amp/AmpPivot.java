@@ -27,10 +27,10 @@ import frc.robot.Constants.CAN;
 import frc.robot.Constants.DIO;
 import frc.robot.Constants.ENABLED_SYSTEMS;
 import frc.robot.Constants.NEO;
-import frc.robot.util.ConfigUtils;
-import frc.robot.util.StatusChecks;
-import frc.robot.util.Logging.Logger;
-import frc.robot.util.MotionControl.PivotController;
+import frc.robot.util.hardware.SparkMaxUtil;
+import frc.robot.util.hardware.MotionControl.PivotController;
+import frc.robot.util.software.Logging.Logger;
+import frc.robot.util.software.Logging.StatusChecks;
 
 public class AmpPivot extends SubsystemBase {
   private CANSparkMax motor;
@@ -41,16 +41,8 @@ public class AmpPivot extends SubsystemBase {
     if (!ENABLED_SYSTEMS.ENABLE_AMP) return;
     
     motor = new CANSparkMax(CAN.AMP_PIVOT, MotorType.kBrushless);
-    
-    // Configure everything robustly
-    ConfigUtils.configure(List.of(
-      () -> motor.restoreFactoryDefaults(),
-      () -> { motor.setInverted(true); return true; },
-      () -> motor.setIdleMode(IdleMode.kCoast),
-      () -> motor.enableVoltageCompensation(12.0),
-      () -> motor.setSmartCurrentLimit(NEO.SAFE_STALL_CURRENT, PIVOT.PROFILE.CURRENT_LIMIT),
-      () -> motor.setClosedLoopRampRate(PIVOT.PROFILE.RAMP_RATE)
-    ));
+
+    SparkMaxUtil.configureAndLog(this, motor, true, IdleMode.kBrake);
 
     controller = new PivotController(
       motor,
@@ -63,15 +55,10 @@ public class AmpPivot extends SubsystemBase {
       Presets.AMP.PIVOT.MAX_ANGLE
     );
 
-    String logPath = "amp-pivot/";
-    Logger.autoLog(logPath + "current",                 () -> motor.getOutputCurrent());
-    Logger.autoLog(logPath + "appliedOutput",           () -> motor.getAppliedOutput());
-    Logger.autoLog(logPath + "motorTemperature",        () -> motor.getMotorTemperature());
-    Logger.autoLog(logPath + "position",                () -> controller.getPosition().getRadians());
-    Logger.autoLog(logPath + "absolutePosition",        () -> controller.getAbsolutePosition().getRadians());
+    SparkMaxUtil.save(motor);
 
-    StatusChecks.addCheck("Amp Pivot Motor", () -> motor.getFaults() == 0);
-    StatusChecks.addCheck("Amp Pivot Absolute Encoder", () -> controller.isAbsoluteEncoderConnected());
+    Logger.autoLog(this, "absolutePosition",         () -> controller.getAbsolutePosition().getRadians());
+    StatusChecks.addCheck(this, "absoluteEncoderConnected", () -> controller.isAbsoluteEncoderConnected());
   }
 
   @Override

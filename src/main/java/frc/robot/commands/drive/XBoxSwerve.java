@@ -25,8 +25,8 @@ import frc.robot.Constants.SWERVE_DRIVE;
 import frc.robot.subsystems.drive.SwerveDrive;
 import frc.robot.subsystems.drive.SwerveModule;
 import frc.robot.subsystems.vision.AprilTagPose;
-import frc.robot.util.MathUtils;
-import frc.robot.util.MathUtils.InputMath;
+import frc.robot.util.software.MathUtils;
+import frc.robot.util.software.MathUtils.InputMath;
 
 public class XBoxSwerve extends Command {
   private XboxController controller;

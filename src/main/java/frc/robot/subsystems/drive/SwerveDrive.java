@@ -47,9 +47,9 @@ import frc.robot.Constants.ENABLED_SYSTEMS;
 import frc.robot.Constants.LIMELIGHT;
 import frc.robot.Constants.SWERVE_DRIVE;
 import frc.robot.subsystems.vision.AprilTagPose;
-import frc.robot.util.MathUtils;
-import frc.robot.util.StatusChecks;
-import frc.robot.util.Logging.Logger;
+import frc.robot.util.software.MathUtils;
+import frc.robot.util.software.Logging.Logger;
+import frc.robot.util.software.Logging.StatusChecks;
 
 /**
  * This class represents the subsystem for the swerve drive. It contains four
@@ -133,8 +133,8 @@ public class SwerveDrive extends SubsystemBase {
     Logger.autoLog("SwerveDrive/targetHeading", () -> Units.radiansToDegrees(alignmentController.getSetpoint()));
     Logger.autoLog("SwerveDrive/targetStates", this::getTargetModuleStates);
     Logger.autoLog("SwerveDrive/measuredStates", this::getMeasuredModuleStates);
-
-    StatusChecks.addCheck("Gyro Connection", gyro::isConnected);
+    
+    StatusChecks.addCheck(this, "isGyroConnected", gyro::isConnected);
 
     AutoBuilder.configureHolonomic(
       this::getPose, // Robot pose supplier

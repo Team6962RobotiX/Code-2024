@@ -23,8 +23,8 @@ import frc.robot.Constants.SWERVE_DRIVE;
 import frc.robot.Constants.SWERVE_DRIVE.DRIVE_MOTOR_PROFILE;
 import frc.robot.Constants.SWERVE_DRIVE.MODULE_CONFIG;
 import frc.robot.Constants.SWERVE_DRIVE.STEER_MOTOR_PROFILE;
-import frc.robot.util.MathUtils.SwerveMath;
-import frc.robot.util.Logging.Logger;
+import frc.robot.util.software.Logging.Logger;
+import frc.robot.util.software.MathUtils.SwerveMath;
 
 public class SwerveModuleSim extends SwerveModule {
   private FlywheelSim driveMotor = new FlywheelSim(
@@ -66,15 +66,15 @@ public class SwerveModuleSim extends SwerveModule {
     super(config, corner, name);
     steerPID.enableContinuousInput(-Math.PI, Math.PI);
 
-    String logPath = "module_" + name + "/";
-    Logger.autoLog(logPath + "current",                 () -> getTotalCurrent());
-    Logger.autoLog(logPath + "getAbsoluteSteerDegrees", () -> getMeasuredState().angle.getDegrees());
-    Logger.autoLog(logPath + "measuredState",           () -> getMeasuredState());
-    Logger.autoLog(logPath + "measuredAngle",           () -> getMeasuredState().angle.getDegrees());
-    Logger.autoLog(logPath + "measuredVelocity",        () -> getMeasuredState().speedMetersPerSecond);
-    Logger.autoLog(logPath + "targetState",             () -> getTargetState());
-    Logger.autoLog(logPath + "targetAngle",             () -> getTargetState().angle.getDegrees());
-    Logger.autoLog(logPath + "targetVelocity",          () -> getTargetState().speedMetersPerSecond);
+    String logPath = "module" + name + "/";
+    Logger.autoLog(this, logPath + "current",                 () -> getTotalCurrent());
+    Logger.autoLog(this, logPath + "getAbsoluteSteerDegrees", () -> getMeasuredState().angle.getDegrees());
+    Logger.autoLog(this, logPath + "measuredState",           () -> getMeasuredState());
+    Logger.autoLog(this, logPath + "measuredAngle",           () -> getMeasuredState().angle.getDegrees());
+    Logger.autoLog(this, logPath + "measuredVelocity",        () -> getMeasuredState().speedMetersPerSecond);
+    Logger.autoLog(this, logPath + "targetState",             () -> getTargetState());
+    Logger.autoLog(this, logPath + "targetAngle",             () -> getTargetState().angle.getDegrees());
+    Logger.autoLog(this, logPath + "targetVelocity",          () -> getTargetState().speedMetersPerSecond);
   }
 
   @Override

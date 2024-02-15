@@ -32,9 +32,8 @@ import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.shooter.FeedWheels;
 import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.transfer.Transfer;
+import frc.robot.util.software.Logging.Logger;
 import frc.robot.subsystems.RobotStateController.State;
-
-import frc.robot.util.Logging.Logger;
 
 
 /**
@@ -45,7 +44,7 @@ import frc.robot.util.Logging.Logger;
  */
 public class RobotContainer {
 
-  private final LEDs ledStrip = new LEDs();
+  // private final LEDs ledStrip = new LEDs();
 
   // The robot's subsystems and commands
   private final CommandXboxController operatorController = new CommandXboxController(DEVICES.OPERATOR_XBOX_CONTROLLER);

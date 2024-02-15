@@ -44,10 +44,10 @@ import frc.robot.Constants.SWERVE_DRIVE;
 import frc.robot.Constants.SWERVE_DRIVE.DRIVE_MOTOR_PROFILE;
 import frc.robot.Constants.SWERVE_DRIVE.MODULE_CONFIG;
 import frc.robot.Constants.SWERVE_DRIVE.STEER_MOTOR_PROFILE;
-import frc.robot.util.ConfigUtils;
-import frc.robot.util.MathUtils.SwerveMath;
-import frc.robot.util.StatusChecks;
-import frc.robot.util.Logging.Logger;
+import frc.robot.util.hardware.SparkMaxUtil;
+import frc.robot.util.software.Logging.Logger;
+import frc.robot.util.software.Logging.StatusChecks;
+import frc.robot.util.software.MathUtils.SwerveMath;
 
 public class SwerveModule extends SubsystemBase {
   private CANSparkMax driveMotor, steerMotor;
@@ -72,8 +72,6 @@ public class SwerveModule extends SubsystemBase {
     this.config = config;
     this.corner = corner;
     this.name = name;
-
-    if (RobotBase.isSimulation()) return;
 
     driveMotor           = new CANSparkMax(config.CAN_DRIVE(), MotorType.kBrushless);
     steerMotor           = new CANSparkMax(config.CAN_STEER(), MotorType.kBrushless);
@@ -105,84 +103,27 @@ public class SwerveModule extends SubsystemBase {
     MagnetSensorConfigs magConfig = new MagnetSensorConfigs();
     magConfig.withAbsoluteSensorRange(AbsoluteSensorRangeValue.Signed_PlusMinusHalf);
     magConfig.withMagnetOffset(encoderOffset);
-    
-    // Configure a lot of stuff, handling REVLibErrors gracefully
-    ConfigUtils.configure(List.of(
-      // Reset the drive motor controller to factory defaults
-      () -> driveMotor.restoreFactoryDefaults(),
-      // Make the drive motor automatically stop when idle instead of coasting
-      () -> driveMotor.setIdleMode(IdleMode.kBrake),
-      // Configure the drive motor to use 12V
-      () -> driveMotor.enableVoltageCompensation(12.0),
-      // Configure the drive motor to limit its current to prevent stalling
-      () -> driveMotor.setSmartCurrentLimit(Math.min(DRIVE_MOTOR_PROFILE.CURRENT_LIMIT, NEO.SAFE_STALL_CURRENT), DRIVE_MOTOR_PROFILE.CURRENT_LIMIT),
-      // Set the rate at which the drive motor can change speeds
-      () -> driveMotor.setClosedLoopRampRate(DRIVE_MOTOR_PROFILE.RAMP_RATE),
-      () -> driveMotor.setOpenLoopRampRate(NEO.SAFE_RAMP_RATE),
-      // Configure the drive motor encoder based on the wheel size and gearbox, allowing it to convert between
-      // motor rotations and meters traveled on the field
-      () -> driveEncoder.setPositionConversionFactor(SWERVE_DRIVE.DRIVE_ENCODER_CONVERSION_FACTOR),
-      () -> driveEncoder.setVelocityConversionFactor(SWERVE_DRIVE.DRIVE_ENCODER_CONVERSION_FACTOR / 60.0),
-      // Set the drive motor's proportional gain constant
-      () -> drivePID.setP(DRIVE_MOTOR_PROFILE.kP, 0),
-      () -> drivePID.setI(DRIVE_MOTOR_PROFILE.kI, 0),
-      () -> drivePID.setD(DRIVE_MOTOR_PROFILE.kD, 0),
-      () -> drivePID.setOutputRange(-SWERVE_DRIVE.MOTOR_POWER_HARD_CAP, SWERVE_DRIVE.MOTOR_POWER_HARD_CAP, 0),
-      // Write the drive motor configuration settings to flash
-      () -> driveMotor.burnFlash(),
 
-      // Reset the steering motor controller to factory defaults
-      () -> steerMotor.restoreFactoryDefaults(),
-      // Invert the steering motor
-      () -> { steerMotor.setInverted(true); return true; },
-      // Make the steering motor automatically stop when idle instead of continuing to turn
-      () -> steerMotor.setIdleMode(IdleMode.kBrake),
-      // Configure the steering motor to use 12V
-      () -> steerMotor.enableVoltageCompensation(12.0),
-      // Configure the steering motor to limit its current to prevent stalling
-      () -> steerMotor.setSmartCurrentLimit(Math.min(STEER_MOTOR_PROFILE.CURRENT_LIMIT, NEO.SAFE_STALL_CURRENT), STEER_MOTOR_PROFILE.CURRENT_LIMIT),
-      // Set the rate at which the steering motor can change speeds
-      () -> steerMotor.setClosedLoopRampRate(STEER_MOTOR_PROFILE.RAMP_RATE),
-      () -> steerMotor.setOpenLoopRampRate(NEO.SAFE_RAMP_RATE),
-      // Configure the steering motor encoder based on the gearbox, allowing it to convert between
-      // motor rotations and change in the angle of the wheel
-      () -> steerEncoder.setPositionConversionFactor(SWERVE_DRIVE.STEER_ENCODER_CONVERSION_FACTOR),
-      () -> steerEncoder.setVelocityConversionFactor(SWERVE_DRIVE.STEER_ENCODER_CONVERSION_FACTOR / 60.0),
-      // Set the steering motor's PID gain constants
-      () -> steerPID.setP(STEER_MOTOR_PROFILE.kP, 0),
-      () -> steerPID.setI(STEER_MOTOR_PROFILE.kI, 0),
-      () -> steerPID.setD(STEER_MOTOR_PROFILE.kD, 0),
-      // Because the steering motor turns the wheel in a circle, we need to wrap the PID controller's input
-      // from -π to π.
-      () -> steerPID.setPositionPIDWrappingEnabled(true),
-      () -> steerPID.setPositionPIDWrappingMinInput(-Math.PI),
-      () -> steerPID.setPositionPIDWrappingMaxInput(Math.PI),
-      () -> steerPID.setOutputRange(-SWERVE_DRIVE.MOTOR_POWER_HARD_CAP, SWERVE_DRIVE.MOTOR_POWER_HARD_CAP, 0),
-      // Write the steering motor configuration settings to flash
-      () -> steerMotor.burnFlash(),
+    SparkMaxUtil.configureAndLog(this, driveMotor, false, IdleMode.kBrake);
+    SparkMaxUtil.configureAndLog(this, steerMotor, true, IdleMode.kCoast);
+    SparkMaxUtil.configureEncoder(driveMotor, SWERVE_DRIVE.DRIVE_ENCODER_CONVERSION_FACTOR);
+    SparkMaxUtil.configureEncoder(steerMotor, SWERVE_DRIVE.STEER_ENCODER_CONVERSION_FACTOR);
+    SparkMaxUtil.configurePID(driveMotor, DRIVE_MOTOR_PROFILE.kP, DRIVE_MOTOR_PROFILE.kI, DRIVE_MOTOR_PROFILE.kD, DRIVE_MOTOR_PROFILE.kV, false);
+    SparkMaxUtil.configurePID(steerMotor, STEER_MOTOR_PROFILE.kP, STEER_MOTOR_PROFILE.kI, STEER_MOTOR_PROFILE.kD, 0.0, true);
 
-      () -> absoluteSteerEncoder.getConfigurator().apply(magConfig)
-    ));
-
-    // driveMotor.setClosedLoopRampRate(Math.max((NEO.FREE_SPEED / 60.0) / ((9.80 * SWERVE_DRIVE.COEFFICIENT_OF_FRICTION) / SWERVE_DRIVE.DRIVE_MOTOR_METERS_PER_REVOLUTION), DRIVE_MOTOR_CONFIG.RAMP_RATE))
+    absoluteSteerEncoder.getConfigurator().apply(magConfig);
 
     seedSteerEncoder();
 
-    String logPath = "module_" + name + "/";
-    Logger.autoLog(logPath + "current",                 () -> getTotalCurrent());
-    Logger.autoLog(logPath + "driveVoltage",            () -> driveMotor.getAppliedOutput() * driveMotor.getBusVoltage());
-    Logger.autoLog(logPath + "steerVoltage",            () -> steerMotor.getAppliedOutput() * steerMotor.getBusVoltage());
-    Logger.autoLog(logPath + "getAbsoluteSteerDegrees", () -> getTrueSteerDirection().getDegrees());
-    Logger.autoLog(logPath + "measuredState",           () -> getMeasuredState());
-    Logger.autoLog(logPath + "measuredAngle",           () -> getMeasuredState().angle.getDegrees());
-    Logger.autoLog(logPath + "measuredVelocity",        () -> getMeasuredState().speedMetersPerSecond);
-    Logger.autoLog(logPath + "targetState",             () -> getTargetState());
-    Logger.autoLog(logPath + "targetAngle",             () -> getTargetState().angle.getDegrees());
-    Logger.autoLog(logPath + "targetVelocity",          () -> getTargetState().speedMetersPerSecond);
+    String logPath = "module" + name + "/";
+    Logger.autoLog(this, logPath + "measuredState",           () -> getMeasuredState());
+    Logger.autoLog(this, logPath + "measuredAngle",           () -> getMeasuredState().angle.getDegrees());
+    Logger.autoLog(this, logPath + "measuredVelocity",        () -> getMeasuredState().speedMetersPerSecond);
+    Logger.autoLog(this, logPath + "targetState",             () -> getTargetState());
+    Logger.autoLog(this, logPath + "targetAngle",             () -> getTargetState().angle.getDegrees());
+    Logger.autoLog(this, logPath + "targetVelocity",          () -> getTargetState().speedMetersPerSecond);
 
-    StatusChecks.addCheck(name + " Swerve Module Drive Motor", () -> driveMotor.getFaults() == 0);
-    StatusChecks.addCheck(name + " Swerve Module Steer Motor", () -> steerMotor.getFaults() == 0);
-    StatusChecks.addCheck(name + " Swerve Module CanCoder", () -> absoluteSteerEncoder.getFaultField().getValue() == 0);
+    StatusChecks.addCheck(this, name + "CancoderHasFaults", () -> absoluteSteerEncoder.getFaultField().getValue() == 0);
   }
 
 

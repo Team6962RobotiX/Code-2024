@@ -13,10 +13,10 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 import frc.robot.commands.*;
-import frc.robot.util.ConfigUtils;
-import frc.robot.util.NoteDetector;
-import frc.robot.util.StatusChecks;
-import frc.robot.util.Logging.Logger;
+import frc.robot.util.hardware.NoteDetector;
+import frc.robot.util.hardware.SparkMaxUtil;
+import frc.robot.util.software.Logging.Logger;
+import frc.robot.util.software.Logging.StatusChecks;
 import frc.robot.Constants;
 import frc.robot.Constants.AMP.PIVOT;
 import frc.robot.Constants.CAN;
@@ -39,28 +39,13 @@ public class TransferInWheels extends SubsystemBase {
     
     motor = new CANSparkMax(CAN.TRANSFER_IN, MotorType.kBrushless);
 
-    ConfigUtils.configure(List.of(
-      () -> motor.restoreFactoryDefaults(),
-      () -> { motor.setInverted(true); return true; },
-      () -> motor.setIdleMode(IdleMode.kCoast),
-      () -> motor.enableVoltageCompensation(12.0),
-      () -> motor.setSmartCurrentLimit(NEO.SAFE_STALL_CURRENT, PIVOT.PROFILE.CURRENT_LIMIT),
-      () -> motor.setClosedLoopRampRate(PIVOT.PROFILE.RAMP_RATE),
-      () -> motor.setOpenLoopRampRate(NEO.SAFE_RAMP_RATE),
-      () -> motor.burnFlash()
-    ));
+    SparkMaxUtil.configureAndLog(this, motor, true, IdleMode.kCoast);
+    SparkMaxUtil.save(motor);
 
     detector = new NoteDetector(motor);
 
-    String logPath = "transfer-in-wheels/";
-    Logger.autoLog(logPath + "current",                 () -> motor.getOutputCurrent());
-    Logger.autoLog(logPath + "appliedOutput",           () -> motor.getAppliedOutput());
-    Logger.autoLog(logPath + "motorTemperature",        () -> motor.getMotorTemperature());
-    Logger.autoLog(logPath + "hasJustReleaseddNote",    () -> detector.hasJustReleaseddNote());
-    Logger.autoLog(logPath + "hasJustReceivedNote",     () -> detector.hasJustReceivedNote());
-
-    
-    StatusChecks.addCheck("Transfer In Motor", () -> motor.getFaults() == 0);
+    Logger.autoLog(this, "hasJustReleaseddNote",    () -> detector.hasJustReleaseddNote());
+    Logger.autoLog(this, "hasJustReceivedNote",     () -> detector.hasJustReceivedNote());
   }
 
   public Command setState(State state) {

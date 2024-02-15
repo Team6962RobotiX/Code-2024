@@ -13,10 +13,9 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 import frc.robot.commands.*;
-import frc.robot.util.ConfigUtils;
-import frc.robot.util.NoteDetector;
-import frc.robot.util.StatusChecks;
-import frc.robot.util.Logging.Logger;
+import frc.robot.util.hardware.SparkMaxUtil;
+import frc.robot.util.software.Logging.Logger;
+import frc.robot.util.software.Logging.StatusChecks;
 import frc.robot.Constants;
 import frc.robot.Constants.AMP.PIVOT;
 import frc.robot.Constants.CAN;
@@ -38,23 +37,8 @@ public class TransferOutWheels extends SubsystemBase {
     
     motor = new CANSparkMax(CAN.TRANSFER_OUT, MotorType.kBrushless);
 
-    ConfigUtils.configure(List.of(
-      () -> motor.restoreFactoryDefaults(),
-      () -> { motor.setInverted(true); return true; },
-      () -> motor.setIdleMode(IdleMode.kBrake),
-      () -> motor.enableVoltageCompensation(12.0),
-      () -> motor.setSmartCurrentLimit(NEO.SAFE_STALL_CURRENT, PIVOT.PROFILE.CURRENT_LIMIT),
-      () -> motor.setClosedLoopRampRate(PIVOT.PROFILE.RAMP_RATE),
-      () -> motor.setOpenLoopRampRate(NEO.SAFE_RAMP_RATE),
-      () -> motor.burnFlash()
-    ));
-
-    String logPath = "transfer-out-wheels/";
-    Logger.autoLog(logPath + "current",                 () -> motor.getOutputCurrent());
-    Logger.autoLog(logPath + "appliedOutput",           () -> motor.getAppliedOutput());
-    Logger.autoLog(logPath + "motorTemperature",        () -> motor.getMotorTemperature());
-    
-    StatusChecks.addCheck("Transfer Out Motor", () -> motor.getFaults() == 0);
+    SparkMaxUtil.configureAndLog(this, motor, true, IdleMode.kBrake);
+    SparkMaxUtil.save(motor);
   }
 
   public Command setState(State state) {

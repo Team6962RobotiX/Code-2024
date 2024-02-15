@@ -311,8 +311,6 @@ public final class Constants {
         public static final double kS = 0.0; // volts per rad/s
         public static final double kV = 12.0 / (NEO.STATS.freeSpeedRadPerSec * GEARBOX_STEP_UP); // volts per rad/s
         public static final double kA = 0.0; // volts per rad/s^2
-        public static final double RAMP_RATE = 0.1;
-        public static final int    CURRENT_LIMIT = 40;
       }
     }
 
@@ -330,10 +328,8 @@ public final class Constants {
       public static final double ABSOLUTE_POSITION_OFFSET = 0.0;
 
       public static final class PROFILE {
-        public static final int    CURRENT_LIMIT = 40;
         public static final double kP = 0.0;
-        public static final double RAMP_RATE = 0.1;
-        public static final double MAX_ACCELERATION = (NEO.maxTorqueCurrentLimited(CURRENT_LIMIT) * GEARBOX_REDUCTION) / MOI; // rad/s^2
+        public static final double MAX_ACCELERATION = 1.0; // rad/s^2
       }
     }
   }
@@ -349,9 +345,7 @@ public final class Constants {
       public static final double ABSOLUTE_POSITION_OFFSET = -0.944;
 
       public static final class PROFILE {
-        public static final int    CURRENT_LIMIT = 40;
         public static final double kP = 1.0;
-        public static final double RAMP_RATE = 0.1;
         public static final double MAX_ACCELERATION = 40.0; // rad/s^2
       }
     }

@@ -16,10 +16,10 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 import frc.robot.commands.*;
-import frc.robot.util.ConfigUtils;
-import frc.robot.util.NoteDetector;
-import frc.robot.util.StatusChecks;
-import frc.robot.util.Logging.Logger;
+import frc.robot.util.hardware.NoteDetector;
+import frc.robot.util.hardware.SparkMaxUtil;
+import frc.robot.util.software.Logging.Logger;
+import frc.robot.util.software.Logging.StatusChecks;
 import frc.robot.Constants;
 import frc.robot.Presets;
 import frc.robot.Constants.AMP.PIVOT;
@@ -41,28 +41,14 @@ public class FeedWheels extends SubsystemBase {
   public FeedWheels() {
     if (!ENABLED_SYSTEMS.ENABLE_SHOOTER) return;
     motor = new CANSparkMax(CAN.SHOOTER_FEED, MotorType.kBrushless);
-    
-    ConfigUtils.configure(List.of(
-      () -> motor.restoreFactoryDefaults(),
-      () -> { motor.setInverted(true); return true; },
-      () -> motor.setIdleMode(IdleMode.kBrake),
-      () -> motor.enableVoltageCompensation(12.0),
-      () -> motor.setSmartCurrentLimit(NEO.SAFE_STALL_CURRENT, PIVOT.PROFILE.CURRENT_LIMIT),
-      () -> motor.setClosedLoopRampRate(PIVOT.PROFILE.RAMP_RATE),
-      () -> motor.setOpenLoopRampRate(NEO.SAFE_RAMP_RATE),
-      () -> motor.burnFlash()
-    ));
+
+    SparkMaxUtil.configureAndLog(this, motor, true, IdleMode.kBrake);
+    SparkMaxUtil.save(motor);
 
     detector = new NoteDetector(motor);
 
-    String logPath = "shooter-feed-wheels/";
-    Logger.autoLog(logPath + "current",                 () -> motor.getOutputCurrent());
-    Logger.autoLog(logPath + "appliedOutput",           () -> motor.getAppliedOutput());
-    Logger.autoLog(logPath + "motorTemperature",        () -> motor.getMotorTemperature());
-    Logger.autoLog(logPath + "hasJustReleaseddNote",    () -> detector.hasJustReleaseddNote());
-    Logger.autoLog(logPath + "hasJustReceivedNote",     () -> detector.hasJustReceivedNote());
-
-    StatusChecks.addCheck("Shooter Feed Wheels Motor", () -> motor.getFaults() == 0);
+    Logger.autoLog(this, "hasJustReleaseddNote",    () -> detector.hasJustReleaseddNote());
+    Logger.autoLog(this, "hasJustReceivedNote",     () -> detector.hasJustReceivedNote());
   }
 
   public Command setState(State state) {

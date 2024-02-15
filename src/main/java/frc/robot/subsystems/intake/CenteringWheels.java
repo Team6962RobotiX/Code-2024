@@ -18,10 +18,10 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 import frc.robot.commands.*;
 import frc.robot.subsystems.amp.AmpWheels;
-import frc.robot.util.ConfigUtils;
-import frc.robot.util.NoteDetector;
-import frc.robot.util.StatusChecks;
-import frc.robot.util.Logging.Logger;
+import frc.robot.util.hardware.NoteDetector;
+import frc.robot.util.hardware.SparkMaxUtil;
+import frc.robot.util.software.Logging.Logger;
+import frc.robot.util.software.Logging.StatusChecks;
 import frc.robot.Constants;
 import frc.robot.Presets;
 import frc.robot.Constants.AMP.PIVOT;
@@ -44,27 +44,8 @@ public class CenteringWheels extends SubsystemBase {
     
     motor = new CANSparkMax(CAN.CENTERING, MotorType.kBrushless);
 
-    ConfigUtils.configure(List.of(
-      () -> motor.restoreFactoryDefaults(),
-      () -> { motor.setInverted(false); return true; },
-      () -> motor.setIdleMode(IdleMode.kBrake),
-      () -> motor.enableVoltageCompensation(12.0),
-      () -> motor.setSmartCurrentLimit(NEO.SAFE_STALL_CURRENT, NEO.SAFE_STALL_CURRENT),
-      () -> motor.setClosedLoopRampRate(NEO.SAFE_RAMP_RATE),
-      () -> motor.setOpenLoopRampRate(NEO.SAFE_RAMP_RATE),
-      () -> motor.burnFlash()
-    ));
-
-    String logPath = "intake-centering-wheels/";
-    Logger.autoLog(logPath + "current",                 () -> motor.getOutputCurrent());
-    Logger.autoLog(logPath + "appliedOutput",           () -> motor.getAppliedOutput());
-    Logger.autoLog(logPath + "motorTemperature",        () -> motor.getMotorTemperature());
-
-    RelativeEncoder encoder = motor.getEncoder();
-
-    Logger.autoLog(logPath + "velocity",        () -> encoder.getVelocity());
-
-    StatusChecks.addCheck("Intake Centering Motor", () -> motor.getFaults() == 0);
+    SparkMaxUtil.configureAndLog(this, motor, false, IdleMode.kBrake);
+    SparkMaxUtil.save(motor);
   }
 
   public Command setState(State state) {

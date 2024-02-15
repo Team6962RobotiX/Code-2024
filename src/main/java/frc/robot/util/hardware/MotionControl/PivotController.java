@@ -1,4 +1,4 @@
-package frc.robot.util.MotionControl;
+package frc.robot.util.hardware.MotionControl;
 
 import java.util.List;
 
@@ -20,8 +20,8 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.AMP.PIVOT;
 import frc.robot.Constants.ENABLED_SYSTEMS;
 import frc.robot.Constants.NEO;
-import frc.robot.util.ConfigUtils;
 import frc.robot.util.TunableNumber;
+import frc.robot.util.hardware.SparkMaxUtil;
 
 /*
  * Uses oboard 1kHz PID, Feedforward, and Trapazoidal Profiles to
@@ -63,18 +63,8 @@ public class PivotController {
     this.minAngle = minAngle;
     this.maxAngle = maxAngle;
 
-    // Configure everything robustly
-    ConfigUtils.configure(List.of(
-      () -> encoder.setPositionConversionFactor(2.0 * Math.PI / gearing),
-      () -> encoder.setVelocityConversionFactor(2.0 * Math.PI / gearing / 60.0),
-      () -> pid.setP(kP, 0),
-      () -> pid.setI(kI, 0),
-      () -> pid.setD(kD, 0),
-      () -> pid.setPositionPIDWrappingEnabled(true),
-      () -> pid.setPositionPIDWrappingMinInput(-Math.PI),
-      () -> pid.setPositionPIDWrappingMaxInput(Math.PI),
-      () -> motor.burnFlash()
-    ));
+    SparkMaxUtil.configureEncoder(motor, 2.0 * Math.PI / gearing);
+    SparkMaxUtil.configurePID(motor, kP, kI, kD, 0.0, true);
 
     new TunableNumber("Pivot PID " + motor.getDeviceId(), pid::setP, 0.01);
   }

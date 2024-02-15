@@ -1,4 +1,4 @@
-package frc.robot.util;
+package frc.robot.util.hardware;
 
 import com.revrobotics.CANSparkMax;
 
@@ -9,7 +9,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.Presets;
-import frc.robot.util.Logging.Logger;
+import frc.robot.util.software.Logging.Logger;
 
 /**
  * Used for detecting notes based on current draw from a motor

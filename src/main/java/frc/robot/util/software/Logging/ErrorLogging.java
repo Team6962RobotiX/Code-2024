@@ -1,4 +1,4 @@
-package frc.robot.util.Logging;
+package frc.robot.util.software.Logging;
 
 import java.util.HashSet;
 import java.util.Set;

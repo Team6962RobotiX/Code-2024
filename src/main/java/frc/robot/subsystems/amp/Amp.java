@@ -27,10 +27,10 @@ import frc.robot.Constants.CAN;
 import frc.robot.Constants.DIO;
 import frc.robot.Constants.ENABLED_SYSTEMS;
 import frc.robot.Constants.NEO;
-import frc.robot.util.ConfigUtils;
-import frc.robot.util.StatusChecks;
-import frc.robot.util.Logging.Logger;
-import frc.robot.util.MotionControl.PivotController;
+import frc.robot.util.hardware.SparkMaxUtil;
+import frc.robot.util.hardware.MotionControl.PivotController;
+import frc.robot.util.software.Logging.Logger;
+import frc.robot.util.software.Logging.StatusChecks;
 
 public class Amp extends SubsystemBase {
   private AmpPivot pivot;
