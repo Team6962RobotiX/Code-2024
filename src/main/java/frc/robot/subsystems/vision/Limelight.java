@@ -4,6 +4,8 @@
 
 package frc.robot.subsystems.vision;
 
+import frc.robot.Constants;
+
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation3d;
@@ -11,6 +13,7 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+
 
 
 public class Limelight extends SubsystemBase {
@@ -170,5 +173,19 @@ public class Limelight extends SubsystemBase {
       new Translation3d(values[0], values[1], values[2]),
       new Rotation3d(Units.degreesToRadians(values[3]), Units.degreesToRadians(values[4]), Units.degreesToRadians(values[5]))
     );
+  }
+
+  /**
+   * 
+   */
+   public static double getNoteDist(String name){
+    double y = targetVertical(name);
+    if (y != 0.0) {
+      return Constants.PHOTON_LIB.CAM_HEIGHT_OFF_GROUND*Math.tan(Math.PI/2+y*Math.PI/180);
+    }
+    else {
+      return 0;
+    }
+
   }
 }
