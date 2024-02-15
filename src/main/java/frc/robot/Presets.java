@@ -22,7 +22,7 @@ import edu.wpi.first.wpilibj.DriverStation;
  * constants are needed, to reduce verbosity.
  */
 public final class Presets {
-  public static final double NOTE_DETECTION_IMPULSE = 10;
+  public static final double NOTE_DETECTION_IMPULSE = 50;
 
   public static final class SHOOTER {
     public static final class FEED {

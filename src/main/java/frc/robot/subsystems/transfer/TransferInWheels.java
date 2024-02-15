@@ -43,7 +43,7 @@ public class TransferInWheels extends SubsystemBase {
     SparkMaxUtil.configureAndLog(this, motor, true, IdleMode.kBrake);
     SparkMaxUtil.save(motor);
 
-    detector = new NoteDetector(motor);
+    detector = new NoteDetector(motor, false);
 
     Logger.autoLog(this, "hasJustReleaseddNote",    () -> detector.hasJustReleaseddNote());
     Logger.autoLog(this, "hasJustReceivedNote",     () -> detector.hasJustReceivedNote());

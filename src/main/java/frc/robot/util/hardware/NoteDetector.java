@@ -18,12 +18,19 @@ import frc.robot.util.software.Logging.Logger;
 public class NoteDetector extends SubsystemBase {
   CANSparkMax motor;
   double impulse = 0.0;
+  double scaledCurrent = 0.0;
   int delay = 0;
-  LinearFilter filter = LinearFilter.highPass(0.1, 0.02);
+  LinearFilter highPass = LinearFilter.highPass(0.1, 0.02);
+  MedianFilter medianFilter = new MedianFilter(5);
+  double scalingFactor = 1.0;
   
-  public NoteDetector(CANSparkMax motor) {
+  public NoteDetector(CANSparkMax motor, boolean isNeo550) {
     this.motor = motor;
-    Logger.autoLog("NoteDetectors/" + motor.getDeviceId() + "/SPIKE", () -> impulse);
+    Logger.autoLog("NoteDetectors/" + motor.getDeviceId() + "/impulse", () -> impulse);
+    Logger.autoLog("NoteDetectors/" + motor.getDeviceId() + "/scaledCurrent", () -> scaledCurrent);
+    if (isNeo550) {
+      scalingFactor = 2.5;
+    }
   }
 
   public boolean hasJustReceivedNote() {
@@ -49,6 +56,7 @@ public class NoteDetector extends SubsystemBase {
       return;
     }
 
-    impulse = filter.calculate(motor.getOutputCurrent());
+    scaledCurrent = medianFilter.calculate((motor.getOutputCurrent() / motor.getAppliedOutput()) / scalingFactor);
+    impulse = highPass.calculate(scaledCurrent);
   }
 }
