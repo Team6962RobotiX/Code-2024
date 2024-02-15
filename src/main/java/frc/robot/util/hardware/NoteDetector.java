@@ -49,6 +49,6 @@ public class NoteDetector extends SubsystemBase {
       return;
     }
 
-    impulse = filter.calculate(motor.getOutputCurrent());
+    impulse = filter.calculate(motor.getOutputCurrent() / motor.get());
   }
 }

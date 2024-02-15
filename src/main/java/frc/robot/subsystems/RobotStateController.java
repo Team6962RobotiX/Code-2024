@@ -44,6 +44,8 @@ public class RobotStateController extends SubsystemBase {
    */
 
   public Command setState(State state) {
+    Command command;
+
     switch(state) {
       case OFF:
         return Commands.sequence(
@@ -53,17 +55,25 @@ public class RobotStateController extends SubsystemBase {
           transfer.setState(Transfer.State.OFF)
         );
       case PICKUP:
-        return intake.setState(Intake.State.IN);
+        command = Commands.sequence(
+          intake.setState(Intake.State.IN),
+          Commands.waitUntil(() -> intake.hasJustReceivedNote()),
+          transfer.setState(Transfer.State.IN),
+          Commands.waitUntil(() -> transfer.hasJustReceivedNote()),
+          transfer.setState(Transfer.State.OFF),
+          intake.setState(Intake.State.OFF)
+        );
+        break;
       case LOAD_AMP:
-        return Commands.sequence(
-          amp.setState(Amp.State.IN),
+        command = Commands.sequence(
+          amp.setState(Amp.State.DOWN),
           transfer.setState(Transfer.State.AMP),
-          Commands.waitUntil(() -> amp.hasJustReceivedNote()),
-          amp.setState(Amp.State.OFF),
+          amp.setState(Amp.State.IN),
           transfer.setState(Transfer.State.OFF)
         );
+        break;
       case LOAD_SHOOTER:
-        return Commands.sequence(
+        command = Commands.sequence(
           shooter.setState(Shooter.State.IN),
           Commands.waitUntil(() -> shooter.doneMoving()),
           transfer.setState(Transfer.State.SHOOTER),
@@ -72,17 +82,22 @@ public class RobotStateController extends SubsystemBase {
           shooter.setState(Shooter.State.OFF),
           transfer.setState(Transfer.State.OFF)
         );
+        break;
       case PLACE_AMP:
-        return Commands.sequence(
+        command = Commands.sequence(
           amp.setState(Amp.State.OUT),
           transfer.setState(Transfer.State.OFF)
         );
+        break;
       case SHOOT:
-        return Commands.sequence(
+        command = Commands.sequence(
           shooter.setState(Shooter.State.SHOOT)
         );
+        break;
+      default:
+        command = Commands.run(() -> {});
     }
-    return null;
+    return command.finallyDo(() -> setState(State.OFF).schedule());
   }
 
   @Override

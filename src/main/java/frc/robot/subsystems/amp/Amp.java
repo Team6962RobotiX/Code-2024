@@ -17,6 +17,7 @@ import com.revrobotics.CANSparkMax;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.Voltage;
+import edu.wpi.first.wpilibj.RobotState;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -37,10 +38,9 @@ public class Amp extends SubsystemBase {
   private AmpWheels wheels;
  
   public static enum State {
-    DOWN,
-    UP,
     OUT,
     IN,
+    DOWN,
     OFF
   }
 
@@ -57,21 +57,26 @@ public class Amp extends SubsystemBase {
 
   public Command setState(State state) {
     switch(state) {
-      case DOWN:
-        return pivot.setTargetAngle(Presets.AMP.PIVOT.INTAKE_ANGLE);
       case IN:
-        return wheels.setState(AmpWheels.State.IN);
-      case UP:
         return Commands.sequence( 
+          setState(State.DOWN),
+          wheels.setState(AmpWheels.State.IN),
+          Commands.waitUntil(() -> hasJustReceivedNote()),
+          wheels.setState(AmpWheels.State.OFF),
           pivot.setTargetAngle(Presets.AMP.PIVOT.OUTPUT_ANGLE),
-          wheels.setState(AmpWheels.State.OFF)
+          Commands.waitUntil(() -> pivot.doneMoving())
+        );
+      case DOWN:
+        return Commands.sequence( 
+          pivot.setTargetAngle(Presets.AMP.PIVOT.INTAKE_ANGLE),
+          Commands.waitUntil(() -> pivot.doneMoving())
         );
       case OUT:
         return Commands.sequence( 
           pivot.setTargetAngle(Presets.AMP.PIVOT.OUTPUT_ANGLE),
           Commands.waitUntil(() -> pivot.doneMoving()),
           wheels.setState(AmpWheels.State.OUT),
-          Commands.waitSeconds(1.0),
+          Commands.waitUntil(() -> hasJustReleaseddNote()),
           wheels.setState(AmpWheels.State.OFF)
         );
       case OFF:

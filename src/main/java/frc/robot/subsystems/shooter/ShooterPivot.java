@@ -17,6 +17,7 @@ import com.revrobotics.CANSparkMax;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.Voltage;
+import edu.wpi.first.wpilibj.RobotState;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -55,7 +56,7 @@ public class ShooterPivot extends SubsystemBase {
       Presets.SHOOTER.PIVOT.MIN_ANGLE,
       Presets.SHOOTER.PIVOT.MAX_ANGLE
     );
-    
+
     Logger.autoLog(this, "absolutePosition",        () -> controller.getAbsolutePosition().getRadians());
   }
 
@@ -63,6 +64,9 @@ public class ShooterPivot extends SubsystemBase {
   public void periodic() {
     if (!ENABLED_SYSTEMS.ENABLE_SHOOTER) return;
     if (isCalibrating) return;
+    if (RobotState.isDisabled()) {
+      controller.setTargetAngle(getPosition());
+    }
     // controller.run();
   }
 

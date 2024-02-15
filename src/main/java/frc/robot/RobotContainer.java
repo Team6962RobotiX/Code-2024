@@ -87,9 +87,8 @@ public class RobotContainer {
 
 
     operatorController.a().onTrue(amp.setState(Amp.State.OUT));
-    operatorController.b().onTrue(amp.setState(Amp.State.DOWN));
+    operatorController.b().onTrue(amp.setState(Amp.State.IN));
     operatorController.rightBumper().whileTrue(intake.setState(Intake.State.IN));
-    operatorController.rightBumper().onFalse(intake.setState(Intake.State.OFF)); 
     operatorController.leftStick().whileTrue(Commands.parallel(transfer.setState(Transfer.State.AMP), amp.setState(Amp.State.IN)));
     operatorController.leftStick().onFalse(Commands.parallel(transfer.setState(Transfer.State.OFF), amp.setState(Amp.State.OFF)));
   }
@@ -99,6 +98,11 @@ public class RobotContainer {
   }
 
   public void disabledPeriodic() {
+
+  }
+
+  public void disabledInit() {
+    
   }
 
   public void testInit() {

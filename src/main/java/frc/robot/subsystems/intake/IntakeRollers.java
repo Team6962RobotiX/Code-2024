@@ -12,6 +12,7 @@ import java.util.List;
 import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 
+import edu.wpi.first.wpilibj.RobotState;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -63,7 +64,9 @@ public class IntakeRollers extends SubsystemBase {
   @Override
   public void periodic() {
     if (!ENABLED_SYSTEMS.ENABLE_INTAKE) return;
-
+    if (RobotState.isDisabled()) {
+      state = State.OFF;
+    }
     switch(state) {
       case IN:
         motor.set(-Presets.INTAKE.INTAKE_ROLLER_POWER);

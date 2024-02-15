@@ -17,6 +17,7 @@ import com.revrobotics.CANSparkMax;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.Voltage;
+import edu.wpi.first.wpilibj.RobotState;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -65,6 +66,9 @@ public class AmpPivot extends SubsystemBase {
   public void periodic() {
     if (!ENABLED_SYSTEMS.ENABLE_AMP) return;
     if (isCalibrating) return;
+    if (RobotState.isDisabled()) {
+      controller.setTargetAngle(getPosition());
+    }
     controller.run();
   }
 
