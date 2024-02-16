@@ -17,9 +17,9 @@ import java.util.ArrayDeque;
 import java.util.Queue;
 
 public class NoteDetector extends SubsystemBase {
-  int scope = 5;
+  int scope = 10;
   Queue<Double> lastReadings = new ArrayDeque<>(scope * 2);
-  double delay = NEO.SAFE_RAMP_RATE * 2.0;
+  double delay = NEO.SAFE_RAMP_RATE * 3.0;
   double delayCounter = 0.0;
   CANSparkMax motor;
 
@@ -34,11 +34,13 @@ public class NoteDetector extends SubsystemBase {
     
     if (output == 0.0) {
       delayCounter = 0.0;
+      lastReadings = new ArrayDeque<>(scope * 2);
       return;
     }
 
     if (delayCounter <= delay) {
       delayCounter += 0.02;
+      lastReadings = new ArrayDeque<>(scope * 2);
       return;
     }
     
@@ -46,7 +48,7 @@ public class NoteDetector extends SubsystemBase {
   }
   
   private void updateLastReadings(double current) {
-    if (lastReadings.size() == 10) {
+    if (lastReadings.size() == scope * 2) {
       lastReadings.poll();
     }
     lastReadings.offer(current);
@@ -72,9 +74,9 @@ public class NoteDetector extends SubsystemBase {
     
     
     if (newAverage > oldAverage) {
-      return newAverage / oldAverage;
+      return newAverage / oldAverage - 1.0;
     } else {
-      return -(oldAverage / newAverage);
+      return -(oldAverage / newAverage) + 1.0;
     }
   }
 

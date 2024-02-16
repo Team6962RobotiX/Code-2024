@@ -4,6 +4,8 @@
 
 package frc.robot;
 
+import static edu.wpi.first.units.Units.Amps;
+
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -83,15 +85,20 @@ public class RobotContainer {
   }
   
   private void configureBindings() {
-    operatorController.a().onTrue(stateController.setState(State.PICKUP));
-    operatorController.y().onTrue(stateController.setState(State.LOAD_SHOOTER));
+
+    // operatorController.a().onTrue(shooter.getPivot().setTargetAngle(Rotation2d.fromDegrees(5.0)));
+    // operatorController.b().onTrue(shooter.getPivot().setTargetAngle(Rotation2d.fromDegrees(30.0)));
+
+    operatorController.y().whileTrue(intake.setState(Intake.State.IN));
+
+    operatorController.leftTrigger().whileTrue(stateController.setState(State.PICKUP));
+    operatorController.rightStick().onTrue(stateController.setState(State.LOAD_SHOOTER));
 
     operatorController.x().onTrue(stateController.setState(State.SHOOT));
-
-
-    operatorController.leftBumper().onTrue(stateController.setState(State.PICKUP));
-    operatorController.rightBumper().onTrue(stateController.setState(State.LOAD_AMP));
-    operatorController.rightTrigger().onTrue(stateController.setState(State.PLACE_AMP));
+    operatorController.leftStick().onTrue(stateController.setState(State.LOAD_AMP));
+    operatorController.rightTrigger().whileTrue(stateController.setState(State.PLACE_AMP));
+    operatorController.b().onTrue(amp.setState(Amp.State.DOWN));
+    operatorController.a().whileTrue(stateController.setState(State.INTAKE_OUT));
   }
 
   public Command getAutonomousCommand() {

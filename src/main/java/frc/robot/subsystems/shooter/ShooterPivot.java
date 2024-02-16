@@ -43,7 +43,7 @@ public class ShooterPivot extends SubsystemBase {
     
     motor = new CANSparkMax(CAN.SHOOTER_PIVOT, MotorType.kBrushless);
 
-    SparkMaxUtil.configureAndLog(this, motor, true, IdleMode.kBrake);
+    SparkMaxUtil.configureAndLog(this, motor, false, IdleMode.kBrake);
     SparkMaxUtil.save(motor);
 
     controller = new PivotController(
@@ -54,10 +54,12 @@ public class ShooterPivot extends SubsystemBase {
       PIVOT.GEARBOX_REDUCTION,
       PIVOT.PROFILE.MAX_ACCELERATION,
       Presets.SHOOTER.PIVOT.MIN_ANGLE,
-      Presets.SHOOTER.PIVOT.MAX_ANGLE
+      Presets.SHOOTER.PIVOT.MAX_ANGLE,
+      true
     );
 
     Logger.autoLog(this, "absolutePosition",        () -> controller.getAbsolutePosition().getRadians());
+    Logger.autoLog(this, "rawAbsolutePosition",        () -> controller.getRawAbsoluteEncoderValue());
   }
 
   @Override
@@ -71,7 +73,7 @@ public class ShooterPivot extends SubsystemBase {
   }
 
   public Command setTargetAngle(Rotation2d angle) {
-    return runOnce(() -> controller.setTargetAngle(angle));    
+    return runOnce(() -> controller.setTargetAngle(angle));
   }
 
   public Rotation2d getPosition() {

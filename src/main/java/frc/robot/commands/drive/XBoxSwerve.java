@@ -65,8 +65,8 @@ public class XBoxSwerve extends Command {
 
     double leftTrigger = controller.getLeftTriggerAxis();
     double rightTrigger = controller.getRightTriggerAxis();
-    Translation2d leftStick = new Translation2d(-controller.getLeftY(), -controller.getLeftX());
-    Translation2d rightStick = new Translation2d(controller.getRightX(), -controller.getRightY());
+    Translation2d leftStick = new Translation2d(-controller.getLeftY()*0.5, -controller.getLeftX()*0.5);
+    Translation2d rightStick = new Translation2d(controller.getRightX()*0.5, -controller.getRightY()*0.5);
     
     if (RobotBase.isSimulation()) {
       leftStick = new Translation2d(controller.getRawAxis(0), -controller.getRawAxis(1));
@@ -74,6 +74,7 @@ public class XBoxSwerve extends Command {
       leftTrigger = (controller.getRawAxis(5) + 1.0) / 2.0;
       rightTrigger = (controller.getRawAxis(4) + 1.0) / 2.0;
     }
+
 
     // Deadbands
     leftStick = InputMath.addCircularDeadband(leftStick, 0.05);
@@ -103,14 +104,14 @@ public class XBoxSwerve extends Command {
     }
 
     if (controller.getAButton()) {
-      swerveDrive.goToNearestPose(List.of(Field.AUTO_MOVE_POSITIONS.values().toArray(new Pose2d[] {})), controller).schedule();
+      // swerveDrive.goToNearestPose(List.of(Field.AUTO_MOVE_POSITIONS.values().toArray(new Pose2d[] {})), controller).schedule();
     }
     
     swerveDrive.driveFieldRelative(velocity.getX(), velocity.getY(), angularVelocity);
 
-    if (leftStick.getNorm() > 0.05 && (controller.getLeftBumper() || controller.getRightBumper())) {
-      swerveDrive.setTargetHeading(leftStick.getAngle());
-    }
+    // if (leftStick.getNorm() > 0.05 && (controller.getLeftBumper() || controller.getRightBumper())) {
+    //   swerveDrive.setTargetHeading(leftStick.getAngle());
+    // }
 
     angularVelocity = 0.0;
     velocity = new Translation2d();

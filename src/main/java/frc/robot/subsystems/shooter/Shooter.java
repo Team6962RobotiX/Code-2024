@@ -150,4 +150,8 @@ public class Shooter extends SubsystemBase {
     targetHeading = newTargetHeading;
     // swerveDrive.setTargetHeading(targetHeading.plus(Rotation2d.fromRadians(headingVelocity * PIVOT.ROTATION_DELAY)));
   }
+
+  public ShooterPivot getPivot() {
+    return shooterPivot;
+  }
 }

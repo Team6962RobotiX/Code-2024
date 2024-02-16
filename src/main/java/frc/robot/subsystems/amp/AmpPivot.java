@@ -53,7 +53,8 @@ public class AmpPivot extends SubsystemBase {
       PIVOT.GEARBOX_REDUCTION,
       PIVOT.PROFILE.MAX_ACCELERATION,
       Presets.AMP.PIVOT.MIN_ANGLE,
-      Presets.AMP.PIVOT.MAX_ANGLE
+      Presets.AMP.PIVOT.MAX_ANGLE,
+      false
     );
 
     SparkMaxUtil.save(motor);

@@ -46,11 +46,15 @@ public class PivotController {
 
   private Rotation2d minAngle, maxAngle;
 
-  public PivotController(CANSparkMax motor, int absoluteEncoderDIO, double absolutePositionOffset, double kP, double gearing, double maxAcceleration, Rotation2d minAngle, Rotation2d maxAngle) {
-    this(motor, absoluteEncoderDIO, absolutePositionOffset, kP, 0.0, 0.0, 0.0, 0.0, 12.0 / (NEO.STATS.freeSpeedRadPerSec / gearing), 0.0, gearing, NEO.STATS.freeSpeedRadPerSec / gearing, maxAcceleration, minAngle, maxAngle);
+  private double encoderOffset = 0.0;
+
+  private boolean reversed;
+
+  public PivotController(CANSparkMax motor, int absoluteEncoderDIO, double absolutePositionOffset, double kP, double gearing, double maxAcceleration, Rotation2d minAngle, Rotation2d maxAngle, boolean reversed) {
+    this(motor, absoluteEncoderDIO, absolutePositionOffset, kP, 0.0, 0.0, 0.0, 0.0, 12.0 / (NEO.STATS.freeSpeedRadPerSec / gearing), 0.0, gearing, NEO.STATS.freeSpeedRadPerSec / gearing, maxAcceleration, minAngle, maxAngle, reversed);
   }
 
-  public PivotController(CANSparkMax motor, int absoluteEncoderDIO, double absolutePositionOffset, double kP, double kI, double kD, double kS, double kG, double kV, double kA, double gearing, double maxVelocity, double maxAcceleration, Rotation2d minAngle, Rotation2d maxAngle) {
+  public PivotController(CANSparkMax motor, int absoluteEncoderDIO, double absolutePositionOffset, double kP, double kI, double kD, double kS, double kG, double kV, double kA, double gearing, double maxVelocity, double maxAcceleration, Rotation2d minAngle, Rotation2d maxAngle, boolean reversed) {
     feedforward = new ArmFeedforward(kS, kG, kV, kA);
     profile = new TrapezoidProfile(
       new Constraints(maxVelocity, maxAcceleration)
@@ -63,8 +67,13 @@ public class PivotController {
     this.minAngle = minAngle;
     this.maxAngle = maxAngle;
 
+    this.reversed = reversed;
+    encoderOffset = absolutePositionOffset;
+
     SparkMaxUtil.configureEncoder(motor, 2.0 * Math.PI / gearing);
     SparkMaxUtil.configurePID(motor, kP, kI, kD, 0.0, true);
+
+    pid.setOutputRange(-1, 1);
 
     new TunableNumber("Pivot PID " + motor.getDeviceId(), pid::setP, 0.01);
   }
@@ -117,8 +126,12 @@ public class PivotController {
   }
 
   public Rotation2d getAbsolutePosition() {
+    double factor = 1;
+    if (reversed) {
+      factor = -1;
+    }
     // Map absolute encoder position from 0 - 1 rotations to -pi - pi radians, where 0 is straight out
-    double absoluteAngle = (absoluteEncoder.getAbsolutePosition() + PIVOT.ABSOLUTE_POSITION_OFFSET);
+    double absoluteAngle = (absoluteEncoder.getAbsolutePosition() + encoderOffset) * factor;
     while (absoluteAngle < 0) absoluteAngle++;
     absoluteAngle %= 1.0;
     
@@ -128,6 +141,10 @@ public class PivotController {
     }
 
     return Rotation2d.fromRadians(absoluteAngle);
+  }
+
+  public double getRawAbsoluteEncoderValue() {
+    return absoluteEncoder.getAbsolutePosition();
   }
 
   public Rotation2d getPosition() {

@@ -1,5 +1,7 @@
 package frc.robot.subsystems;
 
+import static edu.wpi.first.units.Units.Amps;
+
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -26,7 +28,8 @@ public class RobotStateController extends SubsystemBase {
     LOAD_AMP,
     LOAD_SHOOTER,
     PLACE_AMP,
-    SHOOT
+    SHOOT,
+    INTAKE_OUT
   }
 
   public RobotStateController(Amp amp, SwerveDrive swerveDrive, Intake intake, Shooter shooter, Transfer transfer) {
@@ -87,15 +90,15 @@ public class RobotStateController extends SubsystemBase {
         );
         break;
       case PLACE_AMP:
-        command = Commands.sequence(
-          amp.setState(Amp.State.OUT),
-          Commands.waitSeconds(2.0)
-        );
+        command = amp.setState(Amp.State.OUT);
         break;
       case SHOOT:
         command = Commands.sequence(
-          shooter.setState(Shooter.State.SHOOT)
+        shooter.setState(Shooter.State.SHOOT)
         );
+        break;
+      case INTAKE_OUT:
+        command = intake.setState(Intake.State.OUT);
         break;
       default:
         command = Commands.run(() -> {});
