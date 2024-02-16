@@ -72,11 +72,14 @@ public class NoteDetector extends SubsystemBase {
     oldAverage /= (double) scope;
     newAverage /= (double) scope;
     
+    if (oldAverage == 0.0 || newAverage == 0.0) {
+      return 0.0;
+    }
     
     if (newAverage > oldAverage) {
       return newAverage / oldAverage - 1.0;
     } else {
-      return -(oldAverage / newAverage) + 1.0;
+      return 1.0 - (oldAverage / newAverage);
     }
   }
 
