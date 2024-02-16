@@ -10,58 +10,79 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.Presets;
+import frc.robot.Constants.NEO;
 import frc.robot.util.software.Logging.Logger;
 
-/**
- * Used for detecting notes based on current draw from a motor
- * Cannot be used in closed loop control
- */
+import java.util.ArrayDeque;
+import java.util.Queue;
+
 public class NoteDetector extends SubsystemBase {
+  int scope = 5;
+  Queue<Double> lastReadings = new ArrayDeque<>(scope * 2);
+  double delay = NEO.SAFE_RAMP_RATE * 2.0;
+  double delayCounter = 0.0;
   CANSparkMax motor;
-  double impulse = 0.0;
-  double scaledCurrent = 0.0;
-  double totalDelay = 0.1 / 0.02;
-  int delay = 0;
-  LinearFilter highPass = LinearFilter.highPass(0.1, 0.02);
-  LinearFilter movingAverage = LinearFilter.movingAverage(10);
-  double scalingFactor = 1.0;
-  
-  public NoteDetector(CANSparkMax motor, boolean isNeo550) {
+
+  public NoteDetector(CANSparkMax motor) {
     this.motor = motor;
-    Logger.autoLog("NoteDetectors/" + motor.getDeviceId() + "/impulse", () -> impulse);
-    Logger.autoLog("NoteDetectors/" + motor.getDeviceId() + "/scaledCurrent", () -> scaledCurrent);
-    if (isNeo550) {
-      scalingFactor = 5.0;
-    }
-  }
-
-  public boolean hasJustReceivedNote() {
-    return impulse > Presets.NOTE_DETECTION_IMPULSE && delay > totalDelay;
-  }
-
-  public boolean hasJustReleaseddNote() {
-    return impulse < -Presets.NOTE_DETECTION_IMPULSE && delay > totalDelay;
+    Logger.autoLog("NoteDetectors/" + motor.getDeviceId() + "/currentChangeRatio", () -> getChangeRatio());
   }
 
   @Override
   public void periodic() {
     double output = motor.get();
-    scaledCurrent = 0.0;
-
+    
     if (output == 0.0) {
-      impulse = 0.0;
-      delay = 0;
-      movingAverage.reset();
+      delayCounter = 0.0;
       return;
     }
 
-    scaledCurrent = movingAverage.calculate((motor.getOutputCurrent() / Math.abs(motor.get())) * scalingFactor);
-    impulse = highPass.calculate(scaledCurrent);
-
-    if (delay <= totalDelay) {
-      delay++;
-      movingAverage.reset();
+    if (delayCounter <= delay) {
+      delayCounter += 0.02;
       return;
     }
+    
+    updateLastReadings(motor.getOutputCurrent());
+  }
+  
+  private void updateLastReadings(double current) {
+    if (lastReadings.size() == 10) {
+      lastReadings.poll();
+    }
+    lastReadings.offer(current);
+  }
+  
+  private double getChangeRatio() {
+    if (lastReadings.size() != scope * 2) {
+      return 0.0;
+    }
+    
+    double oldAverage = 0, newAverage = 0;
+    int i = 0;
+    for (double reading : lastReadings) {
+      if (i < scope) {
+        oldAverage += reading;
+      } else {
+        newAverage += reading;
+      }
+      i++;
+    }
+    oldAverage /= (double) scope;
+    newAverage /= (double) scope;
+    
+    
+    if (newAverage > oldAverage) {
+      return newAverage / oldAverage;
+    } else {
+      return -(oldAverage / newAverage);
+    }
+  }
+
+  public boolean hasJustReceivedNote() {
+    return getChangeRatio() > Presets.NOTE_DETECTION_THRESHOLD;
+  }
+
+  public boolean hasJustReleaseddNote() {
+    return getChangeRatio() < -Presets.NOTE_DETECTION_THRESHOLD;
   }
 }

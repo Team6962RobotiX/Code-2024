@@ -48,7 +48,7 @@ public class AmpWheels extends SubsystemBase {
     SparkMaxUtil.configureAndLog(this, motor, false, IdleMode.kCoast);
     SparkMaxUtil.save(motor);
 
-    detector = new NoteDetector(motor, true);
+    detector = new NoteDetector(motor);
 
     Logger.autoLog(this, "hasJustReleaseddNote",    () -> detector.hasJustReleaseddNote());
     Logger.autoLog(this, "hasJustReceivedNote",     () -> detector.hasJustReceivedNote());

@@ -50,7 +50,7 @@ public class IntakeRollers extends SubsystemBase {
     SparkMaxUtil.configureAndLog(this, motor, false, IdleMode.kBrake);
     SparkMaxUtil.save(motor);
 
-    detector = new NoteDetector(motor, false);
+    detector = new NoteDetector(motor);
 
     Logger.autoLog(this, "hasJustReleaseddNote",    () -> detector.hasJustReleaseddNote());
     Logger.autoLog(this, "hasJustReceivedNote",     () -> detector.hasJustReceivedNote());
