@@ -55,7 +55,7 @@ public class MoveToNote extends Command {
       translation.plus(new Translation2d(
         0.0,
         -Limelight.getNoteDist(cameraName)
-      ).rotateBy(targetHeading));
+      ).rotateBy(targetHeading.minus(Rotation2d.fromDegrees(90))));
 
       targetPose = new Pose2d(translation, targetHeading);
 
