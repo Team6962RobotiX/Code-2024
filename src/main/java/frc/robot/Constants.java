@@ -28,12 +28,11 @@ public final class Constants {
   // ENABLED SYSTEMS
   public static final class ENABLED_SYSTEMS {
     public static final boolean ENABLE_DRIVE     = true;
-    public static final boolean ENABLE_LIMELIGHT = false;
     public static final boolean ENABLE_DASHBOARD = true;
-    public static final boolean ENABLE_SHOOTER   = true;
-    public static final boolean ENABLE_INTAKE   = true;
-    public static final boolean ENABLE_TRANSFER = true;
-    public static final boolean ENABLE_AMP = true;
+    public static final boolean ENABLE_SHOOTER   = false;
+    public static final boolean ENABLE_INTAKE   = false;
+    public static final boolean ENABLE_TRANSFER = false;
+    public static final boolean ENABLE_AMP = false;
   }
 
   public static final class LOGGING {
@@ -53,7 +52,7 @@ public final class Constants {
 
   // LIMELIGHT
   public static final class LIMELIGHT {
-    public static final String[] APRILTAG_CAMERA_NAMES = {"limelight"};
+    public static final String[] APRILTAG_CAMERA_NAMES = {"limelight_apriltags"};
   }
 
   // SWERVE DRIVE
@@ -189,7 +188,7 @@ public final class Constants {
 
     // TELEOPERATED
     public static final class ABSOLUTE_ROTATION_GAINS {
-      public static final double kP = 3.0;
+      public static final double kP = 2.0;
       public static final double kI = 0.0;
       public static final double kD = 0.0;
       public static final Rotation2d TOLERANCE = Rotation2d.fromDegrees(0.5);

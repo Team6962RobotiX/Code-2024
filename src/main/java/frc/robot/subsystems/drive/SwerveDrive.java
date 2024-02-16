@@ -230,9 +230,12 @@ public class SwerveDrive extends SubsystemBase {
   }
 
   private void driveAttainableSpeeds(ChassisSpeeds fieldRelativeSpeeds) {    
-    double targetAngularSpeed = toLinear((fieldRelativeSpeeds.omegaRadiansPerSecond));
+    double targetAngularSpeed = Math.abs(toLinear(fieldRelativeSpeeds.omegaRadiansPerSecond));
     double alignmentAngularVelocity = alignmentController.calculate(getHeading().getRadians());
 
+    if (targetAngularSpeed > SWERVE_DRIVE.VELOCITY_DEADBAND) {
+      isAligning = false;
+    }
     if (isAligning) fieldRelativeSpeeds.omegaRadiansPerSecond += alignmentAngularVelocity;
 
     SwerveModuleState[] moduleStates = kinematics.toSwerveModuleStates(ChassisSpeeds.fromFieldRelativeSpeeds(fieldRelativeSpeeds, getAllianceAwareHeading()));
