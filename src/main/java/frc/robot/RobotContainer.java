@@ -22,6 +22,7 @@ import frc.robot.Constants.DEVICES;
 import frc.robot.Constants.NEO;
 import frc.robot.Presets.SHOOTER;
 import frc.robot.commands.drive.XBoxSwerve;
+import frc.robot.commands.vision.MoveToNote;
 import frc.robot.subsystems.amp.Amp;
 import frc.robot.subsystems.amp.AmpPivot;
 import frc.robot.subsystems.LEDs;
@@ -83,15 +84,17 @@ public class RobotContainer {
   }
   
   private void configureBindings() {
-    operatorController.a().onTrue(stateController.setState(State.PICKUP));
-    operatorController.y().onTrue(stateController.setState(State.LOAD_SHOOTER));
+    // operatorController.a().onTrue(stateController.setState(State.PICKUP));
+    // operatorController.y().onTrue(stateController.setState(State.LOAD_SHOOTER));
+    // operatorController.x().onTrue(stateController.setState(State.SHOOT));
 
-    operatorController.x().onTrue(stateController.setState(State.SHOOT));
 
 
-    operatorController.leftBumper().onTrue(stateController.setState(State.PICKUP));
-    operatorController.rightBumper().onTrue(stateController.setState(State.LOAD_AMP));
-    operatorController.rightTrigger().onTrue(stateController.setState(State.PLACE_AMP));
+    // operatorController.leftBumper().onTrue(stateController.setState(State.PICKUP));
+    // operatorController.rightBumper().onTrue(stateController.setState(State.LOAD_AMP));
+    // operatorController.rightTrigger().onTrue(stateController.setState(State.PLACE_AMP));
+
+    driveController.b().whileTrue(new MoveToNote("limelight-notes", swerveDrive, driveController));
   }
 
   public Command getAutonomousCommand() {
