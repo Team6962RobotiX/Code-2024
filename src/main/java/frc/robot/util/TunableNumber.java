@@ -16,8 +16,8 @@ public class TunableNumber extends SubsystemBase {
   private GenericEntry entry;
   private ShuffleboardTab tab;
 
-  public TunableNumber(String name, Consumer<Double> setter, double defaultNumber) {
-    this.name = name;
+  public TunableNumber(SubsystemBase subsystem, String name, Consumer<Double> setter, double defaultNumber) {
+    this.name = subsystem.getClass().getSimpleName() + "/" + name;
     this.setter = setter;
     tab = Shuffleboard.getTab("Tunable Numbers");
     currentNumber = defaultNumber;

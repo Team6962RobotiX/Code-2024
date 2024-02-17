@@ -92,10 +92,10 @@ public class SwerveModuleSim extends SwerveModule {
       double driveVolts = driveFF.calculate(speedMetersPerSecond, 0.0) + 12.0 * drivePID.calculate(getMeasuredState().speedMetersPerSecond, speedMetersPerSecond);
       double steerVolts = 12.0 * steerPID.calculate(getMeasuredState().angle.getRadians(), radians);
       
-      driveVoltRamp += (MathUtil.clamp(driveVolts - driveVoltRamp, -12.0 / DRIVE_MOTOR_PROFILE.RAMP_RATE / 1000.0, 12.0 / DRIVE_MOTOR_PROFILE.RAMP_RATE / 1000.0));
+      driveVoltRamp += (MathUtil.clamp(driveVolts - driveVoltRamp, -12.0 / NEO.SAFE_RAMP_RATE / 1000.0, 12.0 / NEO.SAFE_RAMP_RATE / 1000.0));
       driveVolts = driveVoltRamp;
 
-      steerVoltRamp += (MathUtil.clamp(steerVolts - steerVoltRamp, -12.0 / STEER_MOTOR_PROFILE.RAMP_RATE / 1000.0, 12.0 / STEER_MOTOR_PROFILE.RAMP_RATE / 1000.0));
+      steerVoltRamp += (MathUtil.clamp(steerVolts - steerVoltRamp, -12.0 / NEO.SAFE_RAMP_RATE / 1000.0, 12.0 / NEO.SAFE_RAMP_RATE / 1000.0));
       steerVolts = steerVoltRamp;
 
       driveMotor.setInputVoltage(MathUtil.clamp(driveVolts, -12.0, 12.0));

@@ -46,6 +46,7 @@ public class AmpPivot extends SubsystemBase {
     SparkMaxUtil.configureAndLog(this, motor, true, IdleMode.kBrake);
 
     controller = new PivotController(
+      this,
       motor,
       DIO.AMP_PIVOT,
       PIVOT.ABSOLUTE_POSITION_OFFSET,
@@ -58,9 +59,6 @@ public class AmpPivot extends SubsystemBase {
     );
 
     SparkMaxUtil.save(motor);
-
-    Logger.autoLog(this, "absolutePosition",         () -> controller.getAbsolutePosition().getRadians());
-    StatusChecks.addCheck(this, "absoluteEncoderConnected", () -> controller.isAbsoluteEncoderConnected());
   }
 
   @Override

@@ -82,7 +82,7 @@ public final class Constants {
     public static final double   TELEOPERATED_DRIVE_POWER           = 0.5; // Percent driving power
     public static final double   TELEOPERATED_BOOST_POWER           = 1.0; // Percent power when using the triggers
     public static final double   TELEOPERATED_ROTATE_POWER          = 0.5; // Percent rotating power
-    public static final double   VELOCITY_DEADBAND                  = 0.05; // Velocity we stop moving at
+    // public static final double   VELOCITY_DEADBAND                  = 0.05; // Velocity we stop moving at
     
     // ODOMETER
     public static final Pose2d   STARTING_POSE                      = Field.pose2d(0.0, 0.0, 0.0);
@@ -154,16 +154,15 @@ public final class Constants {
 
     public static final class DRIVE_MOTOR_PROFILE {
       // FROM WPILIB SYSTEM IDENTIFICATION, FREE SPINNING
-      public static final double kP                 = 0.00000; // Proportion Gain
+      public static final double kP                 = 0.00010; // Proportion Gain
       public static final double kI                 = 0.00000; // Integral Gain
       public static final double kD                 = 0.00000; // Derivative Gain
-      public static final double kS                 = 0.00000; // volts
+      public static final double kS                 = 0.081073; // volts
       public static final double kV                 = 12.0 / PHYSICS.MAX_LINEAR_VELOCITY; // volts per m/s
       public static final double kA                 = 0.10000; // volts per m/s^2, free spinning
       
       // CALCULATED
       public static final int    CURRENT_LIMIT      = PHYSICS.SLIPLESS_CURRENT_LIMIT; // Amps
-      public static final double RAMP_RATE          = 0.1; // Seconds it takes to reach full power
       
       // PREFERENCE
       public static final int[]  STATUS_FRAMES      = { 10, 10, 10, 500, 500, 500, 500 }; // ms
@@ -180,7 +179,6 @@ public final class Constants {
       
       // CALCULATED
       public static final int    CURRENT_LIMIT      = 20; // Amps
-      public static final double RAMP_RATE          = 0.1; // Seconds it takes to reach full power
       
       // PREFERENCE
       public static final int[]  STATUS_FRAMES      = { 10, 10, 10, 500, 500, 500, 500 }; // ms
@@ -320,7 +318,7 @@ public final class Constants {
       public static final Rotation2d ANGLE_TOLERANCE = Rotation2d.fromDegrees(0.5);
       public static final Rotation2d ANGLE_PRECISION = Rotation2d.fromDegrees(0.5);
       public static final Rotation2d HEADING_PRECISION = Rotation2d.fromDegrees(0.5);
-      public static final Translation3d POSITION = new Translation3d(0.0, 0.0, Units.inchesToMeters(0.0));
+      public static final Translation3d POSITION = new Translation3d(0.0, 0.0, Units.inchesToMeters(12.0));
       public static final double CoM_DISTANCE = Units.inchesToMeters(15.0);
       public static final double MASS = Units.lbsToKilograms(14.3);
       public static final double MOI = (1.0 / 3.0) * MASS * Math.pow(CoM_DISTANCE, 2.0);

@@ -13,6 +13,8 @@ import static edu.wpi.first.units.Units.Volts;
 
 import java.util.List;
 
+import com.ctre.phoenix6.BaseStatusSignal;
+import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.MagnetSensorConfigs;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.signals.AbsoluteSensorRangeValue;
@@ -97,12 +99,15 @@ public class SwerveModule extends SubsystemBase {
         break;
       default:
     }
+
     encoderOffset %= 2;
     encoderOffset = (encoderOffset > 1.0) ? encoderOffset - 2.0 : (encoderOffset < -1.0) ? encoderOffset + 2.0 : encoderOffset;
 
     MagnetSensorConfigs magConfig = new MagnetSensorConfigs();
     magConfig.withAbsoluteSensorRange(AbsoluteSensorRangeValue.Signed_PlusMinusHalf);
     magConfig.withMagnetOffset(encoderOffset);
+    BaseStatusSignal.setUpdateFrequencyForAll(50, absoluteSteerEncoder.getPosition());
+    absoluteSteerEncoder.optimizeBusUtilization();
 
     SparkMaxUtil.configureAndLog(this, driveMotor, false, IdleMode.kBrake);
     SparkMaxUtil.configureAndLog(this, steerMotor, true, IdleMode.kCoast);
@@ -110,9 +115,7 @@ public class SwerveModule extends SubsystemBase {
     SparkMaxUtil.configureEncoder(steerMotor, SWERVE_DRIVE.STEER_ENCODER_CONVERSION_FACTOR);
     SparkMaxUtil.configurePID(driveMotor, DRIVE_MOTOR_PROFILE.kP, DRIVE_MOTOR_PROFILE.kI, DRIVE_MOTOR_PROFILE.kD, DRIVE_MOTOR_PROFILE.kV, false);
     SparkMaxUtil.configurePID(steerMotor, STEER_MOTOR_PROFILE.kP, STEER_MOTOR_PROFILE.kI, STEER_MOTOR_PROFILE.kD, 0.0, true);
-
-    absoluteSteerEncoder.getConfigurator().apply(magConfig);
-
+    
     seedSteerEncoder();
 
     String logPath = "module" + name + "/";
@@ -123,14 +126,15 @@ public class SwerveModule extends SubsystemBase {
     Logger.autoLog(this, logPath + "targetAngle",             () -> getTargetState().angle.getDegrees());
     Logger.autoLog(this, logPath + "targetVelocity",          () -> getTargetState().speedMetersPerSecond);
 
-    StatusChecks.addCheck(this, name + "CancoderHasFaults", () -> absoluteSteerEncoder.getFaultField().getValue() == 0);
+    StatusChecks.addCheck(this, name + "canCoderHasFaults", () -> absoluteSteerEncoder.getFaultField().getValue() == 0);
+    StatusChecks.addCheck(this, name + "canCoderIsConnected", () -> absoluteSteerEncoder.getVersion().getValue() != 0);
   }
 
 
   public void periodic() {
     if (isCalibrating) return;
 
-    if (Math.abs(getMeasuredState().speedMetersPerSecond) < SWERVE_DRIVE.VELOCITY_DEADBAND && SwerveMath.angleDistance(getMeasuredState().angle.getRadians(), getTargetState().angle.getRadians()) < Units.degreesToRadians(1.0)) {
+    if (Math.abs(getMeasuredState().speedMetersPerSecond) < 0.05 && SwerveMath.angleDistance(getMeasuredState().angle.getRadians(), getTargetState().angle.getRadians()) < Units.degreesToRadians(1.0)) {
       seedSteerEncoder();
     }
     

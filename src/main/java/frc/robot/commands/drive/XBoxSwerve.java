@@ -95,14 +95,6 @@ public class XBoxSwerve extends Command {
       swerveDrive.resetGyroHeading(newHeading);
     }
 
-    if (SwerveDrive.toLinear(Math.abs(angularVelocity)) < SWERVE_DRIVE.VELOCITY_DEADBAND) {
-      angularVelocity = 0.0;
-    }
-
-    if (velocity.getNorm() < SWERVE_DRIVE.VELOCITY_DEADBAND) {
-      velocity = new Translation2d();
-    }
-
     if (controller.getAButton()) {
       // swerveDrive.goToNearestPose(List.of(Field.AUTO_MOVE_POSITIONS.values().toArray(new Pose2d[] {})), controller).schedule();
     }

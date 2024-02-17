@@ -62,6 +62,21 @@
         "bottom": 1476,
         "height": 8.210550308227539,
         "left": 150,
+        "possibleShotPositions": {
+          "arrowSize": 22,
+          "arrowWeight": 1.0,
+          "arrows": false,
+          "color": [
+            1.0,
+            0.0,
+            0.0,
+            255.0
+          ],
+          "length": 0.8759999871253967,
+          "selectable": false,
+          "weight": 1.0,
+          "width": 0.8759999871253967
+        },
         "right": 2961,
         "top": 79,
         "traj": {

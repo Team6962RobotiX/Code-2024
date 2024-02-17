@@ -48,13 +48,11 @@ public class MoveToNote extends Command {
       Translation2d translation = swerveDrive.getPose().getTranslation();
       Rotation2d rotation = swerveDrive.getPose().getRotation();
 
-      
-
       Rotation2d targetHeading = rotation.minus(Rotation2d.fromDegrees(Limelight.targetHorizontal(cameraName)));
 
-      translation.plus(new Translation2d(
-        0.0,
-        -Limelight.getNoteDist(cameraName)
+      translation = translation.plus(new Translation2d(
+        Limelight.getNoteDist(cameraName),
+        0.0
       ).rotateBy(targetHeading));
 
       targetPose = new Pose2d(translation, targetHeading);

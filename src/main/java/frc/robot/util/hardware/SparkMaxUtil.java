@@ -25,13 +25,15 @@ public final class SparkMaxUtil {
   }
 
   public static void configureAndLog(SubsystemBase subsystem, CANSparkMax motor, boolean inverted, IdleMode idleMode, int currentLimit) {
-    motor.restoreFactoryDefaults();
+    configure(() -> motor.restoreFactoryDefaults(), motor);
+    configure(() -> motor.setIdleMode(idleMode), motor);
+    configure(() -> motor.enableVoltageCompensation(12.0), motor);
+    configure(() -> motor.setSmartCurrentLimit(Math.min(currentLimit, NEO.SAFE_STALL_CURRENT), currentLimit), motor);
+    configure(() -> motor.setClosedLoopRampRate(NEO.SAFE_RAMP_RATE), motor);
+    configure(() -> motor.setOpenLoopRampRate(NEO.SAFE_RAMP_RATE), motor);
     motor.setInverted(inverted);
-    motor.setIdleMode(idleMode);
-    motor.enableVoltageCompensation(12.0);
-    motor.setSmartCurrentLimit(Math.min(currentLimit, NEO.SAFE_STALL_CURRENT), currentLimit);
-    motor.setClosedLoopRampRate(NEO.SAFE_RAMP_RATE);
-    motor.setOpenLoopRampRate(NEO.SAFE_RAMP_RATE);
+
+    configureCANStatusFrames(motor, 10, 20, 20, 500, 500, 200, 200);
 
     RelativeEncoder encoder = motor.getEncoder();
 
@@ -39,61 +41,64 @@ public final class SparkMaxUtil {
 
     Logger.autoLog(subsystem, logPath + "current",                 () -> motor.getOutputCurrent());
     Logger.autoLog(subsystem, logPath + "voltage",                 () -> motor.getBusVoltage());
+    Logger.autoLog(subsystem, logPath + "setOutput",               () -> motor.get());
     Logger.autoLog(subsystem, logPath + "appliedOutput",           () -> motor.getAppliedOutput());
     Logger.autoLog(subsystem, logPath + "appliedVoltage",          () -> motor.getBusVoltage() * motor.getAppliedOutput());
+    Logger.autoLog(subsystem, logPath + "powerWatts",              () -> motor.getBusVoltage() * motor.getAppliedOutput() * motor.getOutputCurrent());
     Logger.autoLog(subsystem, logPath + "motorTemperature",        () -> motor.getMotorTemperature());
     Logger.autoLog(subsystem, logPath + "position",                () -> encoder.getPosition());
     Logger.autoLog(subsystem, logPath + "velocity",                () -> encoder.getVelocity());
-    
-    StatusChecks.addCheck(subsystem, logPath + "hasFaults", () -> motor.getFaults() == 0 && motor.getDeviceId() != 0);
-    StatusChecks.addCheck(subsystem, logPath + "isConnected",    () -> motor.getDeviceId() != 0);
+
+    StatusChecks.addCheck(subsystem, logPath + "hasFaults", () -> motor.getFaults() == 0);
+    StatusChecks.addCheck(subsystem, logPath + "isConnected", () -> !motor.getFirmwareString().equals("v0.0.0"));
+    StatusChecks.addCheck(subsystem, logPath + "isTooHot", () -> motor.getMotorTemperature() <= NEO.SAFE_TEMPERATURE);
+  }
+
+  private static void configure(Supplier<REVLibError> config, CANSparkMax motor) {
+    for (int i = 0; i < 5; i++) {
+      if (config.get() == REVLibError.kOk) {
+        return;
+      }
+    }
+    DriverStation.reportError("Failure configuring spark max " + motor.getDeviceId() + "\n" + "Error: " + config.get().toString(), false);
   }
 
   public static void configureAndLog550(SubsystemBase subsystem, CANSparkMax motor, boolean inverted, IdleMode idleMode) {
     configureAndLog(subsystem, motor, inverted, idleMode, 10);
   }
 
-  public enum StatusFrames {
-    _0_ONLY_FAULTS,
-    _1_MOTOR_DATA,
-    _2_MOTOR_DATA_AND_POSITION,
-  }
-
-  public static void setFrames(CANSparkMax motor, StatusFrames frames) {
-    switch (frames) {
-      case _0_ONLY_FAULTS:
-        motor.setPeriodicFramePeriod(PeriodicFrame.kStatus1, 500);
-        motor.setPeriodicFramePeriod(PeriodicFrame.kStatus2, 500);
-        break;
-      case _1_MOTOR_DATA:
-        motor.setPeriodicFramePeriod(PeriodicFrame.kStatus2, 500);
-        break;
-      case _2_MOTOR_DATA_AND_POSITION:
-        break;
-    }
+  public static void configureCANStatusFrames(CANSparkMax motor, int CANStatus0, int CANStatus1, int CANStatus2, int CANStatus3, int CANStatus4, int CANStatus5, int CANStatus6) {
+    motor.setPeriodicFramePeriod(PeriodicFrame.kStatus0, CANStatus0);
+    motor.setPeriodicFramePeriod(PeriodicFrame.kStatus1, CANStatus1);
+    motor.setPeriodicFramePeriod(PeriodicFrame.kStatus2, CANStatus2);
+    motor.setPeriodicFramePeriod(PeriodicFrame.kStatus3, CANStatus3);
+    motor.setPeriodicFramePeriod(PeriodicFrame.kStatus4, CANStatus4);
+    motor.setPeriodicFramePeriod(PeriodicFrame.kStatus5, CANStatus5);
+    motor.setPeriodicFramePeriod(PeriodicFrame.kStatus6, CANStatus6);
+    //  https://docs.revrobotics.com/sparkmax/operating-modes/control-interfaces
   }
 
   public static void configurePID(CANSparkMax motor, double kP, double kI, double kD, double kV, boolean wrap) {
     SparkPIDController pid = motor.getPIDController();
-    pid.setP(kP, 0);
-    pid.setI(kI, 0);
-    pid.setD(kD, 0);
-    pid.setFF(kV / 12.0, 0);
+    configure(() -> pid.setP(kP, 0), motor);
+    configure(() -> pid.setI(kI, 0), motor);
+    configure(() -> pid.setD(kD, 0), motor);
+    configure(() -> pid.setFF(kV / 12.0, 0), motor);
 
     if (wrap) {
-      pid.setPositionPIDWrappingEnabled(true);
-      pid.setPositionPIDWrappingMinInput(-Math.PI);
-      pid.setPositionPIDWrappingMaxInput(Math.PI);
+      configure(() -> pid.setPositionPIDWrappingEnabled(true), motor);
+      configure(() -> pid.setPositionPIDWrappingMinInput(-Math.PI), motor);
+      configure(() -> pid.setPositionPIDWrappingMaxInput(Math.PI), motor);
     }
   }
 
   public static void configureEncoder(CANSparkMax motor, double encoderConversionFactor) {
     RelativeEncoder encoder = motor.getEncoder();
-    encoder.setPositionConversionFactor(encoderConversionFactor);
-    encoder.setVelocityConversionFactor(encoderConversionFactor / 60.0);
+    configure(() -> encoder.setPositionConversionFactor(encoderConversionFactor), motor);
+    configure(() -> encoder.setVelocityConversionFactor(encoderConversionFactor / 60.0), motor);
   }
 
   public static void save(CANSparkMax motor) {
-    motor.burnFlash();
+    configure(() -> motor.burnFlash(), motor);
   }
 }

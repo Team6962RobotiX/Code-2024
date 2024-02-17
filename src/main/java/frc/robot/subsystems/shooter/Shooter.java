@@ -63,9 +63,9 @@ public class Shooter extends SubsystemBase {
     switch(state) {
       case IN:
         return Commands.sequence( 
-          // shooterPivot.setTargetAngle(Presets.SHOOTER.PIVOT.INTAKE_ANGLE),
-          // shooterWheels.setTargetVelocity(0.0),
-          // Commands.waitUntil(() -> shooterPivot.doneMoving()),
+          shooterPivot.setTargetAngle(Presets.SHOOTER.PIVOT.INTAKE_ANGLE),
+          shooterWheels.setTargetVelocity(0.0),
+          Commands.waitUntil(() -> shooterPivot.doneMoving()),
           feedWheels.setState(FeedWheels.State.IN)
         );
       case AIM:
@@ -76,7 +76,7 @@ public class Shooter extends SubsystemBase {
         );
       case SHOOT:
         return Commands.sequence( 
-          // setState(State.AIM),
+          setState(State.AIM),
           shooterWheels.setTargetVelocity(Presets.SHOOTER.WHEELS.TARGET_SPEED),
           feedWheels.setState(FeedWheels.State.IN).onlyIf(() -> Math.abs(getShooterWheels().getVelocity()) > Presets.SHOOTER.WHEELS.TARGET_SPEED * 0.85),
           Commands.waitSeconds(1.0)

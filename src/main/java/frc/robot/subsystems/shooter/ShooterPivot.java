@@ -18,6 +18,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.Voltage;
 import edu.wpi.first.wpilibj.RobotState;
+import edu.wpi.first.wpilibj.motorcontrol.Spark;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -47,6 +48,7 @@ public class ShooterPivot extends SubsystemBase {
     SparkMaxUtil.save(motor);
 
     controller = new PivotController(
+      this,
       motor,
       DIO.SHOOTER_PIVOT,
       PIVOT.ABSOLUTE_POSITION_OFFSET,
@@ -58,8 +60,7 @@ public class ShooterPivot extends SubsystemBase {
       true
     );
 
-    Logger.autoLog(this, "absolutePosition",        () -> controller.getAbsolutePosition().getRadians());
-    Logger.autoLog(this, "rawAbsolutePosition",        () -> controller.getRawAbsoluteEncoderValue());
+    SparkMaxUtil.save(motor);
   }
 
   @Override

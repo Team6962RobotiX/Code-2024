@@ -30,7 +30,7 @@ public final class Presets {
     }
     
     public static final class WHEELS {
-      public static final double TARGET_SPEED = Units.rotationsPerMinuteToRadiansPerSecond(5000);
+      public static final double TARGET_SPEED = Units.rotationsPerMinuteToRadiansPerSecond(8000);
 
       public static final double LOAD_TIME = 1.0;
     }

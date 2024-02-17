@@ -24,6 +24,7 @@ import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
@@ -43,9 +44,13 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
+import frc.robot.Field;
+import frc.robot.Presets;
 import frc.robot.Constants.ENABLED_SYSTEMS;
 import frc.robot.Constants.LIMELIGHT;
+import frc.robot.Constants.SHOOTER;
 import frc.robot.Constants.SWERVE_DRIVE;
+import frc.robot.subsystems.shooter.ShooterMath;
 import frc.robot.subsystems.vision.AprilTagPose;
 import frc.robot.util.software.MathUtils;
 import frc.robot.util.software.Logging.Logger;
@@ -61,7 +66,7 @@ public class SwerveDrive extends SubsystemBase {
 
   private SwerveDriveKinematics kinematics = getKinematics();
   private SwerveDrivePoseEstimator poseEstimator;
-  private Field2d field = new Field2d();
+  private static Field2d field = new Field2d();
   private Rotation2d gyroHeading = Rotation2d.fromDegrees(0.0);
   private Rotation2d gyroOffset = SWERVE_DRIVE.STARTING_POSE.getRotation();
 
@@ -157,6 +162,15 @@ public class SwerveDrive extends SubsystemBase {
   public void periodic() {
     if (!ENABLED_SYSTEMS.ENABLE_DRIVE) return;
 
+    // Pose2d randomPose = new Pose2d(
+    //   new Translation2d(
+    //     Field.LENGTH * Math.random(),
+    //     Field.WIDTH * Math.random()
+    //   ),
+    //   new Rotation2d()
+    // );
+    // ShooterMath.calcOptimalShotChance(Field.SPEAKER, randomPose, new Translation2d());
+
     // Update current heading based on gyroscope or wheel speeds
     if (gyro.isConnected() && !RobotBase.isSimulation()) {
       gyroHeading = gyro.getRotation2d();
@@ -184,6 +198,23 @@ public class SwerveDrive extends SubsystemBase {
 
     // Update robot pose
     field.setRobotPose(getPose());
+
+    Translation2d translation = getPose().getTranslation();
+    Rotation2d rotation = getPose().getRotation();
+
+    double targetX = 10.0; //Limelight.targetHorizontal(cameraName);
+    double targetDist = 10.0; //Limelight.getNoteDist(cameraName);
+
+    Rotation2d targetHeading = rotation.minus(Rotation2d.fromDegrees(targetX));
+
+    translation = translation.plus(new Translation2d(
+      targetDist,
+      0.0
+    ).rotateBy(targetHeading));
+
+    Pose2d targetPose = new Pose2d(translation, targetHeading);
+
+    getField().getObject("notePose").setPose(targetPose);
   }
 
   @Override
@@ -233,9 +264,8 @@ public class SwerveDrive extends SubsystemBase {
     double targetAngularSpeed = Math.abs(toLinear(fieldRelativeSpeeds.omegaRadiansPerSecond));
     double alignmentAngularVelocity = alignmentController.calculate(getHeading().getRadians());
 
-    if (targetAngularSpeed > SWERVE_DRIVE.VELOCITY_DEADBAND) {
-      isAligning = false;
-    }
+    if (alignmentController.atSetpoint() || targetAngularSpeed > 0.0) isAligning = false;
+
     if (isAligning) fieldRelativeSpeeds.omegaRadiansPerSecond += alignmentAngularVelocity;
 
     SwerveModuleState[] moduleStates = kinematics.toSwerveModuleStates(ChassisSpeeds.fromFieldRelativeSpeeds(fieldRelativeSpeeds, getAllianceAwareHeading()));
@@ -272,11 +302,11 @@ public class SwerveDrive extends SubsystemBase {
     SwerveModuleState[] drivenModuleStates = kinematics.toSwerveModuleStates(ChassisSpeeds.fromFieldRelativeSpeeds(drivenChassisSpeeds, getAllianceAwareHeading()));
     
     boolean moving = false;
-    for (SwerveModuleState moduleState : kinematics.toSwerveModuleStates(fieldRelativeSpeeds)) if (Math.abs(moduleState.speedMetersPerSecond) > SWERVE_DRIVE.VELOCITY_DEADBAND) moving = true;
-    for (SwerveModuleState moduleState : drivenModuleStates) if (Math.abs(moduleState.speedMetersPerSecond) > SWERVE_DRIVE.VELOCITY_DEADBAND) moving = true;
-    if (!parked) {
-      for (SwerveModuleState moduleState : getMeasuredModuleStates()) if (Math.abs(moduleState.speedMetersPerSecond) > SWERVE_DRIVE.VELOCITY_DEADBAND) moving = true;
-    }
+    for (SwerveModuleState moduleState : kinematics.toSwerveModuleStates(fieldRelativeSpeeds)) if (Math.abs(moduleState.speedMetersPerSecond) > 0.0) moving = true;
+    for (SwerveModuleState moduleState : drivenModuleStates) if (Math.abs(moduleState.speedMetersPerSecond) > 0.0) moving = true;
+    // if (!parked) {
+    //   for (SwerveModuleState moduleState : getMeasuredModuleStates()) if (Math.abs(moduleState.speedMetersPerSecond) > 0.05) moving = true;
+    // }
     parked = false;
     if (!moving && !isAligning) {
       parkModules();
@@ -284,8 +314,6 @@ public class SwerveDrive extends SubsystemBase {
       return;
     }
     
-    if (alignmentAngularVelocity == 0.0) isAligning = false;
-
     driveModules(drivenModuleStates);
   }
   
@@ -474,7 +502,7 @@ public class SwerveDrive extends SubsystemBase {
   /**
    * @return Field2d object for SmartDashboard widget.
    */
-  public Field2d getField() {
+  public static Field2d getField() {
     return field;
   }
 

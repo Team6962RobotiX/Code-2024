@@ -22,6 +22,8 @@ import frc.robot.Constants.ENABLED_SYSTEMS;
 import frc.robot.Constants.NEO;
 import frc.robot.util.TunableNumber;
 import frc.robot.util.hardware.SparkMaxUtil;
+import frc.robot.util.software.Logging.Logger;
+import frc.robot.util.software.Logging.StatusChecks;
 
 /*
  * Uses oboard 1kHz PID, Feedforward, and Trapazoidal Profiles to
@@ -50,11 +52,11 @@ public class PivotController {
 
   private boolean reversed;
 
-  public PivotController(CANSparkMax motor, int absoluteEncoderDIO, double absolutePositionOffset, double kP, double gearing, double maxAcceleration, Rotation2d minAngle, Rotation2d maxAngle, boolean reversed) {
-    this(motor, absoluteEncoderDIO, absolutePositionOffset, kP, 0.0, 0.0, 0.0, 0.0, 12.0 / (NEO.STATS.freeSpeedRadPerSec / gearing), 0.0, gearing, NEO.STATS.freeSpeedRadPerSec / gearing, maxAcceleration, minAngle, maxAngle, reversed);
+  public PivotController(SubsystemBase subsystem, CANSparkMax motor, int absoluteEncoderDIO, double absolutePositionOffset, double kP, double gearing, double maxAcceleration, Rotation2d minAngle, Rotation2d maxAngle, boolean reversed) {
+    this(subsystem, motor, absoluteEncoderDIO, absolutePositionOffset, kP, 0.0, 0.0, 0.0, 0.0, 12.0 / (NEO.STATS.freeSpeedRadPerSec / gearing), 0.0, gearing, NEO.STATS.freeSpeedRadPerSec / gearing, maxAcceleration, minAngle, maxAngle, reversed);
   }
 
-  public PivotController(CANSparkMax motor, int absoluteEncoderDIO, double absolutePositionOffset, double kP, double kI, double kD, double kS, double kG, double kV, double kA, double gearing, double maxVelocity, double maxAcceleration, Rotation2d minAngle, Rotation2d maxAngle, boolean reversed) {
+  public PivotController(SubsystemBase subsystem, CANSparkMax motor, int absoluteEncoderDIO, double absolutePositionOffset, double kP, double kI, double kD, double kS, double kG, double kV, double kA, double gearing, double maxVelocity, double maxAcceleration, Rotation2d minAngle, Rotation2d maxAngle, boolean reversed) {
     feedforward = new ArmFeedforward(kS, kG, kV, kA);
     profile = new TrapezoidProfile(
       new Constraints(maxVelocity, maxAcceleration)
@@ -73,9 +75,13 @@ public class PivotController {
     SparkMaxUtil.configureEncoder(motor, 2.0 * Math.PI / gearing);
     SparkMaxUtil.configurePID(motor, kP, kI, kD, 0.0, true);
 
-    pid.setOutputRange(-1, 1);
-
-    new TunableNumber("Pivot PID " + motor.getDeviceId(), pid::setP, 0.01);
+    Logger.autoLog(subsystem, "absolutePosition",                 () -> getAbsolutePosition().getRadians());
+    Logger.autoLog(subsystem, "rawAbsolutePosition",              () -> absoluteEncoder.getAbsolutePosition());
+    
+    StatusChecks.addCheck(subsystem, "absoluteEncoderConnected", () -> absoluteEncoder.isConnected());
+    StatusChecks.addCheck(subsystem, "absoluteEncoderUpdated",   () -> absoluteEncoder.getAbsolutePosition() != 0.0);
+    
+    new TunableNumber(subsystem, "pivotPID " + motor.getDeviceId(), pid::setP, 0.0);
   }
 
   public void run() {
@@ -143,19 +149,11 @@ public class PivotController {
     return Rotation2d.fromRadians(absoluteAngle);
   }
 
-  public double getRawAbsoluteEncoderValue() {
-    return absoluteEncoder.getAbsolutePosition();
-  }
-
   public Rotation2d getPosition() {
     return Rotation2d.fromRadians(encoder.getPosition());
   }
 
   public Rotation2d getVelocity() {
     return Rotation2d.fromRadians(encoder.getVelocity());
-  }
-
-  public boolean isAbsoluteEncoderConnected() {
-    return absoluteEncoder.isConnected();
   }
 }
