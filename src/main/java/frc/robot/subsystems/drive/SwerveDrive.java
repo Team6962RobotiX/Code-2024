@@ -84,8 +84,6 @@ public class SwerveDrive extends SubsystemBase {
   SWERVE_DRIVE.MODULE_CONFIG[] equippedModules;
 
   public SwerveDrive() {
-    if (!ENABLED_SYSTEMS.ENABLE_DRIVE) return;
-
     // Create the serve module objects
     if (SWERVE_DRIVE.IS_PROTOTYPE_CHASSIS) {
       equippedModules = SWERVE_DRIVE.EQUIPPED_MODULES_PROTOTYPE;
@@ -198,23 +196,6 @@ public class SwerveDrive extends SubsystemBase {
 
     // Update robot pose
     field.setRobotPose(getPose());
-
-    Translation2d translation = getPose().getTranslation();
-    Rotation2d rotation = getPose().getRotation();
-
-    double targetX = 10.0; //Limelight.targetHorizontal(cameraName);
-    double targetDist = 10.0; //Limelight.getNoteDist(cameraName);
-
-    Rotation2d targetHeading = rotation.minus(Rotation2d.fromDegrees(targetX));
-
-    translation = translation.plus(new Translation2d(
-      targetDist,
-      0.0
-    ).rotateBy(targetHeading));
-
-    Pose2d targetPose = new Pose2d(translation, targetHeading);
-
-    getField().getObject("notePose").setPose(targetPose);
   }
 
   @Override

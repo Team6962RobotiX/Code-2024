@@ -41,8 +41,6 @@ public class CenteringWheels extends SubsystemBase {
   }
 
   public CenteringWheels() {
-    if (!ENABLED_SYSTEMS.ENABLE_INTAKE) return;
-    
     motor = new CANSparkMax(CAN.CENTERING, MotorType.kBrushless);
 
     SparkMaxUtil.configureAndLog(this, motor, false, IdleMode.kBrake);

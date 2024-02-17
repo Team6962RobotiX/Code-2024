@@ -42,13 +42,11 @@ public class Shooter extends SubsystemBase {
   }
 
   public Shooter(SwerveDrive swerveDrive) {
-    if (!ENABLED_SYSTEMS.ENABLE_SHOOTER) return;
-
     this.shooterWheels = new ShooterWheels();
     this.shooterPivot = new ShooterPivot();
     this.swerveDrive = swerveDrive;
     this.feedWheels = new FeedWheels();
-
+    
     SmartDashboard.putData("ShooterMechanism", mechanism);
   }
 

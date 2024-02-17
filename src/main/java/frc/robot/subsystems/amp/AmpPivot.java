@@ -39,8 +39,6 @@ public class AmpPivot extends SubsystemBase {
   private boolean isCalibrating = false;
 
   public AmpPivot() {
-    if (!ENABLED_SYSTEMS.ENABLE_AMP) return;
-    
     motor = new CANSparkMax(CAN.AMP_PIVOT, MotorType.kBrushless);
 
     SparkMaxUtil.configureAndLog(this, motor, true, IdleMode.kBrake);

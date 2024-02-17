@@ -46,7 +46,6 @@ public class Amp extends SubsystemBase {
   }
 
   public Amp() {
-    if (!ENABLED_SYSTEMS.ENABLE_AMP) return;
     pivot = new AmpPivot();
     wheels = new AmpWheels();
   }

@@ -62,7 +62,7 @@ public final class Constants {
     public static final double   INSPECTION_WEIGHT                  = Units.lbsToKilograms(41);
     public static final double   BATTERY_WEIGHT                     = Units.lbsToKilograms(12.89);
     public static final double   ROBOT_MASS                         = INSPECTION_WEIGHT + BATTERY_WEIGHT; // kg
-    public static final double   FRICTION_COEFFICIENT               = 0.5; // 1.0 when on carpet 0.5 on KLS flooring
+    public static final double   FRICTION_COEFFICIENT               = Robot.isSimulation() ? 1.0 : 0.5; // 1.0 when on carpet 0.5 on KLS flooring
     public static final int      MODULE_COUNT                       = 4;
     public static final double   CHASSIS_WIDTH                      = Units.inchesToMeters(28);
     public static final double   CHASSIS_LENGTH                     = Units.inchesToMeters(28);

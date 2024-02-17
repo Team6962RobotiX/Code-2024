@@ -42,9 +42,7 @@ public class IntakeRollers extends SubsystemBase {
     OFF
   }
 
-  public IntakeRollers() {
-    if (!ENABLED_SYSTEMS.ENABLE_INTAKE) return;
-    
+  public IntakeRollers() {    
     motor = new CANSparkMax(CAN.INTAKE, MotorType.kBrushless);
 
     SparkMaxUtil.configureAndLog(this, motor, false, IdleMode.kBrake);

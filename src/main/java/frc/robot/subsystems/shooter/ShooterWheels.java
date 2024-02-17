@@ -44,8 +44,6 @@ public class ShooterWheels extends SubsystemBase {
   private boolean isCalibrating = false;
 
   public ShooterWheels() {
-    if (!ENABLED_SYSTEMS.ENABLE_SHOOTER) return;
-
     motor = new CANSparkMax(CAN.SHOOTER_WHEELS_BOTTOM, MotorType.kBrushless);
     motorFollower = new CANSparkMax(CAN.SHOOTER_WHEELS_TOP, MotorType.kBrushless);
     

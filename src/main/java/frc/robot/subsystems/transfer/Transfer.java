@@ -37,9 +37,7 @@ public class Transfer extends SubsystemBase {
     OFF,
   }
 
-  public Transfer() {
-    if (!ENABLED_SYSTEMS.ENABLE_TRANSFER) return;
-    
+  public Transfer() {    
     transferIn = new TransferInWheels();
     transferOut = new TransferOutWheels();
   }

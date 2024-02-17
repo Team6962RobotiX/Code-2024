@@ -42,8 +42,6 @@ public class Intake extends SubsystemBase {
   }
 
   public Intake() {
-    if (!ENABLED_SYSTEMS.ENABLE_INTAKE) return;
-
     intakeRollers = new IntakeRollers();
     centeringWheels = new CenteringWheels();
   }

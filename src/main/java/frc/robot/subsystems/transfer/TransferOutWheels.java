@@ -33,9 +33,7 @@ public class TransferOutWheels extends SubsystemBase {
     OFF,
   }
 
-  public TransferOutWheels() {
-    if (!ENABLED_SYSTEMS.ENABLE_TRANSFER) return;
-    
+  public TransferOutWheels() {    
     motor = new CANSparkMax(CAN.TRANSFER_OUT, MotorType.kBrushless);
 
     SparkMaxUtil.configureAndLog(this, motor, true, IdleMode.kBrake);

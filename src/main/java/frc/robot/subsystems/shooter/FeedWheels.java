@@ -40,7 +40,6 @@ public class FeedWheels extends SubsystemBase {
   }
 
   public FeedWheels() {
-    if (!ENABLED_SYSTEMS.ENABLE_SHOOTER) return;
     motor = new CANSparkMax(CAN.SHOOTER_FEED, MotorType.kBrushless);
 
     SparkMaxUtil.configureAndLog(this, motor, false, IdleMode.kBrake);

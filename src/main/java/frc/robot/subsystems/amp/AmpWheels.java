@@ -42,7 +42,6 @@ public class AmpWheels extends SubsystemBase {
   }
 
   public AmpWheels() {
-    if (!ENABLED_SYSTEMS.ENABLE_AMP) return;
     motor = new CANSparkMax(CAN.AMP_WHEELS, MotorType.kBrushless);
 
     SparkMaxUtil.configureAndLog(this, motor, false, IdleMode.kCoast);
