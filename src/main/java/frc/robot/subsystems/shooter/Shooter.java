@@ -27,10 +27,6 @@ public class Shooter extends SubsystemBase {
   private ShooterPivot shooterPivot;
   private FeedWheels feedWheels;
 
-  private Mechanism2d mechanism = new Mechanism2d(0, 0);
-  private MechanismRoot2d pivotMechanism = mechanism.getRoot("pivot", PIVOT.POSITION.getX(), PIVOT.POSITION.getZ());
-  private MechanismLigament2d shooterMechanism = pivotMechanism.append(new MechanismLigament2d("shooter", PIVOT.CoM_DISTANCE, 0.0));
-
   private double headingVelocity;
   private Rotation2d targetHeading = new Rotation2d();
 
@@ -46,15 +42,12 @@ public class Shooter extends SubsystemBase {
     this.shooterPivot = new ShooterPivot();
     this.swerveDrive = swerveDrive;
     this.feedWheels = new FeedWheels();
-    
-    SmartDashboard.putData("ShooterMechanism", mechanism);
   }
 
 
   @Override
   public void periodic() {
     if (!ENABLED_SYSTEMS.ENABLE_SHOOTER) return;
-    shooterMechanism.setAngle(shooterPivot.getPosition());
   }
 
   public Command setState(State state) {
@@ -76,8 +69,8 @@ public class Shooter extends SubsystemBase {
         return Commands.sequence( 
           setState(State.AIM),
           shooterWheels.setTargetVelocity(Presets.SHOOTER.WHEELS.TARGET_SPEED),
-          feedWheels.setState(FeedWheels.State.IN).onlyIf(() -> Math.abs(getShooterWheels().getVelocity()) > Presets.SHOOTER.WHEELS.TARGET_SPEED * 0.85),
-          Commands.waitSeconds(1.0)
+          feedWheels.setState(FeedWheels.State.IN).onlyIf(() -> getShotChance() > 1.0),
+          Commands.waitUntil(() -> !feedWheels.hasNote())
         );
       case OFF:
         return Commands.sequence( 
@@ -99,20 +92,22 @@ public class Shooter extends SubsystemBase {
 
   public Command aim(Translation3d point) {
     // Calculate point to aim towards, accounting for current velocity
-    Translation3d velocityCompensatedPoint = ShooterMath.calcVelocityCompensatedPoint(
-      point,
-      swerveDrive.getPose(),
-      swerveDrive.getFieldVelocity(),
-      shooterWheels.getVelocity()
-    );
+    return runOnce(() -> {
+      Translation3d velocityCompensatedPoint = ShooterMath.calcVelocityCompensatedPoint(
+        point,
+        swerveDrive.getPose(),
+        swerveDrive.getFieldVelocity(),
+        shooterWheels.getVelocity()
+      );
 
-    shooterPivot.setTargetAngle(ShooterMath.calcPivotAngle(
-      velocityCompensatedPoint,
-      swerveDrive.getPose(),
-      shooterWheels.getVelocity()
-    ));
+      shooterPivot.setTargetAngle(ShooterMath.calcPivotAngle(
+        velocityCompensatedPoint,
+        swerveDrive.getPose(),
+        shooterWheels.getVelocity()
+      ));
 
-    return runOnce(() -> orientToPointDelayCompensated(velocityCompensatedPoint));
+      orientToPointDelayCompensated(velocityCompensatedPoint);
+    });
   }
 
   public boolean doneMoving() {
@@ -129,12 +124,8 @@ public class Shooter extends SubsystemBase {
     );
   }
 
-  public boolean hasJustReleaseddNote() {
-    return feedWheels.hasJustReleaseddNote();
-  }
-
-  public boolean hasJustReceivedNote() {
-    return feedWheels.hasJustReceivedNote();
+  public boolean hasNote() {
+    return feedWheels.hasNote();
   }
 
   @Override

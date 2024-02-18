@@ -73,12 +73,8 @@ public class Intake extends SubsystemBase {
     
   }
 
-  public boolean hasJustReleaseddNote() {
-    return intakeRollers.hasJustReleaseddNote();
-  }
-
-  public boolean hasJustReceivedNote() {
-    return intakeRollers.hasJustReceivedNote();
+  public boolean hasNote() {
+    return intakeRollers.hasNote();
   }
 
   @Override

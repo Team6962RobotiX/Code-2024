@@ -289,12 +289,16 @@ public final class Constants {
   }
 
   public static final class SHOOTER {
+    public static final class FEED_WHEELS {
+      public static final double GEARING = 1.0;
+      public static final double RADIUS = Units.inchesToMeters(1.0);
+    }
     public static final class WHEELS {
       public static final double GEARBOX_STEP_UP = 2.0;
       public static final double ENCODER_CONVERSION_FACTOR = 2.0 * Math.PI * GEARBOX_STEP_UP;
       public static final double WHEEL_RADIUS = Units.inchesToMeters(2.0);
       public static final double WHEEL_MOI = 0.00018540712;
-      public static final double TOTAL_MOI = 0.00018540712 * 12.0;
+      public static final double TOTAL_MOI = WHEEL_MOI * 12.0;
       public static final double PROJECTILE_MASS = Units.lbsToKilograms(0.5);
 
       // x is front-to-back
@@ -313,15 +317,11 @@ public final class Constants {
 
     public static final class PIVOT {
       public static final double GEARBOX_REDUCTION = 400.0;
-      public static final double ENCODER_CONVERSION_FACTOR = 2.0 * Math.PI / GEARBOX_REDUCTION;
       public static final double ROTATION_DELAY = 0.3; // seconds
       public static final Rotation2d ANGLE_TOLERANCE = Rotation2d.fromDegrees(0.5);
       public static final Rotation2d ANGLE_PRECISION = Rotation2d.fromDegrees(0.5);
       public static final Rotation2d HEADING_PRECISION = Rotation2d.fromDegrees(0.5);
       public static final Translation3d POSITION = new Translation3d(0.0, 0.0, Units.inchesToMeters(12.0));
-      public static final double CoM_DISTANCE = Units.inchesToMeters(15.0);
-      public static final double MASS = Units.lbsToKilograms(14.3);
-      public static final double MOI = (1.0 / 3.0) * MASS * Math.pow(CoM_DISTANCE, 2.0);
       public static final double ABSOLUTE_POSITION_OFFSET = -0.325;
 
       public static final class PROFILE {
@@ -332,19 +332,31 @@ public final class Constants {
   }
 
   public static final class AMP {
+    public static final class WHEELS {
+      public static final double GEARING = 1.0;
+      public static final double RADIUS = Units.inchesToMeters(1.0);
+    }
     public static final class PIVOT {
       public static final double GEARBOX_REDUCTION = 60.6666;
-      public static final double ENCODER_CONVERSION_FACTOR = 2.0 * Math.PI / GEARBOX_REDUCTION;
       public static final Rotation2d ANGLE_TOLERANCE = Rotation2d.fromDegrees(10.0);
-      public static final double CoM_DISTANCE = Units.inchesToMeters(9.5);
-      public static final double MASS = Units.lbsToKilograms(4.0);
-      public static final double MOI = (1.0 / 3.0) * MASS * Math.pow(CoM_DISTANCE, 2.0);
       public static final double ABSOLUTE_POSITION_OFFSET = -0.944;
 
       public static final class PROFILE {
         public static final double kP = 1.0;
         public static final double MAX_ACCELERATION = 40.0; // rad/s^2
       }
+    }
+  }
+
+  public static final class TRANSFER {
+    public static final double GEARING = 1.0;
+    public static final double RADIUS = Units.inchesToMeters(1.0);
+  }
+
+  public static final class INTAKE {
+    public static final class ROLLERS {
+      public static final double GEARING = 1.0;
+      public static final double RADIUS = Units.inchesToMeters(1.0);
     }
   }
 }

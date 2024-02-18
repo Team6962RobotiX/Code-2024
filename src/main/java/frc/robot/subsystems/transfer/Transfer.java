@@ -32,6 +32,7 @@ public class Transfer extends SubsystemBase {
  
   public static enum State {
     IN,
+    OUT,
     AMP,
     SHOOTER,
     OFF,
@@ -54,6 +55,11 @@ public class Transfer extends SubsystemBase {
           transferIn.setState(TransferInWheels.State.IN),
           transferOut.setState(TransferOutWheels.State.OFF)
         );
+      case OUT:
+        return Commands.sequence( 
+          transferIn.setState(TransferInWheels.State.OUT),
+          transferOut.setState(TransferOutWheels.State.OFF)
+        );
       case AMP:
         return Commands.sequence( 
           transferIn.setState(TransferInWheels.State.IN),
@@ -73,13 +79,8 @@ public class Transfer extends SubsystemBase {
     if (!ENABLED_SYSTEMS.ENABLE_TRANSFER) return;
   }
 
-  
-  public boolean hasJustReleaseddNote() {
-    return transferIn.hasJustReleaseddNote();
-  }
-
-  public boolean hasJustReceivedNote() {
-    return transferIn.hasJustReceivedNote();
+  public boolean hasNote() {
+    return transferIn.hasNote();
   }
 
   @Override

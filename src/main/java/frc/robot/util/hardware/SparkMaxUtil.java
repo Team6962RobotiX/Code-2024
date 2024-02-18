@@ -33,10 +33,10 @@ public final class SparkMaxUtil {
     configure(() -> motor.setOpenLoopRampRate(NEO.SAFE_RAMP_RATE), motor);
     motor.setInverted(inverted);
 
-    configureCANStatusFrames(motor, 10, 20, 20, 500, 500, 200, 200);
+    configureCANStatusFrames(motor, 10, 20, 20, 500, 500, 500, 500);
 
     RelativeEncoder encoder = motor.getEncoder();
-
+    
     String logPath = "/motor" + motor.getDeviceId() + "/";
 
     Logger.autoLog(subsystem, logPath + "current",                 () -> motor.getOutputCurrent());

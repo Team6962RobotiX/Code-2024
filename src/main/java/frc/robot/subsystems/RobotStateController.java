@@ -24,12 +24,17 @@ public class RobotStateController extends SubsystemBase {
 
   public enum State {
     OFF,
-    PICKUP,
-    LOAD_AMP,
-    LOAD_SHOOTER,
+    INTAKE,
+    INTAKE_OUT,
+    PREPARE_AMP,
     PLACE_AMP,
-    SHOOT,
-    INTAKE_OUT
+    LEAVE_AMP,
+    PREPARE_SPEAKER,
+    SHOOT_SPEAKER,
+    PREPARE_SOURCE,
+    INTAKE_SOURCE,
+    PREPARE_TRAP,
+    SHOOT_TRAP
   }
 
   public RobotStateController(Amp amp, SwerveDrive swerveDrive, Intake intake, Shooter shooter, Transfer transfer) {
@@ -47,8 +52,6 @@ public class RobotStateController extends SubsystemBase {
    */
 
   public Command setState(State state) {
-    Command command;
-
     switch(state) {
       case OFF:
         return Commands.sequence(
@@ -57,53 +60,59 @@ public class RobotStateController extends SubsystemBase {
           shooter.setState(Shooter.State.OFF),
           transfer.setState(Transfer.State.OFF)
         );
-      case PICKUP:
-        command = Commands.sequence(
+      case INTAKE:
+        return Commands.sequence(
           intake.setState(Intake.State.IN),
           transfer.setState(Transfer.State.IN),
-          Commands.waitUntil(() -> transfer.hasJustReceivedNote()),
-          transfer.setState(Transfer.State.OFF),
-          intake.setState(Intake.State.OFF)
+          Commands.waitUntil(() -> transfer.hasNote()),
+          intake.setState(Intake.State.OFF),
+          transfer.setState(Transfer.State.OFF)
         );
-        break;
-      case LOAD_AMP:
-        command = Commands.sequence(
+      case INTAKE_OUT:
+        return Commands.sequence(
+          intake.setState(Intake.State.OUT),
+          transfer.setState(Transfer.State.OUT),
+          Commands.waitUntil(() -> !intake.hasNote())
+        );
+      case PREPARE_AMP:
+        return Commands.sequence(
           amp.setState(Amp.State.DOWN),
           amp.setState(Amp.State.IN),
           transfer.setState(Transfer.State.AMP),
-          Commands.waitUntil(() -> transfer.hasJustReleaseddNote()),
+          Commands.waitUntil(() -> !transfer.hasNote()).withTimeout(5.0),
           transfer.setState(Transfer.State.OFF),
           amp.setState(Amp.State.OFF),
           amp.setState(Amp.State.UP),
-          Commands.waitUntil(() -> amp.doneMoving())
+          amp.setState(Amp.State.OFF)
         );
-        break;
-      case LOAD_SHOOTER:
-        command = Commands.sequence(
+      case PLACE_AMP:
+        return Commands.sequence(
+          amp.setState(Amp.State.UP),
+          amp.setState(Amp.State.OUT),
+          Commands.waitUntil(() -> !amp.hasNote()).withTimeout(5.0),
+          transfer.setState(Transfer.State.OFF),
+          amp.setState(Amp.State.OFF)
+        );
+      case LEAVE_AMP:
+        return Commands.sequence(
+          amp.setState(Amp.State.DOWN),
+          amp.setState(Amp.State.OFF)
+        );
+      case PREPARE_SPEAKER:
+        return Commands.sequence(
           shooter.setState(Shooter.State.IN),
-          // Commands.waitUntil(() -> shooter.doneMoving()),
           transfer.setState(Transfer.State.SHOOTER),
-          Commands.waitUntil(() -> transfer.hasJustReleaseddNote()),
-          Commands.waitSeconds(0.25),
+          Commands.waitUntil(() -> !transfer.hasNote()).withTimeout(5.0),
           shooter.setState(Shooter.State.OFF),
           transfer.setState(Transfer.State.OFF)
         );
-        break;
-      case PLACE_AMP:
-        command = amp.setState(Amp.State.OUT);
-        break;
-      case SHOOT:
-        command = Commands.sequence(
-        shooter.setState(Shooter.State.SHOOT)
+      case SHOOT_SPEAKER:
+        return Commands.sequence(
+          shooter.setState(Shooter.State.SHOOT)
         );
-        break;
-      case INTAKE_OUT:
-        command = intake.setState(Intake.State.OUT);
-        break;
       default:
-        command = Commands.run(() -> {});
+        return Commands.run(() -> {});
     }
-    return command.finallyDo(() -> setState(State.OFF).schedule());
   }
 
   @Override

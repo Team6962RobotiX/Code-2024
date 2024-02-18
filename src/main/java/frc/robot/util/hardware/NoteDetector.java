@@ -1,14 +1,16 @@
 package frc.robot.util.hardware;
 
 import com.revrobotics.CANSparkMax;
+import com.revrobotics.RelativeEncoder;
 
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.math.filter.MedianFilter;
-
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
+import frc.robot.Field;
 import frc.robot.Presets;
 import frc.robot.Constants.NEO;
 import frc.robot.util.software.Logging.Logger;
@@ -22,9 +24,18 @@ public class NoteDetector extends SubsystemBase {
   double delay = NEO.SAFE_RAMP_RATE * 3.0;
   double delayCounter = 0.0;
   CANSparkMax motor;
+  RelativeEncoder encoder;
+  double encoderOffset = 0.0;
+  double gearing = 0.0;
+  double radius = 0.0;
 
-  public NoteDetector(CANSparkMax motor) {
+  boolean hasNote = false;
+
+  public NoteDetector(CANSparkMax motor, double gearing, double radius) {
     this.motor = motor;
+    this.gearing = gearing;
+    this.radius = radius;
+    encoder = motor.getEncoder();
     Logger.autoLog("NoteDetectors/" + motor.getDeviceId() + "/currentChangeRatio", () -> getChangeRatio());
   }
 
@@ -45,6 +56,22 @@ public class NoteDetector extends SubsystemBase {
     }
     
     updateLastReadings(motor.getOutputCurrent());
+
+    if (getChangeRatio() > Presets.NOTE_DETECTION_THRESHOLD && !hasNote) {
+      hasNote = true;
+      encoderOffset = -encoder.getPosition();
+    }
+
+    if (getChangeRatio() < -Presets.NOTE_DETECTION_THRESHOLD && hasNote) {
+      hasNote = false;
+    }
+
+    if (hasNote) {
+      double position = encoder.getPosition() + encoderOffset;
+      if ((position * Math.signum(motor.get())) * (Math.PI * 2.0) * radius / gearing > Field.NOTE_LENGTH) {
+        hasNote = false;
+      }
+    }
   }
   
   private void updateLastReadings(double current) {
@@ -83,11 +110,7 @@ public class NoteDetector extends SubsystemBase {
     }
   }
 
-  public boolean hasJustReceivedNote() {
-    return getChangeRatio() > Presets.NOTE_DETECTION_THRESHOLD;
-  }
-
-  public boolean hasJustReleaseddNote() {
-    return getChangeRatio() < -Presets.NOTE_DETECTION_THRESHOLD;
+  public boolean hasNote() {
+    return hasNote;
   }
 }
