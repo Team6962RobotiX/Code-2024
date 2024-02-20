@@ -5,7 +5,7 @@
 package frc.robot.subsystems.vision;
 
 import frc.robot.Constants;
-
+import frc.robot.Field;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation3d;
@@ -182,7 +182,7 @@ public class Limelight extends SubsystemBase {
     double y = targetVertical(name);
     double x = targetHorizontal(name);
     if (y != 0.0) {
-      return (Constants.PHOTON_LIB.CAM_HEIGHT_OFF_GROUND / (Math.tan(Math.abs(Units.degreesToRadians(y))) * Math.abs(Math.cos(Units.degreesToRadians(x)))));
+      return ((Constants.PHOTON_LIB.CAM_HEIGHT_OFF_GROUND - Field.NOTE_THICKNESS/2) / (Math.tan(Math.abs(Units.degreesToRadians(y))) * Math.abs(Math.cos(Units.degreesToRadians(x)))));
     } else {
       return 0;
     }

@@ -90,8 +90,8 @@ public class RobotContainer {
     // operatorController.a().onTrue(shooter.getPivot().setTargetAngle(Rotation2d.fromDegrees(5.0)));
     // operatorController.b().onTrue(shooter.getPivot().setTargetAngle(Rotation2d.fromDegrees(30.0)));
 
-    operatorController.leftBumper().whileTrue(stateController.setState(State.INTAKE));
-    operatorController.rightBumper().whileTrue(stateController.setState(State.INTAKE_OUT));
+    // operatorController.leftBumper().whileTrue(stateController.setState(State.INTAKE));
+    // operatorController.rightBumper().whileTrue(stateController.setState(State.INTAKE_OUT));
 
     // operatorController.leftTrigger().whileTrue(stateController.setState(State.PICKUP));
     // operatorController.rightStick().onTrue(stateController.setState(State.LOAD_SHOOTER));
@@ -102,7 +102,7 @@ public class RobotContainer {
     // operatorController.b().onTrue(amp.setState(Amp.State.DOWN));
     // operatorController.a().whileTrue(stateController.setState(State.INTAKE_OUT));
 
-    // driveController.b().whileTrue(new MoveToNote("limelight-notes", swerveDrive, driveController));
+    driveController.b().whileTrue(new MoveToNote("limelight-notes", swerveDrive, driveController));
   }
 
   public Command getAutonomousCommand() {

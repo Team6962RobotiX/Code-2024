@@ -57,8 +57,8 @@ public class MoveToNote extends Command {
 
       targetPose = new Pose2d(translation, targetHeading);
 
-
       swerveDrive.goToSimple(targetPose, controller.getHID()).schedule();
+      System.out.println(Limelight.getNoteDist(cameraName));
       cancel();
     }
 
