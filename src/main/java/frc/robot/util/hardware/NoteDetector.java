@@ -7,6 +7,7 @@ import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.math.filter.MedianFilter;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.RobotState;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
@@ -41,6 +42,7 @@ public class NoteDetector extends SubsystemBase {
 
   @Override
   public void periodic() {
+    if (RobotState.isDisabled()) hasNote = false;
     double output = motor.get();
     
     if (output == 0.0) {
@@ -66,12 +68,12 @@ public class NoteDetector extends SubsystemBase {
       hasNote = false;
     }
 
-    if (hasNote) {
-      double position = encoder.getPosition() + encoderOffset;
-      if ((position * Math.signum(motor.get())) * (Math.PI * 2.0) * radius / gearing > Field.NOTE_LENGTH) {
-        hasNote = false;
-      }
-    }
+    // if (hasNote) {
+    //   double position = encoder.getPosition() + encoderOffset;
+    //   if ((position * Math.signum(motor.get())) * (Math.PI * 2.0) * radius / gearing > Field.NOTE_LENGTH) {
+    //     hasNote = false;
+    //   }
+    // }
   }
   
   private void updateLastReadings(double current) {
@@ -96,6 +98,7 @@ public class NoteDetector extends SubsystemBase {
       }
       i++;
     }
+
     oldAverage /= (double) scope;
     newAverage /= (double) scope;
     

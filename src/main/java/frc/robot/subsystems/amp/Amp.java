@@ -77,8 +77,7 @@ public class Amp extends SubsystemBase {
         );
       case OFF:
         return Commands.sequence(
-          wheels.setState(AmpWheels.State.OFF),
-          pivot.setTargetAngle(pivot.getPosition())
+          wheels.setState(AmpWheels.State.OFF)
         );
     }
     return null;
