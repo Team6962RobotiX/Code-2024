@@ -65,8 +65,8 @@ public class XBoxSwerve extends Command {
 
     double leftTrigger = controller.getLeftTriggerAxis();
     double rightTrigger = controller.getRightTriggerAxis();
-    Translation2d leftStick = new Translation2d(-controller.getLeftY()*0.5, -controller.getLeftX()*0.5);
-    Translation2d rightStick = new Translation2d(controller.getRightX()*0.5, -controller.getRightY()*0.5);
+    Translation2d leftStick = new Translation2d(-controller.getLeftY(), -controller.getLeftX());
+    Translation2d rightStick = new Translation2d(controller.getRightX(), -controller.getRightY());
     
     if (RobotBase.isSimulation()) {
       leftStick = new Translation2d(controller.getRawAxis(0), -controller.getRawAxis(1));
@@ -100,7 +100,6 @@ public class XBoxSwerve extends Command {
     }
     
     swerveDrive.driveFieldRelative(velocity.getX(), velocity.getY(), angularVelocity);
-
     // if (leftStick.getNorm() > 0.05 && (controller.getLeftBumper() || controller.getRightBumper())) {
     //   swerveDrive.setTargetHeading(leftStick.getAngle());
     // }

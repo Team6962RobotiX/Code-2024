@@ -21,6 +21,7 @@ public class MoveToNote extends Command {
   private final CommandXboxController controller;
   private final String cameraName;
   private Pose2d targetPose;
+  private Command goToCommand;
 
   public MoveToNote(String cameraName, SwerveDrive swerveDrive, CommandXboxController controller) {
     
@@ -36,6 +37,7 @@ public class MoveToNote extends Command {
   public void initialize() {
     //The robot won't move unless it sees a note
     targetPose = swerveDrive.getPose();
+    goToCommand = null;
   }
 
   // Called every time the scheduler runs while the command is scheduled.
@@ -57,9 +59,10 @@ public class MoveToNote extends Command {
 
       targetPose = new Pose2d(translation, targetHeading);
 
-      swerveDrive.goToSimple(targetPose, controller.getHID()).schedule();
-      System.out.println(Limelight.getNoteDist(cameraName));
-      cancel();
+      if (goToCommand == null || goToCommand.isFinished()) {
+        goToCommand = swerveDrive.goToSimple(targetPose, () -> true);
+        goToCommand.schedule();
+      }
     }
 
 
@@ -88,6 +91,7 @@ public class MoveToNote extends Command {
   // Called once the command ends or is interrupted.
   @Override
   public void end(boolean interrupted) {
+    if (goToCommand != null) goToCommand.cancel();
   }
 
   // Returns true when the command should end.

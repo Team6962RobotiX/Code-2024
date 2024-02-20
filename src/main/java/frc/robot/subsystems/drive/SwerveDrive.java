@@ -6,6 +6,8 @@ package frc.robot.subsystems.drive;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.function.BooleanSupplier;
+import java.util.function.Supplier;
 
 import com.choreo.lib.Choreo;
 import com.choreo.lib.ChoreoTrajectory;
@@ -637,8 +639,8 @@ public class SwerveDrive extends SubsystemBase {
    * @param orientation Field-relative orientation to rotate to
    * @return A command to run
    */
-  public Command goTo(Pose2d pose, XboxController xboxController) {
-    Command pathfindingCommand = goToSimple(pose, xboxController);
+  public Command goTo(Pose2d pose, BooleanSupplier onlyWhile) {
+    Command pathfindingCommand = goToSimple(pose, onlyWhile);
 
     if (pose.getTranslation().getDistance(getPose().getTranslation()) > 1.0) {
 
@@ -653,8 +655,8 @@ public class SwerveDrive extends SubsystemBase {
 
     return Commands.sequence(
       pathfindingCommand,
-      goToSimple(pose, xboxController)
-    ).onlyWhile(() -> MathUtils.isIdle(xboxController));
+      goToSimple(pose, onlyWhile)
+    ).onlyWhile(onlyWhile);
   }
 
   /**
@@ -663,7 +665,7 @@ public class SwerveDrive extends SubsystemBase {
    * @param xboxController Xbox controller to cancel the command
    * @return A command to run
    */
-  public Command goToSimple(Pose2d pose, XboxController xboxController) {
+  public Command goToSimple(Pose2d pose, BooleanSupplier onlyWhile) {
     Rotation2d angle = pose.getTranslation().minus(getPose().getTranslation()).getAngle();
 
     List<Translation2d> bezierPoints = PathPlannerPath.bezierFromPoses(
@@ -684,7 +686,7 @@ public class SwerveDrive extends SubsystemBase {
     return Commands.sequence(
       AutoBuilder.followPath(path),
       Commands.runOnce(() -> setTargetHeading(pose.getRotation()))
-    ).onlyWhile(() -> MathUtils.isIdle(xboxController));
+    ).onlyWhile(onlyWhile);
   }
 
   /**
@@ -693,8 +695,8 @@ public class SwerveDrive extends SubsystemBase {
    * @param xboxController Xbox controller to cancel the command
    * @return A command to run
    */
-  public Command goToNearestPose(List<Pose2d> poses, XboxController xboxController) {
-   return goTo(getPose().nearest(poses), xboxController).onlyWhile(() -> MathUtils.isIdle(xboxController));
+  public Command goToNearestPose(List<Pose2d> poses, BooleanSupplier onlyWhile) {
+   return goTo(getPose().nearest(poses), onlyWhile).onlyWhile(onlyWhile);
   }
   
   public boolean shouldFlipPaths() {
@@ -707,39 +709,5 @@ public class SwerveDrive extends SubsystemBase {
     }
 
     return optional.get().equals(Alliance.Red);
-  }
-
-  /**
-   * Go to a position on the field
-   * @param goalPosition Field-relative position on the field to go to
-   * @param orientation Field-relative orientation to rotate to
-   * @return A command to run
-   */
-  public Command goTo(Translation2d goalPosition, Rotation2d orientation) {
-    Rotation2d angle = goalPosition.minus(getPose().getTranslation()).getAngle();
-
-    List<Translation2d> bezierPoints = PathPlannerPath.bezierFromPoses(
-      new Pose2d(getPose().getTranslation(), angle),
-      new Pose2d(goalPosition, angle)
-    );
-
-    PathPlannerPath path = new PathPlannerPath(
-      bezierPoints,
-      new PathConstraints(
-        SWERVE_DRIVE.PHYSICS.MAX_LINEAR_VELOCITY, 
-        SWERVE_DRIVE.PHYSICS.MAX_LINEAR_ACCELERATION,
-        SWERVE_DRIVE.PHYSICS.MAX_ANGULAR_VELOCITY, 
-        SWERVE_DRIVE.PHYSICS.MAX_ANGULAR_ACCELERATION
-      ),
-      new GoalEndState(
-        0.0,
-        orientation
-      )
-    );
-
-    return Commands.sequence(
-      AutoBuilder.followPath(path),
-      Commands.runOnce(() -> setTargetHeading(orientation))
-    );
   }
 }
