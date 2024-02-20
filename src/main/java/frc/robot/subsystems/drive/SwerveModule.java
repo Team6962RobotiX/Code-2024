@@ -41,6 +41,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import frc.robot.Constants.ENABLED_SYSTEMS;
 import frc.robot.Constants.NEO;
 import frc.robot.Constants.SWERVE_DRIVE;
 import frc.robot.Constants.SWERVE_DRIVE.DRIVE_MOTOR_PROFILE;
@@ -106,7 +107,7 @@ public class SwerveModule extends SubsystemBase {
     MagnetSensorConfigs magConfig = new MagnetSensorConfigs();
     magConfig.withAbsoluteSensorRange(AbsoluteSensorRangeValue.Signed_PlusMinusHalf);
     magConfig.withMagnetOffset(encoderOffset);
-    BaseStatusSignal.setUpdateFrequencyForAll(50, absoluteSteerEncoder.getPosition());
+    BaseStatusSignal.setUpdateFrequencyForAll(50, absoluteSteerEncoder.getAbsolutePosition(), absoluteSteerEncoder.getFaultField(), absoluteSteerEncoder.getVersion());
     absoluteSteerEncoder.optimizeBusUtilization();
 
     SparkMaxUtil.configureAndLog(this, driveMotor, false, IdleMode.kBrake);
@@ -132,6 +133,7 @@ public class SwerveModule extends SubsystemBase {
 
 
   public void periodic() {
+    if (!ENABLED_SYSTEMS.ENABLE_DRIVE) return;
     if (isCalibrating) return;
 
     if (Math.abs(getMeasuredState().speedMetersPerSecond) < 0.05 && SwerveMath.angleDistance(getMeasuredState().angle.getRadians(), getTargetState().angle.getRadians()) < Units.degreesToRadians(1.0)) {

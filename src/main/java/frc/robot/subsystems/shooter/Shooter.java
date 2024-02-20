@@ -70,7 +70,8 @@ public class Shooter extends SubsystemBase {
           setState(State.AIM),
           shooterWheels.setTargetVelocity(Presets.SHOOTER.WHEELS.TARGET_SPEED),
           feedWheels.setState(FeedWheels.State.IN).onlyIf(() -> getShotChance() > 1.0),
-          Commands.waitUntil(() -> !feedWheels.hasNote())
+          Commands.waitUntil(() -> feedWheels.hasJustReleasedNote()),
+          feedWheels.setState(FeedWheels.State.OFF)
         );
       case OFF:
         return Commands.sequence( 
@@ -124,8 +125,12 @@ public class Shooter extends SubsystemBase {
     );
   }
 
-  public boolean hasNote() {
-    return feedWheels.hasNote();
+  public boolean hasJustReleasedNote() {
+    return feedWheels.hasJustReceivedNote();
+  }
+
+  public boolean hasJustReceivedNote() {
+    return feedWheels.hasJustReceivedNote();
   }
 
   @Override

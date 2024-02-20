@@ -79,8 +79,12 @@ public class Transfer extends SubsystemBase {
     if (!ENABLED_SYSTEMS.ENABLE_TRANSFER) return;
   }
 
-  public boolean hasNote() {
-    return transferIn.hasNote();
+  public boolean hasJustReleasedNote() {
+    return transferIn.hasJustReceivedNote();
+  }
+
+  public boolean hasJustReceivedNote() {
+    return transferIn.hasJustReceivedNote();
   }
 
   @Override
