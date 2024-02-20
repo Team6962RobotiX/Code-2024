@@ -57,6 +57,7 @@ public class MoveToNote extends Command {
 
       targetPose = new Pose2d(translation, targetHeading);
 
+
       swerveDrive.goToSimple(targetPose, controller.getHID()).schedule();
       cancel();
     }

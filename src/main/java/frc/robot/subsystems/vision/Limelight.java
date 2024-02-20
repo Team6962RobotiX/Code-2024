@@ -182,7 +182,7 @@ public class Limelight extends SubsystemBase {
     double y = targetVertical(name);
     double x = targetHorizontal(name);
     if (y != 0.0) {
-      return (Constants.PHOTON_LIB.CAM_HEIGHT_OFF_GROUND * Math.tan(Math.PI / 2.0 + Units.degreesToRadians(y))) / Math.abs(Math.cos(x));
+      return (Constants.PHOTON_LIB.CAM_HEIGHT_OFF_GROUND / (Math.tan(Math.abs(Units.degreesToRadians(y))) * Math.abs(Math.cos(Units.degreesToRadians(x)))));
     } else {
       return 0;
     }
