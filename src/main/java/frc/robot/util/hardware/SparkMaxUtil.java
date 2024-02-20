@@ -16,6 +16,7 @@ import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.NEO;
 import frc.robot.Constants.SHOOTER.WHEELS;
+import frc.robot.util.TunableNumber;
 import frc.robot.util.software.Logging.Logger;
 import frc.robot.util.software.Logging.StatusChecks;
 
@@ -78,7 +79,7 @@ public final class SparkMaxUtil {
     //  https://docs.revrobotics.com/sparkmax/operating-modes/control-interfaces
   }
 
-  public static void configurePID(CANSparkMax motor, double kP, double kI, double kD, double kV, boolean wrap) {
+  public static void configurePID(SubsystemBase subsystem, CANSparkMax motor, double kP, double kI, double kD, double kV, boolean wrap) {
     SparkPIDController pid = motor.getPIDController();
     configure(() -> pid.setP(kP, 0), motor);
     configure(() -> pid.setI(kI, 0), motor);
@@ -90,6 +91,8 @@ public final class SparkMaxUtil {
       configure(() -> pid.setPositionPIDWrappingMinInput(-Math.PI), motor);
       configure(() -> pid.setPositionPIDWrappingMaxInput(Math.PI), motor);
     }
+
+    new TunableNumber(subsystem, "PID " + motor.getDeviceId(), pid::setP, 0.0);
   }
 
   public static void configureEncoder(CANSparkMax motor, double encoderConversionFactor) {

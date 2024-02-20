@@ -67,7 +67,7 @@ public class SwerveModule extends SubsystemBase {
   
   private SimpleMotorFeedforward driveFF = new SimpleMotorFeedforward(
     DRIVE_MOTOR_PROFILE.kS,
-    DRIVE_MOTOR_PROFILE.kV,
+    0.0,
     DRIVE_MOTOR_PROFILE.kA
   );
 
@@ -114,8 +114,8 @@ public class SwerveModule extends SubsystemBase {
     SparkMaxUtil.configureAndLog(this, steerMotor, true, IdleMode.kCoast);
     SparkMaxUtil.configureEncoder(driveMotor, SWERVE_DRIVE.DRIVE_ENCODER_CONVERSION_FACTOR);
     SparkMaxUtil.configureEncoder(steerMotor, SWERVE_DRIVE.STEER_ENCODER_CONVERSION_FACTOR);
-    SparkMaxUtil.configurePID(driveMotor, DRIVE_MOTOR_PROFILE.kP, DRIVE_MOTOR_PROFILE.kI, DRIVE_MOTOR_PROFILE.kD, DRIVE_MOTOR_PROFILE.kV, false);
-    SparkMaxUtil.configurePID(steerMotor, STEER_MOTOR_PROFILE.kP, STEER_MOTOR_PROFILE.kI, STEER_MOTOR_PROFILE.kD, 0.0, true);
+    SparkMaxUtil.configurePID(this, driveMotor, DRIVE_MOTOR_PROFILE.kP, DRIVE_MOTOR_PROFILE.kI, DRIVE_MOTOR_PROFILE.kD, DRIVE_MOTOR_PROFILE.kV, false);
+    SparkMaxUtil.configurePID(this, steerMotor, STEER_MOTOR_PROFILE.kP, STEER_MOTOR_PROFILE.kI, STEER_MOTOR_PROFILE.kD, 0.0, true);
     
     seedSteerEncoder();
 

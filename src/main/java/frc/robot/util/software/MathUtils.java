@@ -103,10 +103,10 @@ public final class MathUtils {
   }
 
   public static boolean isIdle(XboxController xboxController) {
-    if (xboxController.getRawAxis(0) != 0) {
+    if (Math.abs(xboxController.getRawAxis(0)) > 0.5) {
       return false;
     }
-    if (xboxController.getRawAxis(1) != 0) {
+    if (Math.abs(xboxController.getRawAxis(1)) > 0.5) {
       return false;
     }
     return true;

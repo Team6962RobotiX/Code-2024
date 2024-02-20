@@ -663,7 +663,7 @@ public class SwerveDrive extends SubsystemBase {
    * @param xboxController Xbox controller to cancel the command
    * @return A command to run
    */
-  private Command goToSimple(Pose2d pose, XboxController xboxController) {
+  public Command goToSimple(Pose2d pose, XboxController xboxController) {
     Rotation2d angle = pose.getTranslation().minus(getPose().getTranslation()).getAngle();
 
     List<Translation2d> bezierPoints = PathPlannerPath.bezierFromPoses(

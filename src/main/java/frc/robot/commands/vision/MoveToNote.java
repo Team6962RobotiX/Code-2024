@@ -57,8 +57,27 @@ public class MoveToNote extends Command {
 
       targetPose = new Pose2d(translation, targetHeading);
 
-      swerveDrive.facePoint(targetPose.getTranslation());
+      swerveDrive.goToSimple(targetPose, controller.getHID()).schedule();
+      cancel();
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     
     //THIS DOES BOTH ROTATION AND TRANSLATION
     // swerveDrive.goTo(targetPose, controller);
