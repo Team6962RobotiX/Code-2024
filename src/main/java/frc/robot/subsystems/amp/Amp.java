@@ -84,7 +84,7 @@ public class Amp extends SubsystemBase {
   }
 
   public boolean hasJustReleasedNote() {
-    return wheels.hasJustReceivedNote();
+    return wheels.hasJustReleasedNote();
   }
 
   public boolean hasJustReceivedNote() {

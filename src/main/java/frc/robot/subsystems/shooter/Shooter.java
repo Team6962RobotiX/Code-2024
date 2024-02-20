@@ -126,7 +126,7 @@ public class Shooter extends SubsystemBase {
   }
 
   public boolean hasJustReleasedNote() {
-    return feedWheels.hasJustReceivedNote();
+    return feedWheels.hasJustReleasedNote();
   }
 
   public boolean hasJustReceivedNote() {

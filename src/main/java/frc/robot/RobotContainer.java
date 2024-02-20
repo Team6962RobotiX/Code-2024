@@ -90,6 +90,8 @@ public class RobotContainer {
     // operatorController.a().onTrue(shooter.getPivot().setTargetAngle(Rotation2d.fromDegrees(5.0)));
     // operatorController.b().onTrue(shooter.getPivot().setTargetAngle(Rotation2d.fromDegrees(30.0)));
 
+    operatorController.leftTrigger().whileTrue(stateController.setState(State.INTAKE));
+    operatorController.rightStick().onTrue(stateController.setState(State.PREPARE_SPEAKER));
     // operatorController.leftBumper().whileTrue(stateController.setState(State.INTAKE));
     // operatorController.rightBumper().whileTrue(stateController.setState(State.INTAKE_OUT));
 
@@ -97,10 +99,10 @@ public class RobotContainer {
     // operatorController.rightStick().onTrue(stateController.setState(State.LOAD_SHOOTER));
 
     // operatorController.x().onTrue(stateController.setState(State.SHOOT_SPEAKER));
-    // operatorController.leftStick().onTrue(stateController.setState(State.PREPARE_AMP));
-    // operatorController.rightTrigger().whileTrue(stateController.setState(State.PLACE_AMP));
-    // operatorController.b().onTrue(amp.setState(Amp.State.DOWN));
-    // operatorController.a().whileTrue(stateController.setState(State.INTAKE_OUT));
+    operatorController.leftStick().onTrue(stateController.setState(State.PREPARE_AMP));
+    operatorController.rightTrigger().whileTrue(stateController.setState(State.PLACE_AMP));
+    operatorController.b().onTrue(amp.setState(Amp.State.DOWN));
+    operatorController.a().whileTrue(stateController.setState(State.INTAKE_OUT));
 
     driveController.b().whileTrue(new MoveToNote("limelight-notes", swerveDrive, driveController));
   }

@@ -20,7 +20,7 @@ import java.util.ArrayDeque;
 import java.util.Queue;
 
 public class NoteDetector extends SubsystemBase {
-  int scope = 10;
+  int scope = 15;
   Queue<Double> lastReadings = new ArrayDeque<>(scope * 2);
   double delay = NEO.SAFE_RAMP_RATE * 3.0;
   double delayCounter = 0.0;
@@ -36,6 +36,8 @@ public class NoteDetector extends SubsystemBase {
     this.radius = radius;
     encoder = motor.getEncoder();
     Logger.autoLog("NoteDetectors/" + motor.getDeviceId() + "/currentChangeRatio", () -> getChangeRatio());
+    Logger.autoLog("NoteDetectors/" + motor.getDeviceId() + "/hasJustReceivedNote", () -> hasJustReceivedNote());
+    Logger.autoLog("NoteDetectors/" + motor.getDeviceId() + "/hasJustReleasedNote", () -> hasJustReleasedNote());
   }
 
   @Override
@@ -53,8 +55,7 @@ public class NoteDetector extends SubsystemBase {
       lastReadings = new ArrayDeque<>(scope * 2);
       return;
     }
-    
-    updateLastReadings(motor.getOutputCurrent());
+    updateLastReadings(motor.getOutputCurrent() + 2.0);
   }
   
   private void updateLastReadings(double current) {
@@ -94,11 +95,11 @@ public class NoteDetector extends SubsystemBase {
     }
   }
 
-  public boolean hasJustReleasedNote() {
+  public boolean hasJustReceivedNote() {
     return getChangeRatio() > Presets.NOTE_DETECTION_THRESHOLD;
   }
 
-  public boolean hasJustReceivedNote() {
-    return getChangeRatio() < Presets.NOTE_DETECTION_THRESHOLD;
+  public boolean hasJustReleasedNote() {
+    return getChangeRatio() < -Presets.NOTE_DETECTION_THRESHOLD;
   }
 }

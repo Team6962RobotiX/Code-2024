@@ -83,7 +83,7 @@ public class RobotStateController extends SubsystemBase {
           amp.setState(Amp.State.DOWN),
           amp.setState(Amp.State.IN),
           transfer.setState(Transfer.State.AMP),
-          Commands.waitUntil(() -> transfer.hasJustReleasedNote()).withTimeout(5.0),
+          Commands.waitUntil(() -> transfer.hasJustReleasedNote()),
           transfer.setState(Transfer.State.OFF),
           amp.setState(Amp.State.OFF),
           amp.setState(Amp.State.UP),

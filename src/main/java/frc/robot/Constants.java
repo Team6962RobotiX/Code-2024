@@ -13,6 +13,7 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DriverStation;
 
+
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide numerical or boolean
  * constants. This class should not be used for any other purpose. All constants should be declared
@@ -29,10 +30,10 @@ public final class Constants {
   public static final class ENABLED_SYSTEMS {
     public static final boolean ENABLE_DRIVE     = true;
     public static final boolean ENABLE_DASHBOARD = true;
-    public static final boolean ENABLE_SHOOTER   = false;
-    public static final boolean ENABLE_INTAKE   = false;
-    public static final boolean ENABLE_TRANSFER = false;
-    public static final boolean ENABLE_AMP = false;
+    public static final boolean ENABLE_SHOOTER   = true;
+    public static final boolean ENABLE_INTAKE   = true;
+    public static final boolean ENABLE_TRANSFER = true;
+    public static final boolean ENABLE_AMP = true;
   }
 
   public static final class LOGGING {

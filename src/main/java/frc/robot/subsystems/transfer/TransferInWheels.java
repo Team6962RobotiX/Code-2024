@@ -68,7 +68,7 @@ public class TransferInWheels extends SubsystemBase {
   }
 
   public boolean hasJustReleasedNote() {
-    return detector.hasJustReceivedNote();
+    return detector.hasJustReleasedNote();
   }
 
   public boolean hasJustReceivedNote() {
