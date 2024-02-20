@@ -283,7 +283,7 @@ public final class Constants {
 
     
     public static final double CAM_PITCH = 0.0; //Degrees (CHANGE)
-    public static final double CAM_HEIGHT_OFF_GROUND = Units.inchesToMeters(25.25); //Meters (CHANGE)
+    public static final double CAM_HEIGHT_OFF_GROUND = Units.inchesToMeters(10.25); //Meters (CHANGE)
 
     public static final double FOV_HEIGHT = 59.6; //Degrees
     public static final double FOV_WIDTH = 49.7; //Degrees

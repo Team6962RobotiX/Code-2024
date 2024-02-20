@@ -92,6 +92,11 @@ public class RobotContainer {
 
     operatorController.leftTrigger().whileTrue(stateController.setState(State.INTAKE));
     operatorController.rightStick().onTrue(stateController.setState(State.PREPARE_SPEAKER));
+    // operatorController.leftBumper().whileTrue(stateController.setState(State.INTAKE));
+    // operatorController.rightBumper().whileTrue(stateController.setState(State.INTAKE_OUT));
+
+    // operatorController.leftTrigger().whileTrue(stateController.setState(State.PICKUP));
+    // operatorController.rightStick().onTrue(stateController.setState(State.LOAD_SHOOTER));
 
     // operatorController.x().onTrue(stateController.setState(State.SHOOT_SPEAKER));
     operatorController.leftStick().onTrue(stateController.setState(State.PREPARE_AMP));
@@ -99,7 +104,7 @@ public class RobotContainer {
     operatorController.b().onTrue(amp.setState(Amp.State.DOWN));
     operatorController.a().whileTrue(stateController.setState(State.INTAKE_OUT));
 
-    // driveController.b().whileTrue(new MoveToNote("limelight-notes", swerveDrive, driveController));
+    driveController.b().whileTrue(new MoveToNote("limelight-notes", swerveDrive, driveController));
   }
 
   public Command getAutonomousCommand() {
