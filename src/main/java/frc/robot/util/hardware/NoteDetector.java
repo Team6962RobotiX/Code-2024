@@ -30,8 +30,6 @@ public class NoteDetector extends SubsystemBase {
   double gearing = 0.0;
   double radius = 0.0;
 
-  boolean hasNote = false;
-
   public NoteDetector(CANSparkMax motor, double gearing, double radius) {
     this.motor = motor;
     this.gearing = gearing;
@@ -42,7 +40,6 @@ public class NoteDetector extends SubsystemBase {
 
   @Override
   public void periodic() {
-    if (RobotState.isDisabled()) hasNote = false;
     double output = motor.get();
     
     if (output == 0.0) {
@@ -58,22 +55,6 @@ public class NoteDetector extends SubsystemBase {
     }
     
     updateLastReadings(motor.getOutputCurrent());
-
-    if (getChangeRatio() > Presets.NOTE_DETECTION_THRESHOLD && !hasNote) {
-      hasNote = true;
-      encoderOffset = -encoder.getPosition();
-    }
-
-    if (getChangeRatio() < -Presets.NOTE_DETECTION_THRESHOLD && hasNote) {
-      hasNote = false;
-    }
-
-    // if (hasNote) {
-    //   double position = encoder.getPosition() + encoderOffset;
-    //   if ((position * Math.signum(motor.get())) * (Math.PI * 2.0) * radius / gearing > Field.NOTE_LENGTH) {
-    //     hasNote = false;
-    //   }
-    // }
   }
   
   private void updateLastReadings(double current) {
@@ -113,7 +94,11 @@ public class NoteDetector extends SubsystemBase {
     }
   }
 
-  public boolean hasNote() {
-    return hasNote;
+  public boolean hasJustReleasedNote() {
+    return getChangeRatio() > Presets.NOTE_DETECTION_THRESHOLD;
+  }
+
+  public boolean hasJustReceivedNote() {
+    return getChangeRatio() < Presets.NOTE_DETECTION_THRESHOLD;
   }
 }

@@ -42,8 +42,6 @@ public class TransferInWheels extends SubsystemBase {
     SparkMaxUtil.save(motor);
 
     detector = new NoteDetector(motor, Constants.TRANSFER.GEARING, Constants.TRANSFER.RADIUS);
-
-    Logger.autoLog(this, "hasNote",     () -> detector.hasNote());
   }
 
   public Command setState(State state) {
@@ -69,8 +67,12 @@ public class TransferInWheels extends SubsystemBase {
     }
   }
 
-  public boolean hasNote() {
-    return detector.hasNote();
+  public boolean hasJustReleasedNote() {
+    return detector.hasJustReceivedNote();
+  }
+
+  public boolean hasJustReceivedNote() {
+    return detector.hasJustReceivedNote();
   }
 
   @Override

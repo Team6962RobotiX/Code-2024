@@ -64,7 +64,7 @@ public class RobotStateController extends SubsystemBase {
         return Commands.sequence(
           intake.setState(Intake.State.IN),
           transfer.setState(Transfer.State.IN),
-          Commands.waitUntil(() -> transfer.hasNote())
+          Commands.waitUntil(() -> transfer.hasJustReceivedNote())
         ).finallyDo(() -> Commands.sequence(
           intake.setState(Intake.State.OFF),
           transfer.setState(Transfer.State.OFF)
@@ -73,7 +73,7 @@ public class RobotStateController extends SubsystemBase {
         return Commands.sequence(
           intake.setState(Intake.State.OUT),
           transfer.setState(Transfer.State.OUT),
-          Commands.waitUntil(() -> !intake.hasNote())
+          Commands.waitUntil(() -> intake.hasJustReleasedNote())
         ).finallyDo(() -> Commands.sequence(
           intake.setState(Intake.State.OFF),
           transfer.setState(Transfer.State.OFF)
@@ -83,7 +83,7 @@ public class RobotStateController extends SubsystemBase {
           amp.setState(Amp.State.DOWN),
           amp.setState(Amp.State.IN),
           transfer.setState(Transfer.State.AMP),
-          Commands.waitUntil(() -> !transfer.hasNote()).withTimeout(5.0),
+          Commands.waitUntil(() -> transfer.hasJustReleasedNote()).withTimeout(5.0),
           transfer.setState(Transfer.State.OFF),
           amp.setState(Amp.State.OFF),
           amp.setState(Amp.State.UP),
@@ -96,7 +96,7 @@ public class RobotStateController extends SubsystemBase {
         return Commands.sequence(
           amp.setState(Amp.State.UP),
           amp.setState(Amp.State.OUT),
-          Commands.waitUntil(() -> !amp.hasNote()).withTimeout(5.0)
+          Commands.waitUntil(() -> amp.hasJustReleasedNote()).withTimeout(5.0)
         ).finallyDo(() -> Commands.sequence(
           transfer.setState(Transfer.State.OFF),
           amp.setState(Amp.State.OFF)
@@ -111,7 +111,7 @@ public class RobotStateController extends SubsystemBase {
         return Commands.sequence(
           shooter.setState(Shooter.State.IN),
           transfer.setState(Transfer.State.SHOOTER),
-          Commands.waitUntil(() -> !transfer.hasNote()).withTimeout(5.0)
+          Commands.waitUntil(() -> transfer.hasJustReleasedNote()).withTimeout(5.0)
         ).finallyDo(() -> Commands.sequence(
           shooter.setState(Shooter.State.OFF),
           transfer.setState(Transfer.State.OFF)

@@ -47,7 +47,6 @@ public class FeedWheels extends SubsystemBase {
 
     detector = new NoteDetector(motor, Constants.SHOOTER.FEED_WHEELS.GEARING, Constants.SHOOTER.FEED_WHEELS.RADIUS);
 
-    Logger.autoLog(this, "hasNote",    () -> detector.hasNote());
   }
 
   public Command setState(State state) {
@@ -73,8 +72,12 @@ public class FeedWheels extends SubsystemBase {
     }
   }
 
-  public boolean hasNote() {
-    return detector.hasNote();
+  public boolean hasJustReleasedNote() {
+    return detector.hasJustReceivedNote();
+  }
+
+  public boolean hasJustReceivedNote() {
+    return detector.hasJustReceivedNote();
   }
 
   @Override

@@ -48,8 +48,6 @@ public class AmpWheels extends SubsystemBase {
     SparkMaxUtil.save(motor);
 
     detector = new NoteDetector(motor, Constants.AMP.WHEELS.GEARING, Constants.AMP.WHEELS.RADIUS);
-
-    Logger.autoLog(this, "hasNote",    () -> detector.hasNote());
   }
 
   public Command setState(State state) {
@@ -76,8 +74,12 @@ public class AmpWheels extends SubsystemBase {
     }
   }
 
-  public boolean hasNote() {
-    return detector.hasNote();
+  public boolean hasJustReleasedNote() {
+    return detector.hasJustReceivedNote();
+  }
+
+  public boolean hasJustReceivedNote() {
+    return detector.hasJustReceivedNote();
   }
 
   @Override
