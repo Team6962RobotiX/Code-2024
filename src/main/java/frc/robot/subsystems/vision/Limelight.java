@@ -180,12 +180,11 @@ public class Limelight extends SubsystemBase {
    */
    public static double getNoteDist(String name){
     double y = targetVertical(name);
+    double x = targetHorizontal(name);
     if (y != 0.0) {
-      return Constants.PHOTON_LIB.CAM_HEIGHT_OFF_GROUND*Math.tan(Math.PI/2+y*Math.PI/180);
-    }
-    else {
+      return (Constants.PHOTON_LIB.CAM_HEIGHT_OFF_GROUND * Math.tan(Math.PI / 2.0 + Units.degreesToRadians(y))) / Math.abs(Math.cos(x));
+    } else {
       return 0;
     }
-
   }
 }

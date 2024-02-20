@@ -101,7 +101,7 @@ public class RobotContainer {
     operatorController.b().onTrue(amp.setState(Amp.State.DOWN));
     operatorController.a().whileTrue(stateController.setState(State.INTAKE_OUT));
 
-    driveController.b().whileTrue(new MoveToNote("limelight-notes", swerveDrive, driveController));
+    driveController.b().onTrue(new MoveToNote("limelight-notes", swerveDrive, driveController));
   }
 
   public Command getAutonomousCommand() {

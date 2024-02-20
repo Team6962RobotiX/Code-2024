@@ -73,15 +73,13 @@ public class PivotController {
     encoderOffset = absolutePositionOffset;
 
     SparkMaxUtil.configureEncoder(motor, 2.0 * Math.PI / gearing);
-    SparkMaxUtil.configurePID(motor, kP, kI, kD, 0.0, true);
+    SparkMaxUtil.configurePID(subsystem, motor, kP, kI, kD, 0.0, true);
 
     Logger.autoLog(subsystem, "absolutePosition",                 () -> getAbsolutePosition().getRadians());
     Logger.autoLog(subsystem, "rawAbsolutePosition",              () -> absoluteEncoder.getAbsolutePosition());
     
     StatusChecks.addCheck(subsystem, "absoluteEncoderConnected", () -> absoluteEncoder.isConnected());
     StatusChecks.addCheck(subsystem, "absoluteEncoderUpdated",   () -> absoluteEncoder.getAbsolutePosition() != 0.0);
-    
-    new TunableNumber(subsystem, "pivotPID " + motor.getDeviceId(), pid::setP, 0.0);
   }
 
   public void run() {

@@ -52,7 +52,7 @@ public class ShooterWheels extends SubsystemBase {
 
     SparkMaxUtil.configureAndLog(this, motor, true, IdleMode.kCoast);
     SparkMaxUtil.configureEncoder(motor, WHEELS.ENCODER_CONVERSION_FACTOR);
-    SparkMaxUtil.configurePID(motor, WHEELS.PROFILE.kP, WHEELS.PROFILE.kI, WHEELS.PROFILE.kD, WHEELS.PROFILE.kV, false);
+    SparkMaxUtil.configurePID(this, motor, WHEELS.PROFILE.kP, WHEELS.PROFILE.kI, WHEELS.PROFILE.kD, WHEELS.PROFILE.kV, false);
     SparkMaxUtil.save(motor);
 
     motorFollower.follow(motor, true);

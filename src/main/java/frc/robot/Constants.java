@@ -73,7 +73,7 @@ public final class Constants {
     public static final double   WHEEL_WIDTH                        = Units.inchesToMeters(2.0);
     public static final double   DRIVE_MOTOR_GEARING                = 6.75;
     public static final double   STEER_MOTOR_GEARING                = 150.0 / 7.0;
-    public static final double   GEARBOX_EFFICIENCY                 = 0.8;
+    public static final double   GEARBOX_EFFICIENCY                 = 0.99;
     public static final double   BATTERY_RESISTANCE                 = 0.02; // ohms
     public static final double   BATTERY_VOLTAGE                    = 12.6; // volts
     public static final double   BROWNOUT_VOLTAGE                   = 6.8; // volts
@@ -158,7 +158,7 @@ public final class Constants {
       public static final double kP                 = 0.00010; // Proportion Gain
       public static final double kI                 = 0.00000; // Integral Gain
       public static final double kD                 = 0.00000; // Derivative Gain
-      public static final double kS                 = 0.081073; // volts
+      public static final double kS                 = 0.081073; // volts 0.081073
       public static final double kV                 = 12.0 / PHYSICS.MAX_LINEAR_VELOCITY; // volts per m/s
       public static final double kA                 = 0.10000; // volts per m/s^2, free spinning
       
@@ -187,7 +187,7 @@ public final class Constants {
 
     // TELEOPERATED
     public static final class ABSOLUTE_ROTATION_GAINS {
-      public static final double kP = 2.0;
+      public static final double kP = 1.0;
       public static final double kI = 0.0;
       public static final double kD = 0.0;
       public static final Rotation2d TOLERANCE = Rotation2d.fromDegrees(0.5);
@@ -259,6 +259,8 @@ public final class Constants {
     public static final int AMP_PIVOT = 1;
     public static final int SHOOTER_PIVOT = 2;
   }
+
+  
   
   public static final class NEO {
     public static final double RPM = 5880;
@@ -280,7 +282,7 @@ public final class Constants {
 
     
     public static final double CAM_PITCH = 0.0; //Degrees (CHANGE)
-    public static final double CAM_HEIGHT_OFF_GROUND = 1.0; //Meters (CHANGE)
+    public static final double CAM_HEIGHT_OFF_GROUND = Units.inchesToMeters(25.25); //Meters (CHANGE)
 
     public static final double FOV_HEIGHT = 59.6; //Degrees
     public static final double FOV_WIDTH = 49.7; //Degrees
