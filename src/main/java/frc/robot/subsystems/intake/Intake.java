@@ -75,7 +75,7 @@ public class Intake extends SubsystemBase {
 
   
   public boolean hasJustReleasedNote() {
-    return intakeRollers.hasJustReceivedNote();
+    return intakeRollers.hasJustReleasedNote();
   }
 
   public boolean hasJustReceivedNote() {

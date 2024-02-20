@@ -80,7 +80,7 @@ public class Transfer extends SubsystemBase {
   }
 
   public boolean hasJustReleasedNote() {
-    return transferIn.hasJustReceivedNote();
+    return transferIn.hasJustReleasedNote();
   }
 
   public boolean hasJustReceivedNote() {
