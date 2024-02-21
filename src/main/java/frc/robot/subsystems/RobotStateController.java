@@ -1,12 +1,8 @@
 package frc.robot.subsystems;
 
-import static edu.wpi.first.units.Units.Amps;
-
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Presets;
-import frc.robot.Constants.ENABLED_SYSTEMS;
 import frc.robot.subsystems.amp.Amp;
 import frc.robot.subsystems.drive.SwerveDrive;
 import frc.robot.subsystems.intake.Intake;

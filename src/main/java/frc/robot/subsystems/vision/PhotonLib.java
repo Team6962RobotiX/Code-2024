@@ -32,9 +32,8 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-
+import frc.robot.Constants.Constants;
 import frc.robot.commands.*;
-import frc.robot.Constants;
 
 @Deprecated
 public class PhotonLib extends SubsystemBase {

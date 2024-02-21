@@ -4,6 +4,8 @@
 
 package frc.robot;
 
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution;
@@ -11,6 +13,7 @@ import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.Constants.Constants;
+import frc.robot.Constants.Field;
 import frc.robot.Constants.Constants.CAN;
 import frc.robot.Constants.Constants.DEVICES;
 import frc.robot.commands.drive.XBoxSwerve;
@@ -91,6 +94,17 @@ public class RobotContainer {
     operatorController.a().whileTrue(stateController.setState(State.INTAKE_OUT));
 
     driveController.b().whileTrue(new MoveToNote("limelight-notes", swerveDrive, driveController));
+
+    SwerveDrive.getField().getObject("Notes").setPoses(
+      new Pose2d(Field.NOTE_POSITIONS[0], new Rotation2d()),
+      new Pose2d(Field.NOTE_POSITIONS[1], new Rotation2d()),
+      new Pose2d(Field.NOTE_POSITIONS[2], new Rotation2d()),
+      new Pose2d(Field.NOTE_POSITIONS[3], new Rotation2d()),
+      new Pose2d(Field.NOTE_POSITIONS[4], new Rotation2d()),
+      new Pose2d(Field.NOTE_POSITIONS[5], new Rotation2d()),
+      new Pose2d(Field.NOTE_POSITIONS[6], new Rotation2d()),
+      new Pose2d(Field.NOTE_POSITIONS[7], new Rotation2d())
+    );
   }
 
   public Command getAutonomousCommand() {

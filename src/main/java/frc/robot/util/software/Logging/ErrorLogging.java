@@ -8,7 +8,7 @@ import com.revrobotics.CANSparkMax;
 import com.revrobotics.REVLibError;
 
 import edu.wpi.first.wpilibj.DriverStation;
-import frc.robot.Constants;
+import frc.robot.Constants.Constants;
 
 public final class ErrorLogging {
   public static void REV(REVLibError error, String message) {

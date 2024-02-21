@@ -4,9 +4,9 @@
 
 package frc.robot.subsystems.vision;
 
-import frc.robot.Constants;
-import frc.robot.Field;
 import frc.robot.Robot;
+import frc.robot.Constants.Constants;
+import frc.robot.Constants.Field;
 import frc.robot.subsystems.drive.SwerveDrive;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
