@@ -146,9 +146,7 @@ public class SwerveModule extends SubsystemBase {
     if (SWERVE_DRIVE.DO_ANGLE_ERROR_SPEED_REDUCTION) {
       speedMetersPerSecond *= Math.cos(SwerveMath.angleDistance(radians, getMeasuredState().angle.getRadians()));
     }
-    
-    double wheelAcceleration = (speedMetersPerSecond - lastDrivenState.speedMetersPerSecond) / 0.02;
-    
+        
     drivePID.setReference(
       speedMetersPerSecond,
       ControlType.kVelocity, 

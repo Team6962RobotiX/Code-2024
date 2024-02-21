@@ -211,8 +211,8 @@ public final class Constants {
       new MODULE_CONFIG(5, 46, 47, 48, -0.1811527778),
       new MODULE_CONFIG(6, 49, 50, 51, 0.1533194444),
       new MODULE_CONFIG(7, 52, 53, 54, -0.5322277778),
-      new MODULE_CONFIG(8, 55, 56, 57, 0.0), // TODO
-      new MODULE_CONFIG(9, 58, 59, 60, 0.0), // TODO
+      new MODULE_CONFIG(8, 55, 56, 57, -0.002197),
+      new MODULE_CONFIG(9, 58, 59, 60, -0.217041),
     };
 
     public static final String[] MODULE_NAMES = {
