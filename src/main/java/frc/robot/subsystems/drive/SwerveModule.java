@@ -8,13 +8,9 @@ import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
-import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.units.Units.Volts;
 
-import java.util.List;
-
 import com.ctre.phoenix6.BaseStatusSignal;
-import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.MagnetSensorConfigs;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.signals.AbsoluteSensorRangeValue;
@@ -36,22 +32,21 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.Voltage;
-import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
-import frc.robot.Constants;
-import frc.robot.Constants.ENABLED_SYSTEMS;
-import frc.robot.Constants.NEO;
-import frc.robot.Constants.SWERVE_DRIVE;
-import frc.robot.Constants.SWERVE_DRIVE.DRIVE_MOTOR_PROFILE;
-import frc.robot.Constants.SWERVE_DRIVE.MODULE_CONFIG;
-import frc.robot.Constants.SWERVE_DRIVE.STEER_MOTOR_PROFILE;
+import frc.robot.Constants.Constants;
+import frc.robot.Constants.Constants.ENABLED_SYSTEMS;
+import frc.robot.Constants.Constants.NEO;
+import frc.robot.Constants.Constants.SWERVE_DRIVE;
+import frc.robot.Constants.Constants.SWERVE_DRIVE.DRIVE_MOTOR_PROFILE;
+import frc.robot.Constants.Constants.SWERVE_DRIVE.MODULE_CONFIG;
+import frc.robot.Constants.Constants.SWERVE_DRIVE.STEER_MOTOR_PROFILE;
 import frc.robot.util.hardware.SparkMaxUtil;
+import frc.robot.util.software.MathUtils.SwerveMath;
 import frc.robot.util.software.Logging.Logger;
 import frc.robot.util.software.Logging.StatusChecks;
-import frc.robot.util.software.MathUtils.SwerveMath;
 
 public class SwerveModule extends SubsystemBase {
   private CANSparkMax driveMotor, steerMotor;

@@ -4,39 +4,25 @@
 
 package frc.robot;
 
-import static edu.wpi.first.units.Units.Amps;
-
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import edu.wpi.first.wpilibj.PowerDistribution;
-import edu.wpi.first.wpilibj.RobotState;
-import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
-import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import frc.robot.Constants.CAN;
-import frc.robot.Constants.DEVICES;
-import frc.robot.Constants.NEO;
-import frc.robot.Presets.SHOOTER;
+import frc.robot.Constants.Constants;
+import frc.robot.Constants.Constants.CAN;
+import frc.robot.Constants.Constants.DEVICES;
 import frc.robot.commands.drive.XBoxSwerve;
 import frc.robot.commands.vision.MoveToNote;
-import frc.robot.subsystems.amp.Amp;
-import frc.robot.subsystems.amp.AmpPivot;
-import frc.robot.subsystems.LEDs;
 import frc.robot.subsystems.RobotStateController;
-import frc.robot.subsystems.amp.AmpWheels;
+import frc.robot.subsystems.RobotStateController.State;
+import frc.robot.subsystems.amp.Amp;
 import frc.robot.subsystems.drive.SwerveDrive;
 import frc.robot.subsystems.intake.Intake;
-import frc.robot.subsystems.shooter.FeedWheels;
 import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.transfer.Transfer;
 import frc.robot.util.software.Logging.Logger;
-import frc.robot.subsystems.RobotStateController.State;
 
 
 /**

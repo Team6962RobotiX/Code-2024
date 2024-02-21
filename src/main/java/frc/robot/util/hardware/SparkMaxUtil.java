@@ -1,21 +1,17 @@
 package frc.robot.util.hardware;
 
-import java.util.List;
 import java.util.function.Supplier;
 
-import com.ctre.phoenix6.StatusCode;
-import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkLowLevel.PeriodicFrame;
+import com.revrobotics.CANSparkMax;
 import com.revrobotics.REVLibError;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkPIDController;
 
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Constants.NEO;
-import frc.robot.Constants.SHOOTER.WHEELS;
+import frc.robot.Constants.Constants.NEO;
 import frc.robot.util.TunableNumber;
 import frc.robot.util.software.Logging.Logger;
 import frc.robot.util.software.Logging.StatusChecks;

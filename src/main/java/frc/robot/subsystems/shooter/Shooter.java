@@ -6,19 +6,12 @@ package frc.robot.subsystems.shooter;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation3d;
-import edu.wpi.first.wpilibj.smartdashboard.Mechanism2d;
-import edu.wpi.first.wpilibj.smartdashboard.MechanismLigament2d;
-import edu.wpi.first.wpilibj.smartdashboard.MechanismRoot2d;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Constants.ENABLED_SYSTEMS;
-import frc.robot.Constants.SHOOTER;
-import frc.robot.Constants.SHOOTER.PIVOT;
-import frc.robot.Field;
-import frc.robot.Presets;
-import frc.robot.subsystems.amp.AmpWheels;
+import frc.robot.Constants.Constants.ENABLED_SYSTEMS;
+import frc.robot.Constants.Field;
+import frc.robot.Constants.Preferences;
 import frc.robot.subsystems.drive.SwerveDrive;
 
 public class Shooter extends SubsystemBase {
@@ -53,7 +46,7 @@ public class Shooter extends SubsystemBase {
     switch(state) {
       case IN:
         return Commands.sequence( 
-          shooterPivot.setTargetAngle(Presets.SHOOTER.PIVOT.INTAKE_ANGLE).until(() -> shooterPivot.doneMoving()),
+          shooterPivot.setTargetAngle(Preferences.SHOOTER_PIVOT.INTAKE_ANGLE).until(() -> shooterPivot.doneMoving()),
           feedWheels.setState(FeedWheels.State.IN)
         );
       case AIM:
@@ -63,7 +56,7 @@ public class Shooter extends SubsystemBase {
       case SHOOT:
         return Commands.parallel( 
           setState(State.AIM),
-          shooterWheels.setTargetVelocity(Presets.SHOOTER.WHEELS.TARGET_SPEED),
+          shooterWheels.setTargetVelocity(Preferences.SHOOTER_WHEELS.TARGET_SPEED),
           feedWheels.setState(FeedWheels.State.IN).onlyIf(() -> getShotChance() > 1.0).until(() -> !feedWheels.hasNote())
         );
     }

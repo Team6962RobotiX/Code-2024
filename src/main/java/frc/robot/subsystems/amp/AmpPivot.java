@@ -8,8 +8,6 @@ import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.Volts;
 
-import java.util.List;
-
 import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
@@ -22,16 +20,13 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
-import frc.robot.Constants.AMP.PIVOT;
-import frc.robot.Presets;
-import frc.robot.Constants.CAN;
-import frc.robot.Constants.DIO;
-import frc.robot.Constants.ENABLED_SYSTEMS;
-import frc.robot.Constants.NEO;
+import frc.robot.Constants.Constants.AMP_PIVOT;
+import frc.robot.Constants.Constants.CAN;
+import frc.robot.Constants.Constants.DIO;
+import frc.robot.Constants.Constants.ENABLED_SYSTEMS;
+import frc.robot.Constants.Preferences;
 import frc.robot.util.hardware.SparkMaxUtil;
 import frc.robot.util.hardware.MotionControl.PivotController;
-import frc.robot.util.software.Logging.Logger;
-import frc.robot.util.software.Logging.StatusChecks;
 
 public class AmpPivot extends SubsystemBase {
   private CANSparkMax motor;
@@ -47,12 +42,12 @@ public class AmpPivot extends SubsystemBase {
       this,
       motor,
       DIO.AMP_PIVOT,
-      PIVOT.ABSOLUTE_POSITION_OFFSET,
-      PIVOT.PROFILE.kP,
-      PIVOT.GEARBOX_REDUCTION,
-      PIVOT.PROFILE.MAX_ACCELERATION,
-      Presets.AMP.PIVOT.MIN_ANGLE,
-      Presets.AMP.PIVOT.MAX_ANGLE,
+      AMP_PIVOT.ABSOLUTE_POSITION_OFFSET,
+      AMP_PIVOT.PROFILE.kP,
+      AMP_PIVOT.GEARING,
+      AMP_PIVOT.PROFILE.MAX_ACCELERATION,
+      Preferences.AMP_PIVOT.MIN_ANGLE,
+      Preferences.AMP_PIVOT.MAX_ANGLE,
       false
     );
 
@@ -78,7 +73,7 @@ public class AmpPivot extends SubsystemBase {
   }
 
   public boolean doneMoving() {
-    return Math.abs(getPosition().getRadians() - controller.getTargetAngle().getRadians()) < PIVOT.ANGLE_TOLERANCE.getRadians();
+    return Math.abs(getPosition().getRadians() - controller.getTargetAngle().getRadians()) < AMP_PIVOT.ANGLE_TOLERANCE.getRadians();
   }
 
   public Command calibrate() {

@@ -8,8 +8,6 @@ import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.Volts;
 
-import java.util.List;
-
 import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
@@ -18,21 +16,17 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.Voltage;
 import edu.wpi.first.wpilibj.RobotState;
-import edu.wpi.first.wpilibj.motorcontrol.Spark;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
-import frc.robot.Constants.SHOOTER.PIVOT;
-import frc.robot.Presets;
-import frc.robot.Constants.CAN;
-import frc.robot.Constants.DIO;
-import frc.robot.Constants.ENABLED_SYSTEMS;
-import frc.robot.Constants.NEO;
+import frc.robot.Constants.Constants.CAN;
+import frc.robot.Constants.Constants.DIO;
+import frc.robot.Constants.Constants.ENABLED_SYSTEMS;
+import frc.robot.Constants.Constants.SHOOTER_PIVOT;
+import frc.robot.Constants.Preferences;
 import frc.robot.util.hardware.SparkMaxUtil;
 import frc.robot.util.hardware.MotionControl.PivotController;
-import frc.robot.util.software.Logging.Logger;
-import frc.robot.util.software.Logging.StatusChecks;
 
 public class ShooterPivot extends SubsystemBase {
   private CANSparkMax motor;
@@ -49,12 +43,12 @@ public class ShooterPivot extends SubsystemBase {
       this,
       motor,
       DIO.SHOOTER_PIVOT,
-      PIVOT.ABSOLUTE_POSITION_OFFSET,
-      PIVOT.PROFILE.kP,
-      PIVOT.GEARBOX_REDUCTION,
-      PIVOT.PROFILE.MAX_ACCELERATION,
-      Presets.SHOOTER.PIVOT.MIN_ANGLE,
-      Presets.SHOOTER.PIVOT.MAX_ANGLE,
+      SHOOTER_PIVOT.ABSOLUTE_POSITION_OFFSET,
+      SHOOTER_PIVOT.PROFILE.kP,
+      SHOOTER_PIVOT.GEARING,
+      SHOOTER_PIVOT.PROFILE.MAX_ACCELERATION,
+      Preferences.SHOOTER_PIVOT.MIN_ANGLE,
+      Preferences.SHOOTER_PIVOT.MAX_ANGLE,
       true
     );
 
@@ -80,7 +74,7 @@ public class ShooterPivot extends SubsystemBase {
   }
 
   public boolean doneMoving() {
-    return Math.abs(getPosition().minus(controller.getTargetAngle()).getRadians()) < PIVOT.ANGLE_TOLERANCE.getRadians();
+    return Math.abs(getPosition().minus(controller.getTargetAngle()).getRadians()) < SHOOTER_PIVOT.ANGLE_TOLERANCE.getRadians();
   }
 
   public Command calibrate() {

@@ -10,21 +10,15 @@ import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.system.plant.LinearSystemId;
-import edu.wpi.first.math.util.Units;
-import edu.wpi.first.units.Unit;
-import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.simulation.FlywheelSim;
-import edu.wpi.first.wpilibj.simulation.LinearSystemSim;
-
-import frc.robot.Constants.NEO;
-import frc.robot.Constants.SWERVE_DRIVE;
-import frc.robot.Constants.SWERVE_DRIVE.DRIVE_MOTOR_PROFILE;
-import frc.robot.Constants.SWERVE_DRIVE.MODULE_CONFIG;
-import frc.robot.Constants.SWERVE_DRIVE.STEER_MOTOR_PROFILE;
-import frc.robot.util.software.Logging.Logger;
+import frc.robot.Constants.Constants.NEO;
+import frc.robot.Constants.Constants.SWERVE_DRIVE;
+import frc.robot.Constants.Constants.SWERVE_DRIVE.DRIVE_MOTOR_PROFILE;
+import frc.robot.Constants.Constants.SWERVE_DRIVE.MODULE_CONFIG;
+import frc.robot.Constants.Constants.SWERVE_DRIVE.STEER_MOTOR_PROFILE;
 import frc.robot.util.software.MathUtils.SwerveMath;
+import frc.robot.util.software.Logging.Logger;
 
 public class SwerveModuleSim extends SwerveModule {
   private FlywheelSim driveMotor = new FlywheelSim(

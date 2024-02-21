@@ -1,7 +1,7 @@
 // Copyright (c) FIRST and other WPILib contributors.
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
-package frc.robot;
+package frc.robot.Constants;
 
 import com.pathplanner.lib.path.PathConstraints;
 
@@ -12,6 +12,7 @@ import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DriverStation;
+import frc.robot.Robot;
 
 
 /**
@@ -79,11 +80,6 @@ public final class Constants {
     public static final double   BATTERY_VOLTAGE                    = 12.6; // volts
     public static final double   BROWNOUT_VOLTAGE                   = 6.8; // volts
 
-    // DRIVING OPTIONS
-    public static final double   TELEOPERATED_FINE_TUNE_DRIVE_POWER = 0.1; // Percent driving power when using d-pad
-    public static final double   TELEOPERATED_DRIVE_POWER           = 0.5; // Percent driving power
-    public static final double   TELEOPERATED_BOOST_POWER           = 1.0; // Percent power when using the triggers
-    public static final double   TELEOPERATED_ROTATE_POWER          = 0.5; // Percent rotating power
     // public static final double   VELOCITY_DEADBAND                  = 0.05; // Velocity we stop moving at
     
     // ODOMETER
@@ -260,8 +256,6 @@ public final class Constants {
     public static final int AMP_PIVOT = 1;
     public static final int SHOOTER_PIVOT = 2;
   }
-
-  
   
   public static final class NEO {
     public static final double RPM = 5880;
@@ -292,65 +286,61 @@ public final class Constants {
     public static final double MAX_LED_RANGE = 20; //Meters (CHANGE)
   }
 
-  public static final class SHOOTER {
-    public static final class FEED_WHEELS {
-      public static final double GEARING = 1.0;
-      public static final double FREE_TORQUE = 0.0; // TODO
-      public static final double RADIUS = Units.inchesToMeters(1.0);
-    }
-    public static final class WHEELS {
-      public static final double GEARBOX_STEP_UP = 2.0;
-      public static final double ENCODER_CONVERSION_FACTOR = 2.0 * Math.PI * GEARBOX_STEP_UP;
-      public static final double WHEEL_RADIUS = Units.inchesToMeters(2.0);
-      public static final double WHEEL_MOI = 0.00018540712;
-      public static final double TOTAL_MOI = WHEEL_MOI * 12.0;
-      public static final double PROJECTILE_MASS = Units.lbsToKilograms(0.5);
+  public static final class SHOOTER_FEED {
+    public static final double GEARING = 1.0;
+    public static final double FREE_TORQUE = 0.0; // TODO
+    public static final double RADIUS = Units.inchesToMeters(1.0);
+  }
+  public static final class SHOOTER_WHEELS {
+    public static final double GEARBOX_STEP_UP = 2.0;
+    public static final double ENCODER_CONVERSION_FACTOR = 2.0 * Math.PI * GEARBOX_STEP_UP;
+    public static final double WHEEL_RADIUS = Units.inchesToMeters(2.0);
+    public static final double WHEEL_MOI = 0.00018540712;
+    public static final double TOTAL_MOI = WHEEL_MOI * 12.0;
+    public static final double PROJECTILE_MASS = Units.lbsToKilograms(0.5);
 
-      // x is front-to-back
-      // y is left-to-right
-      // z is top-to-bottom
-      
-      public static final class PROFILE {
-        public static final double kP = 0.0;
-        public static final double kI = 0.0;
-        public static final double kD = 0.0;
-        public static final double kS = 0.0; // volts per rad/s
-        public static final double kV = 12.0 / (NEO.STATS.freeSpeedRadPerSec * GEARBOX_STEP_UP); // volts per rad/s
-        public static final double kA = 0.0; // volts per rad/s^2
-      }
-    }
-
-    public static final class PIVOT {
-      public static final double GEARBOX_REDUCTION = 400.0;
-      public static final double ROTATION_DELAY = 0.3; // seconds
-      public static final Rotation2d ANGLE_TOLERANCE = Rotation2d.fromDegrees(0.5);
-      public static final Rotation2d ANGLE_PRECISION = Rotation2d.fromDegrees(0.5);
-      public static final Rotation2d HEADING_PRECISION = Rotation2d.fromDegrees(0.5);
-      public static final Translation3d POSITION = new Translation3d(0.0, 0.0, Units.inchesToMeters(12.0));
-      public static final double ABSOLUTE_POSITION_OFFSET = -0.325;
-
-      public static final class PROFILE {
-        public static final double kP = 15.0;
-        public static final double MAX_ACCELERATION = 10.0; // rad/s^2
-      }
+    // x is front-to-back
+    // y is left-to-right
+    // z is top-to-bottom
+    
+    public static final class PROFILE {
+      public static final double kP = 0.0;
+      public static final double kI = 0.0;
+      public static final double kD = 0.0;
+      public static final double kS = 0.0; // volts per rad/s
+      public static final double kV = 12.0 / (NEO.STATS.freeSpeedRadPerSec * GEARBOX_STEP_UP); // volts per rad/s
+      public static final double kA = 0.0; // volts per rad/s^2
     }
   }
 
-  public static final class AMP {
-    public static final class WHEELS {
-      public static final double GEARING = 1.0;
-      public static final double FREE_TORQUE = 0.0; // TODO
-      public static final double RADIUS = Units.inchesToMeters(1.0);
-    }
-    public static final class PIVOT {
-      public static final double GEARBOX_REDUCTION = 60.6666;
-      public static final Rotation2d ANGLE_TOLERANCE = Rotation2d.fromDegrees(10.0);
-      public static final double ABSOLUTE_POSITION_OFFSET = -0.944;
+  public static final class SHOOTER_PIVOT {
+    public static final double GEARING = 400.0;
+    public static final double ROTATION_DELAY = 0.3; // seconds
+    public static final Rotation2d ANGLE_TOLERANCE = Rotation2d.fromDegrees(0.5);
+    public static final Rotation2d ANGLE_PRECISION = Rotation2d.fromDegrees(0.5);
+    public static final Rotation2d HEADING_PRECISION = Rotation2d.fromDegrees(0.5);
+    public static final Translation3d POSITION = new Translation3d(0.0, 0.0, Units.inchesToMeters(12.0));
+    public static final double ABSOLUTE_POSITION_OFFSET = -0.325;
 
-      public static final class PROFILE {
-        public static final double kP = 1.0;
-        public static final double MAX_ACCELERATION = 40.0; // rad/s^2
-      }
+    public static final class PROFILE {
+      public static final double kP = 15.0;
+      public static final double MAX_ACCELERATION = 10.0; // rad/s^2
+    }
+  }
+
+  public static final class AMP_WHEELS {
+    public static final double GEARING = 1.0;
+    public static final double FREE_TORQUE = 0.0; // TODO
+    public static final double RADIUS = Units.inchesToMeters(1.0);
+  }
+  public static final class AMP_PIVOT {
+    public static final double GEARING = 60.6666;
+    public static final Rotation2d ANGLE_TOLERANCE = Rotation2d.fromDegrees(10.0);
+    public static final double ABSOLUTE_POSITION_OFFSET = -0.944;
+
+    public static final class PROFILE {
+      public static final double kP = 1.0;
+      public static final double MAX_ACCELERATION = 40.0; // rad/s^2
     }
   }
 
@@ -360,11 +350,9 @@ public final class Constants {
     public static final double RADIUS = Units.inchesToMeters(1.0);
   }
 
-  public static final class INTAKE {
-    public static final class ROLLERS {
-      public static final double GEARING = 1.0;
-      public static final double FREE_TORQUE = 0.0; // TODO
-      public static final double RADIUS = Units.inchesToMeters(1.0);
-    }
+  public static final class INTAKE_ROLLERS {
+    public static final double GEARING = 1.0;
+    public static final double FREE_TORQUE = 0.0; // TODO
+    public static final double RADIUS = Units.inchesToMeters(1.0);
   }
 }

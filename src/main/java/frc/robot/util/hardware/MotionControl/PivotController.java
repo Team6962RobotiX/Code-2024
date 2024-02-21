@@ -1,9 +1,6 @@
 package frc.robot.util.hardware.MotionControl;
 
-import java.util.List;
-
 import com.revrobotics.CANSparkBase.ControlType;
-import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkPIDController;
@@ -14,13 +11,9 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.State;
-import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Constants.AMP.PIVOT;
-import frc.robot.Constants.ENABLED_SYSTEMS;
-import frc.robot.Constants.NEO;
-import frc.robot.util.TunableNumber;
+import frc.robot.Constants.Constants.NEO;
 import frc.robot.util.hardware.SparkMaxUtil;
 import frc.robot.util.software.Logging.Logger;
 import frc.robot.util.software.Logging.StatusChecks;

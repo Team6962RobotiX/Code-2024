@@ -4,34 +4,11 @@
 
 package frc.robot.subsystems.amp;
 
-import static edu.wpi.first.units.Units.Radians;
-import static edu.wpi.first.units.Units.RadiansPerSecond;
-import static edu.wpi.first.units.Units.Volts;
-
-import java.util.List;
-
-import com.revrobotics.CANSparkBase.IdleMode;
-import com.revrobotics.CANSparkLowLevel.MotorType;
-import com.revrobotics.CANSparkMax;
-
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.units.Measure;
-import edu.wpi.first.units.Voltage;
-import edu.wpi.first.wpilibj.RobotState;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
-import frc.robot.Constants.AMP.PIVOT;
-import frc.robot.Presets;
-import frc.robot.Constants.CAN;
-import frc.robot.Constants.DIO;
-import frc.robot.Constants.ENABLED_SYSTEMS;
-import frc.robot.Constants.NEO;
-import frc.robot.util.hardware.SparkMaxUtil;
-import frc.robot.util.hardware.MotionControl.PivotController;
-import frc.robot.util.software.Logging.Logger;
-import frc.robot.util.software.Logging.StatusChecks;
+import frc.robot.Constants.Constants.ENABLED_SYSTEMS;
+import frc.robot.Constants.Preferences;
 
 public class Amp extends SubsystemBase {
   private AmpPivot pivot;
@@ -62,11 +39,11 @@ public class Amp extends SubsystemBase {
         );
       case DOWN:
         return Commands.parallel( 
-          pivot.setTargetAngle(Presets.AMP.PIVOT.INTAKE_ANGLE).until(() -> pivot.doneMoving())
+          pivot.setTargetAngle(Preferences.AMP_PIVOT.INTAKE_ANGLE).until(() -> pivot.doneMoving())
         );
       case UP:
         return Commands.parallel(
-          pivot.setTargetAngle(Presets.AMP.PIVOT.OUTPUT_ANGLE).until(() -> pivot.doneMoving())
+          pivot.setTargetAngle(Preferences.AMP_PIVOT.OUTPUT_ANGLE).until(() -> pivot.doneMoving())
         );
       case OUT:
         return Commands.parallel( 
