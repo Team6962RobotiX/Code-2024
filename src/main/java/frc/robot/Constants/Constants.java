@@ -256,7 +256,7 @@ public final class Constants {
     public static final int AMP_PIVOT = 1;
     public static final int SHOOTER_PIVOT = 2;
   }
-  
+
   public static final class NEO {
     public static final double RPM = 5880;
     public static final DCMotor STATS = new DCMotor(12.0, 3.28, 181, 1.3, Units.rotationsPerMinuteToRadiansPerSecond(RPM), 1);
@@ -268,6 +268,18 @@ public final class Constants {
       return STATS.stallTorqueNewtonMeters / STATS.stallCurrentAmps * currentLimit;
     }
   }
+  public static final class NEO550 {
+    public static final double RPM = 11710;
+    public static final DCMotor STATS = new DCMotor(12.0, 1.08, 111, 1.1, Units.rotationsPerMinuteToRadiansPerSecond(RPM), 1);
+    public static final double SAFE_TEMPERATURE = 60;
+    public static final int SAFE_STALL_CURRENT = 10;
+    public static final double SAFE_RAMP_RATE = 0.1;
+
+    public static double maxTorqueCurrentLimited(int currentLimit) {
+      return STATS.stallTorqueNewtonMeters / STATS.stallCurrentAmps * currentLimit;
+    }
+  }
+
 
   public static final class PHOTON_LIB {
     public static final int SCALE = 1; //INCREASE THIS TO MAKE THE SIMULATION EASIER TO SEE ON A LAPTOP
@@ -330,7 +342,7 @@ public final class Constants {
 
   public static final class AMP_WHEELS {
     public static final double GEARING = 1.0;
-    public static final double FREE_TORQUE = 0.0; // TODO
+    public static final double FREE_TORQUE = 0.3; // TODO
     public static final double RADIUS = Units.inchesToMeters(1.0);
   }
   public static final class AMP_PIVOT {
@@ -345,14 +357,14 @@ public final class Constants {
   }
 
   public static final class TRANSFER {
-    public static final double GEARING = 1.0;
-    public static final double FREE_TORQUE = 0.0; // TODO
+    public static final double GEARING = 72.0 / 20.0;
+    public static final double FREE_TORQUE = 0.3; // TODO
     public static final double RADIUS = Units.inchesToMeters(1.0);
   }
 
   public static final class INTAKE_ROLLERS {
     public static final double GEARING = 1.0;
-    public static final double FREE_TORQUE = 0.0; // TODO
+    public static final double FREE_TORQUE = 0.3; // TODO
     public static final double RADIUS = Units.inchesToMeters(1.0);
   }
 }

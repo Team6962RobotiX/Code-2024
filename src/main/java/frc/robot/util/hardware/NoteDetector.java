@@ -10,10 +10,11 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.RobotState;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Constants;
-import frc.robot.Field;
-import frc.robot.Presets;
-import frc.robot.Constants.NEO;
+import frc.robot.Constants.Constants;
+import frc.robot.Constants.Field;
+import frc.robot.Constants.Preferences;
+import frc.robot.Constants.Constants.NEO;
+import frc.robot.Constants.Constants.NEO550;
 import frc.robot.util.software.Logging.Logger;
 
 import java.util.ArrayDeque;
@@ -31,11 +32,13 @@ public class NoteDetector extends SubsystemBase {
   double filteredTorque;
   double freeTorque;
   boolean hasNote = false;
+  boolean isNeo550 = false;
 
-  public NoteDetector(CANSparkMax motor, double gearing, double freeTorque) {
+  public NoteDetector(CANSparkMax motor, double gearing, double freeTorque, boolean isNeo550) {
     this.motor = motor;
     this.gearing = gearing;
     this.freeTorque = freeTorque;
+    this.isNeo550 = isNeo550;
     Logger.autoLog("NoteDetectors/" + motor.getDeviceId() + "/hasNote", () -> hasNote());
     Logger.autoLog("NoteDetectors/" + motor.getDeviceId() + "/appliedTorque", () -> filteredTorque);
   }
@@ -55,8 +58,10 @@ public class NoteDetector extends SubsystemBase {
       filter.reset();
       return;
     }
-
     double motorTorque = NEO.STATS.stallTorqueNewtonMeters / NEO.STATS.stallCurrentAmps * motor.getOutputCurrent();
+    if (isNeo550) {
+      motorTorque = NEO550.STATS.stallTorqueNewtonMeters / NEO550.STATS.stallCurrentAmps * motor.getOutputCurrent();
+    }
     double appliedTorque = motorTorque * gearing;
     filteredTorque = filter.calculate(appliedTorque);
 

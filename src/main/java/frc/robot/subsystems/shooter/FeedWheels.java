@@ -35,7 +35,7 @@ public class FeedWheels extends SubsystemBase {
     SparkMaxUtil.configureAndLog(this, motor, false, IdleMode.kBrake);
     SparkMaxUtil.save(motor);
 
-    detector = new NoteDetector(motor, Constants.SHOOTER_FEED.GEARING, Constants.SHOOTER_FEED.FREE_TORQUE);
+    detector = new NoteDetector(motor, Constants.SHOOTER_FEED.GEARING, Constants.SHOOTER_FEED.FREE_TORQUE, false);
 
   }
 

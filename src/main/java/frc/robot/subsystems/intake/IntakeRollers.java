@@ -35,7 +35,7 @@ public class IntakeRollers extends SubsystemBase {
     SparkMaxUtil.configureAndLog(this, motor, false, IdleMode.kBrake);
     SparkMaxUtil.save(motor);
 
-    detector = new NoteDetector(motor, Constants.INTAKE_ROLLERS.GEARING, Constants.INTAKE_ROLLERS.FREE_TORQUE);
+    detector = new NoteDetector(motor, Constants.INTAKE_ROLLERS.GEARING, Constants.INTAKE_ROLLERS.FREE_TORQUE, false);
   }
 
   public Command setState(State state) {

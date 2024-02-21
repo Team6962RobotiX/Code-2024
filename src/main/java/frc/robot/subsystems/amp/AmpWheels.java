@@ -37,7 +37,7 @@ public class AmpWheels extends SubsystemBase {
     SparkMaxUtil.configureAndLog(this, motor, false, IdleMode.kCoast);
     SparkMaxUtil.save(motor);
 
-    detector = new NoteDetector(motor, Constants.AMP_WHEELS.GEARING, Constants.AMP_WHEELS.FREE_TORQUE);
+    detector = new NoteDetector(motor, Constants.AMP_WHEELS.GEARING, Constants.AMP_WHEELS.FREE_TORQUE, true);
   }
 
   public Command setState(State state) {
