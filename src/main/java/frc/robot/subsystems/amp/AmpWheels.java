@@ -33,7 +33,7 @@ public class AmpWheels extends SubsystemBase {
 
   public AmpWheels() {
     motor = new CANSparkMax(CAN.AMP_WHEELS, MotorType.kBrushless);
-
+    
     SparkMaxUtil.configureAndLog(this, motor, false, IdleMode.kCoast);
     SparkMaxUtil.save(motor);
 
