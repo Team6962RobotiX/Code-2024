@@ -56,7 +56,7 @@ public class MoveToNote extends Command {
         Limelight.getNoteDist(cameraName),
         0.0
       ).rotateBy(targetHeading));
-
+      translation = translation.plus(swerveDrive.getFieldVelocity().times(Limelight.totalLatency(cameraName) / 1000.0));
       targetPose = new Pose2d(translation, targetHeading);
 
       if (goToCommand == null || goToCommand.isFinished()) {
