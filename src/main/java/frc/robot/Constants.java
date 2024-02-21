@@ -295,6 +295,7 @@ public final class Constants {
   public static final class SHOOTER {
     public static final class FEED_WHEELS {
       public static final double GEARING = 1.0;
+      public static final double FREE_TORQUE = 0.0; // TODO
       public static final double RADIUS = Units.inchesToMeters(1.0);
     }
     public static final class WHEELS {
@@ -338,6 +339,7 @@ public final class Constants {
   public static final class AMP {
     public static final class WHEELS {
       public static final double GEARING = 1.0;
+      public static final double FREE_TORQUE = 0.0; // TODO
       public static final double RADIUS = Units.inchesToMeters(1.0);
     }
     public static final class PIVOT {
@@ -354,12 +356,14 @@ public final class Constants {
 
   public static final class TRANSFER {
     public static final double GEARING = 1.0;
+    public static final double FREE_TORQUE = 0.0; // TODO
     public static final double RADIUS = Units.inchesToMeters(1.0);
   }
 
   public static final class INTAKE {
     public static final class ROLLERS {
       public static final double GEARING = 1.0;
+      public static final double FREE_TORQUE = 0.0; // TODO
       public static final double RADIUS = Units.inchesToMeters(1.0);
     }
   }

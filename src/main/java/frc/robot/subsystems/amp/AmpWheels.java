@@ -47,11 +47,14 @@ public class AmpWheels extends SubsystemBase {
     SparkMaxUtil.configureAndLog(this, motor, false, IdleMode.kCoast);
     SparkMaxUtil.save(motor);
 
-    detector = new NoteDetector(motor, Constants.AMP.WHEELS.GEARING, Constants.AMP.WHEELS.RADIUS);
+    detector = new NoteDetector(motor, Constants.AMP.WHEELS.GEARING, Constants.AMP.WHEELS.FREE_TORQUE);
   }
 
   public Command setState(State state) {
-    return runOnce(() -> this.state = state);
+    return runEnd(
+      () -> this.state = state,
+      () -> this.state = State.OFF
+    );
   }
 
   @Override
@@ -74,14 +77,10 @@ public class AmpWheels extends SubsystemBase {
     }
   }
 
-  public boolean hasJustReleasedNote() {
-    return detector.hasJustReleasedNote();
+  public boolean hasNote() {
+    return detector.hasNote();
   }
-
-  public boolean hasJustReceivedNote() {
-    return detector.hasJustReceivedNote();
-  }
-
+  
   @Override
   public void simulationPeriodic() {
     // This method will be called once per scheduler run during simulation

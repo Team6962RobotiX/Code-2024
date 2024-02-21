@@ -60,7 +60,10 @@ public class ShooterWheels extends SubsystemBase {
   }
 
   public Command setTargetVelocity(double angularVelocity) {
-    return runOnce(() -> targetVelocity = angularVelocity);
+    return runEnd(
+      () -> targetVelocity = angularVelocity,
+      () -> targetVelocity = 0.0
+    );
   }
 
   public double getVelocity() {

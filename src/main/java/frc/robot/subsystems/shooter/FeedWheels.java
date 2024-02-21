@@ -45,12 +45,15 @@ public class FeedWheels extends SubsystemBase {
     SparkMaxUtil.configureAndLog(this, motor, false, IdleMode.kBrake);
     SparkMaxUtil.save(motor);
 
-    detector = new NoteDetector(motor, Constants.SHOOTER.FEED_WHEELS.GEARING, Constants.SHOOTER.FEED_WHEELS.RADIUS);
+    detector = new NoteDetector(motor, Constants.SHOOTER.FEED_WHEELS.GEARING, Constants.SHOOTER.FEED_WHEELS.FREE_TORQUE);
 
   }
 
   public Command setState(State state) {
-    return runOnce(() -> this.state = state);
+    return runEnd(
+      () -> this.state = state,
+      () -> this.state = State.OFF
+    );
   }
 
   @Override
@@ -72,12 +75,8 @@ public class FeedWheels extends SubsystemBase {
     }
   }
 
-  public boolean hasJustReleasedNote() {
-    return detector.hasJustReleasedNote();
-  }
-
-  public boolean hasJustReceivedNote() {
-    return detector.hasJustReceivedNote();
+  public boolean hasNote() {
+    return detector.hasNote();
   }
 
   @Override

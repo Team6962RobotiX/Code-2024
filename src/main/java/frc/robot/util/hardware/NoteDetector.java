@@ -19,25 +19,25 @@ import frc.robot.util.software.Logging.Logger;
 import java.util.ArrayDeque;
 import java.util.Queue;
 
+import javax.print.attribute.standard.Media;
+
 public class NoteDetector extends SubsystemBase {
-  int scope = 15;
-  Queue<Double> lastReadings = new ArrayDeque<>(scope * 2);
+  int filterSize = 10;
+  MedianFilter filter = new MedianFilter(filterSize);
   double delay = NEO.SAFE_RAMP_RATE * 3.0;
   double delayCounter = 0.0;
   CANSparkMax motor;
-  RelativeEncoder encoder;
-  double encoderOffset = 0.0;
   double gearing = 0.0;
-  double radius = 0.0;
+  double filteredTorque;
+  double freeTorque;
+  boolean hasNote = false;
 
-  public NoteDetector(CANSparkMax motor, double gearing, double radius) {
+  public NoteDetector(CANSparkMax motor, double gearing, double freeTorque) {
     this.motor = motor;
     this.gearing = gearing;
-    this.radius = radius;
-    encoder = motor.getEncoder();
-    Logger.autoLog("NoteDetectors/" + motor.getDeviceId() + "/currentChangeRatio", () -> getChangeRatio());
-    Logger.autoLog("NoteDetectors/" + motor.getDeviceId() + "/hasJustReceivedNote", () -> hasJustReceivedNote());
-    Logger.autoLog("NoteDetectors/" + motor.getDeviceId() + "/hasJustReleasedNote", () -> hasJustReleasedNote());
+    this.freeTorque = freeTorque;
+    Logger.autoLog("NoteDetectors/" + motor.getDeviceId() + "/hasNote", () -> hasNote());
+    Logger.autoLog("NoteDetectors/" + motor.getDeviceId() + "/appliedTorque", () -> filteredTorque);
   }
 
   @Override
@@ -46,60 +46,28 @@ public class NoteDetector extends SubsystemBase {
     
     if (output == 0.0) {
       delayCounter = 0.0;
-      lastReadings = new ArrayDeque<>(scope * 2);
+      filter.reset();
       return;
     }
 
     if (delayCounter <= delay) {
       delayCounter += 0.02;
-      lastReadings = new ArrayDeque<>(scope * 2);
+      filter.reset();
       return;
     }
-    updateLastReadings(motor.getOutputCurrent() + 2.0);
-  }
-  
-  private void updateLastReadings(double current) {
-    if (lastReadings.size() == scope * 2) {
-      lastReadings.poll();
-    }
-    lastReadings.offer(current);
-  }
-  
-  private double getChangeRatio() {
-    if (lastReadings.size() != scope * 2) {
-      return 0.0;
-    }
-    
-    double oldAverage = 0, newAverage = 0;
-    int i = 0;
-    for (double reading : lastReadings) {
-      if (i < scope) {
-        oldAverage += reading;
-      } else {
-        newAverage += reading;
-      }
-      i++;
-    }
 
-    oldAverage /= (double) scope;
-    newAverage /= (double) scope;
-    
-    if (oldAverage == 0.0 || newAverage == 0.0) {
-      return 0.0;
-    }
-    
-    if (newAverage > oldAverage) {
-      return newAverage / oldAverage - 1.0;
+    double motorTorque = NEO.STATS.stallTorqueNewtonMeters / NEO.STATS.stallCurrentAmps * motor.getOutputCurrent();
+    double appliedTorque = motorTorque * gearing;
+    filteredTorque = filter.calculate(appliedTorque);
+
+    if (filteredTorque - freeTorque * 1.5 > 0) {
+      hasNote = true;
     } else {
-      return 1.0 - (oldAverage / newAverage);
+      hasNote = false;
     }
   }
 
-  public boolean hasJustReceivedNote() {
-    return getChangeRatio() > Presets.NOTE_DETECTION_THRESHOLD;
-  }
-
-  public boolean hasJustReleasedNote() {
-    return getChangeRatio() < -Presets.NOTE_DETECTION_THRESHOLD;
+  public boolean hasNote() {
+    return hasNote;
   }
 }

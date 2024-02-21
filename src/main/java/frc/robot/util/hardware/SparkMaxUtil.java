@@ -46,6 +46,7 @@ public final class SparkMaxUtil {
     Logger.autoLog(subsystem, logPath + "appliedOutput",           () -> motor.getAppliedOutput());
     Logger.autoLog(subsystem, logPath + "appliedVoltage",          () -> motor.getBusVoltage() * motor.getAppliedOutput());
     Logger.autoLog(subsystem, logPath + "powerWatts",              () -> motor.getBusVoltage() * motor.getAppliedOutput() * motor.getOutputCurrent());
+    Logger.autoLog(subsystem, logPath + "torqueNm",                () -> NEO.STATS.stallTorqueNewtonMeters / NEO.STATS.stallCurrentAmps * motor.getOutputCurrent());
     Logger.autoLog(subsystem, logPath + "motorTemperature",        () -> motor.getMotorTemperature());
     Logger.autoLog(subsystem, logPath + "position",                () -> encoder.getPosition());
     Logger.autoLog(subsystem, logPath + "velocity",                () -> encoder.getVelocity());

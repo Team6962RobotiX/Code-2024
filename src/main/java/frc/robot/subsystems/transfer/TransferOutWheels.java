@@ -41,7 +41,10 @@ public class TransferOutWheels extends SubsystemBase {
   }
 
   public Command setState(State state) {
-    return runOnce(() -> this.state = state);
+    return runEnd(
+      () -> this.state = state,
+      () -> this.state = State.OFF
+    );
   }
   
   @Override

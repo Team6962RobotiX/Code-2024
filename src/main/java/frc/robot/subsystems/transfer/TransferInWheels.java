@@ -41,11 +41,14 @@ public class TransferInWheels extends SubsystemBase {
     SparkMaxUtil.configureAndLog(this, motor, true, IdleMode.kBrake);
     SparkMaxUtil.save(motor);
 
-    detector = new NoteDetector(motor, Constants.TRANSFER.GEARING, Constants.TRANSFER.RADIUS);
+    detector = new NoteDetector(motor, Constants.TRANSFER.GEARING, Constants.TRANSFER.FREE_TORQUE);
   }
 
   public Command setState(State state) {
-    return runOnce(() -> this.state = state);
+    return runEnd(
+      () -> this.state = state,
+      () -> this.state = State.OFF
+    );
   }
   
   @Override
@@ -67,12 +70,8 @@ public class TransferInWheels extends SubsystemBase {
     }
   }
 
-  public boolean hasJustReleasedNote() {
-    return detector.hasJustReleasedNote();
-  }
-
-  public boolean hasJustReceivedNote() {
-    return detector.hasJustReceivedNote();
+  public boolean hasNote() {
+    return detector.hasNote();
   }
 
   @Override

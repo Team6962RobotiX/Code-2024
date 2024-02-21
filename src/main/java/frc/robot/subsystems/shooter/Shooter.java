@@ -34,7 +34,6 @@ public class Shooter extends SubsystemBase {
     IN,
     AIM,
     SHOOT,
-    OFF
   }
 
   public Shooter(SwerveDrive swerveDrive) {
@@ -54,30 +53,18 @@ public class Shooter extends SubsystemBase {
     switch(state) {
       case IN:
         return Commands.sequence( 
-          shooterPivot.setTargetAngle(Presets.SHOOTER.PIVOT.INTAKE_ANGLE),
-          shooterWheels.setTargetVelocity(0.0),
-          Commands.waitUntil(() -> shooterPivot.doneMoving()),
+          shooterPivot.setTargetAngle(Presets.SHOOTER.PIVOT.INTAKE_ANGLE).until(() -> shooterPivot.doneMoving()),
           feedWheels.setState(FeedWheels.State.IN)
         );
       case AIM:
-        return Commands.sequence( 
-          aim(Field.SPEAKER),
-          shooterWheels.setTargetVelocity(0.0),
-          feedWheels.setState(FeedWheels.State.OFF)
+        return Commands.parallel( 
+          aim(Field.SPEAKER)
         );
       case SHOOT:
-        return Commands.sequence( 
+        return Commands.parallel( 
           setState(State.AIM),
           shooterWheels.setTargetVelocity(Presets.SHOOTER.WHEELS.TARGET_SPEED),
-          feedWheels.setState(FeedWheels.State.IN).onlyIf(() -> getShotChance() > 1.0),
-          Commands.waitUntil(() -> feedWheels.hasJustReleasedNote()),
-          feedWheels.setState(FeedWheels.State.OFF)
-        );
-      case OFF:
-        return Commands.sequence( 
-          shooterPivot.setTargetAngle(shooterPivot.getPosition()),
-          shooterWheels.setTargetVelocity(0.0),
-          feedWheels.setState(FeedWheels.State.OFF)
+          feedWheels.setState(FeedWheels.State.IN).onlyIf(() -> getShotChance() > 1.0).until(() -> !feedWheels.hasNote())
         );
     }
     return null;
@@ -125,12 +112,8 @@ public class Shooter extends SubsystemBase {
     );
   }
 
-  public boolean hasJustReleasedNote() {
-    return feedWheels.hasJustReleasedNote();
-  }
-
-  public boolean hasJustReceivedNote() {
-    return feedWheels.hasJustReceivedNote();
+  public boolean hasNote() {
+    return feedWheels.hasNote();
   }
 
   @Override

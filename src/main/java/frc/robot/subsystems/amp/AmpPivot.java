@@ -74,7 +74,7 @@ public class AmpPivot extends SubsystemBase {
   }
 
   public Command setTargetAngle(Rotation2d angle) {
-    return runOnce(() -> controller.setTargetAngle(angle));    
+    return runOnce(() -> controller.setTargetAngle(angle));
   }
 
   public boolean doneMoving() {

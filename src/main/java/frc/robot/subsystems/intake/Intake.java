@@ -38,7 +38,6 @@ public class Intake extends SubsystemBase {
   public static enum State {
     IN,
     OUT,
-    OFF
   }
 
   public Intake() {
@@ -49,19 +48,14 @@ public class Intake extends SubsystemBase {
   public Command setState(State state) {
     switch(state) {
       case IN:
-        return Commands.sequence( 
+        return Commands.parallel( 
           intakeRollers.setState(IntakeRollers.State.IN),
           centeringWheels.setState(CenteringWheels.State.IN)
         );
       case OUT:
-        return Commands.sequence( 
+        return Commands.parallel( 
           intakeRollers.setState(IntakeRollers.State.OUT),
           centeringWheels.setState(CenteringWheels.State.OUT)
-        );
-      case OFF:
-        return Commands.sequence( 
-          intakeRollers.setState(IntakeRollers.State.OFF),
-          centeringWheels.setState(CenteringWheels.State.OFF)
         );
     }
     return null;
@@ -74,12 +68,8 @@ public class Intake extends SubsystemBase {
   }
 
   
-  public boolean hasJustReleasedNote() {
-    return intakeRollers.hasJustReleasedNote();
-  }
-
-  public boolean hasJustReceivedNote() {
-    return intakeRollers.hasJustReceivedNote();
+  public boolean hasNote() {
+    return intakeRollers.hasNote();
   }
 
   @Override

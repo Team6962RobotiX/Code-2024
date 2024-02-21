@@ -35,7 +35,6 @@ public class Transfer extends SubsystemBase {
     OUT,
     AMP,
     SHOOTER,
-    OFF,
   }
 
   public Transfer() {    
@@ -45,28 +44,23 @@ public class Transfer extends SubsystemBase {
 
   public Command setState(State state) {
     switch(state) {
-      case OFF:
-        return Commands.sequence( 
-          transferIn.setState(TransferInWheels.State.OFF),
-          transferOut.setState(TransferOutWheels.State.OFF)
-        );
       case IN:
-        return Commands.sequence( 
+        return Commands.parallel( 
           transferIn.setState(TransferInWheels.State.IN),
           transferOut.setState(TransferOutWheels.State.OFF)
         );
       case OUT:
-        return Commands.sequence( 
+        return Commands.parallel( 
           transferIn.setState(TransferInWheels.State.OUT),
           transferOut.setState(TransferOutWheels.State.OFF)
         );
       case AMP:
-        return Commands.sequence( 
+        return Commands.parallel( 
           transferIn.setState(TransferInWheels.State.IN),
           transferOut.setState(TransferOutWheels.State.AMP)
         );
       case SHOOTER:
-        return Commands.sequence( 
+        return Commands.parallel( 
           transferIn.setState(TransferInWheels.State.IN),
           transferOut.setState(TransferOutWheels.State.SHOOTER)
         );
@@ -79,12 +73,8 @@ public class Transfer extends SubsystemBase {
     if (!ENABLED_SYSTEMS.ENABLE_TRANSFER) return;
   }
 
-  public boolean hasJustReleasedNote() {
-    return transferIn.hasJustReleasedNote();
-  }
-
-  public boolean hasJustReceivedNote() {
-    return transferIn.hasJustReceivedNote();
+  public boolean hasNote() {
+    return transferIn.hasNote();
   }
 
   @Override
