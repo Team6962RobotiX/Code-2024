@@ -23,6 +23,8 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import frc.robot.Robot;
+import frc.robot.Constants.Preferences;
 import frc.robot.Constants.Constants.CAN;
 import frc.robot.Constants.Constants.ENABLED_SYSTEMS;
 import frc.robot.Constants.Constants.SHOOTER_WHEELS;
@@ -60,6 +62,7 @@ public class ShooterWheels extends SubsystemBase {
   }
 
   public double getVelocity() {
+    if (Robot.isSimulation()) return targetVelocity;
     return encoder.getVelocity();
   }
 
@@ -67,6 +70,9 @@ public class ShooterWheels extends SubsystemBase {
   public void periodic() {
     if (!ENABLED_SYSTEMS.ENABLE_SHOOTER) return;
     if (isCalibrating) return;
+    if (RobotState.isAutonomous()) {
+      targetVelocity = Preferences.SHOOTER_WHEELS.TARGET_SPEED;
+    }
     if (RobotState.isDisabled()) {
       setTargetVelocity(0.0);
     }

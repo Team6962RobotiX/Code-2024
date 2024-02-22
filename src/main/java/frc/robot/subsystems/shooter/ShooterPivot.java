@@ -20,6 +20,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import frc.robot.Robot;
 import frc.robot.Constants.Constants.CAN;
 import frc.robot.Constants.Constants.DIO;
 import frc.robot.Constants.Constants.ENABLED_SYSTEMS;
@@ -62,18 +63,24 @@ public class ShooterPivot extends SubsystemBase {
     if (RobotState.isDisabled()) {
       controller.setTargetAngle(getPosition());
     }
-    // controller.run();
+    controller.run();
   }
 
-  public Command setTargetAngle(Rotation2d angle) {
-    return runOnce(() -> controller.setTargetAngle(angle));
+  public Command setTargetAngleCommand(Rotation2d angle) {
+    return runOnce(() -> setTargetAngle(angle));
+  }
+
+  public void setTargetAngle(Rotation2d angle) {
+    controller.setTargetAngle(angle);
   }
 
   public Rotation2d getPosition() {
+    if (Robot.isSimulation() && controller.getTargetAngle() != null) return controller.getTargetAngle();
     return controller.getPosition();
   }
 
   public boolean doneMoving() {
+    if (controller.getTargetAngle() == null) return true;
     return Math.abs(getPosition().minus(controller.getTargetAngle()).getRadians()) < SHOOTER_PIVOT.ANGLE_TOLERANCE.getRadians();
   }
 

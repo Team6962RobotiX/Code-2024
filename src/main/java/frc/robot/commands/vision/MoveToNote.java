@@ -5,10 +5,11 @@
 
 package frc.robot.commands.vision;
 
+import frc.robot.Constants.Constants.LIMELIGHT;
 import frc.robot.subsystems.drive.SwerveDrive;
 import frc.robot.subsystems.vision.Limelight;
 import edu.wpi.first.wpilibj2.command.Command;
-
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -20,7 +21,6 @@ public class MoveToNote extends Command {
   private final SwerveDrive swerveDrive;
   private final CommandXboxController controller;
   private final String cameraName;
-  private Pose2d targetPose;
   private Command goToCommand;
 
   public MoveToNote(String cameraName, SwerveDrive swerveDrive, CommandXboxController controller) {
@@ -36,7 +36,6 @@ public class MoveToNote extends Command {
   @Override
   public void initialize() {
     //The robot won't move unless it sees a note
-    targetPose = swerveDrive.getPose();
     goToCommand = null;
   }
 
@@ -47,42 +46,17 @@ public class MoveToNote extends Command {
     //If the camera can see the note, it updates the position. 
     //As soon at the camera can't see the note, the robot continues driving to the last known note position.
     if (Limelight.targetArea(cameraName) > 0.0) {
-      Translation2d translation = swerveDrive.getPose().getTranslation();
-      Rotation2d rotation = swerveDrive.getPose().getRotation();
-
-      Rotation2d targetHeading = rotation.minus(Rotation2d.fromDegrees(Limelight.targetHorizontal(cameraName)));
-
-      translation = translation.plus(new Translation2d(
-        Limelight.getNoteDist(cameraName),
-        0.0
-      ).rotateBy(targetHeading));
-      translation = translation.plus(swerveDrive.getFieldVelocity().times(Limelight.totalLatency(cameraName) / 1000.0));
-      targetPose = new Pose2d(translation, targetHeading);
-
+      Translation2d targetPoint = Limelight.getNotePosition(cameraName, LIMELIGHT.NOTE_CAMERA_PITCH, swerveDrive.getPose(), swerveDrive.getFieldVelocity(), LIMELIGHT.NOTE_CAMERA_POSITION);
+      Pose2d targetPose = new Pose2d(targetPoint, targetPoint.minus(swerveDrive.getPose().getTranslation()).getAngle());
+      
       if (goToCommand == null || goToCommand.isFinished()) {
-        goToCommand = swerveDrive.goToSimple(targetPose, () -> true);
+        goToCommand = Commands.runOnce(() -> swerveDrive.setRotationTargetOverrideFromPoint(targetPoint))
+          .andThen(swerveDrive.goToSimple(targetPose))
+          .andThen(() -> swerveDrive.setRotationTargetOverrideFromPoint(null));
         goToCommand.schedule();
       }
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
     //THIS DOES BOTH ROTATION AND TRANSLATION
     // swerveDrive.goTo(targetPose, controller);
 

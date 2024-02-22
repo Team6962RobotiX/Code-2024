@@ -55,7 +55,16 @@ public final class Constants {
 
   // LIMELIGHT
   public static final class LIMELIGHT {
-    public static final String[] APRILTAG_CAMERA_NAMES = {"limelight_apriltags"};
+    public static final String[] APRILTAG_CAMERA_NAMES = {"limelight_apriltags_1", "limelight_apriltags_2"};
+    public static final String NOTE_CAMERA_NAME = "limelight_notes";
+
+    public static final Rotation2d NOTE_CAMERA_PITCH = Rotation2d.fromDegrees(-25.0);
+    // x is forward, y is left, z is up
+    public static final Translation3d NOTE_CAMERA_POSITION = new Translation3d(0.0, 0.0, Units.inchesToMeters(10.25));
+
+    public static final double FOV_HEIGHT = 62.5; // Degrees
+    public static final double FOV_WIDTH = 48.9; // Degrees
+
   }
 
   // SWERVE DRIVE
@@ -141,12 +150,14 @@ public final class Constants {
         public static final double kD = 0.0;
       }
 
+      public static final double ACCELERATION_REDUCTION = (SWERVE_DRIVE.PHYSICS.MAX_LINEAR_ACCELERATION * SWERVE_DRIVE.ROBOT_MASS + ((SWERVE_DRIVE.PHYSICS.ROTATIONAL_INERTIA * SWERVE_DRIVE.PHYSICS.MAX_ANGULAR_ACCELERATION) / SWERVE_DRIVE.PHYSICS.DRIVE_RADIUS)) / (9.80 * SWERVE_DRIVE.ROBOT_MASS * SWERVE_DRIVE.FRICTION_COEFFICIENT);
+
       public static final PathConstraints DEFAULT_PATH_CONSTRAINTS =
         new PathConstraints(
           SWERVE_DRIVE.PHYSICS.MAX_LINEAR_VELOCITY,
-          SWERVE_DRIVE.PHYSICS.MAX_LINEAR_ACCELERATION / 1.0,
+          SWERVE_DRIVE.PHYSICS.MAX_LINEAR_ACCELERATION / ACCELERATION_REDUCTION,
           SWERVE_DRIVE.PHYSICS.MAX_ANGULAR_VELOCITY,
-          SWERVE_DRIVE.PHYSICS.MAX_ANGULAR_ACCELERATION / 1.0
+          SWERVE_DRIVE.PHYSICS.MAX_ANGULAR_ACCELERATION / ACCELERATION_REDUCTION
         );
     }
 
@@ -184,7 +195,7 @@ public final class Constants {
 
     // TELEOPERATED
     public static final class ABSOLUTE_ROTATION_GAINS {
-      public static final double kP = 1.0;
+      public static final double kP = 4.0;
       public static final double kI = 0.0;
       public static final double kD = 0.0;
       public static final Rotation2d TOLERANCE = Rotation2d.fromDegrees(0.5);
@@ -279,25 +290,6 @@ public final class Constants {
       return STATS.stallTorqueNewtonMeters / STATS.stallCurrentAmps * currentLimit;
     }
   }
-
-
-  public static final class PHOTON_LIB {
-    public static final int SCALE = 1; //INCREASE THIS TO MAKE THE SIMULATION EASIER TO SEE ON A LAPTOP
-    public static final int CAM_RESOLUTION_WIDTH = 320; //Pixels 
-    public static final int CAM_RESOLUTION_HEIGHT = 240; //Pixels
-    public static final double MIN_TARGET_AREA = 10; //Square pixels (CHANGE)
-
-    
-    public static final double CAM_PITCH = 0.0; //Degrees (CHANGE)
-    public static final double CAM_HEIGHT_OFF_GROUND = Units.inchesToMeters(10.25); //Meters (CHANGE)
-
-    public static final double FOV_HEIGHT = 59.6; //Degrees
-    public static final double FOV_WIDTH = 49.7; //Degrees
-    public static final double CAM_DIAG_FOV = Math.sqrt(Math.pow(FOV_HEIGHT, 2) + Math.pow(FOV_WIDTH, 2));
-
-    public static final double MAX_LED_RANGE = 20; //Meters (CHANGE)
-  }
-
   public static final class SHOOTER_FEED {
     public static final double GEARING = 1.0;
     public static final double FREE_TORQUE = 0.0; // TODO

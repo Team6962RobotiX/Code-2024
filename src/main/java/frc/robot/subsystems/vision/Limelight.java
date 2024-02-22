@@ -8,8 +8,11 @@ import frc.robot.Robot;
 import frc.robot.Constants.Constants;
 import frc.robot.Constants.Field;
 import frc.robot.subsystems.drive.SwerveDrive;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.NetworkTable;
@@ -182,13 +185,22 @@ public class Limelight extends SubsystemBase {
   /**
    * 
    */
-   public static double getNoteDist(String name){
+  //  public static double getNoteDist(String name, double height) {
+  //   double y = targetVertical(name);
+  //   double x = targetHorizontal(name);
+  //   if (y != 0.0) {
+  //     return ((height - Field.NOTE_THICKNESS / 2.0) / (Math.tan(Math.abs(Units.degreesToRadians(y))) * Math.abs(Math.cos(Units.degreesToRadians(x)))));
+  //   } else {
+  //     return 0;
+  //   }
+  // }
+
+  public static Translation2d getNotePosition(String name, Rotation2d pitch, Pose2d robotPose, Translation2d fieldVelocity, Translation3d cameraToRobot) {
     double y = targetVertical(name);
     double x = targetHorizontal(name);
-    if (y != 0.0) {
-      return ((Constants.PHOTON_LIB.CAM_HEIGHT_OFF_GROUND - Field.NOTE_THICKNESS/2) / (Math.tan(Math.abs(Units.degreesToRadians(y))) * Math.abs(Math.cos(Units.degreesToRadians(x)))));
-    } else {
-      return 0;
-    }
+    double dist = ((cameraToRobot.getZ() - Field.NOTE_THICKNESS / 2.0) / (Math.tan(Math.abs(Units.degreesToRadians(y) + pitch.getRadians())) * Math.abs(Math.cos(Units.degreesToRadians(x)))));
+    Translation2d robotPosition = robotPose.getTranslation().minus(fieldVelocity.times(totalLatency(name) / 1000.0));
+    Translation2d notePosition = robotPosition.plus(cameraToRobot.toTranslation2d().plus(new Translation2d(dist, 0)).rotateBy(robotPose.getRotation()));
+    return notePosition;
   }
 }

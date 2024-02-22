@@ -3,6 +3,7 @@ package frc.robot.subsystems;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Robot;
 import frc.robot.subsystems.amp.Amp;
 import frc.robot.subsystems.drive.SwerveDrive;
 import frc.robot.subsystems.intake.Intake;
@@ -52,24 +53,24 @@ public class RobotStateController extends SubsystemBase {
         return Commands.parallel(
           intake.setState(Intake.State.IN),
           transfer.setState(Transfer.State.IN)
-        ).until(() -> transfer.hasNote());
+        ).until(() -> transfer.hasNote() || Robot.isSimulation());
       case INTAKE_OUT:
         return Commands.parallel(
           intake.setState(Intake.State.OUT),
           transfer.setState(Transfer.State.OUT)
-        ).until(() -> !intake.hasNote());
+        ).until(() -> !intake.hasNote() || Robot.isSimulation());
       case PREPARE_AMP:
         return Commands.sequence(
           amp.setState(Amp.State.DOWN),
           amp.setState(Amp.State.IN).alongWith(
             transfer.setState(Transfer.State.AMP)
-          ).until(() -> !transfer.hasNote()),
+          ).until(() -> !transfer.hasNote() || Robot.isSimulation()),
           amp.setState(Amp.State.UP)
         );
       case PLACE_AMP:
         return Commands.sequence(
           amp.setState(Amp.State.UP),
-          amp.setState(Amp.State.OUT).until(() -> !amp.hasNote())
+          amp.setState(Amp.State.OUT).until(() -> !amp.hasNote() || Robot.isSimulation())
         );
       case LEAVE_AMP:
         return Commands.sequence(
@@ -79,11 +80,9 @@ public class RobotStateController extends SubsystemBase {
         return Commands.parallel(
           shooter.setState(Shooter.State.IN),
           transfer.setState(Transfer.State.SHOOTER)
-        ).until(() -> !transfer.hasNote());
+        ).until(() -> !transfer.hasNote() || Robot.isSimulation());
       case SHOOT_SPEAKER:
-        return Commands.sequence(
-          shooter.setState(Shooter.State.SHOOT)
-        );
+        return shooter.setState(Shooter.State.SHOOT);
       default:
         return Commands.run(() -> {});
     }

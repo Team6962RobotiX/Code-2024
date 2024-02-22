@@ -53,6 +53,7 @@ public class ShooterMath {
 
 
   public static Rotation2d calcPivotAngle(Translation3d targetPoint, Pose2d currentPose, double shooterWheelVelocity) {
+    if (shooterWheelVelocity == 0.0) return new Rotation2d(0.0);
     // vertical distance between release point and target
     double targetHeight = targetPoint.getZ() - SHOOTER_PIVOT.POSITION.getZ();
     double targetDistance = calcShooterLocationOnField(currentPose).toTranslation2d().getDistance(targetPoint.toTranslation2d());
@@ -61,7 +62,7 @@ public class ShooterMath {
     double gravity = 9.80;
 
     try {
-      return Rotation2d.fromRadians(Math.atan((Math.pow(projectileVelocity, 2.0) - Math.sqrt(Math.pow(projectileVelocity, 4.0) - gravity * (gravity * Math.pow(targetDistance, 2.0) + 2.0 * targetHeight * Math.pow(projectileVelocity, 2.0))))/ (gravity * targetDistance)));
+      return Rotation2d.fromRadians(Math.atan((Math.pow(projectileVelocity, 2.0) - Math.sqrt(Math.pow(projectileVelocity, 4.0) - gravity * (gravity * Math.pow(targetDistance, 2.0) + 2.0 * targetHeight * Math.pow(projectileVelocity, 2.0)))) / (gravity * targetDistance)));
     } catch(Exception e) {
       System.out.print("CalvPivotAngle failed. Most likely because the point was too high or velocity was too slow");
       return new Rotation2d(0, 0);
@@ -117,11 +118,11 @@ public class ShooterMath {
    
     double shotChance = (verticalValidShotDegrees * lateralValidShotDegrees) / (veritcalDegreesOfAccuracy * lateralDegreesOfAccuracy);
     
-    if (idealPivotAngle.getDegrees() < Preferences.SHOOTER_PIVOT.MAX_ANGLE.getDegrees() && idealPivotAngle.getDegrees() > Preferences.SHOOTER_PIVOT.MIN_ANGLE.getDegrees() && shotChance == 1.0) {
-      List<Pose2d> possibleShotPositions = SwerveDrive.getField().getObject("possibleShotPositions").getPoses();
-      possibleShotPositions.add(currentPose);
-      SwerveDrive.getField().getObject("possibleShotPositions").setPoses(possibleShotPositions);
-    }
+    // if (idealPivotAngle.getDegrees() < Preferences.SHOOTER_PIVOT.MAX_ANGLE.getDegrees() && idealPivotAngle.getDegrees() > Preferences.SHOOTER_PIVOT.MIN_ANGLE.getDegrees() && shotChance == 1.0) {
+    //   List<Pose2d> possibleShotPositions = SwerveDrive.getField().getObject("possibleShotPositions").getPoses();
+    //   possibleShotPositions.add(currentPose);
+    //   SwerveDrive.getField().getObject("possibleShotPositions").setPoses(possibleShotPositions);
+    // }
 
     return shotChance;
   }
@@ -147,6 +148,8 @@ public class ShooterMath {
 
 
   public static Translation3d calcVelocityCompensatedPoint(Translation3d targetPoint, Pose2d currentPose, Translation2d currentVelocity, double shooterWheelVelocity) {
+    if (shooterWheelVelocity == 0.0) return targetPoint;
+
     double distanceFromSpeaker = calcShooterLocationOnField(currentPose).getDistance(targetPoint);
 
     Translation2d projectileOffset = currentVelocity.times(distanceFromSpeaker / calcProjectileVelocity(shooterWheelVelocity));

@@ -41,9 +41,17 @@ public final class Field {
     point2d(LENGTH / 2.0, WIDTH / 2.0 + Units.inchesToMeters(66) * -1.0),
     point2d(LENGTH / 2.0, WIDTH / 2.0 + Units.inchesToMeters(66) * -2.0)
   };
+  
+  public static final double WING_X = flipIfRed(Units.inchesToMeters(231.2), Constants.IS_BLUE_TEAM);
+  
+  public static final Translation2d[] SHOT_POSITIONS = {
+    point2d(WING_X, 6.50),
+    point2d(WING_X, 1.75)
+  };
 
 
   public static final Translation3d SPEAKER = point3d(0.2, 5.5, 2.05);
+
   public static final double SPEAKER_WIDTH = 1.0;
   public static final double SPEAKER_HEIGHT = 0.5;
   public static final double SPEAKER_ANGLE = Units.degreesToRadians(14.0);
@@ -72,5 +80,9 @@ public final class Field {
 
   public static Pose2d flipIfRed(Pose2d pose, boolean isBlueTeam) {
     return new Pose2d(flipIfRed(pose.getTranslation(), isBlueTeam), isBlueTeam ? pose.getRotation() : Rotation2d.fromDegrees(-(pose.getRotation().getDegrees() + 90) - 90));
+  }
+
+  public static double flipIfRed(double x, boolean isBlueTeam) {
+    return isBlueTeam ? x : LENGTH - x;
   }
 }

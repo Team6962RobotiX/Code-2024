@@ -110,8 +110,13 @@ public class PivotController {
   }
 
   public void setTargetAngle(Rotation2d angle) {
-    if (angle.getRadians() > maxAngle.getRadians() || angle.getRadians() < minAngle.getRadians()) return;
-    targetAngle = angle;
+    if (angle.getRadians() < minAngle.getRadians()) {
+        targetAngle = minAngle;
+    } else if (angle.getRadians() > maxAngle.getRadians()) {
+        targetAngle = maxAngle;
+    } else {
+        targetAngle = angle;
+    }
   }
 
   public Rotation2d getTargetAngle() {

@@ -7,13 +7,16 @@ package frc.robot.subsystems.drive;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.BooleanSupplier;
+import java.util.function.Supplier;
 
 import com.choreo.lib.Choreo;
 import com.choreo.lib.ChoreoTrajectory;
 import com.kauailabs.navx.frc.AHRS;
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import com.pathplanner.lib.path.GoalEndState;
 import com.pathplanner.lib.path.PathPlannerPath;
+import com.pathplanner.lib.pathfinding.Pathfinding;
 import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
 import com.pathplanner.lib.util.PIDConstants;
 import com.pathplanner.lib.util.ReplanningConfig;
@@ -46,6 +49,8 @@ import frc.robot.Constants.Constants.ENABLED_SYSTEMS;
 import frc.robot.Constants.Constants.LIMELIGHT;
 import frc.robot.Constants.Constants.SWERVE_DRIVE;
 import frc.robot.subsystems.vision.AprilTagPose;
+import frc.robot.subsystems.vision.Limelight;
+import frc.robot.util.software.Dashboard.AutonChooser;
 import frc.robot.util.software.Logging.Logger;
 import frc.robot.util.software.Logging.StatusChecks;
 
@@ -73,6 +78,7 @@ public class SwerveDrive extends SubsystemBase {
 
   private boolean isAligning = false;
   private boolean parked = false;
+  private boolean isDriven = false;
 
   SWERVE_DRIVE.MODULE_CONFIG[] equippedModules;
 
@@ -189,6 +195,11 @@ public class SwerveDrive extends SubsystemBase {
 
     // Update robot pose
     field.setRobotPose(getPose());
+
+    if (!isDriven) {
+      driveFieldRelative(0.0, 0.0, 0.0);
+    }
+    isDriven = false;
   }
 
   @Override
@@ -235,6 +246,8 @@ public class SwerveDrive extends SubsystemBase {
   }
 
   private void driveAttainableSpeeds(ChassisSpeeds fieldRelativeSpeeds) {    
+    isDriven = true;
+
     double targetAngularSpeed = Math.abs(toLinear(fieldRelativeSpeeds.omegaRadiansPerSecond));
     double alignmentAngularVelocity = alignmentController.calculate(getHeading().getRadians());
 
@@ -624,17 +637,29 @@ public class SwerveDrive extends SubsystemBase {
     }
   }
 
+
+  public void setRotationTargetOverride(Supplier<Optional<Rotation2d>> heading) {
+    PPHolonomicDriveController.setRotationTargetOverride(heading);
+  }
+
+  public void setRotationTargetOverrideFromPoint(Translation2d point) {
+    if (point != null) {
+      setRotationTargetOverride(() -> Optional.of(point.minus(getPose().getTranslation()).getAngle()));
+    } else {
+      setRotationTargetOverride(() -> Optional.empty());
+    }
+  }
+
   /**
    * Go to a position on the field
    * @param goalPosition Field-relative position on the field to go to
    * @param orientation Field-relative orientation to rotate to
    * @return A command to run
    */
-  public Command goTo(Pose2d pose, BooleanSupplier onlyWhile) {
-    Command pathfindingCommand = goToSimple(pose, onlyWhile);
+  public Command goTo(Pose2d pose) {
+    Command pathfindingCommand = goToSimple(pose);
 
     if (pose.getTranslation().getDistance(getPose().getTranslation()) > 1.0) {
-
       // Since AutoBuilder is configured, we can use it to build pathfinding commands
       pathfindingCommand = AutoBuilder.pathfindToPose(
         pose,
@@ -646,8 +671,9 @@ public class SwerveDrive extends SubsystemBase {
 
     return Commands.sequence(
       pathfindingCommand,
-      goToSimple(pose, onlyWhile)
-    ).onlyWhile(onlyWhile);
+      runOnce(() -> setTargetHeading(pose.getRotation())),
+      goToSimple(pose)
+    );
   }
 
   /**
@@ -656,7 +682,7 @@ public class SwerveDrive extends SubsystemBase {
    * @param xboxController Xbox controller to cancel the command
    * @return A command to run
    */
-  public Command goToSimple(Pose2d pose, BooleanSupplier onlyWhile) {
+  public Command goToSimple(Pose2d pose) {
     Rotation2d angle = pose.getTranslation().minus(getPose().getTranslation()).getAngle();
 
     List<Translation2d> bezierPoints = PathPlannerPath.bezierFromPoses(
@@ -676,8 +702,8 @@ public class SwerveDrive extends SubsystemBase {
 
     return Commands.sequence(
       AutoBuilder.followPath(path),
-      Commands.runOnce(() -> setTargetHeading(pose.getRotation()))
-    ).onlyWhile(onlyWhile);
+      runOnce(() -> setTargetHeading(pose.getRotation()))
+    );
   }
 
   /**
@@ -686,19 +712,11 @@ public class SwerveDrive extends SubsystemBase {
    * @param xboxController Xbox controller to cancel the command
    * @return A command to run
    */
-  public Command goToNearestPose(List<Pose2d> poses, BooleanSupplier onlyWhile) {
-   return goTo(getPose().nearest(poses), onlyWhile).onlyWhile(onlyWhile);
+  public Command goToNearestPose(List<Pose2d> poses) {
+   return goTo(getPose().nearest(poses));
   }
   
   public boolean shouldFlipPaths() {
-    Optional<Alliance> optional = DriverStation.getAlliance();
-
-    if (!optional.isPresent()) {
-      System.out.println("Cannot determine alliance. Defaulting to blue");
-
-      return false;
-    }
-
-    return optional.get().equals(Alliance.Red);
+    return false;
   }
 }

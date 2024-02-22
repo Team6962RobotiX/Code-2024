@@ -39,11 +39,11 @@ public class Amp extends SubsystemBase {
         );
       case DOWN:
         return Commands.parallel( 
-          pivot.setTargetAngle(Preferences.AMP_PIVOT.INTAKE_ANGLE).until(() -> pivot.doneMoving())
+          pivot.setTargetAngleCommand(Preferences.AMP_PIVOT.INTAKE_ANGLE).until(() -> pivot.doneMoving())
         );
       case UP:
         return Commands.parallel(
-          pivot.setTargetAngle(Preferences.AMP_PIVOT.OUTPUT_ANGLE).until(() -> pivot.doneMoving())
+          pivot.setTargetAngleCommand(Preferences.AMP_PIVOT.OUTPUT_ANGLE).until(() -> pivot.doneMoving())
         );
       case OUT:
         return Commands.parallel( 

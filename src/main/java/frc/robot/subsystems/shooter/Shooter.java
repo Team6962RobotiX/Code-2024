@@ -7,9 +7,13 @@ package frc.robot.subsystems.shooter;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.Constants.ENABLED_SYSTEMS;
+import frc.robot.Constants.Constants.SHOOTER_PIVOT;
+import frc.robot.Robot;
 import frc.robot.Constants.Field;
 import frc.robot.Constants.Preferences;
 import frc.robot.subsystems.drive.SwerveDrive;
@@ -45,20 +49,20 @@ public class Shooter extends SubsystemBase {
   public Command setState(State state) {
     switch(state) {
       case IN:
-        return Commands.sequence( 
-          shooterPivot.setTargetAngle(Preferences.SHOOTER_PIVOT.INTAKE_ANGLE).until(() -> shooterPivot.doneMoving()),
+        return Commands.sequence(
+          shooterPivot.setTargetAngleCommand(Preferences.SHOOTER_PIVOT.INTAKE_ANGLE).until(() -> shooterPivot.doneMoving()),
           feedWheels.setState(FeedWheels.State.IN)
         );
       case AIM:
-        return Commands.parallel( 
-          aim(Field.SPEAKER)
+        return Commands.parallel(
+          aim(Field.SPEAKER),
+          shooterWheels.setTargetVelocity(Preferences.SHOOTER_WHEELS.TARGET_SPEED)
         );
       case SHOOT:
-        return Commands.parallel( 
-          setState(State.AIM),
-          shooterWheels.setTargetVelocity(Preferences.SHOOTER_WHEELS.TARGET_SPEED),
-          feedWheels.setState(FeedWheels.State.IN).onlyIf(() -> getShotChance() > 1.0).until(() -> !feedWheels.hasNote())
-        );
+        return setState(State.AIM).until(() -> getShotChance() == 1.0)
+          .andThen(() -> System.out.println("Shooting"))
+          .andThen(feedWheels.setState(FeedWheels.State.IN)
+          .until(() -> !feedWheels.hasNote() || Robot.isSimulation()));
     }
     return null;
   }
@@ -73,7 +77,7 @@ public class Shooter extends SubsystemBase {
 
   public Command aim(Translation3d point) {
     // Calculate point to aim towards, accounting for current velocity
-    return runOnce(() -> {
+    return new RunCommand(() -> {
       Translation3d velocityCompensatedPoint = ShooterMath.calcVelocityCompensatedPoint(
         point,
         swerveDrive.getPose(),
@@ -81,13 +85,13 @@ public class Shooter extends SubsystemBase {
         shooterWheels.getVelocity()
       );
 
+      swerveDrive.facePoint(velocityCompensatedPoint.toTranslation2d());
+      
       shooterPivot.setTargetAngle(ShooterMath.calcPivotAngle(
         velocityCompensatedPoint,
         swerveDrive.getPose(),
         shooterWheels.getVelocity()
       ));
-
-      orientToPointDelayCompensated(velocityCompensatedPoint);
     });
   }
 
@@ -96,6 +100,13 @@ public class Shooter extends SubsystemBase {
   }
 
   public double getShotChance() {
+    System.out.println("Shot Chance " + ShooterMath.calcShotChance(
+      Field.SPEAKER,
+      swerveDrive.getPose(),
+      swerveDrive.getFieldVelocity(),
+      shooterPivot.getPosition(),
+      shooterWheels.getVelocity()
+    ));
     return ShooterMath.calcShotChance(
       Field.SPEAKER,
       swerveDrive.getPose(),
@@ -118,7 +129,8 @@ public class Shooter extends SubsystemBase {
     Rotation2d newTargetHeading = pointToAimTo.toTranslation2d().minus(swerveDrive.getPose().getTranslation()).getAngle();
     headingVelocity = newTargetHeading.minus(targetHeading).getRadians() / 0.02;
     targetHeading = newTargetHeading;
-    // swerveDrive.setTargetHeading(targetHeading.plus(Rotation2d.fromRadians(headingVelocity * PIVOT.ROTATION_DELAY)));
+    System.out.println(targetHeading);
+    swerveDrive.setTargetHeading(targetHeading.plus(Rotation2d.fromRadians(headingVelocity * SHOOTER_PIVOT.ROTATION_DELAY)));
   }
 
   public ShooterPivot getPivot() {

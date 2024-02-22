@@ -24,6 +24,7 @@ import frc.robot.Constants.Constants.AMP_PIVOT;
 import frc.robot.Constants.Constants.CAN;
 import frc.robot.Constants.Constants.DIO;
 import frc.robot.Constants.Constants.ENABLED_SYSTEMS;
+import frc.robot.Robot;
 import frc.robot.Constants.Preferences;
 import frc.robot.util.hardware.SparkMaxUtil;
 import frc.robot.util.hardware.MotionControl.PivotController;
@@ -65,14 +66,20 @@ public class AmpPivot extends SubsystemBase {
   }
 
   public Rotation2d getPosition() {
+    if (Robot.isSimulation() && controller.getTargetAngle() != null) return controller.getTargetAngle();
     return controller.getPosition();
   }
 
-  public Command setTargetAngle(Rotation2d angle) {
-    return runOnce(() -> controller.setTargetAngle(angle));
+  public Command setTargetAngleCommand(Rotation2d angle) {
+    return runOnce(() -> setTargetAngle(angle));
+  }
+
+  public void setTargetAngle(Rotation2d angle) {
+    controller.setTargetAngle(angle);
   }
 
   public boolean doneMoving() {
+    if (controller.getTargetAngle() == null) return true;
     return Math.abs(getPosition().getRadians() - controller.getTargetAngle().getRadians()) < AMP_PIVOT.ANGLE_TOLERANCE.getRadians();
   }
 
