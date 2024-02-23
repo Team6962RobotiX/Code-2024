@@ -20,6 +20,7 @@ import com.pathplanner.lib.path.PathPlannerPath;
 import com.pathplanner.lib.pathfinding.Pathfinding;
 import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
 import com.pathplanner.lib.util.PIDConstants;
+import com.pathplanner.lib.util.PathPlannerLogging;
 import com.pathplanner.lib.util.ReplanningConfig;
 
 import edu.wpi.first.math.VecBuilder;
@@ -152,11 +153,23 @@ public class SwerveDrive extends SubsystemBase {
         new PIDConstants(SWERVE_DRIVE.AUTONOMOUS.   ROTATION_GAINS.kP, SWERVE_DRIVE.AUTONOMOUS.   ROTATION_GAINS.kI, SWERVE_DRIVE.AUTONOMOUS.   ROTATION_GAINS.kD), // Rotation PID constants
         SWERVE_DRIVE.PHYSICS.MAX_LINEAR_VELOCITY, // Max module speed, in m/s
         SWERVE_DRIVE.PHYSICS.DRIVE_RADIUS, // Drive base radius in meters. Distance from robot center to furthest module.
-        new ReplanningConfig() // Default path replanning config. See the API for the options here
+        new ReplanningConfig(true, true) // Default path replanning config. See the API for the options here
       ),
       this::shouldFlipPaths,
       this // Reference to this subsystem to set requirements
     );
+
+    // Logging callback for target robot pose
+    PathPlannerLogging.setLogTargetPoseCallback((pose) -> {
+        // Do whatever you want with the pose here
+        field.getObject("Target Pose").setPose(pose);
+    });
+
+    // Logging callback for the active path, this is sent as a list of poses
+    PathPlannerLogging.setLogActivePathCallback((poses) -> {
+        // Do whatever you want with the poses here
+        field.getObject("Active Path").setPoses(poses);
+    });
   }
 
   @Override
@@ -682,11 +695,7 @@ public class SwerveDrive extends SubsystemBase {
       );
     }
 
-    return Commands.sequence(
-      pathfindingCommand,
-      runOnce(() -> setTargetHeading(pose.getRotation())),
-      goToSimple(pose)
-    );
+    return pathfindingCommand;
   }
 
   /**
