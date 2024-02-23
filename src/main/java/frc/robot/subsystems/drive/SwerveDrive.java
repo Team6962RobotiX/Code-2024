@@ -52,6 +52,7 @@ import frc.robot.Constants.Constants.LIMELIGHT;
 import frc.robot.Constants.Constants.SWERVE_DRIVE;
 import frc.robot.Constants.Field;
 import frc.robot.Constants.Preferences;
+import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.shooter.ShooterMath;
 import frc.robot.subsystems.vision.AprilTagPose;
 import frc.robot.subsystems.vision.Limelight;
@@ -192,7 +193,7 @@ public class SwerveDrive extends SubsystemBase {
     //   ),
     //   new Rotation2d()
     // );
-    // ShooterMath.calcOptimalShotChance(Field.SPEAKER, randomPose, new Translation2d());
+    // System.out.println(ShooterMath.calcPivotAngle(Field.SPEAKER, getPose(), Preferences.SHOOTER_WHEELS.TARGET_SPEED));
 
     // Update current heading based on gyroscope or wheel speeds
     if (gyro.isConnected() && !RobotBase.isSimulation()) {
@@ -357,6 +358,15 @@ public class SwerveDrive extends SubsystemBase {
   public void facePoint(Translation2d point) {
     Translation2d currentPosition = getPose().getTranslation();
     setTargetHeading(point.minus(currentPosition).getAngle());
+  }
+
+  /**
+   * Faces a point on the field
+   * @param point The point on the field we want to face
+   */
+  public void facePointBackwards(Translation2d point) {
+    Translation2d currentPosition = getPose().getTranslation();
+    setTargetHeading(point.minus(currentPosition).getAngle().plus(Rotation2d.fromDegrees(180.0)));
   }
 
 
@@ -676,6 +686,14 @@ public class SwerveDrive extends SubsystemBase {
     }
   }
 
+  public void setRotationTargetOverrideFromPointBackwards(Translation2d point) {
+    if (point != null) {
+      setRotationTargetOverride(() -> Optional.of(point.minus(getPose().getTranslation()).getAngle().plus(Rotation2d.fromDegrees(180.0))));
+    } else {
+      setRotationTargetOverride(() -> Optional.empty());
+    }
+  }
+
   /**
    * Go to a position on the field
    * @param goalPosition Field-relative position on the field to go to
@@ -683,17 +701,23 @@ public class SwerveDrive extends SubsystemBase {
    * @return A command to run
    */
   public Command goTo(Pose2d pose) {
-    Command pathfindingCommand = goToSimple(pose);
+    // Command pathfindingCommand = goToSimple(pose);
 
-    if (pose.getTranslation().getDistance(getPose().getTranslation()) > 1.0) {
-      // Since AutoBuilder is configured, we can use it to build pathfinding commands
-      pathfindingCommand = AutoBuilder.pathfindToPose(
-        pose,
-        SWERVE_DRIVE.AUTONOMOUS.DEFAULT_PATH_CONSTRAINTS,
-        0.0, // Goal end velocity in meters/sec
-        0.0 // Rotation delay distance in meters. This is how far the robot should travel before attempting to rotate.
-      );
-    }
+    // if (pose.getTranslation().getDistance(getPose().getTranslation()) > 1.0) {
+    //   // Since AutoBuilder is configured, we can use it to build pathfinding commands
+    //   pathfindingCommand = AutoBuilder.pathfindToPose(
+    //     pose,
+    //     SWERVE_DRIVE.AUTONOMOUS.DEFAULT_PATH_CONSTRAINTS,
+    //     0.0, // Goal end velocity in meters/sec
+    //     0.0 // Rotation delay distance in meters. This is how far the robot should travel before attempting to rotate.
+    //   );
+    // }
+    Command pathfindingCommand = AutoBuilder.pathfindToPose(
+      pose,
+      SWERVE_DRIVE.AUTONOMOUS.DEFAULT_PATH_CONSTRAINTS,
+      0.0, // Goal end velocity in meters/sec
+      0.0 // Rotation delay distance in meters. This is how far the robot should travel before attempting to rotate.
+    );
 
     return pathfindingCommand;
   }

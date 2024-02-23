@@ -83,10 +83,11 @@ public class Shooter extends SubsystemBase {
         point,
         swerveDrive.getPose(),
         swerveDrive.getFieldVelocity(),
-        shooterWheels.getVelocity()
+        shooterWheels.getVelocity(),
+        shooterPivot.getPosition()
       );
 
-      swerveDrive.facePoint(velocityCompensatedPoint.toTranslation2d());
+      swerveDrive.facePointBackwards(velocityCompensatedPoint.toTranslation2d());
       
       shooterPivot.setTargetAngle(ShooterMath.calcPivotAngle(
         velocityCompensatedPoint,
@@ -131,7 +132,7 @@ public class Shooter extends SubsystemBase {
     headingVelocity = newTargetHeading.minus(targetHeading).getRadians() / 0.02;
     targetHeading = newTargetHeading;
     System.out.println(targetHeading);
-    swerveDrive.setTargetHeading(targetHeading.plus(Rotation2d.fromRadians(headingVelocity * SHOOTER_PIVOT.ROTATION_DELAY)));
+    swerveDrive.setTargetHeading(targetHeading.plus(Rotation2d.fromRadians(headingVelocity * SHOOTER_PIVOT.ROTATION_DELAY)).plus(Rotation2d.fromDegrees(180.0)));
   }
 
   public ShooterPivot getPivot() {

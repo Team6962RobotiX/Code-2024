@@ -18,6 +18,7 @@ import frc.robot.Constants.Field;
 import frc.robot.Constants.Preferences;
 import frc.robot.Constants.Constants.CAN;
 import frc.robot.Constants.Constants.DEVICES;
+import frc.robot.Constants.Constants.SHOOTER_PIVOT;
 import frc.robot.commands.autonomous.AutonCommand;
 import frc.robot.commands.drive.XBoxSwerve;
 import frc.robot.commands.vision.MoveToNote;

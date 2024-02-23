@@ -11,6 +11,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
 import frc.robot.subsystems.drive.SwerveDrive;
+import frc.robot.util.software.Logging.Logger;
 import frc.robot.Constants.Field;
 import frc.robot.Constants.Preferences;
 import frc.robot.Constants.Constants;
@@ -52,34 +53,27 @@ public class ShooterMath {
     return shootingDistance;
 
   }
-  
-
-
+    
   public static Rotation2d calcPivotAngle(Translation3d targetPoint, Pose2d currentPose, double shooterWheelVelocity) {
     if (shooterWheelVelocity == 0.0) return new Rotation2d(0.0);
+    
     Rotation2d pivotAngle = Rotation2d.fromDegrees(0);
+    int iterations = 4;
 
-    for (int i = 0; i < 3; i++) {
-      // vertical distance between release point and target
-      double targetHeight = targetPoint.getZ() - SHOOTER_PIVOT.POSITION.getZ() - (SHOOTER_PIVOT.SHOOTER_LENGTH * Math.sin(pivotAngle.getRadians()));
-      double floorDistance = calcShooterLocationOnField(currentPose).toTranslation2d().getDistance(targetPoint.toTranslation2d()) - (SHOOTER_PIVOT.SHOOTER_LENGTH * Math.cos(pivotAngle.getRadians())) - SHOOTER_PIVOT.POSITION.getX();
-      // in meters per second
+    for (int i = 0; i < iterations; i++) {
+      Translation3d shooterLocation = calcShooterLocationOnField(currentPose, pivotAngle);
+
+      Logger.log("shooterLocation", shooterLocation);
+
+      double targetHeight = targetPoint.getZ() - shooterLocation.getZ();
+      double floorDistance = shooterLocation.toTranslation2d().getDistance(targetPoint.toTranslation2d());
       double projectileVelocity = calcProjectileVelocity(shooterWheelVelocity);
       double gravity = 9.80;
-
       Rotation2d exitAngle = Rotation2d.fromRadians(Math.atan((Math.pow(projectileVelocity, 2.0) - Math.sqrt(Math.pow(projectileVelocity, 4.0) - gravity * (gravity * Math.pow(floorDistance, 2.0) + 2.0 * targetHeight * Math.pow(projectileVelocity, 2.0)))) / (gravity * floorDistance)));
-
       pivotAngle = exitAngle.plus(SHOOTER_PIVOT.NOTE_ROTATION_OFFSET);
     }
 
     return pivotAngle;
-
-    // try {
-    //   return Rotation2d.fromRadians(Math.atan((Math.pow(projectileVelocity, 2.0) - Math.sqrt(Math.pow(projectileVelocity, 4.0) - gravity * (gravity * Math.pow(targetDistance, 2.0) + 2.0 * targetHeight * Math.pow(projectileVelocity, 2.0)))) / (gravity * targetDistance)));
-    // } catch(Exception e) {
-    //   System.out.print("CalvPivotAngle failed. Most likely because the point was too high or velocity was too slow");
-    //   return new Rotation2d(0, 0);
-    // }
   }
 
   /**
@@ -95,8 +89,8 @@ public class ShooterMath {
   }
 
   public static double calcShotChance(Translation3d targetPoint, Pose2d currentPose, Translation2d currentVelocity, Rotation2d measuredPivotAngle, double shooterWheelVelocity) {
-    Translation3d shooterLocation = calcShooterLocationOnField(currentPose);
-    Translation3d aimingPoint = calcVelocityCompensatedPoint(targetPoint, currentPose, currentVelocity, shooterWheelVelocity);
+    Translation3d shooterLocation = calcShooterLocationOnField(currentPose, measuredPivotAngle);
+    Translation3d aimingPoint = calcVelocityCompensatedPoint(targetPoint, currentPose, currentVelocity, shooterWheelVelocity, measuredPivotAngle);
 
     double totalDistance = targetPoint.getDistance(shooterLocation);
     
@@ -118,7 +112,7 @@ public class ShooterMath {
     double veritcalDegreesOfAccuracy = SHOOTER_PIVOT.ANGLE_PRECISION.getDegrees() * 2.0;
     double lateralDegreesOfAccuracy  = 0.5 * 2.0;
     
-    Rotation2d idealHeading = aimingPoint.toTranslation2d().minus(currentPose.getTranslation()).getAngle();
+    Rotation2d idealHeading = aimingPoint.toTranslation2d().minus(currentPose.getTranslation()).getAngle().plus(Rotation2d.fromDegrees(180.0));
     Rotation2d idealPivotAngle = calcPivotAngle(aimingPoint, currentPose, shooterWheelVelocity);
 
     double verticalErrorDegrees = Math.abs(idealPivotAngle.minus(measuredPivotAngle).getDegrees());
@@ -141,29 +135,35 @@ public class ShooterMath {
   }
 
   // Assuming we're already lined up with the target, what's the chance we'll hit it?
-  public static double calcOptimalShotChance(Translation3d targetPoint, Pose2d currentPose, Translation2d currentVelocity) {
-    double shooterWheelVelocity = Preferences.SHOOTER_WHEELS.TARGET_SPEED;
-    Translation3d aimingPoint = calcVelocityCompensatedPoint(targetPoint, currentPose, currentVelocity, shooterWheelVelocity);
+  // public static double calcOptimalShotChance(Translation3d targetPoint, Pose2d currentPose, Translation2d currentVelocity) {
+  //   double shooterWheelVelocity = Preferences.SHOOTER_WHEELS.TARGET_SPEED;
+  //   Translation3d aimingPoint = calcVelocityCompensatedPoint(targetPoint, currentPose, currentVelocity, shooterWheelVelocity, pivotAngle);
 
-    currentPose = new Pose2d(
-      currentPose.getTranslation(),
-      aimingPoint.toTranslation2d().minus(currentPose.getTranslation()).getAngle()
-    );
+  //   currentPose = new Pose2d(
+  //     currentPose.getTranslation(),
+  //     aimingPoint.toTranslation2d().minus(currentPose.getTranslation()).getAngle()
+  //   );
 
-    return ShooterMath.calcShotChance(targetPoint, currentPose, currentVelocity, ShooterMath.calcPivotAngle(aimingPoint, currentPose, shooterWheelVelocity), shooterWheelVelocity);
-  }
+  //   return ShooterMath.calcShotChance(targetPoint, currentPose, currentVelocity, ShooterMath.calcPivotAngle(aimingPoint, currentPose, shooterWheelVelocity), shooterWheelVelocity);
+  // }
   
-  public static Translation3d calcShooterLocationOnField(Pose2d currentPose) {
+  public static Translation3d calcShooterLocationOnField(Pose2d currentPose, Rotation2d pivotAngle) {
     Translation2d swerveDrivePosition = currentPose.getTranslation();
-    Translation3d shooterPositionRotated = SHOOTER_PIVOT.POSITION.rotateBy(new Rotation3d(0.0, 0.0, currentPose.getRotation().getRadians()));
+    Translation3d shooterPosition = SHOOTER_PIVOT.POSITION;
+    shooterPosition = shooterPosition.plus(new Translation3d(
+      -SHOOTER_PIVOT.SHOOTER_LENGTH * Math.cos(pivotAngle.getRadians()),
+      0.0,
+      SHOOTER_PIVOT.SHOOTER_LENGTH * Math.sin(pivotAngle.getRadians())
+    ));
+    Translation3d shooterPositionRotated = shooterPosition.rotateBy(new Rotation3d(0.0, 0.0, currentPose.getRotation().getRadians()));
     return new Translation3d(shooterPositionRotated.getX() + swerveDrivePosition.getX(), shooterPositionRotated.getY() + swerveDrivePosition.getY(), shooterPositionRotated.getZ());
   }
 
 
-  public static Translation3d calcVelocityCompensatedPoint(Translation3d targetPoint, Pose2d currentPose, Translation2d currentVelocity, double shooterWheelVelocity) {
+  public static Translation3d calcVelocityCompensatedPoint(Translation3d targetPoint, Pose2d currentPose, Translation2d currentVelocity, double shooterWheelVelocity, Rotation2d pivotAngle) {
     if (shooterWheelVelocity == 0.0) return targetPoint;
 
-    double distanceFromSpeaker = calcShooterLocationOnField(currentPose).getDistance(targetPoint);
+    double distanceFromSpeaker = calcShooterLocationOnField(currentPose, pivotAngle).getDistance(targetPoint);
 
     Translation2d projectileOffset = currentVelocity.times(distanceFromSpeaker / calcProjectileVelocity(shooterWheelVelocity));
     

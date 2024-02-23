@@ -84,7 +84,22 @@ public class AutonCommand extends Command {
   }
 
   public Translation2d getClosestShootingPoint() {
-    return swerveDrive.getPose().getTranslation().nearest(List.of(Field.SHOT_POSITIONS));
+    if (notesToGet.isEmpty()) {
+      return swerveDrive.getPose().getTranslation().nearest(List.of(Field.SHOT_POSITIONS));
+    }
+
+    Translation2d closestPoint = Field.SHOT_POSITIONS[0];
+    double bestWeight = Double.MAX_VALUE;
+    for (Translation2d position : Field.SHOT_POSITIONS) {
+      double weight = swerveDrive.getPose().getTranslation().getDistance(position) + 
+        position.getDistance(Field.NOTE_POSITIONS[getNextClosestNote()]) + 
+        position.getDistance(Field.SPEAKER.toTranslation2d());
+      if (weight < bestWeight) {
+        bestWeight = weight;
+        closestPoint = position;
+      }
+    }
+    return closestPoint;
   }
 
   public Command pickupClosestNote() {
@@ -113,17 +128,20 @@ public class AutonCommand extends Command {
         .andThen(() -> System.out.println("SHOOTING"));
     }
     Translation2d shotPosition = getClosestShootingPoint();
-    Rotation2d heading = Field.SPEAKER.toTranslation2d().minus(shotPosition).getAngle();
+    Rotation2d heading = Field.SPEAKER.toTranslation2d().minus(shotPosition).getAngle().plus(Rotation2d.fromDegrees(180.0));
     return Commands.runOnce(() -> System.out.println("MOVING TO SHOOTING POSITION"))
-      .andThen(() -> swerveDrive.setRotationTargetOverrideFromPoint(Field.SPEAKER.toTranslation2d()))
+      .andThen(() -> swerveDrive.setRotationTargetOverrideFromPointBackwards(Field.SPEAKER.toTranslation2d()))
       .andThen(swerveDrive.goTo(new Pose2d(shotPosition, heading)).alongWith(controller.setState(RobotStateController.State.PREPARE_SPEAKER)))
       .andThen(() -> System.out.println("SHOOTING"))
       .andThen(controller.setState(RobotStateController.State.SHOOT_SPEAKER))
-      .andThen(() -> swerveDrive.setRotationTargetOverrideFromPoint(null));
+      .andThen(() -> swerveDrive.setRotationTargetOverrideFromPointBackwards(null));
   }
 
   public boolean hasPickedUpNote(int note) {
-    return Field.NOTE_POSITIONS[note].getDistance(swerveDrive.getPose().getTranslation()) < Constants.SWERVE_DRIVE.BUMPER_LENGTH;
+    Translation2d futurePosition = swerveDrive.getPose().getTranslation();
+    futurePosition = futurePosition.plus(swerveDrive.getFieldVelocity().times(swerveDrive.getFieldVelocity().getNorm()).div(2.0 * Constants.SWERVE_DRIVE.PHYSICS.MAX_LINEAR_ACCELERATION));
+    SwerveDrive.getField().getObject("futurePosition").setPoses(List.of(new Pose2d(futurePosition, new Rotation2d())));
+    return Field.NOTE_POSITIONS[note].getDistance(futurePosition) < Constants.SWERVE_DRIVE.BUMPER_LENGTH;
   }
 
   public Command pickupAndShootAll() {
@@ -173,6 +191,8 @@ public class AutonCommand extends Command {
       }
     }
     visibleNotes.setPoses(poses);
+
+    System.out.println(notesToGet);
   }
 
   // Called once the command ends or is interrupted.
