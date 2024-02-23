@@ -4,6 +4,7 @@
 
 package frc.robot.subsystems.drive;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.BooleanSupplier;
@@ -48,6 +49,9 @@ import frc.robot.Constants.Constants;
 import frc.robot.Constants.Constants.ENABLED_SYSTEMS;
 import frc.robot.Constants.Constants.LIMELIGHT;
 import frc.robot.Constants.Constants.SWERVE_DRIVE;
+import frc.robot.Constants.Field;
+import frc.robot.Constants.Preferences;
+import frc.robot.subsystems.shooter.ShooterMath;
 import frc.robot.subsystems.vision.AprilTagPose;
 import frc.robot.subsystems.vision.Limelight;
 import frc.robot.util.software.Dashboard.AutonChooser;
@@ -158,6 +162,15 @@ public class SwerveDrive extends SubsystemBase {
   @Override
   public void periodic() {
     if (!ENABLED_SYSTEMS.ENABLE_DRIVE) return;
+
+    // FieldObject2d relativePositions = SwerveDrive.getField().getObject("visibleNotes");
+    // List<Pose2d> poses = new ArrayList<>();
+    // for (Integer note1 : List.of(0, 1, 2, 3, 4, 5, 6, 7)) {
+    //   Translation2d position = Field.NOTE_POSITIONS[note1];
+    //   Translation2d relativePosition = position.minus(getPose().getTranslation()).rotateBy(getPose().getRotation().unaryMinus());
+    //   poses.add(new Pose2d(relativePosition, new Rotation2d()));
+    // }
+    // relativePositions.setPoses(poses);
 
     // Pose2d randomPose = new Pose2d(
     //   new Translation2d(

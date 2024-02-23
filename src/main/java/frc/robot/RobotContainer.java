@@ -15,6 +15,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.Constants.Constants;
 import frc.robot.Constants.Field;
+import frc.robot.Constants.Preferences;
 import frc.robot.Constants.Constants.CAN;
 import frc.robot.Constants.Constants.DEVICES;
 import frc.robot.commands.autonomous.AutonCommand;
@@ -24,8 +25,8 @@ import frc.robot.subsystems.RobotStateController;
 import frc.robot.subsystems.RobotStateController.State;
 import frc.robot.subsystems.amp.Amp;
 import frc.robot.subsystems.drive.SwerveDrive;
-import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.shooter.Shooter;
+import frc.robot.subsystems.shooter.ShooterMath;
 import frc.robot.subsystems.transfer.Transfer;
 import frc.robot.util.software.Dashboard.AutonChooser;
 import frc.robot.util.software.Logging.Logger;
@@ -47,7 +48,6 @@ public class RobotContainer {
   private final SwerveDrive swerveDrive;
   
   private final Shooter shooter;
-  private final Intake intake;
   private final Transfer transfer;
   private final Amp amp;
 
@@ -65,10 +65,9 @@ public class RobotContainer {
 
     swerveDrive = new SwerveDrive();
     shooter = new Shooter(swerveDrive);
-    intake = new Intake();
     transfer = new Transfer();
     amp = new Amp();
-    stateController = new RobotStateController(amp, swerveDrive, intake, shooter, transfer);
+    stateController = new RobotStateController(amp, swerveDrive, shooter, transfer);
 
     swerveDrive.setDefaultCommand(new XBoxSwerve(swerveDrive, driveController.getHID()));
 

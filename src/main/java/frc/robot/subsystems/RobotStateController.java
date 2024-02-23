@@ -6,7 +6,6 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Robot;
 import frc.robot.subsystems.amp.Amp;
 import frc.robot.subsystems.drive.SwerveDrive;
-import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.transfer.Transfer;
 
@@ -15,7 +14,6 @@ import frc.robot.subsystems.transfer.Transfer;
 public class RobotStateController extends SubsystemBase {
   private SwerveDrive swerveDrive;
   private Amp amp;
-  private Intake intake;
   private Shooter shooter;
   private Transfer transfer;
 
@@ -33,10 +31,9 @@ public class RobotStateController extends SubsystemBase {
     SHOOT_TRAP
   }
 
-  public RobotStateController(Amp amp, SwerveDrive swerveDrive, Intake intake, Shooter shooter, Transfer transfer) {
+  public RobotStateController(Amp amp, SwerveDrive swerveDrive, Shooter shooter, Transfer transfer) {
     this.swerveDrive = swerveDrive;
     this.amp = amp;
-    this.intake = intake;
     this.shooter = shooter;
     this.transfer = transfer;
   }
@@ -51,14 +48,12 @@ public class RobotStateController extends SubsystemBase {
     switch(state) {
       case INTAKE:
         return Commands.parallel(
-          intake.setState(Intake.State.IN),
           transfer.setState(Transfer.State.IN)
         ).until(() -> transfer.hasNote() || Robot.isSimulation());
       case INTAKE_OUT:
         return Commands.parallel(
-          intake.setState(Intake.State.OUT),
           transfer.setState(Transfer.State.OUT)
-        ).until(() -> !intake.hasNote() || Robot.isSimulation());
+        ).until(() -> !transfer.hasNote() || Robot.isSimulation());
       case PREPARE_AMP:
         return Commands.sequence(
           amp.setState(Amp.State.DOWN),

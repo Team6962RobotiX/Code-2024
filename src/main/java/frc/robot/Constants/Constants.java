@@ -60,10 +60,10 @@ public final class Constants {
 
     public static final Rotation2d NOTE_CAMERA_PITCH = Rotation2d.fromDegrees(-25.0);
     // x is forward, y is left, z is up
-    public static final Translation3d NOTE_CAMERA_POSITION = new Translation3d(0.0, 0.0, Units.inchesToMeters(10.25));
+    public static final Translation3d NOTE_CAMERA_POSITION = new Translation3d(Units.inchesToMeters(17.25), 0.0, Units.inchesToMeters(7.75));
 
-    public static final double FOV_HEIGHT = 62.5; // Degrees
-    public static final double FOV_WIDTH = 48.9; // Degrees
+    public static final Rotation2d FOV_HEIGHT = Rotation2d.fromDegrees(62.5); // Degrees
+    public static final Rotation2d FOV_WIDTH = Rotation2d.fromDegrees(48.9); // Degrees
 
   }
 
@@ -253,12 +253,10 @@ public final class Constants {
     public static final int PDH = 1;
     public static final int SHOOTER_WHEELS_TOP = 19;
     public static final int SHOOTER_WHEELS_BOTTOM = 26;
-    public static final int SHOOTER_PIVOT = 18;
+    public static final int SHOOTER_PIVOT = 18; // DONE
     public static final int SHOOTER_FEED = 20;
-    public static final int INTAKE = 23;
-    public static final int CENTERING = 27;
-    public static final int TRANSFER_IN = 22;
-    public static final int TRANSFER_OUT = 25;
+    public static final int TRANSFER_OUT = 25; // DONE
+    public static final int TRANSFER_IN = 23; // REMOVE
     public static final int AMP_PIVOT = 24;
     public static final int AMP_WHEELS = 17;
   }
@@ -318,13 +316,15 @@ public final class Constants {
   }
 
   public static final class SHOOTER_PIVOT {
-    public static final double GEARING = 400.0;
+    public static final double GEARING = 25.0 * (78.0 / 20.0) * (110.0 / 18.0);
     public static final double ROTATION_DELAY = 0.3; // seconds
     public static final Rotation2d ANGLE_TOLERANCE = Rotation2d.fromDegrees(0.5);
     public static final Rotation2d ANGLE_PRECISION = Rotation2d.fromDegrees(0.5);
     public static final Rotation2d HEADING_PRECISION = Rotation2d.fromDegrees(0.5);
-    public static final Translation3d POSITION = new Translation3d(0.0, 0.0, Units.inchesToMeters(12.0));
+    public static final Translation3d POSITION = new Translation3d(Units.inchesToMeters(3.33), 0.0, Units.inchesToMeters(10.33 + 1.67));
     public static final double ABSOLUTE_POSITION_OFFSET = -0.325;
+    public static final Rotation2d NOTE_ROTATION_OFFSET = Rotation2d.fromDegrees(6.35);
+    public static final double SHOOTER_LENGTH = Units.inchesToMeters(15.5);
 
     public static final class PROFILE {
       public static final double kP = 15.0;
@@ -350,12 +350,6 @@ public final class Constants {
 
   public static final class TRANSFER {
     public static final double GEARING = 72.0 / 20.0;
-    public static final double FREE_TORQUE = 0.3; // TODO
-    public static final double RADIUS = Units.inchesToMeters(1.0);
-  }
-
-  public static final class INTAKE_ROLLERS {
-    public static final double GEARING = 1.0;
     public static final double FREE_TORQUE = 0.3; // TODO
     public static final double RADIUS = Units.inchesToMeters(1.0);
   }

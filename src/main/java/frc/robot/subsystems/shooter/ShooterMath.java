@@ -1,5 +1,7 @@
 package frc.robot.subsystems.shooter;
 
+import static edu.wpi.first.units.Units.Rotation;
+
 import java.util.List;
 
 import edu.wpi.first.math.geometry.Pose2d;
@@ -11,6 +13,7 @@ import edu.wpi.first.math.util.Units;
 import frc.robot.subsystems.drive.SwerveDrive;
 import frc.robot.Constants.Field;
 import frc.robot.Constants.Preferences;
+import frc.robot.Constants.Constants;
 import frc.robot.Constants.Constants.SHOOTER_PIVOT;
 import frc.robot.Constants.Constants.SHOOTER_WHEELS;
 
@@ -54,19 +57,29 @@ public class ShooterMath {
 
   public static Rotation2d calcPivotAngle(Translation3d targetPoint, Pose2d currentPose, double shooterWheelVelocity) {
     if (shooterWheelVelocity == 0.0) return new Rotation2d(0.0);
-    // vertical distance between release point and target
-    double targetHeight = targetPoint.getZ() - SHOOTER_PIVOT.POSITION.getZ();
-    double targetDistance = calcShooterLocationOnField(currentPose).toTranslation2d().getDistance(targetPoint.toTranslation2d());
-    // in meters per second
-    double projectileVelocity = calcProjectileVelocity(shooterWheelVelocity);
-    double gravity = 9.80;
+    Rotation2d pivotAngle = Rotation2d.fromDegrees(0);
 
-    try {
-      return Rotation2d.fromRadians(Math.atan((Math.pow(projectileVelocity, 2.0) - Math.sqrt(Math.pow(projectileVelocity, 4.0) - gravity * (gravity * Math.pow(targetDistance, 2.0) + 2.0 * targetHeight * Math.pow(projectileVelocity, 2.0)))) / (gravity * targetDistance)));
-    } catch(Exception e) {
-      System.out.print("CalvPivotAngle failed. Most likely because the point was too high or velocity was too slow");
-      return new Rotation2d(0, 0);
+    for (int i = 0; i < 3; i++) {
+      // vertical distance between release point and target
+      double targetHeight = targetPoint.getZ() - SHOOTER_PIVOT.POSITION.getZ() - (SHOOTER_PIVOT.SHOOTER_LENGTH * Math.sin(pivotAngle.getRadians()));
+      double floorDistance = calcShooterLocationOnField(currentPose).toTranslation2d().getDistance(targetPoint.toTranslation2d()) - (SHOOTER_PIVOT.SHOOTER_LENGTH * Math.cos(pivotAngle.getRadians())) - SHOOTER_PIVOT.POSITION.getX();
+      // in meters per second
+      double projectileVelocity = calcProjectileVelocity(shooterWheelVelocity);
+      double gravity = 9.80;
+
+      Rotation2d exitAngle = Rotation2d.fromRadians(Math.atan((Math.pow(projectileVelocity, 2.0) - Math.sqrt(Math.pow(projectileVelocity, 4.0) - gravity * (gravity * Math.pow(floorDistance, 2.0) + 2.0 * targetHeight * Math.pow(projectileVelocity, 2.0)))) / (gravity * floorDistance)));
+
+      pivotAngle = exitAngle.plus(SHOOTER_PIVOT.NOTE_ROTATION_OFFSET);
     }
+
+    return pivotAngle;
+
+    // try {
+    //   return Rotation2d.fromRadians(Math.atan((Math.pow(projectileVelocity, 2.0) - Math.sqrt(Math.pow(projectileVelocity, 4.0) - gravity * (gravity * Math.pow(targetDistance, 2.0) + 2.0 * targetHeight * Math.pow(projectileVelocity, 2.0)))) / (gravity * targetDistance)));
+    // } catch(Exception e) {
+    //   System.out.print("CalvPivotAngle failed. Most likely because the point was too high or velocity was too slow");
+    //   return new Rotation2d(0, 0);
+    // }
   }
 
   /**

@@ -52,11 +52,6 @@ public final class Preferences {
     public static final Rotation2d INTAKE_ANGLE = Rotation2d.fromDegrees(-45.0);
   }
 
-  public static final class INTAKE {
-    public static final double CENTERING_WHEEL_POWER = 0.2;
-    public static final double INTAKE_ROLLER_POWER = 0.3;
-  }
-
   public static final class TRANSFER {
     public static final double IN_POWER = 0.1;
     public static final double OUT_POWER = 0.1;

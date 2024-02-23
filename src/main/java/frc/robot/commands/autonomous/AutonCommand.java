@@ -14,6 +14,7 @@ import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.wpilibj.smartdashboard.FieldObject2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.Constants.Constants;
@@ -122,7 +123,7 @@ public class AutonCommand extends Command {
   }
 
   public boolean hasPickedUpNote(int note) {
-    return Field.NOTE_POSITIONS[note].getDistance(swerveDrive.getPose().getTranslation()) < Field.NOTE_LENGTH / 2.0 + Constants.SWERVE_DRIVE.BUMPER_LENGTH;
+    return Field.NOTE_POSITIONS[note].getDistance(swerveDrive.getPose().getTranslation()) < Constants.SWERVE_DRIVE.BUMPER_LENGTH;
   }
 
   public Command pickupAndShootAll() {
@@ -134,11 +135,44 @@ public class AutonCommand extends Command {
       return pickupClosestNote().andThen(() -> moveAndShoot().andThen(() -> pickupAndShootAll().schedule()).schedule());
     }
   }
-  
+
+  public boolean shouldSeeNote(int note) {
+    Translation2d position = Field.NOTE_POSITIONS[note];
+    Translation2d relativePosition = position.minus(swerveDrive.getPose().getTranslation()).rotateBy(swerveDrive.getPose().getRotation().unaryMinus());
+    relativePosition = relativePosition.minus(Constants.LIMELIGHT.NOTE_CAMERA_POSITION.toTranslation2d());
+    
+    if (relativePosition.getX() < 0) {
+      return false;
+    }
+
+    Rotation2d lateralAngle = Rotation2d.fromRadians(Math.atan(relativePosition.getY() / relativePosition.getX()));
+    Rotation2d verticalAngle = Rotation2d.fromRadians(Math.atan(Constants.LIMELIGHT.NOTE_CAMERA_POSITION.getZ() / relativePosition.getX()));
+    verticalAngle = verticalAngle.plus(Constants.LIMELIGHT.NOTE_CAMERA_PITCH);
+
+    System.out.println(lateralAngle);
+
+    if (verticalAngle.getDegrees() < -(Constants.LIMELIGHT.FOV_HEIGHT.getDegrees() / 2.0) || verticalAngle.getDegrees() > (Constants.LIMELIGHT.FOV_HEIGHT.getDegrees() / 2.0)) {
+      return false;
+    }
+
+    if (lateralAngle.getDegrees() < -(Constants.LIMELIGHT.FOV_WIDTH.getDegrees() / 2.0) || lateralAngle.getDegrees() > (Constants.LIMELIGHT.FOV_WIDTH.getDegrees() / 2.0)) {
+      return false;
+    }
+
+    return true;
+  }
+
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    
+    FieldObject2d visibleNotes = SwerveDrive.getField().getObject("visibleNotes");
+    List<Pose2d> poses = new ArrayList<>();
+    for (Integer note : List.of(0, 1, 2, 3, 4, 5, 6, 7)) {
+      if (shouldSeeNote(note)) {
+        poses.add(new Pose2d(Field.NOTE_POSITIONS[note], new Rotation2d()));
+      }
+    }
+    visibleNotes.setPoses(poses);
   }
 
   // Called once the command ends or is interrupted.
