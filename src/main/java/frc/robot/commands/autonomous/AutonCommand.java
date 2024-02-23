@@ -93,7 +93,7 @@ public class AutonCommand extends Command {
     for (Translation2d position : Field.SHOT_POSITIONS) {
       double weight = swerveDrive.getPose().getTranslation().getDistance(position) + 
         position.getDistance(Field.NOTE_POSITIONS[getNextClosestNote()]) + 
-        position.getDistance(Field.SPEAKER.toTranslation2d());
+        position.getDistance(Field.SPEAKER.toTranslation2d()) * 1.2;
       if (weight < bestWeight) {
         bestWeight = weight;
         closestPoint = position;
@@ -107,16 +107,25 @@ public class AutonCommand extends Command {
     Integer closestNote = getNextClosestNote();
     Translation2d notePosition = Field.NOTE_POSITIONS[closestNote];
     Rotation2d heading = notePosition.minus(swerveDrive.getPose().getTranslation()).getAngle();
-
+    
     return Commands.runOnce(() -> System.out.println("PICKING UP NOTE"))
       .andThen(() -> notesThatExist.remove(closestNote))
       .andThen(() -> addDynamicObstacles())
-      .andThen(() -> swerveDrive.setRotationTargetOverrideFromPoint(notePosition))
-      .andThen(swerveDrive.goTo(new Pose2d(notePosition, heading)).until(() -> hasPickedUpNote(closestNote)))
-      .andThen(() -> System.out.println("INTAKE"))
-      .andThen(controller.setState(RobotStateController.State.INTAKE))
-      .andThen(() -> System.out.println("REMOVING NOTE"))
+      .andThen(pickupNote(notePosition))
       .andThen(() -> notesToGet.remove(closestNote))
+      .andThen(() -> swerveDrive.setRotationTargetOverrideFromPoint(null));
+  }
+
+  public Command pickupNote(Translation2d notePosition) {
+    Rotation2d heading = notePosition.minus(swerveDrive.getPose().getTranslation()).getAngle();
+    Translation2d pathfindPosition = Field.SPEAKER.toTranslation2d().minus(notePosition);
+    pathfindPosition = pathfindPosition.div(pathfindPosition.getNorm()).times(Constants.SWERVE_DRIVE.BUMPER_LENGTH / 2.0);
+    pathfindPosition = pathfindPosition.plus(notePosition);
+
+    return Commands.runOnce(() -> System.out.println("PICKING UP NOTE"))
+      .andThen(() -> swerveDrive.setRotationTargetOverrideFromPoint(notePosition))
+      .andThen(swerveDrive.goTo(new Pose2d(pathfindPosition, heading)))
+      .andThen(controller.setState(RobotStateController.State.INTAKE))
       .andThen(() -> swerveDrive.setRotationTargetOverrideFromPoint(null));
   }
 
@@ -137,11 +146,11 @@ public class AutonCommand extends Command {
       .andThen(() -> swerveDrive.setRotationTargetOverrideFromPointBackwards(null));
   }
 
-  public boolean hasPickedUpNote(int note) {
+  public boolean hasPickedUpNote(Translation2d notePosition) {
     Translation2d futurePosition = swerveDrive.getPose().getTranslation();
     futurePosition = futurePosition.plus(swerveDrive.getFieldVelocity().times(swerveDrive.getFieldVelocity().getNorm()).div(2.0 * Constants.SWERVE_DRIVE.PHYSICS.MAX_LINEAR_ACCELERATION));
     SwerveDrive.getField().getObject("futurePosition").setPoses(List.of(new Pose2d(futurePosition, new Rotation2d())));
-    return Field.NOTE_POSITIONS[note].getDistance(futurePosition) < Constants.SWERVE_DRIVE.BUMPER_LENGTH;
+    return notePosition.getDistance(futurePosition) < Constants.SWERVE_DRIVE.BUMPER_LENGTH / 2.0;
   }
 
   public Command pickupAndShootAll() {
@@ -192,7 +201,9 @@ public class AutonCommand extends Command {
     }
     visibleNotes.setPoses(poses);
 
-    System.out.println(notesToGet);
+    Translation2d futurePosition = swerveDrive.getPose().getTranslation();
+    futurePosition = futurePosition.plus(swerveDrive.getFieldVelocity().times(swerveDrive.getFieldVelocity().getNorm()).div(2.0 * Constants.SWERVE_DRIVE.PHYSICS.MAX_LINEAR_ACCELERATION));
+    SwerveDrive.getField().getObject("futurePosition").setPoses(List.of(new Pose2d(futurePosition, swerveDrive.getPose().getRotation())));
   }
 
   // Called once the command ends or is interrupted.

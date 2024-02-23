@@ -84,6 +84,7 @@ public class ShooterMath {
   public static double calcProjectileVelocity(double shooterWheelVelocity) {
     // Derived from https://www.reca.lc/shooterWheel
     double shooterWheelSurfaceSpeed = shooterWheelVelocity * SHOOTER_WHEELS.WHEEL_RADIUS;
+
     double speedTransferPercentage = (SHOOTER_WHEELS.TOTAL_MOI * 20.0) / (SHOOTER_WHEELS.PROJECTILE_MASS * SHOOTER_WHEELS.WHEEL_RADIUS * 2.0 * SHOOTER_WHEELS.WHEEL_RADIUS * 2.0 * 7.0 + SHOOTER_WHEELS.TOTAL_MOI * 40.0);
     return shooterWheelSurfaceSpeed * speedTransferPercentage;
   }
@@ -94,14 +95,27 @@ public class ShooterMath {
 
     double totalDistance = targetPoint.getDistance(shooterLocation);
     
-    Translation3d speakerOffset = new Translation3d(
-      Math.acos(Field.SPEAKER_ANGLE) * (Field.SPEAKER_HEIGHT - Field.NOTE_THICKNESS) / 2.0,
-      0.0,
-      Math.asin(Field.SPEAKER_ANGLE) * (Field.SPEAKER_HEIGHT - Field.NOTE_THICKNESS) / 2.0
-    );
+    Translation3d speakerOffset = new Translation3d();
+
+    if (Constants.IS_BLUE_TEAM) {
+      speakerOffset = new Translation3d(
+        Math.cos(Field.SPEAKER_ANGLE) * (Field.SPEAKER_HEIGHT - Field.NOTE_THICKNESS) / 2.0,
+        0.0,
+        Math.sin(Field.SPEAKER_ANGLE) * (Field.SPEAKER_HEIGHT - Field.NOTE_THICKNESS) / 2.0
+      );
+    } else {
+      speakerOffset = new Translation3d(
+        -Math.cos(-Field.SPEAKER_ANGLE) * (Field.SPEAKER_HEIGHT - Field.NOTE_THICKNESS) / 2.0,
+        0.0,
+        -Math.sin(-Field.SPEAKER_ANGLE) * (Field.SPEAKER_HEIGHT - Field.NOTE_THICKNESS) / 2.0
+      );
+    }
 
     Translation3d minAimingPoint = aimingPoint.minus(speakerOffset);
     Translation3d maxAimingPoint = aimingPoint.plus(speakerOffset);
+
+    Logger.log("minAimingPoint", minAimingPoint);
+    Logger.log("maxAimingPoint", maxAimingPoint);
 
     Rotation2d minPivotAngle = calcPivotAngle(minAimingPoint, currentPose, shooterWheelVelocity);
     Rotation2d maxPivotAngle = calcPivotAngle(maxAimingPoint, currentPose, shooterWheelVelocity);
@@ -117,7 +131,7 @@ public class ShooterMath {
 
     double verticalErrorDegrees = Math.abs(idealPivotAngle.minus(measuredPivotAngle).getDegrees());
     double lateralErrorDegrees = Math.abs(idealHeading.minus(currentPose.getRotation()).getDegrees());
-
+    
     double verticalValidShotDegrees = Math.min((speakerVerticalDegreesOfView / 2.0 + veritcalDegreesOfAccuracy / 2.0) - verticalErrorDegrees, Math.min(speakerVerticalDegreesOfView, veritcalDegreesOfAccuracy));
     double lateralValidShotDegrees = Math.min((speakerLateralDegreesOfView / 2.0 + lateralDegreesOfAccuracy / 2.0) - lateralErrorDegrees, Math.min(speakerLateralDegreesOfView, lateralDegreesOfAccuracy));
     verticalValidShotDegrees = Math.max(0, verticalValidShotDegrees);
@@ -160,12 +174,23 @@ public class ShooterMath {
   }
 
 
+  public static double calculateFlightTime(Translation3d targetPoint, Pose2d currentPose, double shooterWheelVelocity, Rotation2d pivotAngle) {
+    // (v * sin(a) - sqrt(v^2 * sin(a)^2 - 2 * g * h)) / g
+    double targetHeight = targetPoint.getZ() - calcShooterLocationOnField(currentPose, pivotAngle).getZ();
+    double projectileVelocity = calcProjectileVelocity(shooterWheelVelocity);
+    double gravity = 9.80;
+    Rotation2d exitAngle = pivotAngle.minus(SHOOTER_PIVOT.NOTE_ROTATION_OFFSET);
+    return (projectileVelocity * Math.sin(exitAngle.getRadians()) - Math.sqrt(Math.pow(projectileVelocity * Math.sin(exitAngle.getRadians()), 2.0) - 2.0 * gravity * targetHeight)) / gravity;
+  }
+
   public static Translation3d calcVelocityCompensatedPoint(Translation3d targetPoint, Pose2d currentPose, Translation2d currentVelocity, double shooterWheelVelocity, Rotation2d pivotAngle) {
     if (shooterWheelVelocity == 0.0) return targetPoint;
+    
+    double flightTime = calculateFlightTime(targetPoint, currentPose, shooterWheelVelocity, pivotAngle);
 
-    double distanceFromSpeaker = calcShooterLocationOnField(currentPose, pivotAngle).getDistance(targetPoint);
+    if (Double.isNaN(flightTime)) return targetPoint;
 
-    Translation2d projectileOffset = currentVelocity.times(distanceFromSpeaker / calcProjectileVelocity(shooterWheelVelocity));
+    Translation2d projectileOffset = currentVelocity.times(flightTime);
     
     return new Translation3d(
       targetPoint.getX() - projectileOffset.getX(),

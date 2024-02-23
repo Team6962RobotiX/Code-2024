@@ -195,6 +195,9 @@ public class SwerveDrive extends SubsystemBase {
     // );
     // System.out.println(ShooterMath.calcPivotAngle(Field.SPEAKER, getPose(), Preferences.SHOOTER_WHEELS.TARGET_SPEED));
 
+
+    // Rotation2d pivotAngle = ShooterMath.calcPivotAngle(Field.SPEAKER, getPose(), Preferences.SHOOTER_WHEELS.TARGET_SPEED);
+    // System.out.println(ShooterMath.calculateFlightTime(Field.SPEAKER, getPose(), Preferences.SHOOTER_WHEELS.TARGET_SPEED, pivotAngle));
     // Update current heading based on gyroscope or wheel speeds
     if (gyro.isConnected() && !RobotBase.isSimulation()) {
       gyroHeading = gyro.getRotation2d();

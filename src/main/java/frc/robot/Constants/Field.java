@@ -42,19 +42,20 @@ public final class Field {
     point2d(LENGTH / 2.0, WIDTH / 2.0 + Units.inchesToMeters(66) * -2.0)
   };
   
-  public static final double WING_X = flipIfRed(Units.inchesToMeters(231.2), Constants.IS_BLUE_TEAM);
-  
+  public static final double BLUE_WING_X = Units.inchesToMeters(231.2);
+  public static final double WING_X = flipIfRed(BLUE_WING_X, Constants.IS_BLUE_TEAM);
+
   public static final Translation2d[] SHOT_POSITIONS = {
-    point2d(WING_X, 6.50),
-    point2d(WING_X, 1.75),
+    point2d(BLUE_WING_X, 6.50),
+    point2d(BLUE_WING_X, 1.75),
     point2d(4.5, 5.0)
   };
 
 
-  public static final Translation3d SPEAKER = point3d(0.2, 5.5, 2.05);
+  public static final Translation3d SPEAKER = point3d(0.23, WIDTH / 2.0 + Units.inchesToMeters(57) * 1.0, 2.055);
 
   public static final double SPEAKER_WIDTH = 1.0;
-  public static final double SPEAKER_HEIGHT = 0.5;
+  public static final double SPEAKER_HEIGHT = 0.45;
   public static final double SPEAKER_ANGLE = Units.degreesToRadians(14.0);
   public static final double NOTE_THICKNESS = Units.inchesToMeters(1.0);
   public static final double NOTE_LENGTH    = Units.inchesToMeters(14.0);

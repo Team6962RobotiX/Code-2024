@@ -25,7 +25,7 @@ import frc.robot.Robot;
  */
 public final class Constants {
 
-  public static final boolean IS_BLUE_TEAM = !(DriverStation.getAlliance().isPresent() && DriverStation.getAlliance().get() == DriverStation.Alliance.Red);
+  public static final boolean IS_BLUE_TEAM = true;// !(DriverStation.getAlliance().isPresent() && DriverStation.getAlliance().get() == DriverStation.Alliance.Red);
 
   // ENABLED SYSTEMS
   public static final class ENABLED_SYSTEMS {
@@ -302,6 +302,7 @@ public final class Constants {
     public static final double PROJECTILE_MASS = Units.lbsToKilograms(0.5);
 
     // x is front-to-back
+    
     // y is left-to-right
     // z is top-to-bottom
     

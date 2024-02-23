@@ -89,6 +89,26 @@
           "width": 0.4000000059604645
         },
         "bottom": 1476,
+        "futurePosition": {
+          "arrowColor": [
+            0.0,
+            0.47058820724487305,
+            1.0,
+            255.0
+          ],
+          "arrowSize": 0,
+          "arrowWeight": 3.0,
+          "arrows": false,
+          "color": [
+            0.0,
+            0.4411764144897461,
+            1.0,
+            255.0
+          ],
+          "length": 0.8759999871253967,
+          "weight": 3.0,
+          "width": 0.8759999871253967
+        },
         "height": 8.210550308227539,
         "left": 150,
         "possibleShotPositions": {
