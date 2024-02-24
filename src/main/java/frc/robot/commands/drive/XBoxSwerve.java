@@ -10,6 +10,7 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.Constants.Constants;
 import frc.robot.Constants.Preferences;
 import frc.robot.subsystems.drive.SwerveDrive;
 import frc.robot.subsystems.drive.SwerveModule;
@@ -80,6 +81,9 @@ public class XBoxSwerve extends Command {
     // Zero heading when Y is pressed
     if (controller.getYButton()) {
       Rotation2d newHeading = new Rotation2d();
+      if (!Constants.IS_BLUE_TEAM) {
+        newHeading = Rotation2d.fromDegrees(180.0);
+      }
       swerveDrive.resetGyroHeading(newHeading);
     }
 

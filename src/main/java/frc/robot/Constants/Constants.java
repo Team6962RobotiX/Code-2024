@@ -58,12 +58,12 @@ public final class Constants {
     public static final String[] APRILTAG_CAMERA_NAMES = {"limelight_apriltags_1", "limelight_apriltags_2"};
     public static final String NOTE_CAMERA_NAME = "limelight_notes";
 
-    public static final Rotation2d NOTE_CAMERA_PITCH = Rotation2d.fromDegrees(-25.0);
+    public static final Rotation2d NOTE_CAMERA_PITCH = Rotation2d.fromDegrees(-24.0);
     // x is forward, y is left, z is up
     public static final Translation3d NOTE_CAMERA_POSITION = new Translation3d(Units.inchesToMeters(17.25), 0.0, Units.inchesToMeters(7.75));
 
-    public static final Rotation2d FOV_HEIGHT = Rotation2d.fromDegrees(62.5); // Degrees
-    public static final Rotation2d FOV_WIDTH = Rotation2d.fromDegrees(48.9); // Degrees
+    public static final Rotation2d FOV_HEIGHT = Rotation2d.fromDegrees(48.9); // Degrees
+    public static final Rotation2d FOV_WIDTH = Rotation2d.fromDegrees(62.5); // Degrees
 
   }
 
@@ -120,7 +120,7 @@ public final class Constants {
     public static class PHYSICS {
       public static final double ROTATIONAL_INERTIA                 = (1.0 / 12.0) * ROBOT_MASS * (Math.pow(BUMPER_WIDTH, 2.0) + Math.pow(BUMPER_LENGTH, 2.0));
       public static final double SLIPLESS_ACCELERATION              = 9.80 * FRICTION_COEFFICIENT;
-      public static final int    SLIPLESS_CURRENT_LIMIT             = (int) ((SLIPLESS_ACCELERATION * NEO.STATS.stallCurrentAmps * ROBOT_MASS * WHEEL_RADIUS) / (4.0 * DRIVE_MOTOR_GEARING * NEO.STATS.stallTorqueNewtonMeters));
+      public static final int    SLIPLESS_CURRENT_LIMIT             = Math.min((int) ((SLIPLESS_ACCELERATION * NEO.STATS.stallCurrentAmps * ROBOT_MASS * WHEEL_RADIUS) / (4.0 * DRIVE_MOTOR_GEARING * NEO.STATS.stallTorqueNewtonMeters)), NEO.SAFE_STALL_CURRENT);
       
       public static final double MAX_MOTOR_SPEED                    = NEO.RPM * GEARBOX_EFFICIENCY;
       public static final double MAX_MOTOR_TORQUE                   = NEO.maxTorqueCurrentLimited(SLIPLESS_CURRENT_LIMIT);
@@ -140,12 +140,12 @@ public final class Constants {
     // Used only for when we have errors in the path (aka only when wheels slip or we're bumped off course)
     public static final class AUTONOMOUS {
       public static final class TRANSLATION_GAINS {
-        public static final double kP = 2.0;
+        public static final double kP = 1.0;
         public static final double kI = 0.0;
         public static final double kD = 0.0;
       }
       public static final class ROTATION_GAINS {
-        public static final double kP = 1.0;
+        public static final double kP = 3.0;
         public static final double kI = 0.0;
         public static final double kD = 0.0;
       }
@@ -195,7 +195,7 @@ public final class Constants {
 
     // TELEOPERATED
     public static final class ABSOLUTE_ROTATION_GAINS {
-      public static final double kP = 4.0;
+      public static final double kP = 3.0;
       public static final double kI = 0.0;
       public static final double kD = 0.0;
       public static final Rotation2d TOLERANCE = Rotation2d.fromDegrees(0.5);
@@ -300,6 +300,8 @@ public final class Constants {
     public static final double WHEEL_MOI = 0.00018540712;
     public static final double TOTAL_MOI = WHEEL_MOI * 12.0;
     public static final double PROJECTILE_MASS = Units.lbsToKilograms(0.5);
+    public static final double COMPRESSION = Units.inchesToMeters(0.5);
+    public static final double SPEED_PRECISION = Units.rotationsPerMinuteToRadiansPerSecond(10);
 
     // x is front-to-back
     
@@ -322,11 +324,11 @@ public final class Constants {
     public static final Rotation2d ANGLE_TOLERANCE = Rotation2d.fromDegrees(0.5);
     public static final Rotation2d ANGLE_PRECISION = Rotation2d.fromDegrees(0.5);
     public static final Rotation2d HEADING_PRECISION = Rotation2d.fromDegrees(0.5);
-    public static final Translation3d POSITION = new Translation3d(Units.inchesToMeters(3.33), 0.0, Units.inchesToMeters(10.33 + 1.67));
+    public static final Translation3d POSITION = new Translation3d(Units.inchesToMeters(3.33), 0.0, Units.inchesToMeters(12.1));
     public static final double ABSOLUTE_POSITION_OFFSET = -0.325;
-    public static final Rotation2d NOTE_ROTATION_OFFSET = Rotation2d.fromDegrees(6.35);
-    public static final double SHOOTER_LENGTH = Units.inchesToMeters(15.5);
-
+    public static final Rotation2d NOTE_ROTATION_OFFSET = Rotation2d.fromDegrees(3.1480961);
+    public static final double SHOOTER_LENGTH = Units.inchesToMeters(15.023);
+    
     public static final class PROFILE {
       public static final double kP = 15.0;
       public static final double MAX_ACCELERATION = 10.0; // rad/s^2

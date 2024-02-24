@@ -36,7 +36,6 @@ public class AmpPivot extends SubsystemBase {
 
   public AmpPivot() {
     motor = new CANSparkMax(CAN.AMP_PIVOT, MotorType.kBrushless);
-
     SparkMaxUtil.configureAndLog(this, motor, true, IdleMode.kBrake);
 
     controller = new PivotController(

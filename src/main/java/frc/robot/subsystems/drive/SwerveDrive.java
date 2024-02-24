@@ -173,6 +173,8 @@ public class SwerveDrive extends SubsystemBase {
     });
   }
 
+  List<Pose2d> shotPoses = new ArrayList<>();
+
   @Override
   public void periodic() {
     if (!ENABLED_SYSTEMS.ENABLE_DRIVE) return;
@@ -186,6 +188,7 @@ public class SwerveDrive extends SubsystemBase {
     // }
     // relativePositions.setPoses(poses);
 
+
     // Pose2d randomPose = new Pose2d(
     //   new Translation2d(
     //     Field.LENGTH * Math.random(),
@@ -193,11 +196,18 @@ public class SwerveDrive extends SubsystemBase {
     //   ),
     //   new Rotation2d()
     // );
+
+    // randomPose = new Pose2d(randomPose.getTranslation(), randomPose.getTranslation().minus(Field.SPEAKER.toTranslation2d()).getAngle());
+
+    // boolean inRange = ShooterMath.inRange(Field.SPEAKER, randomPose, Preferences.SHOOTER_WHEELS.TARGET_SPEED);
+    // if (inRange) {
+    //   shotPoses.add(randomPose);
+    // }
+    // FieldObject2d shotSpots = SwerveDrive.getField().getObject("shotSpots");
+    // shotSpots.setPoses(shotPoses);
+
     // System.out.println(ShooterMath.calcPivotAngle(Field.SPEAKER, getPose(), Preferences.SHOOTER_WHEELS.TARGET_SPEED));
 
-
-    // Rotation2d pivotAngle = ShooterMath.calcPivotAngle(Field.SPEAKER, getPose(), Preferences.SHOOTER_WHEELS.TARGET_SPEED);
-    // System.out.println(ShooterMath.calculateFlightTime(Field.SPEAKER, getPose(), Preferences.SHOOTER_WHEELS.TARGET_SPEED, pivotAngle));
     // Update current heading based on gyroscope or wheel speeds
     if (gyro.isConnected() && !RobotBase.isSimulation()) {
       gyroHeading = gyro.getRotation2d();

@@ -53,6 +53,11 @@ public class ShooterMath {
     return shootingDistance;
 
   }
+
+  public static boolean inRange(Translation3d targetPoint, Pose2d currentPose, double shooterWheelVelocity) {
+    Rotation2d pivotAngle = calcPivotAngle(targetPoint, currentPose, shooterWheelVelocity);
+    return pivotAngle.getRadians() != 0 && pivotAngle.getRadians() > Preferences.SHOOTER_PIVOT.MIN_ANGLE.getRadians() && pivotAngle.getRadians() < Preferences.SHOOTER_PIVOT.MAX_ANGLE.getRadians();
+  }
     
   public static Rotation2d calcPivotAngle(Translation3d targetPoint, Pose2d currentPose, double shooterWheelVelocity) {
     if (shooterWheelVelocity == 0.0) return new Rotation2d(0.0);
@@ -69,7 +74,12 @@ public class ShooterMath {
       double floorDistance = shooterLocation.toTranslation2d().getDistance(targetPoint.toTranslation2d());
       double projectileVelocity = calcProjectileVelocity(shooterWheelVelocity);
       double gravity = 9.80;
-      Rotation2d exitAngle = Rotation2d.fromRadians(Math.atan((Math.pow(projectileVelocity, 2.0) - Math.sqrt(Math.pow(projectileVelocity, 4.0) - gravity * (gravity * Math.pow(floorDistance, 2.0) + 2.0 * targetHeight * Math.pow(projectileVelocity, 2.0)))) / (gravity * floorDistance)));
+      double exitRadians = Math.atan((Math.pow(projectileVelocity, 2.0) - Math.sqrt(Math.pow(projectileVelocity, 4.0) - gravity * (gravity * Math.pow(floorDistance, 2.0) + 2.0 * targetHeight * Math.pow(projectileVelocity, 2.0)))) / (gravity * floorDistance));
+      double distanceAtApex = projectileVelocity * Math.cos(exitRadians) * (projectileVelocity * (Math.sin(exitRadians) / gravity));
+      if (Double.isNaN(exitRadians) || distanceAtApex < floorDistance) {
+        return Rotation2d.fromDegrees(0.0);
+      }
+      Rotation2d exitAngle = Rotation2d.fromRadians(exitRadians);
       pivotAngle = exitAngle.plus(SHOOTER_PIVOT.NOTE_ROTATION_OFFSET);
     }
 
@@ -83,10 +93,13 @@ public class ShooterMath {
    */
   public static double calcProjectileVelocity(double shooterWheelVelocity) {
     // Derived from https://www.reca.lc/shooterWheel
-    double shooterWheelSurfaceSpeed = shooterWheelVelocity * SHOOTER_WHEELS.WHEEL_RADIUS;
+    return 13.0;
 
-    double speedTransferPercentage = (SHOOTER_WHEELS.TOTAL_MOI * 20.0) / (SHOOTER_WHEELS.PROJECTILE_MASS * SHOOTER_WHEELS.WHEEL_RADIUS * 2.0 * SHOOTER_WHEELS.WHEEL_RADIUS * 2.0 * 7.0 + SHOOTER_WHEELS.TOTAL_MOI * 40.0);
-    return shooterWheelSurfaceSpeed * speedTransferPercentage;
+    // return (shooterWheelVelocity * (SHOOTER_WHEELS.WHEEL_RADIUS + (Field.NOTE_THICKNESS - SHOOTER_WHEELS.COMPRESSION) / 2.0)) / 4.0;
+    // double shooterWheelSurfaceSpeed = shooterWheelVelocity * SHOOTER_WHEELS.WHEEL_RADIUS;
+
+    // double speedTransferPercentage = (SHOOTER_WHEELS.TOTAL_MOI * 20.0) / (SHOOTER_WHEELS.PROJECTILE_MASS * SHOOTER_WHEELS.WHEEL_RADIUS * 2.0 * SHOOTER_WHEELS.WHEEL_RADIUS * 2.0 * 7.0 + SHOOTER_WHEELS.TOTAL_MOI * 40.0);
+    // return shooterWheelSurfaceSpeed * speedTransferPercentage;
   }
 
   public static double calcShotChance(Translation3d targetPoint, Pose2d currentPose, Translation2d currentVelocity, Rotation2d measuredPivotAngle, double shooterWheelVelocity) {
@@ -123,21 +136,24 @@ public class ShooterMath {
     double speakerVerticalDegreesOfView = maxPivotAngle.minus(minPivotAngle).getDegrees();
     double speakerLateralDegreesOfView = Units.radiansToDegrees(2.0 * Math.atan((Field.SPEAKER_WIDTH - Field.NOTE_LENGTH) / 2.0 / totalDistance));
     
-    double veritcalDegreesOfAccuracy = SHOOTER_PIVOT.ANGLE_PRECISION.getDegrees() * 2.0;
-    double lateralDegreesOfAccuracy  = 0.5 * 2.0;
+    double velocityErrorDegrees = Math.abs(calcPivotAngle(aimingPoint, currentPose, shooterWheelVelocity + SHOOTER_WHEELS.SPEED_PRECISION).minus(calcPivotAngle(aimingPoint, currentPose, shooterWheelVelocity - SHOOTER_WHEELS.SPEED_PRECISION)).getDegrees());
+    
+    double verticalDegreesOfAccuracy = SHOOTER_PIVOT.ANGLE_PRECISION.getDegrees() * 2.0 + velocityErrorDegrees;
+    double lateralDegreesOfAccuracy  = SHOOTER_PIVOT.HEADING_PRECISION.getDegrees() * 2.0;
     
     Rotation2d idealHeading = aimingPoint.toTranslation2d().minus(currentPose.getTranslation()).getAngle().plus(Rotation2d.fromDegrees(180.0));
-    Rotation2d idealPivotAngle = calcPivotAngle(aimingPoint, currentPose, shooterWheelVelocity);
 
+    Rotation2d idealPivotAngle = calcPivotAngle(aimingPoint, currentPose, shooterWheelVelocity);
+    
     double verticalErrorDegrees = Math.abs(idealPivotAngle.minus(measuredPivotAngle).getDegrees());
     double lateralErrorDegrees = Math.abs(idealHeading.minus(currentPose.getRotation()).getDegrees());
     
-    double verticalValidShotDegrees = Math.min((speakerVerticalDegreesOfView / 2.0 + veritcalDegreesOfAccuracy / 2.0) - verticalErrorDegrees, Math.min(speakerVerticalDegreesOfView, veritcalDegreesOfAccuracy));
+    double verticalValidShotDegrees = Math.min((speakerVerticalDegreesOfView / 2.0 + verticalDegreesOfAccuracy / 2.0) - verticalErrorDegrees, Math.min(speakerVerticalDegreesOfView, verticalDegreesOfAccuracy));
     double lateralValidShotDegrees = Math.min((speakerLateralDegreesOfView / 2.0 + lateralDegreesOfAccuracy / 2.0) - lateralErrorDegrees, Math.min(speakerLateralDegreesOfView, lateralDegreesOfAccuracy));
     verticalValidShotDegrees = Math.max(0, verticalValidShotDegrees);
     lateralValidShotDegrees = Math.max(0, lateralValidShotDegrees);
    
-    double shotChance = (verticalValidShotDegrees * lateralValidShotDegrees) / (veritcalDegreesOfAccuracy * lateralDegreesOfAccuracy);
+    double shotChance = (verticalValidShotDegrees * lateralValidShotDegrees) / (verticalDegreesOfAccuracy * lateralDegreesOfAccuracy);
     
     // if (idealPivotAngle.getDegrees() < Preferences.SHOOTER_PIVOT.MAX_ANGLE.getDegrees() && idealPivotAngle.getDegrees() > Preferences.SHOOTER_PIVOT.MIN_ANGLE.getDegrees() && shotChance == 1.0) {
     //   List<Pose2d> possibleShotPositions = SwerveDrive.getField().getObject("possibleShotPositions").getPoses();
@@ -149,17 +165,17 @@ public class ShooterMath {
   }
 
   // Assuming we're already lined up with the target, what's the chance we'll hit it?
-  // public static double calcOptimalShotChance(Translation3d targetPoint, Pose2d currentPose, Translation2d currentVelocity) {
-  //   double shooterWheelVelocity = Preferences.SHOOTER_WHEELS.TARGET_SPEED;
-  //   Translation3d aimingPoint = calcVelocityCompensatedPoint(targetPoint, currentPose, currentVelocity, shooterWheelVelocity, pivotAngle);
+  public static double calcOptimalShotChance(Translation3d targetPoint, Pose2d currentPose) {
+    double shooterWheelVelocity = Preferences.SHOOTER_WHEELS.TARGET_SPEED;
+    Translation3d aimingPoint = Field.SPEAKER;
+    
+    currentPose = new Pose2d(
+      currentPose.getTranslation(),
+      aimingPoint.toTranslation2d().minus(currentPose.getTranslation()).getAngle().plus(Rotation2d.fromDegrees(180.0))
+    );
 
-  //   currentPose = new Pose2d(
-  //     currentPose.getTranslation(),
-  //     aimingPoint.toTranslation2d().minus(currentPose.getTranslation()).getAngle()
-  //   );
-
-  //   return ShooterMath.calcShotChance(targetPoint, currentPose, currentVelocity, ShooterMath.calcPivotAngle(aimingPoint, currentPose, shooterWheelVelocity), shooterWheelVelocity);
-  // }
+    return ShooterMath.calcShotChance(targetPoint, currentPose, new Translation2d(), ShooterMath.calcPivotAngle(aimingPoint, currentPose, shooterWheelVelocity), shooterWheelVelocity);
+  }
   
   public static Translation3d calcShooterLocationOnField(Pose2d currentPose, Rotation2d pivotAngle) {
     Translation2d swerveDrivePosition = currentPose.getTranslation();

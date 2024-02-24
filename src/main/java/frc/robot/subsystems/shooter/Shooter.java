@@ -62,8 +62,7 @@ public class Shooter extends SubsystemBase {
       case SHOOT:
         return setState(State.AIM).until(() -> getShotChance() == 1.0)
           .andThen(() -> System.out.println("Shooting"))
-          .andThen(feedWheels.setState(FeedWheels.State.IN)
-          .until(() -> !feedWheels.hasNote() || Robot.isSimulation()));
+          .andThen(feedWheels.setState(FeedWheels.State.IN).until(() -> !feedWheels.hasNote() || Robot.isSimulation()));
     }
     return null;
   }
@@ -102,13 +101,6 @@ public class Shooter extends SubsystemBase {
   }
 
   public double getShotChance() {
-    System.out.println("Shot Chance " + ShooterMath.calcShotChance(
-      Field.SPEAKER,
-      swerveDrive.getPose(),
-      swerveDrive.getFieldVelocity(),
-      shooterPivot.getPosition(),
-      shooterWheels.getVelocity()
-    ));
     return ShooterMath.calcShotChance(
       Field.SPEAKER,
       swerveDrive.getPose(),
@@ -131,7 +123,6 @@ public class Shooter extends SubsystemBase {
     Rotation2d newTargetHeading = pointToAimTo.toTranslation2d().minus(swerveDrive.getPose().getTranslation()).getAngle();
     headingVelocity = newTargetHeading.minus(targetHeading).getRadians() / 0.02;
     targetHeading = newTargetHeading;
-    System.out.println(targetHeading);
     swerveDrive.setTargetHeading(targetHeading.plus(Rotation2d.fromRadians(headingVelocity * SHOOTER_PIVOT.ROTATION_DELAY)).plus(Rotation2d.fromDegrees(180.0)));
   }
 
