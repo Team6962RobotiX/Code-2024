@@ -9,6 +9,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution;
+import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -78,23 +79,13 @@ public class RobotContainer {
   }
   
   private void configureBindings() {
-
-    // operatorController.a().onTrue(shooter.getPivot().setTargetAngle(Rotation2d.fromDegrees(5.0)));
-    // operatorController.b().onTrue(shooter.getPivot().setTargetAngle(Rotation2d.fromDegrees(30.0)));
-
-    operatorController.leftTrigger().whileTrue(stateController.setState(State.INTAKE));
-    operatorController.rightStick().onTrue(stateController.setState(State.PREPARE_SPEAKER));
-    // operatorController.leftBumper().whileTrue(stateController.setState(State.INTAKE));
-    // operatorController.rightBumper().whileTrue(stateController.setState(State.INTAKE_OUT));
-
-    // operatorController.leftTrigger().whileTrue(stateController.setState(State.PICKUP));
-    // operatorController.rightStick().onTrue(stateController.setState(State.LOAD_SHOOTER));
-
-    // operatorController.x().onTrue(stateController.setState(State.SHOOT_SPEAKER));
+    operatorController.rightTrigger().whileTrue(stateController.setState(State.INTAKE));
+    operatorController.x().onTrue(stateController.setState(State.INTAKE_OUT));
     operatorController.leftStick().onTrue(stateController.setState(State.PREPARE_AMP));
-    operatorController.rightTrigger().whileTrue(stateController.setState(State.PLACE_AMP));
-    operatorController.b().onTrue(amp.setState(Amp.State.DOWN));
-    operatorController.a().whileTrue(stateController.setState(State.INTAKE_OUT));
+    operatorController.rightStick().onTrue(stateController.setState(State.PREPARE_SPEAKER));
+    operatorController.leftTrigger().toggleOnTrue(stateController.setState(State.AIM_SPEAKER));
+    operatorController.rightBumper().onTrue(stateController.setState(State.SHOOT_SPEAKER));
+    operatorController.start().onTrue(stateController.setState(State.PLACE_AMP));
 
     driveController.b().whileTrue(new MoveToNote("limelight-notes", swerveDrive, driveController));
   }

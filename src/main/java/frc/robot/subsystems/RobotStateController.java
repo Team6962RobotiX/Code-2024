@@ -24,6 +24,7 @@ public class RobotStateController extends SubsystemBase {
     PLACE_AMP,
     LEAVE_AMP,
     PREPARE_SPEAKER,
+    AIM_SPEAKER,
     SHOOT_SPEAKER,
     PREPARE_SOURCE,
     INTAKE_SOURCE,
@@ -76,6 +77,8 @@ public class RobotStateController extends SubsystemBase {
           shooter.setState(Shooter.State.IN),
           transfer.setState(Transfer.State.SHOOTER)
         ).until(() -> !transfer.hasNote() || Robot.isSimulation());
+      case AIM_SPEAKER:
+        return shooter.setState(Shooter.State.AIM);
       case SHOOT_SPEAKER:
         return shooter.setState(Shooter.State.SHOOT);
       default:
