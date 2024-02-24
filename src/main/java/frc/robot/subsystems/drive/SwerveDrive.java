@@ -54,8 +54,9 @@ import frc.robot.Constants.Field;
 import frc.robot.Constants.Preferences;
 import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.shooter.ShooterMath;
-import frc.robot.subsystems.vision.AprilTagPose;
-import frc.robot.subsystems.vision.Limelight;
+import frc.robot.subsystems.vision.AprilTags;
+import frc.robot.subsystems.vision.Notes;
+import frc.robot.util.software.LimelightHelpers;
 import frc.robot.util.software.Dashboard.AutonChooser;
 import frc.robot.util.software.Logging.Logger;
 import frc.robot.util.software.Logging.StatusChecks;
@@ -179,6 +180,9 @@ public class SwerveDrive extends SubsystemBase {
   public void periodic() {
     if (!ENABLED_SYSTEMS.ENABLE_DRIVE) return;
 
+    List<Translation2d> notePositions = Notes.getNotePositions(LIMELIGHT.NOTE_CAMERA_NAME, LIMELIGHT.NOTE_CAMERA_PITCH, getPose(), getFieldVelocity(), LIMELIGHT.NOTE_CAMERA_POSITION);
+    SwerveDrive.getField().getObject("notes").setPoses(notePositions.stream().map(p -> new Pose2d(p, new Rotation2d())).toList());
+
     // FieldObject2d relativePositions = SwerveDrive.getField().getObject("visibleNotes");
     // List<Pose2d> poses = new ArrayList<>();
     // for (Integer note1 : List.of(0, 1, 2, 3, 4, 5, 6, 7)) {
@@ -217,7 +221,8 @@ public class SwerveDrive extends SubsystemBase {
 
     // Update pose based on measured heading and swerve module positions
     poseEstimator.update(gyroHeading.plus(gyroOffset), getModulePositions());
-    AprilTagPose.injectVisionData(LIMELIGHT.APRILTAG_CAMERA_NAMES, this);    
+    AprilTags.injectVisionData(LIMELIGHT.APRILTAG_CAMERA_NAMES, this);
+    
     // Update field
     FieldObject2d modulesObject = field.getObject("Swerve Modules");
 
