@@ -12,7 +12,7 @@ import frc.robot.Constants.Field;
 import frc.robot.util.software.LimelightHelpers;
 import frc.robot.util.software.LimelightHelpers.LimelightTarget_Detector;
 
-public class NoteLocation {
+public class Notes {
   public static List<Translation2d> getNotePositions(String name, Rotation2d pitch, Pose2d robotPose, Translation2d fieldVelocity, Translation3d cameraToRobot) {
     LimelightHelpers.LimelightResults results = LimelightHelpers.getLatestResults(name);
     LimelightTarget_Detector[] targets = results.targetingResults.targets_Detector;
