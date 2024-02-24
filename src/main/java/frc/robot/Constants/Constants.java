@@ -58,9 +58,9 @@ public final class Constants {
     public static final String[] APRILTAG_CAMERA_NAMES = {"limelight_apriltags_1", "limelight_apriltags_2"};
     public static final String NOTE_CAMERA_NAME = "limelight_notes";
 
-    public static final Rotation2d NOTE_CAMERA_PITCH = Rotation2d.fromDegrees(-24.0);
+    public static final Rotation2d NOTE_CAMERA_PITCH = Rotation2d.fromDegrees(0.0);
     // x is forward, y is left, z is up
-    public static final Translation3d NOTE_CAMERA_POSITION = new Translation3d(Units.inchesToMeters(17.25), 0.0, Units.inchesToMeters(7.75));
+    public static final Translation3d NOTE_CAMERA_POSITION = new Translation3d(Units.inchesToMeters(13.5), 0.0, Units.inchesToMeters(4.5));
 
     public static final Rotation2d FOV_HEIGHT = Rotation2d.fromDegrees(48.9); // Degrees
     public static final Rotation2d FOV_WIDTH = Rotation2d.fromDegrees(62.5); // Degrees
