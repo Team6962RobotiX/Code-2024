@@ -24,13 +24,13 @@ import frc.robot.subsystems.RobotStateController;
 import frc.robot.subsystems.drive.SwerveDrive;
 import frc.robot.subsystems.shooter.Shooter;
 
-public class AutonCommand extends Command {
+public class Autonomous extends Command {
   private RobotStateController controller;
   private SwerveDrive swerveDrive;
   private List<Integer> notesToGet = List.of();
   private List<Integer> notesThatExist = List.of();
 
-  public AutonCommand(RobotStateController controller, SwerveDrive swerveDrive, List<Integer> notesToGet) {
+  public Autonomous(RobotStateController controller, SwerveDrive swerveDrive, List<Integer> notesToGet) {
     this.controller = controller;
     this.swerveDrive = swerveDrive;
     this.notesToGet = notesToGet;
@@ -124,7 +124,7 @@ public class AutonCommand extends Command {
 
     return Commands.runOnce(() -> System.out.println("PICKING UP NOTE"))
       .andThen(() -> swerveDrive.setRotationTargetOverrideFromPoint(notePosition))
-      .andThen(swerveDrive.goTo(new Pose2d(pathfindPosition, heading)))
+      .andThen(swerveDrive.goTo(new Pose2d(pathfindPosition, heading)).until(() -> hasPickedUpNote(notePosition)))
       .andThen(controller.setState(RobotStateController.State.INTAKE))
       .andThen(() -> swerveDrive.setRotationTargetOverrideFromPoint(null));
   }

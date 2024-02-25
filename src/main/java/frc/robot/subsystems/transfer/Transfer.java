@@ -23,6 +23,14 @@ public class Transfer extends SubsystemBase {
     transferOut = new TransferOutWheels();
   }
 
+  public TransferInWheels getInWheels() {
+    return transferIn;
+  }
+
+  public TransferOutWheels getOutWheels() {
+    return transferOut;
+  }
+
   public Command setState(State state) {
     switch(state) {
       case IN:

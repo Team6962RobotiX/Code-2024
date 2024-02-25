@@ -71,7 +71,7 @@ public final class Constants {
   public static final class SWERVE_DRIVE {
 
     ///////////////////////// CONFIG /////////////////////////
-    public static final double   INSPECTION_WEIGHT                  = Units.lbsToKilograms(41);
+    public static final double   INSPECTION_WEIGHT                  = Units.lbsToKilograms(100);
     public static final double   BATTERY_WEIGHT                     = Units.lbsToKilograms(12.89);
     public static final double   ROBOT_MASS                         = INSPECTION_WEIGHT + BATTERY_WEIGHT; // kg
     public static final double   FRICTION_COEFFICIENT               = Robot.isSimulation() ? 1.0 : 0.5; // 1.0 when on carpet 0.5 on KLS flooring
@@ -150,7 +150,7 @@ public final class Constants {
         public static final double kD = 0.0;
       }
 
-      public static final double ACCELERATION_REDUCTION = (SWERVE_DRIVE.PHYSICS.MAX_LINEAR_ACCELERATION * SWERVE_DRIVE.ROBOT_MASS + ((SWERVE_DRIVE.PHYSICS.ROTATIONAL_INERTIA * SWERVE_DRIVE.PHYSICS.MAX_ANGULAR_ACCELERATION) / SWERVE_DRIVE.PHYSICS.DRIVE_RADIUS)) / (9.80 * SWERVE_DRIVE.ROBOT_MASS * SWERVE_DRIVE.FRICTION_COEFFICIENT);
+      public static final double ACCELERATION_REDUCTION = 1.0; // (SWERVE_DRIVE.PHYSICS.MAX_LINEAR_ACCELERATION * SWERVE_DRIVE.ROBOT_MASS + ((SWERVE_DRIVE.PHYSICS.ROTATIONAL_INERTIA * SWERVE_DRIVE.PHYSICS.MAX_ANGULAR_ACCELERATION) / SWERVE_DRIVE.PHYSICS.DRIVE_RADIUS)) / (9.80 * SWERVE_DRIVE.ROBOT_MASS * SWERVE_DRIVE.FRICTION_COEFFICIENT);
 
       public static final PathConstraints DEFAULT_PATH_CONSTRAINTS =
         new PathConstraints(
@@ -354,8 +354,9 @@ public final class Constants {
   public static final class TRANSFER {
     public static final double GEARING_IN = (42.0 / 12.0) * (24.0 / 18.0);
     public static final double GEARING_OUT = 58.0 / 12.0;
-    public static final double INTAKE_GEARING = GEARING_IN * (12.0 / 36.0);
+    public static final double INTAKE_GEARING = GEARING_IN * (15.0 / 36.0);
     public static final double FREE_TORQUE = 0.3; // TODO
-    public static final double INTAKE_RADIUS = Units.inchesToMeters(1.0);
+    public static final double INTAKE_RADIUS = Units.inchesToMeters(0.5);
+    public static final double TRANSFER_RADIUS = Units.inchesToMeters(1.0);
   }
 }

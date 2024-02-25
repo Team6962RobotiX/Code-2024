@@ -37,12 +37,10 @@ public final class Preferences {
   public static final class SHOOTER_PIVOT {
     public static final Rotation2d MAX_ANGLE = Rotation2d.fromDegrees(68.0);
     public static final Rotation2d MIN_ANGLE = Rotation2d.fromDegrees(21.6626); // 21.148
-    public static final Rotation2d INTAKE_ANGLE = Rotation2d.fromDegrees(20);
   }
 
   public static final class AMP_WHEELS {
     public static final double POWER = 0.45;
-    public static final double LOAD_TIME = 1.0;
   }
 
   public static final class AMP_PIVOT {
@@ -53,7 +51,7 @@ public final class Preferences {
   }
 
   public static final class TRANSFER {
-    public static final double IN_POWER = 0.1;
-    public static final double OUT_POWER = 0.1;
+    public static final double IN_POWER = 0.5 * ((Constants.SWERVE_DRIVE.PHYSICS.MAX_LINEAR_VELOCITY / Constants.TRANSFER.INTAKE_RADIUS) / (Constants.NEO.STATS.freeSpeedRadPerSec / Constants.TRANSFER.INTAKE_GEARING));
+    public static final double OUT_POWER = IN_POWER * Constants.TRANSFER.GEARING_OUT / Constants.TRANSFER.GEARING_IN;
   }
 }

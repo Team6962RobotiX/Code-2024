@@ -31,6 +31,14 @@ public class Amp extends SubsystemBase {
     if (!ENABLED_SYSTEMS.ENABLE_AMP) return;
   }
 
+  public AmpPivot getPivot() {
+    return pivot;
+  }
+
+  public AmpWheels getWheels() {
+    return wheels;
+  }
+
   public Command setState(State state) {
     switch(state) {
       case IN:

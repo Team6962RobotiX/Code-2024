@@ -41,7 +41,6 @@ public class Shooter extends SubsystemBase {
     this.feedWheels = new FeedWheels();
   }
 
-
   @Override
   public void periodic() {
     if (!ENABLED_SYSTEMS.ENABLE_SHOOTER) return;
@@ -51,7 +50,6 @@ public class Shooter extends SubsystemBase {
     switch(state) {
       case IN:
         return Commands.sequence(
-          shooterPivot.setTargetAngleCommand(Preferences.SHOOTER_PIVOT.INTAKE_ANGLE).until(() -> shooterPivot.doneMoving()),
           feedWheels.setState(FeedWheels.State.IN)
         );
       case AIM:
@@ -67,12 +65,16 @@ public class Shooter extends SubsystemBase {
     return null;
   }
 
-  public ShooterWheels getShooterWheels() {
+  public ShooterWheels getWheels() {
     return shooterWheels;
   }
 
   public FeedWheels getFeedWheels() {
     return feedWheels;
+  }
+
+  public ShooterPivot getShooterPivot() {
+    return shooterPivot;
   }
 
   public Command aim(Translation3d point) {

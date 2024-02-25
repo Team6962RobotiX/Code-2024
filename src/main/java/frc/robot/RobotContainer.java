@@ -20,9 +20,10 @@ import frc.robot.Constants.Preferences;
 import frc.robot.Constants.Constants.CAN;
 import frc.robot.Constants.Constants.DEVICES;
 import frc.robot.Constants.Constants.SHOOTER_PIVOT;
-import frc.robot.commands.autonomous.AutonCommand;
+import frc.robot.commands.autonomous.Autonomous;
 import frc.robot.commands.drive.XBoxSwerve;
 import frc.robot.commands.vision.MoveToNote;
+import frc.robot.subsystems.Controls;
 import frc.robot.subsystems.RobotStateController;
 import frc.robot.subsystems.RobotStateController.State;
 import frc.robot.subsystems.amp.Amp;
@@ -30,6 +31,7 @@ import frc.robot.subsystems.drive.SwerveDrive;
 import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.shooter.ShooterMath;
 import frc.robot.subsystems.transfer.Transfer;
+import frc.robot.subsystems.transfer.TransferInWheels;
 import frc.robot.util.software.Dashboard.AutonChooser;
 import frc.robot.util.software.Logging.Logger;
 
@@ -45,8 +47,6 @@ public class RobotContainer {
   // private final LEDs ledStrip = new LEDs();
 
   // The robot's subsystems and commands
-  private final CommandXboxController operatorController = new CommandXboxController(DEVICES.OPERATOR_XBOX_CONTROLLER);
-  private final CommandXboxController driveController = new CommandXboxController(DEVICES.DRIVE_XBOX_CONTROLLER);
   private final SwerveDrive swerveDrive;
   
   private final Shooter shooter;
@@ -62,7 +62,7 @@ public class RobotContainer {
     Logger.log("constants", this, Constants.class);
     Logger.autoLog("PDH", new PowerDistribution(CAN.PDH, ModuleType.kRev));
     Logger.startLog();
-    AutonChooser.getNotes();
+    AutonChooser.init();
 
     swerveDrive = new SwerveDrive();
     shooter = new Shooter(swerveDrive);
@@ -70,28 +70,14 @@ public class RobotContainer {
     amp = new Amp();
     stateController = new RobotStateController(amp, swerveDrive, shooter, transfer);
 
-    swerveDrive.setDefaultCommand(new XBoxSwerve(swerveDrive, driveController.getHID()));
-
     // Configure the trigger bindings
-    configureBindings();
+    Controls.configureBindings(swerveDrive, transfer, transfer.getInWheels(), transfer.getOutWheels(), shooter, shooter.getWheels(), shooter.getPivot(), shooter.getFeedWheels(), amp, amp.getPivot(), amp.getWheels());
 
     SwerveDrive.printChoreoConfig();
   }
-  
-  private void configureBindings() {
-    operatorController.rightTrigger().whileTrue(stateController.setState(State.INTAKE));
-    operatorController.x().onTrue(stateController.setState(State.INTAKE_OUT));
-    operatorController.leftStick().onTrue(stateController.setState(State.PREPARE_AMP));
-    operatorController.rightStick().onTrue(stateController.setState(State.PREPARE_SPEAKER));
-    operatorController.leftTrigger().toggleOnTrue(stateController.setState(State.AIM_SPEAKER));
-    operatorController.rightBumper().onTrue(stateController.setState(State.SHOOT_SPEAKER));
-    operatorController.start().onTrue(stateController.setState(State.PLACE_AMP));
-
-    driveController.b().whileTrue(new MoveToNote("limelight-notes", swerveDrive, driveController));
-  }
 
   public Command getAutonomousCommand() {
-    return new AutonCommand(stateController, swerveDrive, AutonChooser.getNotes());
+    return new Autonomous(stateController, swerveDrive, AutonChooser.getNotes());
   }
 
   public void disabledPeriodic() {
