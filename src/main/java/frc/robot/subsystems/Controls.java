@@ -33,6 +33,25 @@ public class Controls {
       AmpWheels ampWheels
       ) 
     {
+
+    driver.a();
+    driver.b();
+    driver.x();
+    driver.y(); // USED
+    driver.start();
+    driver.back();
+    driver.leftBumper();
+    driver.rightBumper();
+    driver.leftStick(); // USED
+    driver.rightStick(); // USED
+    operator.povCenter(); // USED
+    driver.povUp(); // USED
+    driver.povDown(); // USED
+    driver.povLeft(); // USED
+    driver.povRight(); // USED
+    driver.leftTrigger(); // USED
+    driver.rightTrigger(); // USED
+    swerveDrive.setDefaultCommand(new XBoxSwerve(swerveDrive, driver.getHID()));
     
     operator.a();
     operator.b();
@@ -44,30 +63,12 @@ public class Controls {
     operator.rightBumper();
     operator.leftStick();
     operator.rightStick();
+    operator.povCenter();
     operator.povUp();
     operator.povDown();
     operator.povLeft();
     operator.povRight();
     operator.leftTrigger();
     operator.rightTrigger();
-
-    driver.a();
-    driver.b();
-    driver.x();
-    driver.y();
-    driver.start();
-    driver.back();
-    driver.leftBumper();
-    driver.rightBumper();
-    driver.leftStick();
-    driver.rightStick();
-    driver.povUp();
-    driver.povDown();
-    driver.povLeft();
-    driver.povRight();
-    driver.leftTrigger();
-    driver.rightTrigger();
-
-    swerveDrive.setDefaultCommand(new XBoxSwerve(swerveDrive, driver.getHID()));
   }
 }
