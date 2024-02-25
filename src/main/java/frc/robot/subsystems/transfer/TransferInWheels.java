@@ -31,7 +31,7 @@ public class TransferInWheels extends SubsystemBase {
     SparkMaxUtil.configureAndLog(this, motor, true, IdleMode.kBrake);
     SparkMaxUtil.save(motor);
 
-    detector = new NoteDetector(motor, Constants.TRANSFER.GEARING, Constants.TRANSFER.FREE_TORQUE, false);
+    detector = new NoteDetector(motor, Constants.TRANSFER.INTAKE_GEARING, Constants.TRANSFER.FREE_TORQUE, false);
   }
 
   public Command setState(State state) {

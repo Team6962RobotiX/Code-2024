@@ -325,7 +325,7 @@ public final class Constants {
     public static final Rotation2d ANGLE_PRECISION = Rotation2d.fromDegrees(0.5);
     public static final Rotation2d HEADING_PRECISION = Rotation2d.fromDegrees(0.5);
     public static final Translation3d POSITION = new Translation3d(Units.inchesToMeters(3.33), 0.0, Units.inchesToMeters(12.1));
-    public static final double ABSOLUTE_POSITION_OFFSET = -0.325;
+    public static final double ABSOLUTE_POSITION_OFFSET = -0.0701738889;
     public static final Rotation2d NOTE_ROTATION_OFFSET = Rotation2d.fromDegrees(3.1480961);
     public static final double SHOOTER_LENGTH = Units.inchesToMeters(15.023);
     
@@ -341,9 +341,9 @@ public final class Constants {
     public static final double RADIUS = Units.inchesToMeters(1.0);
   }
   public static final class AMP_PIVOT {
-    public static final double GEARING = 60.6666;
+    public static final double GEARING = (78.0 / 10.0) * (78.0 / 16.0) * (26.0 / 12.0);
     public static final Rotation2d ANGLE_TOLERANCE = Rotation2d.fromDegrees(10.0);
-    public static final double ABSOLUTE_POSITION_OFFSET = -0.944;
+    public static final double ABSOLUTE_POSITION_OFFSET = -0.814;
 
     public static final class PROFILE {
       public static final double kP = 1.0;
@@ -352,8 +352,10 @@ public final class Constants {
   }
 
   public static final class TRANSFER {
-    public static final double GEARING = 72.0 / 20.0;
+    public static final double GEARING_IN = (42.0 / 12.0) * (24.0 / 18.0);
+    public static final double GEARING_OUT = 58.0 / 12.0;
+    public static final double INTAKE_GEARING = GEARING_IN * (12.0 / 36.0);
     public static final double FREE_TORQUE = 0.3; // TODO
-    public static final double RADIUS = Units.inchesToMeters(1.0);
+    public static final double INTAKE_RADIUS = Units.inchesToMeters(1.0);
   }
 }

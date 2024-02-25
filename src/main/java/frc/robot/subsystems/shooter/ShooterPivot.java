@@ -37,7 +37,7 @@ public class ShooterPivot extends SubsystemBase {
   public ShooterPivot() {    
     motor = new CANSparkMax(CAN.SHOOTER_PIVOT, MotorType.kBrushless);
 
-    SparkMaxUtil.configureAndLog(this, motor, false, IdleMode.kBrake);
+    SparkMaxUtil.configureAndLog(this, motor, false, IdleMode.kCoast); // TODO CHANGE TO BRAKE
     SparkMaxUtil.save(motor);
 
     controller = new PivotController(

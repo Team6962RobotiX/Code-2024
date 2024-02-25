@@ -35,8 +35,8 @@ public final class Preferences {
   }
 
   public static final class SHOOTER_PIVOT {
-    public static final Rotation2d MAX_ANGLE = Rotation2d.fromDegrees(70.0);
-    public static final Rotation2d MIN_ANGLE = Rotation2d.fromDegrees(23); // 21.148
+    public static final Rotation2d MAX_ANGLE = Rotation2d.fromDegrees(68.0);
+    public static final Rotation2d MIN_ANGLE = Rotation2d.fromDegrees(21.6626); // 21.148
     public static final Rotation2d INTAKE_ANGLE = Rotation2d.fromDegrees(20);
   }
 
