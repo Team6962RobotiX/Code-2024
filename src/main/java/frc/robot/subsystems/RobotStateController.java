@@ -60,7 +60,7 @@ public class RobotStateController extends SubsystemBase {
           amp.setState(Amp.State.DOWN),
           amp.setState(Amp.State.IN).alongWith(
             transfer.setState(Transfer.State.AMP)
-          ).until(() -> !transfer.hasNote() || Robot.isSimulation()),
+          ).until(() -> transfer.hasNote() || Robot.isSimulation()),
           amp.setState(Amp.State.UP)
         );
       case PLACE_AMP:

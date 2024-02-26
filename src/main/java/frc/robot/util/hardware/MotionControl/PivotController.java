@@ -1,18 +1,21 @@
 package frc.robot.util.hardware.MotionControl;
 
-import com.revrobotics.CANSparkBase.ControlType;
+import com.revrobotics.CANSparkBase;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkPIDController;
+import com.revrobotics.CANSparkBase.ControlType;
 import com.revrobotics.SparkPIDController.ArbFFUnits;
 
 import edu.wpi.first.math.controller.ArmFeedforward;
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.State;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants.Constants;
 import frc.robot.Constants.Constants.NEO;
 import frc.robot.util.hardware.SparkMaxUtil;
 import frc.robot.util.software.Logging.Logger;
@@ -24,13 +27,14 @@ import frc.robot.util.software.Logging.StatusChecks;
  */
 
 public class PivotController {
-  private Rotation2d targetAngle;
-  State setpointState;
+  private Rotation2d targetAngle = null;
+  // State setpointState;
   // Feedfoward controller, read: https://docs.wpilib.org/en/stable/docs/software/advanced-controls/controllers/feedforward.html
   private ArmFeedforward feedforward;
   // Trapezoidal Profile controller, read: https://docs.wpilib.org/en/stable/docs/software/advanced-controls/controllers/trapezoidal-profiles.html
   private TrapezoidProfile profile;
   // Onboard spark max PID controller. Runs at 1kHz
+  // private SparkPIDController pid;
   private SparkPIDController pid;
   // CAN Spark Max motor controller;
   private CANSparkMax motor;
@@ -45,15 +49,17 @@ public class PivotController {
 
   private boolean reversed;
 
+  private SubsystemBase subsystem;
+
   public PivotController(SubsystemBase subsystem, CANSparkMax motor, int absoluteEncoderDIO, double absolutePositionOffset, double kP, double gearing, double maxAcceleration, Rotation2d minAngle, Rotation2d maxAngle, boolean reversed) {
     this(subsystem, motor, absoluteEncoderDIO, absolutePositionOffset, kP, 0.0, 0.0, 0.0, 0.0, 12.0 / (NEO.STATS.freeSpeedRadPerSec / gearing), 0.0, gearing, NEO.STATS.freeSpeedRadPerSec / gearing, maxAcceleration, minAngle, maxAngle, reversed);
   }
 
   public PivotController(SubsystemBase subsystem, CANSparkMax motor, int absoluteEncoderDIO, double absolutePositionOffset, double kP, double kI, double kD, double kS, double kG, double kV, double kA, double gearing, double maxVelocity, double maxAcceleration, Rotation2d minAngle, Rotation2d maxAngle, boolean reversed) {
-    feedforward = new ArmFeedforward(kS, kG, kV, kA);
-    profile = new TrapezoidProfile(
-      new Constraints(maxVelocity, maxAcceleration)
-    );
+    // feedforward = new ArmFeedforward(kS, kG, kV, kA);
+    // profile = new TrapezoidProfile(
+    //   new Constraints(maxVelocity, maxAcceleration)
+    // );
     pid = motor.getPIDController();
     encoder = motor.getEncoder();
     absoluteEncoder = new DutyCycleEncoder(absoluteEncoderDIO);
@@ -63,14 +69,16 @@ public class PivotController {
     this.maxAngle = maxAngle;
 
     this.reversed = reversed;
+    this.subsystem = subsystem;
     encoderOffset = absolutePositionOffset;
 
     SparkMaxUtil.configureEncoder(motor, 2.0 * Math.PI / gearing);
     SparkMaxUtil.configurePID(subsystem, motor, kP, kI, kD, 0.0, true);
-
+    
+    Logger.autoLog(subsystem, "targetPosition",                   () -> getTargetAngle().getRadians());
     Logger.autoLog(subsystem, "absolutePosition",                 () -> getAbsolutePosition().getRadians());
     Logger.autoLog(subsystem, "rawAbsolutePosition",              () -> absoluteEncoder.getAbsolutePosition());
-    
+
     StatusChecks.addCheck(subsystem, "absoluteEncoderConnected", () -> absoluteEncoder.isConnected());
     StatusChecks.addCheck(subsystem, "absoluteEncoderUpdated",   () -> absoluteEncoder.getAbsolutePosition() != 0.0);
   }
@@ -85,28 +93,35 @@ public class PivotController {
     // System.out.println(getPosition().getDegrees());
 
     // Re-seed the relative encoder with the absolute encoder when not moving
-    if (Math.abs(encoder.getVelocity()) < 0.001) {
-      encoder.setPosition(getAbsolutePosition().getRadians());
-    }
+    encoder.setPosition(getAbsolutePosition().getRadians());
     
-    if (setpointState == null) {
-      setpointState = new State(getAbsolutePosition().getRadians(), getVelocity().getRadians());
-    };
+    // if (setpointState == null) {
+    //   setpointState = new State(getAbsolutePosition().getRadians(), getVelocity().getRadians());
+    // };
 
     // Calculate the setpoint following a trapazoidal profile (smooth ramp up and down acceleration curves)
-    State targetState = new State(targetAngle.getRadians(), 0.0);
+    // State targetState = new State(targetAngle.getRadians(), 0.0);
 
 
-    setpointState = profile.calculate(0.02, setpointState, targetState);
+    // setpointState = profile.calculate(0.02, setpointState, targetState);
 
-    // Set onboard PID controller to follow
+    // Set onboard PID controller to follow    
     pid.setReference(
-      setpointState.position,
-      ControlType.kPosition,
-      0,
-      feedforward.calculate(setpointState.position, setpointState.velocity),
-      ArbFFUnits.kVoltage
+      targetAngle.getRadians(),
+      CANSparkMax.ControlType.kPosition,
+      0
     );
+
+    // System.out.println(feedforward.calculate(setpointState.position, setpointState.velocity));
+
+    if (motor.getAppliedOutput() > 0.0 && getAbsolutePosition().getRadians() > maxAngle.getRadians()) {
+      motor.stopMotor();
+    }
+
+    if (motor.getAppliedOutput() < 0.0 && getAbsolutePosition().getRadians() < minAngle.getRadians()) {
+      motor.stopMotor();
+    }
+
   }
 
   public void setTargetAngle(Rotation2d angle) {

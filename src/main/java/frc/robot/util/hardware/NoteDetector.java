@@ -23,15 +23,14 @@ import java.util.Queue;
 import javax.print.attribute.standard.Media;
 
 public class NoteDetector extends SubsystemBase {
-  int filterSize = 10;
+  int filterSize = 3;
   MedianFilter filter = new MedianFilter(filterSize);
-  double delay = NEO.SAFE_RAMP_RATE * 3.0;
+  double delay = NEO.SAFE_RAMP_RATE * 1.0;
   double delayCounter = 0.0;
   CANSparkMax motor;
   double gearing = 0.0;
   double filteredTorque;
   double freeTorque;
-  boolean hasNote = false;
   boolean isNeo550 = false;
 
   public NoteDetector(CANSparkMax motor, double gearing, double freeTorque, boolean isNeo550) {
@@ -45,7 +44,9 @@ public class NoteDetector extends SubsystemBase {
 
   @Override
   public void periodic() {
-    double output = motor.get();
+    filteredTorque = 0.0;
+
+    double output = motor.getAppliedOutput();
     
     if (output == 0.0) {
       delayCounter = 0.0;
@@ -58,21 +59,16 @@ public class NoteDetector extends SubsystemBase {
       filter.reset();
       return;
     }
+
     double motorTorque = NEO.STATS.stallTorqueNewtonMeters / NEO.STATS.stallCurrentAmps * motor.getOutputCurrent();
     if (isNeo550) {
       motorTorque = NEO550.STATS.stallTorqueNewtonMeters / NEO550.STATS.stallCurrentAmps * motor.getOutputCurrent();
     }
     double appliedTorque = motorTorque * gearing;
     filteredTorque = filter.calculate(appliedTorque);
-
-    if (filteredTorque - freeTorque * 1.5 > 0) {
-      hasNote = true;
-    } else {
-      hasNote = false;
-    }
   }
 
   public boolean hasNote() {
-    return hasNote;
+    return (filteredTorque - freeTorque) > 0.0;
   }
 }

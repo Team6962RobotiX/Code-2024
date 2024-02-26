@@ -256,7 +256,7 @@ public final class Constants {
     public static final int SHOOTER_PIVOT = 18; // DONE
     public static final int SHOOTER_FEED = 20;
     public static final int TRANSFER_OUT = 25; // DONE
-    public static final int TRANSFER_IN = 23; // REMOVE
+    public static final int TRANSFER_IN = 22; // REMOVE
     public static final int AMP_PIVOT = 24;
     public static final int AMP_WHEELS = 17;
   }
@@ -290,7 +290,7 @@ public final class Constants {
   }
   public static final class SHOOTER_FEED {
     public static final double GEARING = 1.0;
-    public static final double FREE_TORQUE = 0.0; // TODO
+    public static final double FREE_TORQUE = 1.0; // TODO
     public static final double RADIUS = Units.inchesToMeters(1.0);
   }
   public static final class SHOOTER_WHEELS {
@@ -319,7 +319,7 @@ public final class Constants {
   }
 
   public static final class SHOOTER_PIVOT {
-    public static final double GEARING = 25.0 * (78.0 / 20.0) * (110.0 / 18.0);
+    public static final double GEARING = 25.0 * (78.0 / 20.0) * (200.0 / 18.0);
     public static final double ROTATION_DELAY = 0.3; // seconds
     public static final Rotation2d ANGLE_TOLERANCE = Rotation2d.fromDegrees(0.5);
     public static final Rotation2d ANGLE_PRECISION = Rotation2d.fromDegrees(0.5);
@@ -330,23 +330,23 @@ public final class Constants {
     public static final double SHOOTER_LENGTH = Units.inchesToMeters(15.023);
     
     public static final class PROFILE {
-      public static final double kP = 15.0;
-      public static final double MAX_ACCELERATION = 10.0; // rad/s^2
+      public static final double kP = 20.0;
+      public static final double MAX_ACCELERATION = 30.0; // rad/s^2
     }
   }
 
   public static final class AMP_WHEELS {
-    public static final double GEARING = 1.0;
-    public static final double FREE_TORQUE = 0.3; // TODO
+    public static final double GEARING = 16.0 * 78.0 / 24.0;
+    public static final double FREE_TORQUE = 1.0; // TODO
     public static final double RADIUS = Units.inchesToMeters(1.0);
   }
   public static final class AMP_PIVOT {
     public static final double GEARING = (78.0 / 10.0) * (78.0 / 16.0) * (26.0 / 12.0);
-    public static final Rotation2d ANGLE_TOLERANCE = Rotation2d.fromDegrees(10.0);
+    public static final Rotation2d ANGLE_TOLERANCE = Rotation2d.fromDegrees(5.0);
     public static final double ABSOLUTE_POSITION_OFFSET = -0.814;
 
     public static final class PROFILE {
-      public static final double kP = 1.0;
+      public static final double kP = 2.0;
       public static final double MAX_ACCELERATION = 40.0; // rad/s^2
     }
   }
@@ -355,7 +355,7 @@ public final class Constants {
     public static final double GEARING_IN = (42.0 / 12.0) * (24.0 / 18.0);
     public static final double GEARING_OUT = 58.0 / 12.0;
     public static final double INTAKE_GEARING = GEARING_IN * (15.0 / 36.0);
-    public static final double FREE_TORQUE = 0.3; // TODO
+    public static final double FREE_TORQUE = 0.6; // TODO
     public static final double INTAKE_RADIUS = Units.inchesToMeters(0.5);
     public static final double TRANSFER_RADIUS = Units.inchesToMeters(1.0);
   }

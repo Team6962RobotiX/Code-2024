@@ -37,7 +37,7 @@ public class ShooterPivot extends SubsystemBase {
   public ShooterPivot() {    
     motor = new CANSparkMax(CAN.SHOOTER_PIVOT, MotorType.kBrushless);
 
-    SparkMaxUtil.configureAndLog(this, motor, false, IdleMode.kCoast); // TODO CHANGE TO BRAKE
+    SparkMaxUtil.configureAndLog(this, motor, false, IdleMode.kBrake); // TODO CHANGE TO BRAKE
     SparkMaxUtil.save(motor);
 
     controller = new PivotController(
@@ -61,8 +61,11 @@ public class ShooterPivot extends SubsystemBase {
     if (!ENABLED_SYSTEMS.ENABLE_SHOOTER) return;
     if (isCalibrating) return;
     if (RobotState.isDisabled()) {
-      controller.setTargetAngle(getPosition());
+      controller.setTargetAngle(controller.getAbsolutePosition());
     }
+
+    if (doneMoving()) return;
+
     controller.run();
   }
 
@@ -72,6 +75,7 @@ public class ShooterPivot extends SubsystemBase {
 
   public void setTargetAngle(Rotation2d angle) {
     controller.setTargetAngle(angle);
+    System.out.println(angle);
   }
 
   public Rotation2d getPosition() {

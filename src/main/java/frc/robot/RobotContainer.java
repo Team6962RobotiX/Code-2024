@@ -71,7 +71,7 @@ public class RobotContainer {
     stateController = new RobotStateController(amp, swerveDrive, shooter, transfer);
 
     // Configure the trigger bindings
-    Controls.configureBindings(swerveDrive, transfer, transfer.getInWheels(), transfer.getOutWheels(), shooter, shooter.getWheels(), shooter.getPivot(), shooter.getFeedWheels(), amp, amp.getPivot(), amp.getWheels());
+    Controls.configureBindings(stateController, swerveDrive, transfer, transfer.getInWheels(), transfer.getOutWheels(), shooter, shooter.getWheels(), shooter.getPivot(), shooter.getFeedWheels(), amp, amp.getPivot(), amp.getWheels());
 
     SwerveDrive.printChoreoConfig();
   }

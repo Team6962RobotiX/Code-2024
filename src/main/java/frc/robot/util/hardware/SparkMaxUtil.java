@@ -46,9 +46,10 @@ public final class SparkMaxUtil {
     Logger.autoLog(subsystem, logPath + "position",                () -> encoder.getPosition());
     Logger.autoLog(subsystem, logPath + "velocity",                () -> encoder.getVelocity());
 
+
     StatusChecks.addCheck(subsystem, logPath + "hasFaults", () -> motor.getFaults() == 0);
-    StatusChecks.addCheck(subsystem, logPath + "isConnected", () -> !motor.getFirmwareString().equals("v0.0.0"));
-    StatusChecks.addCheck(subsystem, logPath + "isTooHot", () -> motor.getMotorTemperature() <= NEO.SAFE_TEMPERATURE);
+    StatusChecks.addCheck(subsystem, logPath + "isConnected", () -> !(motor.getFirmwareVersion() == 0));
+    // StatusChecks.addCheck(subsystem, logPath + "isTooHot", () -> motor.getMotorTemperature() <= NEO.SAFE_TEMPERATURE);
   }
 
   private static void configure(Supplier<REVLibError> config, CANSparkMax motor) {
@@ -72,7 +73,7 @@ public final class SparkMaxUtil {
     motor.setPeriodicFramePeriod(PeriodicFrame.kStatus4, CANStatus4);
     motor.setPeriodicFramePeriod(PeriodicFrame.kStatus5, CANStatus5);
     motor.setPeriodicFramePeriod(PeriodicFrame.kStatus6, CANStatus6);
-    //  https://docs.revrobotics.com/sparkmax/operating-modes/control-interfaces
+    // https://docs.revrobotics.com/sparkmax/operating-modes/control-interfaces
   }
 
   public static void configurePID(SubsystemBase subsystem, CANSparkMax motor, double kP, double kI, double kD, double kV, boolean wrap) {
