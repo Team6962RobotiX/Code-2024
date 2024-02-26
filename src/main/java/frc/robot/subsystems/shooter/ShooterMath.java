@@ -68,8 +68,6 @@ public class ShooterMath {
     for (int i = 0; i < iterations; i++) {
       Translation3d shooterLocation = calcShooterLocationOnField(currentPose, pivotAngle);
 
-      Logger.log("shooterLocation", shooterLocation);
-
       double targetHeight = targetPoint.getZ() - shooterLocation.getZ();
       double floorDistance = shooterLocation.toTranslation2d().getDistance(targetPoint.toTranslation2d());
       double projectileVelocity = calcProjectileVelocity(shooterWheelVelocity);
@@ -126,9 +124,6 @@ public class ShooterMath {
 
     Translation3d minAimingPoint = aimingPoint.minus(speakerOffset);
     Translation3d maxAimingPoint = aimingPoint.plus(speakerOffset);
-
-    Logger.log("minAimingPoint", minAimingPoint);
-    Logger.log("maxAimingPoint", maxAimingPoint);
 
     Rotation2d minPivotAngle = calcPivotAngle(minAimingPoint, currentPose, shooterWheelVelocity);
     Rotation2d maxPivotAngle = calcPivotAngle(maxAimingPoint, currentPose, shooterWheelVelocity);

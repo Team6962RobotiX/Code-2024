@@ -49,6 +49,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.Constants;
 import frc.robot.Constants.Constants.ENABLED_SYSTEMS;
 import frc.robot.Constants.Constants.LIMELIGHT;
+import frc.robot.Constants.Constants.LOGGING;
 import frc.robot.Constants.Constants.SWERVE_DRIVE;
 import frc.robot.Constants.Field;
 import frc.robot.Constants.Preferences;
@@ -137,6 +138,7 @@ public class SwerveDrive extends SubsystemBase {
     }).start();
     
     SmartDashboard.putData("Field", field);
+    
     Logger.autoLog("SwerveDrive/pose", () -> this.getPose());
     Logger.autoLog("SwerveDrive/measuredHeading", () -> this.getHeading().getDegrees());
     Logger.autoLog("SwerveDrive/targetHeading", () -> Units.radiansToDegrees(alignmentController.getSetpoint()));
@@ -179,8 +181,6 @@ public class SwerveDrive extends SubsystemBase {
   @Override
   public void periodic() {
     if (!ENABLED_SYSTEMS.ENABLE_DRIVE) return;
-
-    // System.out.println(Preferences.TRANSFER.IN_POWER);
 
     List<Translation2d> notePositions = Notes.getNotePositions(LIMELIGHT.NOTE_CAMERA_NAME, LIMELIGHT.NOTE_CAMERA_PITCH, getPose(), getFieldVelocity(), LIMELIGHT.NOTE_CAMERA_POSITION);
     SwerveDrive.getField().getObject("notes").setPoses(notePositions.stream().map(p -> new Pose2d(p, new Rotation2d())).toList());

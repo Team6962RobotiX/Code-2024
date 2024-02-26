@@ -11,6 +11,7 @@ import com.revrobotics.SparkPIDController;
 
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants.Constants.LOGGING;
 import frc.robot.Constants.Constants.NEO;
 import frc.robot.util.TunableNumber;
 import frc.robot.util.software.Logging.Logger;
@@ -34,7 +35,7 @@ public final class SparkMaxUtil {
 
     RelativeEncoder encoder = motor.getEncoder();
     
-    String logPath = "/motor" + motor.getDeviceId() + "/";
+    String logPath = "motor" + motor.getDeviceId() + "/";
 
     Logger.autoLog(subsystem, logPath + "current",                 () -> motor.getOutputCurrent());
     Logger.autoLog(subsystem, logPath + "voltage",                 () -> motor.getBusVoltage());
@@ -47,8 +48,8 @@ public final class SparkMaxUtil {
     Logger.autoLog(subsystem, logPath + "velocity",                () -> encoder.getVelocity());
 
 
-    StatusChecks.addCheck(subsystem, logPath + "hasFaults", () -> motor.getFaults() == 0);
-    StatusChecks.addCheck(subsystem, logPath + "isConnected", () -> !(motor.getFirmwareVersion() == 0));
+    StatusChecks.addCheck(subsystem, logPath + "hasFaults", () -> motor.getFirmwareVersion() != 0 && motor.getFaults() == 0);
+    StatusChecks.addCheck(subsystem, logPath + "isConnected", () -> motor.getFirmwareVersion() != 0);
     // StatusChecks.addCheck(subsystem, logPath + "isTooHot", () -> motor.getMotorTemperature() <= NEO.SAFE_TEMPERATURE);
   }
 

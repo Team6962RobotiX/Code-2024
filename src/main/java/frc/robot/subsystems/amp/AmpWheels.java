@@ -68,7 +68,7 @@ public class AmpWheels extends SubsystemBase {
     }
   }
 
-  public boolean hasNote() {
+  public Boolean hasNote() {
     return detector.hasNote();
   }
   

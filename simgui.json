@@ -184,6 +184,19 @@
       }
     }
   },
+  "NetworkTables": {
+    "transitory": {
+      "Logs": {
+        "open": true
+      },
+      "Shuffleboard": {
+        "Status Checks": {
+          "open": true
+        },
+        "open": true
+      }
+    }
+  },
   "NetworkTables Info": {
     "visible": true
   }

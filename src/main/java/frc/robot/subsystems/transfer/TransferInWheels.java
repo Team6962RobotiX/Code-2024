@@ -60,7 +60,7 @@ public class TransferInWheels extends SubsystemBase {
     }
   }
 
-  public boolean hasNote() {
+  public Boolean hasNote() {
     return detector.hasNote();
   }
 

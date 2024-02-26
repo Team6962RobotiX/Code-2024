@@ -42,28 +42,18 @@ public class Amp extends SubsystemBase {
   public Command setState(State state) {
     switch(state) {
       case IN:
-        return Commands.parallel( 
-          wheels.setState(AmpWheels.State.IN)
-        );
+        return wheels.setState(AmpWheels.State.IN);
       case DOWN:
-        return Commands.sequence(
-          pivot.setTargetAngleCommand(Preferences.AMP_PIVOT.INTAKE_ANGLE),
-          Commands.waitUntil(() -> pivot.doneMoving())
-        );
+        return pivot.setTargetAngleCommand(Preferences.AMP_PIVOT.INTAKE_ANGLE).until(() -> pivot.doneMoving());
       case UP:
-        return Commands.sequence(
-          pivot.setTargetAngleCommand(Preferences.AMP_PIVOT.OUTPUT_ANGLE),
-          Commands.waitUntil(() -> pivot.doneMoving())
-        );
+        return pivot.setTargetAngleCommand(Preferences.AMP_PIVOT.OUTPUT_ANGLE).until(() -> pivot.doneMoving());
       case OUT:
-        return Commands.parallel( 
-          wheels.setState(AmpWheels.State.OUT)
-        );
+        return wheels.setState(AmpWheels.State.OUT);
     }
     return null;
   }
 
-  public boolean hasNote() {
+  public Boolean hasNote() {
     return wheels.hasNote();
   }
 

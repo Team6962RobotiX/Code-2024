@@ -60,7 +60,7 @@ public class Shooter extends SubsystemBase {
       case SHOOT:
         return setState(State.AIM).until(() -> getShotChance() == 1.0)
           .andThen(() -> System.out.println("Shooting"))
-          .andThen(feedWheels.setState(FeedWheels.State.IN).until(() -> !feedWheels.hasNote() || Robot.isSimulation()));
+          .andThen(feedWheels.setState(FeedWheels.State.IN).until(() -> feedWheels.hasNote() == false || Robot.isSimulation()));
     }
     return null;
   }
@@ -112,7 +112,7 @@ public class Shooter extends SubsystemBase {
     );
   }
 
-  public boolean hasNote() {
+  public Boolean hasNote() {
     return feedWheels.hasNote();
   }
 

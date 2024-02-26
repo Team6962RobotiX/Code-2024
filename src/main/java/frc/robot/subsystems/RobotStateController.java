@@ -50,23 +50,23 @@ public class RobotStateController extends SubsystemBase {
       case INTAKE:
         return Commands.parallel(
           transfer.setState(Transfer.State.IN)
-        ).until(() -> transfer.hasNote() || Robot.isSimulation());
+        ).until(() -> transfer.hasNote() == true || Robot.isSimulation());
       case INTAKE_OUT:
         return Commands.parallel(
           transfer.setState(Transfer.State.OUT)
-        ).until(() -> !transfer.hasNote() || Robot.isSimulation());
+        ).until(() -> transfer.hasNote() == false || Robot.isSimulation());
       case PREPARE_AMP:
         return Commands.sequence(
           amp.setState(Amp.State.DOWN),
           amp.setState(Amp.State.IN).alongWith(
             transfer.setState(Transfer.State.AMP)
-          ).until(() -> transfer.hasNote() || Robot.isSimulation()),
+          ).until(() -> transfer.hasNote() == false || Robot.isSimulation()),
           amp.setState(Amp.State.UP)
         );
       case PLACE_AMP:
         return Commands.sequence(
           amp.setState(Amp.State.UP),
-          amp.setState(Amp.State.OUT).until(() -> !amp.hasNote() || Robot.isSimulation())
+          amp.setState(Amp.State.OUT).until(() -> amp.hasNote() == false || Robot.isSimulation())
         );
       case LEAVE_AMP:
         return Commands.sequence(
@@ -76,7 +76,7 @@ public class RobotStateController extends SubsystemBase {
         return Commands.parallel(
           shooter.setState(Shooter.State.IN),
           transfer.setState(Transfer.State.SHOOTER)
-        ).until(() -> !transfer.hasNote() || Robot.isSimulation());
+        ).until(() -> transfer.hasNote() == false || Robot.isSimulation());
       case AIM_SPEAKER:
         return shooter.setState(Shooter.State.AIM);
       case SHOOT_SPEAKER:

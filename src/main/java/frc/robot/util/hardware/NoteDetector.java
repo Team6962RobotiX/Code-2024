@@ -68,7 +68,8 @@ public class NoteDetector extends SubsystemBase {
     filteredTorque = filter.calculate(appliedTorque);
   }
 
-  public boolean hasNote() {
+  public Boolean hasNote() {
+    if (filteredTorque == 0.0) return null;
     return (filteredTorque - freeTorque) > 0.0;
   }
 }

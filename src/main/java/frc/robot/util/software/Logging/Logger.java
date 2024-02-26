@@ -17,18 +17,27 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.networktables.GenericEntry;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.shuffleboard.BuiltInWidgets;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.Constants.LOGGING;
 
 public final class Logger {
   private static NetworkTable table = NetworkTableInstance.getDefault().getTable("Logs");
-  private static Map<String, Supplier<Object>> entries = new HashMap<String, Supplier<Object>>();
+  private static Map<String, Supplier<Object>> suppliers = new HashMap<String, Supplier<Object>>();
+  private static Map<String, Supplier<Object>> values = new HashMap<String, Supplier<Object>>();
+  private static ShuffleboardTab tab = Shuffleboard.getTab("Logging");
+  private static GenericEntry loggingButton = tab.add("Enable Logging", false).withWidget(BuiltInWidgets.kToggleButton).withSize(1, 1).withPosition(0, 0).getEntry();
+
+
   private static Notifier notifier = new Notifier(
     () -> {
       try {
@@ -44,19 +53,23 @@ public final class Logger {
   }
 
   private static void logAll() {
-    for (String key : entries.keySet()) {
-      Object value = entries.get(key).get();
+    if (!loggingButton.getBoolean(false)) return;
+
+    for (String key : suppliers.keySet()) {
+      Object supplied_value = suppliers.get(key).get();
+      Object saved_value = values.get(key);
+      if (supplied_value.equals(saved_value)) continue;
       try {
-        log(key, value);
+        log(key, supplied_value);
       } catch (IllegalArgumentException e) {
-        System.out.println("[LOGGING] unknown type: " + value.getClass().getSimpleName());
+        System.out.println("[LOGGING] unknown type: " + supplied_value.getClass().getSimpleName());
       }
     }
     logRio("roboRio");
   }
 
   public static void autoLog(String key, Supplier<Object> supplier) {
-    entries.put(key, supplier);
+    suppliers.put(key, supplier);
   }
 
   public static void autoLog(String key, Object obj) {
@@ -79,6 +92,7 @@ public final class Logger {
     else if (obj instanceof PowerDistribution) log(key, (PowerDistribution) obj);
     else if (obj instanceof Translation2d) log(key, (Translation2d) obj);
     else if (obj instanceof Translation3d) log(key, (Translation3d) obj);
+
     else table.getEntry(key).setValue(obj);
   }
 

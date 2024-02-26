@@ -67,7 +67,7 @@ public class FeedWheels extends SubsystemBase {
     }
   }
 
-  public boolean hasNote() {
+  public Boolean hasNote() {
     return detector.hasNote();
   }
 
