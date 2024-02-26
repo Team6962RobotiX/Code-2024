@@ -1,8 +1,10 @@
 package frc.robot.subsystems.transfer;
 
+import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants.Constants;
 import frc.robot.Constants.Constants.ENABLED_SYSTEMS;
 
 
@@ -45,12 +47,12 @@ public class Transfer extends SubsystemBase {
         );
       case AMP:
         return Commands.parallel( 
-          transferIn.setState(TransferInWheels.State.IN),
+          transferIn.setState(TransferInWheels.State.THROUGH),
           transferOut.setState(TransferOutWheels.State.AMP)
         );
       case SHOOTER:
         return Commands.parallel( 
-          transferIn.setState(TransferInWheels.State.IN),
+          transferIn.setState(TransferInWheels.State.THROUGH),
           transferOut.setState(TransferOutWheels.State.SHOOTER)
         );
     }
@@ -62,8 +64,8 @@ public class Transfer extends SubsystemBase {
     if (!ENABLED_SYSTEMS.ENABLE_TRANSFER) return;
   }
 
-  public Boolean hasNote() {
-    return transferIn.hasNote();
+  public boolean isNoteStatus(boolean status) {
+    return transferIn.isNoteStatus(status);
   }
 
   @Override

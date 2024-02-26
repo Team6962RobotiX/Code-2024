@@ -87,7 +87,6 @@ public class RobotContainer {
     StatusChecks.addCheck(new SubsystemBase() {}, "5V Enabled", () -> RobotController.getEnabled5V());
     StatusChecks.addCheck(new SubsystemBase() {}, "6V Enabled", () -> RobotController.getEnabled6V());
     StatusChecks.addCheck(new SubsystemBase() {}, "Sys Time Valid", () -> RobotController.isSystemTimeValid());
-    PowerDistribution pdh = new PowerDistribution(CAN.PDH, ModuleType.kRev);
 
     swerveDrive = new SwerveDrive();
     shooter = new Shooter(swerveDrive);

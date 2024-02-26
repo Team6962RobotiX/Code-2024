@@ -41,11 +41,13 @@ public class ShooterWheels extends SubsystemBase {
   public ShooterWheels() {
     motor = new CANSparkMax(CAN.SHOOTER_WHEELS_BOTTOM, MotorType.kBrushless);
     motorFollower = new CANSparkMax(CAN.SHOOTER_WHEELS_TOP, MotorType.kBrushless);
+
+    SparkMaxUtil.configureAndLog(this, motorFollower, false, IdleMode.kCoast);
     
     encoder = motor.getEncoder();
     pid = motor.getPIDController();
 
-    SparkMaxUtil.configureAndLog(this, motor, true, IdleMode.kCoast);
+    SparkMaxUtil.configureAndLog(this, motor, false, IdleMode.kCoast);
     SparkMaxUtil.configureEncoder(motor, SHOOTER_WHEELS.ENCODER_CONVERSION_FACTOR);
     SparkMaxUtil.configurePID(this, motor, SHOOTER_WHEELS.PROFILE.kP, SHOOTER_WHEELS.PROFILE.kI, SHOOTER_WHEELS.PROFILE.kD, SHOOTER_WHEELS.PROFILE.kV, false);
     SparkMaxUtil.save(motor);

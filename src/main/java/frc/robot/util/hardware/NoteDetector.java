@@ -38,7 +38,8 @@ public class NoteDetector extends SubsystemBase {
     this.gearing = gearing;
     this.freeTorque = freeTorque;
     this.isNeo550 = isNeo550;
-    Logger.autoLog("NoteDetectors/" + motor.getDeviceId() + "/hasNote", () -> hasNote());
+    Logger.autoLog("NoteDetectors/" + motor.getDeviceId() + "/isNoteStatusTrue", () -> isNoteStatus(true));
+    Logger.autoLog("NoteDetectors/" + motor.getDeviceId() + "/isNoteStatusFalse", () -> isNoteStatus(false));
     Logger.autoLog("NoteDetectors/" + motor.getDeviceId() + "/appliedTorque", () -> filteredTorque);
   }
 
@@ -68,8 +69,8 @@ public class NoteDetector extends SubsystemBase {
     filteredTorque = filter.calculate(appliedTorque);
   }
 
-  public Boolean hasNote() {
-    if (filteredTorque == 0.0) return null;
-    return (filteredTorque - freeTorque) > 0.0;
+  public boolean isNoteStatus(boolean status) {
+    if (filteredTorque == 0.0) return false;
+    return ((filteredTorque - freeTorque) > 0.0) == status;
   }
 }

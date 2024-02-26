@@ -34,7 +34,7 @@ public class FeedWheels extends SubsystemBase {
   public FeedWheels() {
     motor = new CANSparkMax(CAN.SHOOTER_FEED, MotorType.kBrushless);
 
-    SparkMaxUtil.configureAndLog(this, motor, false, IdleMode.kBrake);
+    SparkMaxUtil.configureAndLog(this, motor, false, IdleMode.kCoast);
     SparkMaxUtil.save(motor);
 
     detector = new NoteDetector(motor, Constants.SHOOTER_FEED.GEARING, Constants.SHOOTER_FEED.FREE_TORQUE, false);
@@ -67,8 +67,8 @@ public class FeedWheels extends SubsystemBase {
     }
   }
 
-  public Boolean hasNote() {
-    return detector.hasNote();
+  public boolean isNoteStatus(boolean status) {
+    return detector.isNoteStatus(status);
   }
 
   @Override

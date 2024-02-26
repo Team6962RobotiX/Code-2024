@@ -263,6 +263,7 @@ public final class Constants {
   public static final class DIO {
     public static final int AMP_PIVOT = 1;
     public static final int SHOOTER_PIVOT = 2;
+    public static final int BEAM_BREAK = 3;
   }
 
   public static final class NEO {
@@ -336,8 +337,8 @@ public final class Constants {
 
   public static final class AMP_WHEELS {
     public static final double GEARING = 16.0 * 78.0 / 24.0;
-    public static final double FREE_TORQUE = 1.0; // TODO
-    public static final double RADIUS = Units.inchesToMeters(1.0);
+    public static final double FREE_TORQUE = 2.5; // TODO
+    public static final double RADIUS = Units.inchesToMeters(1.625 / 2.0);
   }
   public static final class AMP_PIVOT {
     public static final double GEARING = (78.0 / 10.0) * (78.0 / 16.0) * (26.0 / 12.0);
@@ -354,7 +355,7 @@ public final class Constants {
     public static final double GEARING_IN = (42.0 / 12.0) * (24.0 / 18.0);
     public static final double GEARING_OUT = 58.0 / 12.0;
     public static final double INTAKE_GEARING = GEARING_IN * (15.0 / 36.0);
-    public static final double FREE_TORQUE = 0.6; // TODO
+    public static final double FREE_TORQUE = 0.5; // TODO
     public static final double INTAKE_RADIUS = Units.inchesToMeters(0.5);
     public static final double TRANSFER_RADIUS = Units.inchesToMeters(1.0);
   }

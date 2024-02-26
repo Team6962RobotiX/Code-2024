@@ -21,6 +21,7 @@ public class TransferInWheels extends SubsystemBase {
   private State state = State.OFF;
   public static enum State {
     IN,
+    THROUGH,
     OUT,
     OFF,
   }
@@ -51,6 +52,9 @@ public class TransferInWheels extends SubsystemBase {
       case IN:
         motor.set(Preferences.TRANSFER.IN_POWER);
         break;
+      case THROUGH:
+        motor.set(Preferences.TRANSFER.OUT_POWER * (Constants.TRANSFER.GEARING_IN / Constants.TRANSFER.GEARING_OUT));
+        break;
       case OUT:
         motor.set(-Preferences.TRANSFER.IN_POWER);
         break;
@@ -60,8 +64,8 @@ public class TransferInWheels extends SubsystemBase {
     }
   }
 
-  public Boolean hasNote() {
-    return detector.hasNote();
+  public boolean isNoteStatus(boolean status) {
+    return detector.isNoteStatus(status);
   }
 
   @Override

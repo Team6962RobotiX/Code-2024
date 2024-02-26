@@ -27,7 +27,7 @@ public final class Preferences {
   }
 
   public static final class SHOOTER_FEED {
-    public static final double POWER = 0.15;
+    public static final double POWER = 1.0;
   }
   
   public static final class SHOOTER_WHEELS {
@@ -40,14 +40,14 @@ public final class Preferences {
   }
 
   public static final class AMP_WHEELS {
-    public static final double POWER = 0.45;
+    public static final double POWER = Math.min(1.0, ((TRANSFER.OUT_POWER * Constants.AMP_WHEELS.GEARING / Constants.TRANSFER.GEARING_OUT) / (1.625 / 2.0)) * (Constants.NEO.STATS.freeSpeedRadPerSec / Constants.NEO550.STATS.freeSpeedRadPerSec));
   }
 
   public static final class AMP_PIVOT {
     public static final Rotation2d MAX_ANGLE = Rotation2d.fromDegrees(50.0);
-    public static final Rotation2d MIN_ANGLE = Rotation2d.fromDegrees(-67.0);
+    public static final Rotation2d MIN_ANGLE = Rotation2d.fromDegrees(-60.0);
     public static final Rotation2d OUTPUT_ANGLE = Rotation2d.fromDegrees(50.0);
-    public static final Rotation2d INTAKE_ANGLE = Rotation2d.fromDegrees(-45.0);
+    public static final Rotation2d INTAKE_ANGLE = Rotation2d.fromDegrees(-50.0);
   }
 
   public static final class TRANSFER {

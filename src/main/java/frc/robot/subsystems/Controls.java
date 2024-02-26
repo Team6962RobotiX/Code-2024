@@ -2,6 +2,7 @@ package frc.robot.subsystems;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import frc.robot.Constants.Preferences;
 import frc.robot.Constants.Constants.DEVICES;
 import frc.robot.commands.drive.XBoxSwerve;
 import frc.robot.subsystems.amp.Amp;
@@ -57,8 +58,8 @@ public class Controls {
     
     operator.a().whileTrue(ampWheels.setState(AmpWheels.State.IN));
     operator.b().whileTrue(ampWheels.setState(AmpWheels.State.OUT));
-    operator.x().onTrue(ampPivot.setTargetAngleCommand(Rotation2d.fromDegrees(40.0)));
-    operator.y().onTrue(ampPivot.setTargetAngleCommand(Rotation2d.fromDegrees(-40.0)));
+    operator.x().whileTrue(feedWheels.setState(FeedWheels.State.OUT));
+    operator.y().onTrue(shooterPivot.setTargetAngleCommand(Rotation2d.fromDegrees(30.0)));
     operator.start();
     operator.back();
     operator.leftBumper().whileTrue(stateController.setState(RobotStateController.State.INTAKE));
@@ -66,7 +67,7 @@ public class Controls {
     operator.leftStick();
     operator.rightStick();
     operator.povCenter();
-    operator.povUp();
+    operator.povUp().whileTrue(shooterWheels.setTargetVelocity(Preferences.SHOOTER_WHEELS.TARGET_SPEED));
     operator.povDown();
     operator.povLeft();
     operator.povRight();

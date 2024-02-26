@@ -35,7 +35,7 @@ public class AmpWheels extends SubsystemBase {
   public AmpWheels() {
     motor = new CANSparkMax(CAN.AMP_WHEELS, MotorType.kBrushless);
 
-    SparkMaxUtil.configureAndLog(this, motor, false, IdleMode.kBrake);
+    SparkMaxUtil.configureAndLog(this, motor, true, IdleMode.kBrake);
     SparkMaxUtil.save(motor);
 
     detector = new NoteDetector(motor, Constants.AMP_WHEELS.GEARING, Constants.AMP_WHEELS.FREE_TORQUE, true);
@@ -68,8 +68,8 @@ public class AmpWheels extends SubsystemBase {
     }
   }
 
-  public Boolean hasNote() {
-    return detector.hasNote();
+  public boolean isNoteStatus(boolean status) {
+    return detector.isNoteStatus(status);
   }
   
   @Override
