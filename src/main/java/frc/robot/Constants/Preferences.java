@@ -27,11 +27,11 @@ public final class Preferences {
   }
 
   public static final class SHOOTER_FEED {
-    public static final double POWER = 1.0;
+    public static final double POWER = 0.5;
   }
   
   public static final class SHOOTER_WHEELS {
-    public static final double TARGET_SPEED = Units.rotationsPerMinuteToRadiansPerSecond(8000);
+    public static final double TARGET_SPEED = Units.rotationsPerMinuteToRadiansPerSecond(10000);
   }
 
   public static final class SHOOTER_PIVOT {
