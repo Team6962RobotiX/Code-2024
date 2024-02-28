@@ -1,7 +1,5 @@
 package frc.robot.subsystems.shooter;
 
-import static edu.wpi.first.units.Units.Rotation;
-
 import java.util.List;
 
 import edu.wpi.first.math.geometry.Pose2d;

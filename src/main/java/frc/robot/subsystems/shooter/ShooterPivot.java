@@ -75,7 +75,7 @@ public class ShooterPivot extends SubsystemBase {
 
   public void setTargetAngle(Rotation2d angle) {
     controller.setTargetAngle(angle);
-    System.out.println(angle);
+    // System.out.println(angle);
   }
 
   public Rotation2d getPosition() {

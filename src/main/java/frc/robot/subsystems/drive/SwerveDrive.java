@@ -187,7 +187,7 @@ public class SwerveDrive extends SubsystemBase {
     List<Translation2d> notePositions = Notes.getNotePositions(LIMELIGHT.NOTE_CAMERA_NAME, LIMELIGHT.NOTE_CAMERA_PITCH, getPose(), getFieldVelocity(), LIMELIGHT.NOTE_CAMERA_POSITION);
     SwerveDrive.getField().getObject("notes").setPoses(notePositions.stream().map(p -> new Pose2d(p, new Rotation2d())).toList());
 
-    System.out.println(Constants.SHOOTER_WHEELS.PROFILE.kV);
+    // System.out.println(Constants.SHOOTER_WHEELS.PROFILE.kV);
 
     // FieldObject2d relativePositions = SwerveDrive.getField().getObject("visibleNotes");
     // List<Pose2d> poses = new ArrayList<>();

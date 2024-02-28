@@ -32,6 +32,7 @@ public class Shooter extends SubsystemBase {
   public static enum State {
     IN,
     AIM,
+    SPIN_UP,
     SHOOT,
   }
 
@@ -57,10 +58,16 @@ public class Shooter extends SubsystemBase {
         return Commands.parallel(
           Controls.rumble(),
           aim(Field.SPEAKER),
-          shooterWheels.setTargetVelocity(Preferences.SHOOTER_WHEELS.TARGET_SPEED)
+          shooterWheels.setTargetVelocity(Preferences.SHOOTER_WHEELS.TARGET_SPEED),
+          feedWheels.setState(FeedWheels.State.SHOOT)
+        );
+      case SPIN_UP:
+        return Commands.parallel(
+          shooterWheels.setTargetVelocity(Preferences.SHOOTER_WHEELS.TARGET_SPEED),
+          feedWheels.setState(FeedWheels.State.SHOOT)
         );
       case SHOOT:
-        return feedWheels.setState(FeedWheels.State.IN).withTimeout(1.0);
+        return feedWheels.setState(FeedWheels.State.SHOOT).withTimeout(1.0);
     }
     return null;
   }
@@ -121,7 +128,7 @@ public class Shooter extends SubsystemBase {
     Rotation2d newTargetHeading = pointToAimTo.toTranslation2d().minus(swerveDrive.getPose().getTranslation()).getAngle();
     headingVelocity = newTargetHeading.minus(targetHeading).getRadians() / 0.02;
     targetHeading = newTargetHeading;
-    swerveDrive.setTargetHeading(targetHeading.plus(Rotation2d.fromRadians(headingVelocity * SHOOTER_PIVOT.ROTATION_DELAY)).plus(Rotation2d.fromDegrees(180.0)));
+    // swerveDrive.setTargetHeading(targetHeading.plus(Rotation2d.fromRadians(headingVelocity * SHOOTER_PIVOT.ROTATION_DELAY)).plus(Rotation2d.fromDegrees(180.0)));
   }
 
   public ShooterPivot getPivot() {

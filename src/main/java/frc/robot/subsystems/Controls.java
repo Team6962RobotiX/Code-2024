@@ -45,7 +45,7 @@ public class Controls {
     driver.x();
     driver.y(); // USED
     driver.start();
-    driver.back();
+    driver.back().whileTrue(stateController.setState(RobotStateController.State.AIM_SPEAKER));
     driver.leftBumper();
     driver.rightBumper();
     driver.leftStick(); // USED
@@ -74,7 +74,7 @@ public class Controls {
     operator.povDown();
     operator.povLeft();
     operator.povRight();
-    operator.leftTrigger().whileTrue(stateController.setState(RobotStateController.State.AIM_SPEAKER));
+    operator.leftTrigger().whileTrue(shooter.setState(Shooter.State.SPIN_UP));
     operator.rightTrigger().whileTrue(stateController.setState(RobotStateController.State.SHOOT_SPEAKER));
   }
 

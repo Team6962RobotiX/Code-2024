@@ -64,8 +64,8 @@ public class RobotStateController extends SubsystemBase {
           amp.setState(Amp.State.DOWN),
           amp.setState(Amp.State.IN).alongWith(
             transfer.setState(Transfer.State.AMP)
-          ).withTimeout(1.0 / Preferences.AMP_WHEELS.POWER),
-          transfer.setState(Transfer.State.AMP).withTimeout(1.0 / Preferences.TRANSFER.OUT_POWER),
+          ).until(() -> beamBreakSensor.get()),
+          transfer.setState(Transfer.State.AMP).withTimeout(0.1),
           amp.setState(Amp.State.UP)
         );
       case PLACE_AMP:
@@ -79,9 +79,9 @@ public class RobotStateController extends SubsystemBase {
         );
       case PREPARE_SPEAKER:
         return Commands.parallel(
-          shooter.setState(Shooter.State.IN),
+          // shooter.setState(Shooter.State.IN),
           transfer.setState(Transfer.State.SHOOTER)
-        ).until(() -> !beamBreakSensor.get()).andThen(Controls.rumble());
+        ).until(() -> beamBreakSensor.get()).andThen(Controls.rumble());
       case AIM_SPEAKER:
         return shooter.setState(Shooter.State.AIM);
       case SHOOT_SPEAKER:
@@ -93,6 +93,6 @@ public class RobotStateController extends SubsystemBase {
 
   @Override
   public void periodic() {
-    // System.out.println(beamBreakSensor.get());
+    System.out.println(beamBreakSensor.get());
   }
 }

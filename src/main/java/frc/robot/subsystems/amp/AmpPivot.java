@@ -12,6 +12,7 @@ import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
 
+import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.Voltage;
@@ -33,6 +34,7 @@ public class AmpPivot extends SubsystemBase {
   private CANSparkMax motor;
   private PivotController controller;
   private boolean isCalibrating = false;
+  private Debouncer debouncer = new Debouncer(0.1);
 
   public AmpPivot() {
     motor = new CANSparkMax(CAN.AMP_PIVOT, MotorType.kBrushless);
@@ -82,7 +84,7 @@ public class AmpPivot extends SubsystemBase {
 
   public boolean doneMoving() {
     if (controller.getTargetAngle() == null) return true;
-    return Math.abs(getPosition().getRadians() - controller.getTargetAngle().getRadians()) < AMP_PIVOT.ANGLE_TOLERANCE.getRadians();
+    return debouncer.calculate(Math.abs(getPosition().getRadians() - controller.getTargetAngle().getRadians()) < AMP_PIVOT.ANGLE_TOLERANCE.getRadians());
   }
 
   public Command calibrate() {

@@ -28,13 +28,14 @@ public class FeedWheels extends SubsystemBase {
   public static enum State {
     IN,
     OUT,
-    OFF
+    OFF,
+    SHOOT
   }
 
   public FeedWheels() {
     motor = new CANSparkMax(CAN.SHOOTER_FEED, MotorType.kBrushless);
 
-    SparkMaxUtil.configureAndLog(this, motor, false, IdleMode.kCoast);
+    SparkMaxUtil.configureAndLog(this, motor, true, IdleMode.kCoast);
     SparkMaxUtil.save(motor);
 
     // detector = new NoteDetector(motor, Constants.SHOOTER_FEED.GEARING, Constants.SHOOTER_FEED.FREE_TORQUE, false);
@@ -59,10 +60,13 @@ public class FeedWheels extends SubsystemBase {
         motor.set(0);
         break;
       case IN:
-        motor.set(Preferences.SHOOTER_FEED.POWER);
+        motor.set(Preferences.SHOOTER_FEED.POWER_IN);
+        break;
+      case SHOOT:
+        motor.set(Preferences.SHOOTER_FEED.POWER_SHOOT);
         break;
       case OUT:
-        motor.set(-Preferences.SHOOTER_FEED.POWER);
+        motor.set(-Preferences.SHOOTER_FEED.POWER_IN);
         break;
     }
   }

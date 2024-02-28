@@ -27,7 +27,8 @@ public final class Preferences {
   }
 
   public static final class SHOOTER_FEED {
-    public static final double POWER = 0.5;
+    public static final double POWER_SHOOT = 1.0;
+    public static final double POWER_IN = 0.5;
   }
   
   public static final class SHOOTER_WHEELS {
@@ -40,19 +41,20 @@ public final class Preferences {
   }
 
   public static final class AMP_WHEELS {
-    public static final double POWER = Math.min(1.0, ((TRANSFER.OUT_POWER * Constants.AMP_WHEELS.GEARING / Constants.TRANSFER.GEARING_OUT) / (1.625 / 2.0)) * (Constants.NEO.STATS.freeSpeedRadPerSec / Constants.NEO550.STATS.freeSpeedRadPerSec));
+    public static final double POWER = 1.0;
   }
 
   public static final class AMP_PIVOT {
-    public static final Rotation2d MAX_ANGLE = Rotation2d.fromDegrees(50.0);
+    public static final Rotation2d MAX_ANGLE = Rotation2d.fromDegrees(75.0);
     public static final Rotation2d MIN_ANGLE = Rotation2d.fromDegrees(-60.0);
-    public static final Rotation2d OUTPUT_ANGLE = Rotation2d.fromDegrees(50.0);
+    public static final Rotation2d OUTPUT_ANGLE = Rotation2d.fromDegrees(70.0);
     public static final Rotation2d INTAKE_ANGLE = Rotation2d.fromDegrees(-50.0);
   }
 
   public static final class TRANSFER {
     public static final double IN_POWER = 0.5 * ((Constants.SWERVE_DRIVE.PHYSICS.MAX_LINEAR_VELOCITY / Constants.TRANSFER.INTAKE_RADIUS) / (Constants.NEO.STATS.freeSpeedRadPerSec / Constants.TRANSFER.INTAKE_GEARING));
-    public static final double OUT_POWER = IN_POWER * Constants.TRANSFER.GEARING_OUT / Constants.TRANSFER.GEARING_IN;
+    public static final double OUT_POWER = 0.5;
+    public static final double OUT_POWER_TOP = 1.0;
   }
 
   public static final class HANG{

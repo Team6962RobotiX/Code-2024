@@ -73,7 +73,7 @@ public final class Constants {
     public static final double   INSPECTION_WEIGHT                  = Units.lbsToKilograms(100);
     public static final double   BATTERY_WEIGHT                     = Units.lbsToKilograms(12.89);
     public static final double   ROBOT_MASS                         = INSPECTION_WEIGHT + BATTERY_WEIGHT; // kg
-    public static final double   FRICTION_COEFFICIENT               = Robot.isSimulation() ? 1.0 : 0.5; // 1.0 when on carpet 0.5 on KLS flooring
+    public static final double   FRICTION_COEFFICIENT               = 1.0; // 1.0 when on carpet 0.5 on KLS flooring
     public static final int      MODULE_COUNT                       = 4;
     public static final double   CHASSIS_WIDTH                      = Units.inchesToMeters(28);
     public static final double   CHASSIS_LENGTH                     = Units.inchesToMeters(28);
@@ -117,9 +117,9 @@ public final class Constants {
     public static final double   STEER_ENCODER_CONVERSION_FACTOR    = (Math.PI * 2.0) / STEER_MOTOR_GEARING;
     
     public static class PHYSICS {
-      public static final double ROTATIONAL_INERTIA                 = (1.0 / 12.0) * ROBOT_MASS * (Math.pow(BUMPER_WIDTH, 2.0) + Math.pow(BUMPER_LENGTH, 2.0));
+      public static final double ROTATIONAL_INERTIA                 = 0.01 * ((1.0 / 12.0) * ROBOT_MASS * (Math.pow(BUMPER_WIDTH, 2.0) + Math.pow(BUMPER_LENGTH, 2.0)));
       public static final double SLIPLESS_ACCELERATION              = 9.80 * FRICTION_COEFFICIENT;
-      public static final int    SLIPLESS_CURRENT_LIMIT             = Math.min((int) ((SLIPLESS_ACCELERATION * NEO.STATS.stallCurrentAmps * ROBOT_MASS * WHEEL_RADIUS) / (4.0 * DRIVE_MOTOR_GEARING * NEO.STATS.stallTorqueNewtonMeters)), NEO.SAFE_STALL_CURRENT);
+      public static final int    SLIPLESS_CURRENT_LIMIT             = (int) ((SLIPLESS_ACCELERATION * NEO.STATS.stallCurrentAmps * ROBOT_MASS * WHEEL_RADIUS) / (4.0 * DRIVE_MOTOR_GEARING * NEO.STATS.stallTorqueNewtonMeters));
       
       public static final double MAX_MOTOR_SPEED                    = NEO.RPM * GEARBOX_EFFICIENCY;
       public static final double MAX_MOTOR_TORQUE                   = NEO.maxTorqueCurrentLimited(SLIPLESS_CURRENT_LIMIT);
@@ -132,7 +132,7 @@ public final class Constants {
       
       public static final double DRIVE_RADIUS                       = Math.hypot(WHEELBASE / 2.0, TRACKWIDTH / 2.0);
       public static final double MAX_ANGULAR_TORQUE                 = MAX_LINEAR_FORCE * DRIVE_RADIUS;
-      public static final double MAX_ANGULAR_ACCELERATION           = MAX_ANGULAR_TORQUE / ROTATIONAL_INERTIA;
+      public static final double MAX_ANGULAR_ACCELERATION           = MAX_ANGULAR_TORQUE / ROTATIONAL_INERTIA; // TODO FIGURE OUT WHY WRONG
       public static final double MAX_ANGULAR_VELOCITY               = (MAX_WHEEL_VELOCITY * WHEEL_RADIUS) / DRIVE_RADIUS;
     }
 
