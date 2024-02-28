@@ -19,14 +19,14 @@ import frc.robot.util.software.Logging.StatusChecks;
 
 public final class SparkMaxUtil {
   public static void configureAndLog(SubsystemBase subsystem, CANSparkMax motor, boolean inverted, IdleMode idleMode) {
-    configureAndLog(subsystem, motor, inverted, idleMode, NEO.SAFE_STALL_CURRENT);
+    configureAndLog(subsystem, motor, inverted, idleMode, NEO.SAFE_FREE_CURRENT, NEO.SAFE_STALL_CURRENT);
   }
 
-  public static void configureAndLog(SubsystemBase subsystem, CANSparkMax motor, boolean inverted, IdleMode idleMode, int currentLimit) {
+  public static void configureAndLog(SubsystemBase subsystem, CANSparkMax motor, boolean inverted, IdleMode idleMode, int freeCurrentLimit, int stallCurrentLimit) {
     configure(() -> motor.restoreFactoryDefaults(), motor);
     configure(() -> motor.setIdleMode(idleMode), motor);
     configure(() -> motor.enableVoltageCompensation(12.0), motor);
-    configure(() -> motor.setSmartCurrentLimit(Math.min(currentLimit, NEO.SAFE_STALL_CURRENT), currentLimit), motor);
+    configure(() -> motor.setSmartCurrentLimit(Math.min(stallCurrentLimit, NEO.SAFE_STALL_CURRENT), Math.min(freeCurrentLimit, NEO.SAFE_FREE_CURRENT)), motor);
     configure(() -> motor.setClosedLoopRampRate(NEO.SAFE_RAMP_RATE), motor);
     configure(() -> motor.setOpenLoopRampRate(NEO.SAFE_RAMP_RATE), motor);
     motor.setInverted(inverted);
@@ -63,7 +63,7 @@ public final class SparkMaxUtil {
   }
 
   public static void configureAndLog550(SubsystemBase subsystem, CANSparkMax motor, boolean inverted, IdleMode idleMode) {
-    configureAndLog(subsystem, motor, inverted, idleMode, 10);
+    configureAndLog(subsystem, motor, inverted, idleMode, 10, 40);
   }
 
   public static void configureCANStatusFrames(CANSparkMax motor, int CANStatus0, int CANStatus1, int CANStatus2, int CANStatus3, int CANStatus4, int CANStatus5, int CANStatus6) {

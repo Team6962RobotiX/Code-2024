@@ -70,10 +70,10 @@ public final class Constants {
   public static final class SWERVE_DRIVE {
 
     ///////////////////////// CONFIG /////////////////////////
-    public static final double   INSPECTION_WEIGHT                  = Units.lbsToKilograms(100);
+    public static final double   INSPECTION_WEIGHT                  = Units.lbsToKilograms(110);
     public static final double   BATTERY_WEIGHT                     = Units.lbsToKilograms(12.89);
     public static final double   ROBOT_MASS                         = INSPECTION_WEIGHT + BATTERY_WEIGHT; // kg
-    public static final double   FRICTION_COEFFICIENT               = 1.0; // 1.0 when on carpet 0.5 on KLS flooring
+    public static final double   FRICTION_COEFFICIENT               = 1.0;
     public static final int      MODULE_COUNT                       = 4;
     public static final double   CHASSIS_WIDTH                      = Units.inchesToMeters(28);
     public static final double   CHASSIS_LENGTH                     = Units.inchesToMeters(28);
@@ -117,7 +117,7 @@ public final class Constants {
     public static final double   STEER_ENCODER_CONVERSION_FACTOR    = (Math.PI * 2.0) / STEER_MOTOR_GEARING;
     
     public static class PHYSICS {
-      public static final double ROTATIONAL_INERTIA                 = 0.01 * ((1.0 / 12.0) * ROBOT_MASS * (Math.pow(BUMPER_WIDTH, 2.0) + Math.pow(BUMPER_LENGTH, 2.0)));
+      public static final double ROTATIONAL_INERTIA                 = ((1.0 / 12.0) * ROBOT_MASS * (Math.pow(BUMPER_WIDTH, 2.0) + Math.pow(BUMPER_LENGTH, 2.0)));
       public static final double SLIPLESS_ACCELERATION              = 9.80 * FRICTION_COEFFICIENT;
       public static final int    SLIPLESS_CURRENT_LIMIT             = (int) ((SLIPLESS_ACCELERATION * NEO.STATS.stallCurrentAmps * ROBOT_MASS * WHEEL_RADIUS) / (4.0 * DRIVE_MOTOR_GEARING * NEO.STATS.stallTorqueNewtonMeters));
       
@@ -275,6 +275,7 @@ public final class Constants {
     public static final DCMotor STATS = new DCMotor(12.0, 3.28, 181, 1.3, Units.rotationsPerMinuteToRadiansPerSecond(RPM), 1);
     public static final double SAFE_TEMPERATURE = 60;
     public static final int SAFE_STALL_CURRENT = 40;
+    public static final int SAFE_FREE_CURRENT = 80;
     public static final double SAFE_RAMP_RATE = 0.1;
 
     public static double maxTorqueCurrentLimited(int currentLimit) {

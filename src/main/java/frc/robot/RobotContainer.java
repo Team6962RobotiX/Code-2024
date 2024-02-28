@@ -76,7 +76,7 @@ public class RobotContainer {
     AutonChooser.init();
     
     DriverStation.silenceJoystickConnectionWarning(true);
-
+    
     StatusChecks.addCheck(new SubsystemBase() {}, "FMS Attached", () -> DriverStation.isFMSAttached());
     StatusChecks.addCheck(new SubsystemBase() {}, "DS Attached", () -> DriverStation.isDSAttached());
     StatusChecks.addCheck(new SubsystemBase() {}, "Joystick 0", () -> DriverStation.isJoystickConnected(0));
@@ -94,7 +94,7 @@ public class RobotContainer {
     transfer = new Transfer();
     amp = new Amp();
     stateController = new RobotStateController(amp, swerveDrive, shooter, transfer);
-    hang = new Hang(swerveDrive); 
+    hang = new Hang(swerveDrive);
     
     // Configure the trigger bindings
     Controls.configureBindings(stateController, swerveDrive, transfer, transfer.getInWheels(), transfer.getOutWheels(), shooter, shooter.getWheels(), shooter.getPivot(), shooter.getFeedWheels(), amp, amp.getPivot(), amp.getWheels());

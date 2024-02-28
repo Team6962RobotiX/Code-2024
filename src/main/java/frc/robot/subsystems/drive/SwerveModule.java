@@ -111,7 +111,7 @@ public class SwerveModule extends SubsystemBase {
     SparkMaxUtil.configureAndLog(this, steerMotor, true, IdleMode.kCoast);
     SparkMaxUtil.configureEncoder(driveMotor, SWERVE_DRIVE.DRIVE_ENCODER_CONVERSION_FACTOR);
     SparkMaxUtil.configureEncoder(steerMotor, SWERVE_DRIVE.STEER_ENCODER_CONVERSION_FACTOR);
-    SparkMaxUtil.configurePID(this, driveMotor, DRIVE_MOTOR_PROFILE.kP, DRIVE_MOTOR_PROFILE.kI, DRIVE_MOTOR_PROFILE.kD, 0.0, false);
+    SparkMaxUtil.configurePID(this, driveMotor, DRIVE_MOTOR_PROFILE.kP, DRIVE_MOTOR_PROFILE.kI, DRIVE_MOTOR_PROFILE.kD, DRIVE_MOTOR_PROFILE.kV, false);
     SparkMaxUtil.configurePID(this, steerMotor, STEER_MOTOR_PROFILE.kP, STEER_MOTOR_PROFILE.kI, STEER_MOTOR_PROFILE.kD, 0.0, true);
     
     seedSteerEncoder();
@@ -147,13 +147,11 @@ public class SwerveModule extends SubsystemBase {
     if (SWERVE_DRIVE.DO_ANGLE_ERROR_SPEED_REDUCTION) {
       speedMetersPerSecond *= Math.cos(SwerveMath.angleDistance(radians, getMeasuredState().angle.getRadians()));
     }
-        
+    
     drivePID.setReference(
       speedMetersPerSecond,
       ControlType.kVelocity, 
-      0,
-      driveFF.calculate(speedMetersPerSecond, 0.0),
-      ArbFFUnits.kVoltage
+      0
     );
     
     steerPID.setReference(
