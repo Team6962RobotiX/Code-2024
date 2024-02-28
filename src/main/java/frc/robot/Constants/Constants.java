@@ -283,7 +283,7 @@ public final class Constants {
     public static final double SAFE_TEMPERATURE = 60;
     public static final int SAFE_STALL_CURRENT = 10;
     public static final double SAFE_RAMP_RATE = 0.1;
-
+    // 
     public static double maxTorqueCurrentLimited(int currentLimit) {
       return STATS.stallTorqueNewtonMeters / STATS.stallCurrentAmps * currentLimit;
     }
@@ -304,7 +304,6 @@ public final class Constants {
     public static final double SPEED_PRECISION = Units.rotationsPerMinuteToRadiansPerSecond(10);
 
     // x is front-to-back
-    
     // y is left-to-right
     // z is top-to-bottom
     

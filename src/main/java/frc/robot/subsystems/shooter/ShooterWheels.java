@@ -78,11 +78,16 @@ public class ShooterWheels extends SubsystemBase {
     if (RobotState.isDisabled()) {
       setTargetVelocity(0.0);
     }
-    pid.setReference(
-      targetVelocity,
-      ControlType.kVelocity,
-      0
-    );
+    if (targetVelocity > 0) {
+      motor.set(1.0);
+      return;
+    }
+    motor.set(0.0);
+    // pid.setReference(
+    //   targetVelocity,
+    //   ControlType.kVelocity,
+    //   0
+    // );
   }
 
   @Override
