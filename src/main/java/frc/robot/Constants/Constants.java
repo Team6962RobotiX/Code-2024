@@ -344,7 +344,7 @@ public final class Constants {
     public static final double RADIUS = Units.inchesToMeters(1.625 / 2.0);
   }
   public static final class AMP_PIVOT {
-    public static final double GEARING = (78.0 / 10.0) * (78.0 / 16.0) * (26.0 / 12.0);
+    public static final double GEARING = (78.0 / 10.0) * (78.0 / 24.0) * (26.0 / 12.0);
     public static final Rotation2d ANGLE_TOLERANCE = Rotation2d.fromDegrees(5.0);
     public static final double ABSOLUTE_POSITION_OFFSET = -0.814;
 

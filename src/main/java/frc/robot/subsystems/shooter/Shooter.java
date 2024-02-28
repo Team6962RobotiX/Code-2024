@@ -17,6 +17,7 @@ import frc.robot.Robot;
 import frc.robot.Constants.Constants;
 import frc.robot.Constants.Field;
 import frc.robot.Constants.Preferences;
+import frc.robot.subsystems.Controls;
 import frc.robot.subsystems.drive.SwerveDrive;
 
 public class Shooter extends SubsystemBase {
@@ -54,12 +55,12 @@ public class Shooter extends SubsystemBase {
         );
       case AIM:
         return Commands.parallel(
+          Controls.rumble(),
           aim(Field.SPEAKER),
           shooterWheels.setTargetVelocity(Preferences.SHOOTER_WHEELS.TARGET_SPEED)
         );
       case SHOOT:
-        return setState(State.AIM).until(() -> getShotChance() == 1.0)
-          .andThen(feedWheels.setState(FeedWheels.State.IN).withTimeout(1.0));
+        return feedWheels.setState(FeedWheels.State.IN).withTimeout(1.0);
     }
     return null;
   }
