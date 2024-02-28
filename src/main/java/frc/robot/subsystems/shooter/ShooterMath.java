@@ -91,8 +91,8 @@ public class ShooterMath {
    */
   public static double calcProjectileVelocity(double shooterWheelVelocity) {
     // Derived from https://www.reca.lc/shooterWheel
-    return 13.0;
-
+    return 12.8 * (shooterWheelVelocity / 1000);
+    
     // return (shooterWheelVelocity * (SHOOTER_WHEELS.WHEEL_RADIUS + (Field.NOTE_THICKNESS - SHOOTER_WHEELS.COMPRESSION) / 2.0)) / 4.0;
     // double shooterWheelSurfaceSpeed = shooterWheelVelocity * SHOOTER_WHEELS.WHEEL_RADIUS;
 

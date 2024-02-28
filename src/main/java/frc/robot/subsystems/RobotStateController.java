@@ -71,7 +71,7 @@ public class RobotStateController extends SubsystemBase {
       case PLACE_AMP:
         return Commands.sequence(
           amp.setState(Amp.State.UP),
-          amp.setState(Amp.State.OUT).until(() -> amp.isNoteStatus(false))
+          amp.setState(Amp.State.OUT).withTimeout(2.0)
         );
       case LEAVE_AMP:
         return Commands.sequence(
@@ -81,7 +81,7 @@ public class RobotStateController extends SubsystemBase {
         return Commands.parallel(
           shooter.setState(Shooter.State.IN),
           transfer.setState(Transfer.State.SHOOTER)
-        ).until(() -> transfer.isNoteStatus(false) || Robot.isSimulation());
+        ).until(() -> !beamBreakSensor.get());
       case AIM_SPEAKER:
         return shooter.setState(Shooter.State.AIM);
       case SHOOT_SPEAKER:

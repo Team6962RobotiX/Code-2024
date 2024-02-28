@@ -64,10 +64,6 @@ public class Transfer extends SubsystemBase {
     if (!ENABLED_SYSTEMS.ENABLE_TRANSFER) return;
   }
 
-  public boolean isNoteStatus(boolean status) {
-    return transferIn.isNoteStatus(status);
-  }
-
   @Override
   public void simulationPeriodic() {
     // This method will be called once per scheduler run during simulation

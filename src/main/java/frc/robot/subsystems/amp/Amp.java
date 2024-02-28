@@ -53,10 +53,6 @@ public class Amp extends SubsystemBase {
     return null;
   }
 
-  public boolean isNoteStatus(boolean status) {
-    return wheels.isNoteStatus(status);
-  }
-
   public boolean doneMoving() {
     return pivot.doneMoving();
   }

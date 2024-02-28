@@ -313,7 +313,7 @@ public final class Constants {
       public static final double kI = 0.0;
       public static final double kD = 0.0;
       public static final double kS = 0.0; // volts per rad/s
-      public static final double kV = 12.0 / (NEO.STATS.freeSpeedRadPerSec * GEARBOX_STEP_UP); // volts per rad/s
+      public static final double kV = (12.0 / (NEO.STATS.freeSpeedRadPerSec * GEARBOX_STEP_UP)) / 0.8; // volts per rad/s
       public static final double kA = 0.0; // volts per rad/s^2
     }
   }

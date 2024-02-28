@@ -17,7 +17,7 @@ import frc.robot.util.hardware.SparkMaxUtil;
 
 public class TransferInWheels extends SubsystemBase {
   private CANSparkMax motor;
-  private NoteDetector detector;
+  // private NoteDetector detector;
   private State state = State.OFF;
   public static enum State {
     IN,
@@ -32,7 +32,7 @@ public class TransferInWheels extends SubsystemBase {
     SparkMaxUtil.configureAndLog(this, motor, false, IdleMode.kBrake);
     SparkMaxUtil.save(motor);
 
-    detector = new NoteDetector(motor, Constants.TRANSFER.INTAKE_GEARING, Constants.TRANSFER.FREE_TORQUE, false);
+    // detector = new NoteDetector(motor, Constants.TRANSFER.INTAKE_GEARING, Constants.TRANSFER.FREE_TORQUE, false);
   }
 
   public Command setState(State state) {
@@ -62,10 +62,6 @@ public class TransferInWheels extends SubsystemBase {
         motor.set(0);
         break;
     }
-  }
-
-  public boolean isNoteStatus(boolean status) {
-    return detector.isNoteStatus(status);
   }
 
   @Override

@@ -24,7 +24,7 @@ import frc.robot.util.hardware.SparkMaxUtil;
 public class AmpWheels extends SubsystemBase {
   private CANSparkMax motor;
   private State state = State.OFF;
-  private NoteDetector detector;
+  // private NoteDetector detector;
  
   public static enum State {
     IN,
@@ -38,7 +38,7 @@ public class AmpWheels extends SubsystemBase {
     SparkMaxUtil.configureAndLog(this, motor, true, IdleMode.kBrake);
     SparkMaxUtil.save(motor);
 
-    detector = new NoteDetector(motor, Constants.AMP_WHEELS.GEARING, Constants.AMP_WHEELS.FREE_TORQUE, true);
+    // detector = new NoteDetector(motor, Constants.AMP_WHEELS.GEARING, Constants.AMP_WHEELS.FREE_TORQUE, true);
   }
 
   public Command setState(State state) {
@@ -66,10 +66,6 @@ public class AmpWheels extends SubsystemBase {
         motor.set(Preferences.AMP_WHEELS.POWER);
         break;
     }
-  }
-
-  public boolean isNoteStatus(boolean status) {
-    return detector.isNoteStatus(status);
   }
   
   @Override

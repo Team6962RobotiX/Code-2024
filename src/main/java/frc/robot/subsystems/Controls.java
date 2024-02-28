@@ -47,7 +47,7 @@ public class Controls {
     driver.rightBumper();
     driver.leftStick(); // USED
     driver.rightStick(); // USED
-    operator.povCenter(); // USED
+    driver.povCenter(); // USED
     driver.povUp(); // USED
     driver.povDown(); // USED
     driver.povLeft(); // USED
@@ -56,22 +56,22 @@ public class Controls {
     driver.rightTrigger(); // USED
     swerveDrive.setDefaultCommand(new XBoxSwerve(swerveDrive, driver.getHID()));
     
-    operator.a().whileTrue(ampWheels.setState(AmpWheels.State.IN));
-    operator.b().whileTrue(ampWheels.setState(AmpWheels.State.OUT));
-    operator.x().whileTrue(feedWheels.setState(FeedWheels.State.OUT));
-    operator.y().onTrue(shooterPivot.setTargetAngleCommand(Rotation2d.fromDegrees(30.0)));
-    operator.start();
-    operator.back();
-    operator.leftBumper().whileTrue(stateController.setState(RobotStateController.State.INTAKE));
-    operator.rightBumper().whileTrue(stateController.setState(RobotStateController.State.PREPARE_AMP));
-    operator.leftStick();
-    operator.rightStick();
+    operator.a();
+    operator.b();
+    operator.x();
+    operator.y();
+    operator.start().whileTrue(stateController.setState(RobotStateController.State.PLACE_AMP));
+    operator.back().whileTrue(stateController.setState(RobotStateController.State.LEAVE_AMP));
+    operator.leftBumper();
+    operator.rightBumper().whileTrue(stateController.setState(RobotStateController.State.INTAKE));
+    operator.leftStick().whileTrue(stateController.setState(RobotStateController.State.PREPARE_AMP));
+    operator.rightStick().whileTrue(stateController.setState(RobotStateController.State.PREPARE_SPEAKER));
     operator.povCenter();
-    operator.povUp().whileTrue(shooterWheels.setTargetVelocity(Preferences.SHOOTER_WHEELS.TARGET_SPEED));
+    operator.povUp();
     operator.povDown();
     operator.povLeft();
     operator.povRight();
-    operator.leftTrigger().whileTrue(transferInWheels.setState(TransferInWheels.State.OUT));
-    operator.rightTrigger().whileTrue(transferInWheels.setState(TransferInWheels.State.IN));
+    operator.leftTrigger().whileTrue(stateController.setState(RobotStateController.State.AIM_SPEAKER));
+    operator.rightTrigger().whileTrue(stateController.setState(RobotStateController.State.SHOOT_SPEAKER));
   }
 }

@@ -22,7 +22,7 @@ import frc.robot.util.hardware.SparkMaxUtil;
 
 public class FeedWheels extends SubsystemBase {
   private CANSparkMax motor;
-  private NoteDetector detector;
+  // private NoteDetector detector;
   private State state = State.OFF;
  
   public static enum State {
@@ -37,7 +37,7 @@ public class FeedWheels extends SubsystemBase {
     SparkMaxUtil.configureAndLog(this, motor, false, IdleMode.kCoast);
     SparkMaxUtil.save(motor);
 
-    detector = new NoteDetector(motor, Constants.SHOOTER_FEED.GEARING, Constants.SHOOTER_FEED.FREE_TORQUE, false);
+    // detector = new NoteDetector(motor, Constants.SHOOTER_FEED.GEARING, Constants.SHOOTER_FEED.FREE_TORQUE, false);
 
   }
 
@@ -65,10 +65,6 @@ public class FeedWheels extends SubsystemBase {
         motor.set(-Preferences.SHOOTER_FEED.POWER);
         break;
     }
-  }
-
-  public boolean isNoteStatus(boolean status) {
-    return detector.isNoteStatus(status);
   }
 
   @Override

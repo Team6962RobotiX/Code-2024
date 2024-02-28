@@ -52,6 +52,7 @@ import frc.robot.Constants.Constants.ENABLED_SYSTEMS;
 import frc.robot.Constants.Constants.LIMELIGHT;
 import frc.robot.Constants.Constants.LOGGING;
 import frc.robot.Constants.Constants.SWERVE_DRIVE;
+import frc.robot.Constants.Preferences.SHOOTER_WHEELS;
 import frc.robot.Constants.Field;
 import frc.robot.Constants.Preferences;
 import frc.robot.subsystems.shooter.Shooter;
@@ -185,6 +186,8 @@ public class SwerveDrive extends SubsystemBase {
     
     List<Translation2d> notePositions = Notes.getNotePositions(LIMELIGHT.NOTE_CAMERA_NAME, LIMELIGHT.NOTE_CAMERA_PITCH, getPose(), getFieldVelocity(), LIMELIGHT.NOTE_CAMERA_POSITION);
     SwerveDrive.getField().getObject("notes").setPoses(notePositions.stream().map(p -> new Pose2d(p, new Rotation2d())).toList());
+
+    System.out.println(Constants.SHOOTER_WHEELS.PROFILE.kV);
 
     // FieldObject2d relativePositions = SwerveDrive.getField().getObject("visibleNotes");
     // List<Pose2d> poses = new ArrayList<>();
