@@ -85,23 +85,45 @@ public class Hang extends SubsystemBase {
         if(rightEncoder.getPosition() < Constants.HANG.EXTEND_MAX_ROTATIONS){
             rightMotor.set(Preferences.HANG.LEFT_MOTOR_EXTEND_POWER);
         }
+        else{
+            rightEncoder.setPosition(0);
+            state = State.OFF; 
+        }
         if(leftEncoder.getPosition() < Constants.HANG.EXTEND_MAX_ROTATIONS){
             leftMotor.set(Preferences.HANG.RIGHT_MOTOR_EXTEND_POWER);
         }
+        else{
+            leftEncoder.setPosition(0);
+            state = State.OFF; 
+        }
+
         break;
       case RETRACT:
         gyroRotation = gyro.getRoll();
-        
-        if(gyroRotation > Preferences.HANG.MAX_ROLL_ANGLE){
-            rightMotor.set(Preferences.HANG.RIGHT_MOTOR_RETRACT_POWER);
-        }
-        else if(gyroRotation < -Preferences.HANG.MAX_ROLL_ANGLE){
+        // if it's tilting to the left and it can still retract
+        if(gyroRotation > Preferences.HANG.MAX_ROLL_ANGLE && leftEncoder.getPosition() > -Constants.HANG.EXTEND_MAX_ROTATIONS){
+            // then retract the left side
             leftMotor.set(Preferences.HANG.LEFT_MOTOR_RETRACT_POWER);
+        }
+        // if it's tilting to the right and it can still retract
+        else if(gyroRotation < -Preferences.HANG.MAX_ROLL_ANGLE && rightEncoder.getPosition() > -Constants.HANG.EXTEND_MAX_ROTATIONS){
+            // then retract the right side
+            rightMotor.set(Preferences.HANG.RIGHT_MOTOR_RETRACT_POWER);
         }
         else{
-            rightMotor.set(Preferences.HANG.RIGHT_MOTOR_RETRACT_POWER);
-            leftMotor.set(Preferences.HANG.LEFT_MOTOR_RETRACT_POWER);
-            
+            // otherwise, retract on all arms than can still retract
+            if (rightEncoder.getPosition() > -Constants.HANG.EXTEND_MAX_ROTATIONS){
+                rightMotor.set(Preferences.HANG.RIGHT_MOTOR_RETRACT_POWER);
+            }
+            else{
+                rightEncoder.setPosition(0);
+            }
+            if (leftEncoder.getPosition() > -Constants.HANG.EXTEND_MAX_ROTATIONS){
+                leftMotor.set(Preferences.HANG.LEFT_MOTOR_RETRACT_POWER);
+            }
+            else{
+                leftEncoder.setPosition(0);
+            }
         }
         break;
     }
