@@ -258,6 +258,10 @@ public final class Constants {
     public static final int TRANSFER_IN = 22; // REMOVE
     public static final int AMP_PIVOT = 24;
     public static final int AMP_WHEELS = 17;
+    // left/right is from the robot's view of from intake
+    public static final int LEFT_MOTOR = 28; 
+    public static final int RIGHT_MOTOR = 29; 
+
   }
 
   public static final class DIO {
@@ -357,5 +361,14 @@ public final class Constants {
     public static final double FREE_TORQUE = 0.5; // TODO
     public static final double INTAKE_RADIUS = Units.inchesToMeters(0.5);
     public static final double TRANSFER_RADIUS = Units.inchesToMeters(1.0);
+  }
+
+  public static final class HANG{
+
+    public static final double SPOOL_RADIUS = Units.inchesToMeters(1.15);
+    public static final double EXTEND_HEIGHT = Units.inchesToMeters((86.69-37.46));
+    public static final double EXTEND_MAX_ROTATIONS = EXTEND_HEIGHT/(Math.PI * SPOOL_RADIUS);
+
+
   }
 }

@@ -54,4 +54,16 @@ public final class Preferences {
     public static final double IN_POWER = 0.5 * ((Constants.SWERVE_DRIVE.PHYSICS.MAX_LINEAR_VELOCITY / Constants.TRANSFER.INTAKE_RADIUS) / (Constants.NEO.STATS.freeSpeedRadPerSec / Constants.TRANSFER.INTAKE_GEARING));
     public static final double OUT_POWER = IN_POWER * Constants.TRANSFER.GEARING_OUT / Constants.TRANSFER.GEARING_IN;
   }
+
+  public static final class HANG{
+    
+    public static final double LEFT_MOTOR_EXTEND_POWER = 0.3; 
+    public static final double RIGHT_MOTOR_EXTEND_POWER = 0.3; 
+
+    public static final double LEFT_MOTOR_RETRACT_POWER = -1; 
+    public static final double RIGHT_MOTOR_RETRACT_POWER = -1; 
+    // the angle that the robot will start correcting itself at when hanging
+    public static final double MAX_ROLL_ANGLE = 25;
+    
+  }
 }

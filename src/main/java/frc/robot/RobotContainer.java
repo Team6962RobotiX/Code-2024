@@ -36,6 +36,7 @@ import frc.robot.subsystems.RobotStateController;
 import frc.robot.subsystems.RobotStateController.State;
 import frc.robot.subsystems.amp.Amp;
 import frc.robot.subsystems.drive.SwerveDrive;
+import frc.robot.subsystems.hang.Hang;
 import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.shooter.ShooterMath;
 import frc.robot.subsystems.transfer.Transfer;
@@ -61,7 +62,7 @@ public class RobotContainer {
   private final Shooter shooter;
   private final Transfer transfer;
   private final Amp amp;
-
+  private final Hang hang;
   private final RobotStateController stateController;
   
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
@@ -93,7 +94,8 @@ public class RobotContainer {
     transfer = new Transfer();
     amp = new Amp();
     stateController = new RobotStateController(amp, swerveDrive, shooter, transfer);
-
+    hang = new Hang(swerveDrive); 
+    
     // Configure the trigger bindings
     Controls.configureBindings(stateController, swerveDrive, transfer, transfer.getInWheels(), transfer.getOutWheels(), shooter, shooter.getWheels(), shooter.getPivot(), shooter.getFeedWheels(), amp, amp.getPivot(), amp.getWheels());
 
