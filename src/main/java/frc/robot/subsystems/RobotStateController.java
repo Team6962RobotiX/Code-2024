@@ -56,7 +56,7 @@ public class RobotStateController extends SubsystemBase {
       case INTAKE:
         return Commands.parallel(
           transfer.setState(Transfer.State.IN)
-        ).until(() -> !beamBreakSensor.get());
+        ).until(() -> !beamBreakSensor.get()).andThen(Controls.rumble());
       case INTAKE_OUT:
         return transfer.setState(Transfer.State.OUT);
       case PREPARE_AMP:
@@ -72,7 +72,7 @@ public class RobotStateController extends SubsystemBase {
         return Commands.sequence(
           amp.setState(Amp.State.UP),
           amp.setState(Amp.State.OUT).withTimeout(2.0)
-        );
+        ).andThen(Controls.rumble());
       case LEAVE_AMP:
         return Commands.sequence(
           amp.setState(Amp.State.DOWN)
@@ -81,7 +81,7 @@ public class RobotStateController extends SubsystemBase {
         return Commands.parallel(
           shooter.setState(Shooter.State.IN),
           transfer.setState(Transfer.State.SHOOTER)
-        ).until(() -> !beamBreakSensor.get());
+        ).until(() -> !beamBreakSensor.get()).andThen(Controls.rumble());
       case AIM_SPEAKER:
         return shooter.setState(Shooter.State.AIM);
       case SHOOT_SPEAKER:

@@ -1,6 +1,9 @@
 package frc.robot.subsystems;
 
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.GenericHID.RumbleType;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.Constants.Preferences;
 import frc.robot.Constants.Constants.DEVICES;
@@ -73,5 +76,17 @@ public class Controls {
     operator.povRight();
     operator.leftTrigger().whileTrue(stateController.setState(RobotStateController.State.AIM_SPEAKER));
     operator.rightTrigger().whileTrue(stateController.setState(RobotStateController.State.SHOOT_SPEAKER));
+  }
+
+  public static Command rumble() {
+    return Commands.runEnd(() -> {
+      operator.getHID().setRumble(RumbleType.kBothRumble, 1.0);
+      driver.getHID().setRumble(RumbleType.kBothRumble, 1.0);
+    },
+    () -> {
+      operator.getHID().setRumble(RumbleType.kBothRumble, 0.0);
+      driver.getHID().setRumble(RumbleType.kBothRumble, 0.0);
+    }
+    ).withTimeout(0.5);
   }
 }
