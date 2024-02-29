@@ -1,15 +1,18 @@
 package frc.robot.subsystems;
 
 import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Robot;
 import frc.robot.Constants.Constants;
+import frc.robot.Constants.Field;
 import frc.robot.Constants.Preferences;
 import frc.robot.subsystems.amp.Amp;
 import frc.robot.subsystems.drive.SwerveDrive;
 import frc.robot.subsystems.shooter.Shooter;
+import frc.robot.subsystems.shooter.ShooterMath;
 import frc.robot.subsystems.transfer.Transfer;
 
 // This class is a subsystem that controls the state of the robot. It is used to coordinate the actions of the intake, shooter, transfer, and amp subsystems.
@@ -90,6 +93,9 @@ public class RobotStateController extends SubsystemBase {
         return Commands.parallel(
           transfer.setState(Transfer.State.SHOOTER),
           shooter.setState(Shooter.State.SHOOT)
+          // Commands.runOnce(() -> {
+          //   SmartDashboard.putNumber("Distance", ShooterMath.calcShooterLocationOnField(swerveDrive.getPose(), shooter.getPivot().getPosition()).getDistance(Field.SPEAKER));
+          // })
         );
       default:
         return Commands.run(() -> {});
@@ -98,6 +104,5 @@ public class RobotStateController extends SubsystemBase {
 
   @Override
   public void periodic() {
-
   }
 }

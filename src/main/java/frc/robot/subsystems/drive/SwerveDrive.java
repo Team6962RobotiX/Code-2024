@@ -405,7 +405,7 @@ public class SwerveDrive extends SubsystemBase {
   public Rotation2d getTargetHeading() {
     return Rotation2d.fromRadians(alignmentController.getSetpoint());
   }
-  
+
   /**
    * This creates an "X" pattern with the wheels which makes the robot very hard to move
    */
@@ -423,6 +423,10 @@ public class SwerveDrive extends SubsystemBase {
    */
   private void resetPose(Pose2d pose) {
     poseEstimator.resetPosition(getHeading(), getModulePositions(), pose);
+  }
+
+  public boolean isParked() {
+    return parked;
   }
 
   /**

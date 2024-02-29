@@ -9,6 +9,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
+import com.badlogic.gdx.math.MathUtils;
+
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
@@ -31,10 +33,14 @@ public class AprilTags extends SubsystemBase {
   public static void injectVisionData(Map<String, Pose3d> cameraPoses, SwerveDrive swerveDrive) {
     for (String name : cameraPoses.keySet()) {
       LimelightHelpers.PoseEstimate poseEstimate = LimelightHelpers.getBotPoseEstimate_wpiBlue(name);
-      if (poseEstimate.tagCount >= 1) {
+      if (poseEstimate.tagCount >= 2) {
+        if (swerveDrive.isParked()) {
+          swerveDrive.setVisionMeasurementStdDevs(VecBuilder.fill(0.7, 0.7, Units.degreesToRadians(30.0)));
+        } else {
+          swerveDrive.setVisionMeasurementStdDevs(VecBuilder.fill(0.7, 0.7, Units.degreesToRadians(999999)));
+        }
         // Pose3d poseEstimate3d = new Pose3d(poseEstimate.pose);
         // Pose3d robotPose = poseEstimate3d.relativeTo(cameraPoses.get(name));
-        swerveDrive.setVisionMeasurementStdDevs(VecBuilder.fill(0.7, 0.7, Units.degreesToRadians(30.0)));
         swerveDrive.addVisionMeasurement(poseEstimate.pose, poseEstimate.timestampSeconds);
       }
     }

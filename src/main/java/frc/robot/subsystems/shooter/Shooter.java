@@ -56,10 +56,10 @@ public class Shooter extends SubsystemBase {
         );
       case AIM:
         return Commands.parallel(
-          Controls.rumble(),
-          aim(Field.SPEAKER),
-          shooterWheels.setTargetVelocity(Preferences.SHOOTER_WHEELS.TARGET_SPEED),
-          feedWheels.setState(FeedWheels.State.SHOOT)
+          Controls.rumble().repeatedly(),
+          aim(Field.SPEAKER)
+          // shooterWheels.setTargetVelocity(Preferences.SHOOTER_WHEELS.TARGET_SPEED),
+          // feedWheels.setState(FeedWheels.State.SHOOT)
         );
       case SPIN_UP:
         return Commands.parallel(
