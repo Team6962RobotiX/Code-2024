@@ -174,7 +174,7 @@ public final class Constants {
 
     public static final class DRIVE_MOTOR_PROFILE {
       // FROM WPILIB SYSTEM IDENTIFICATION, FREE SPINNING
-      public static final double kP                 = 0.00010; // Proportion Gain
+      public static final double kP                 = 0.00500; // Proportion Gain
       public static final double kI                 = 0.00000; // Integral Gain
       public static final double kD                 = 0.00000; // Derivative Gain
       public static final double kS                 = 0.081073; // volts 0.081073

@@ -14,6 +14,7 @@ import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.RobotState;
 import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.livewindow.LiveWindow;
 import edu.wpi.first.wpilibj.shuffleboard.BuiltInWidgets;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
@@ -69,11 +70,12 @@ public class RobotContainer {
   public RobotContainer() {
     DataLogManager.start();
     DriverStation.startDataLog(DataLogManager.getLog(), true);
-    Logger.log("constants", this, Constants.class);
     Logger.autoLog("PDH", new PowerDistribution(CAN.PDH, ModuleType.kRev));
 
     Logger.startLog();
     AutonChooser.init();
+
+    LiveWindow.disableAllTelemetry();
     
     DriverStation.silenceJoystickConnectionWarning(true);
     
