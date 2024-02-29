@@ -12,6 +12,7 @@
   "NTProvider": {
     "types": {
       "/FMSInfo": "FMSInfo",
+      "/Shuffleboard/Status Checks/Refresh": "Command",
       "/SmartDashboard/Field": "Field2d",
       "/SmartDashboard/ShooterMechanism": "Mechanism2d",
       "/SmartDashboard/Swerve Module Calibration": "String Chooser",

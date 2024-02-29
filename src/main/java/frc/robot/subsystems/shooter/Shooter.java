@@ -44,6 +44,8 @@ public class Shooter extends SubsystemBase {
     this.feedWheels = new FeedWheels();
     
     Logger.autoLog(this, "Shot Chance", () -> getShotChance());
+    Logger.autoLog(this, "Speaker Distance", () -> ShooterMath.calcShooterLocationOnField(swerveDrive.getPose(), shooterPivot.getPosition()).getDistance(Field.SPEAKER));
+    Logger.autoLog(this, "Speaker Floor Distance", () -> ShooterMath.calcShooterLocationOnField(swerveDrive.getPose(), shooterPivot.getPosition()).toTranslation2d().getDistance(Field.SPEAKER.toTranslation2d()));
   }
 
   @Override

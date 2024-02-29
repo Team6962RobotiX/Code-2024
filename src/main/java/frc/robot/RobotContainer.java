@@ -6,6 +6,7 @@ package frc.robot;
 
 import java.sql.Driver;
 
+import edu.wpi.first.apriltag.AprilTag;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.DataLogManager;
@@ -42,6 +43,7 @@ import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.shooter.ShooterMath;
 import frc.robot.subsystems.transfer.Transfer;
 import frc.robot.subsystems.transfer.TransferInWheels;
+import frc.robot.subsystems.vision.AprilTags;
 import frc.robot.util.software.Dashboard.AutonChooser;
 import frc.robot.util.software.Logging.Logger;
 import frc.robot.util.software.Logging.StatusChecks;
@@ -78,7 +80,7 @@ public class RobotContainer {
     LiveWindow.disableAllTelemetry();
     
     DriverStation.silenceJoystickConnectionWarning(true);
-    
+
     StatusChecks.addCheck(new SubsystemBase() {}, "FMS Attached", () -> DriverStation.isFMSAttached());
     StatusChecks.addCheck(new SubsystemBase() {}, "DS Attached", () -> DriverStation.isDSAttached());
     StatusChecks.addCheck(new SubsystemBase() {}, "Joystick 0", () -> DriverStation.isJoystickConnected(0));
@@ -102,6 +104,7 @@ public class RobotContainer {
     Controls.configureBindings(stateController, swerveDrive, transfer, transfer.getInWheels(), transfer.getOutWheels(), shooter, shooter.getWheels(), shooter.getPivot(), shooter.getFeedWheels(), amp, amp.getPivot(), amp.getWheels());
 
     SwerveDrive.printChoreoConfig();
+    AprilTags.printConfig(Constants.LIMELIGHT.APRILTAG_CAMERA_POSES);
   }
 
   public Command getAutonomousCommand() {
