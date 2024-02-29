@@ -187,7 +187,7 @@ public final class Constants {
 
     public static final class STEER_MOTOR_PROFILE {
       // FROM WPILIB SYSTEM IDENTIFICATION
-      public static final double kP                 = 1.50000; // Proportion Gain
+      public static final double kP                 = 0.90000; // Proportion Gain
       public static final double kI                 = 0.00000; // Integral Gain
       public static final double kD                 = 0.10000; // Derivative Gain
       public static final double kS                 = 0.00000; // volts
