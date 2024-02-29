@@ -30,8 +30,6 @@ public final class SparkMaxUtil {
     configure(() -> motor.setOpenLoopRampRate(NEO.SAFE_RAMP_RATE), motor);
     motor.setInverted(inverted);
 
-    configureCANStatusFrames(motor, 10, 20, 20, 500, 500, 500, 500);
-
     RelativeEncoder encoder = motor.getEncoder();
     
     String logPath = "motor" + motor.getDeviceId() + "/";
@@ -65,14 +63,18 @@ public final class SparkMaxUtil {
     configureAndLog(subsystem, motor, inverted, idleMode, 10, 40);
   }
 
-  public static void configureCANStatusFrames(CANSparkMax motor, int CANStatus0, int CANStatus1, int CANStatus2, int CANStatus3, int CANStatus4, int CANStatus5, int CANStatus6) {
-    motor.setPeriodicFramePeriod(PeriodicFrame.kStatus0, CANStatus0);
-    motor.setPeriodicFramePeriod(PeriodicFrame.kStatus1, CANStatus1);
-    motor.setPeriodicFramePeriod(PeriodicFrame.kStatus2, CANStatus2);
-    motor.setPeriodicFramePeriod(PeriodicFrame.kStatus3, CANStatus3);
-    motor.setPeriodicFramePeriod(PeriodicFrame.kStatus4, CANStatus4);
-    motor.setPeriodicFramePeriod(PeriodicFrame.kStatus5, CANStatus5);
-    motor.setPeriodicFramePeriod(PeriodicFrame.kStatus6, CANStatus6);
+  public static void configureCANStatusFrames(CANSparkMax motor, boolean velocityTemperatureVoltageCurrent, boolean position) {
+    configureCANStatusFrames(motor, velocityTemperatureVoltageCurrent, position, false, false, false, false);
+  }
+
+  public static void configureCANStatusFrames(CANSparkMax motor, boolean velocityTemperatureVoltageCurrent, boolean position, boolean analogSensor, boolean alternateEncoder, boolean absoluteEncoderPosition, boolean absoluteEncoderVelocity) {
+    motor.setPeriodicFramePeriod(PeriodicFrame.kStatus0, 10);
+    motor.setPeriodicFramePeriod(PeriodicFrame.kStatus1, velocityTemperatureVoltageCurrent ? 20 : 65535);
+    motor.setPeriodicFramePeriod(PeriodicFrame.kStatus2, position ? 20 : 65535);
+    motor.setPeriodicFramePeriod(PeriodicFrame.kStatus3, analogSensor ? 20 : 65535);
+    motor.setPeriodicFramePeriod(PeriodicFrame.kStatus4, alternateEncoder ? 20 : 65535);
+    motor.setPeriodicFramePeriod(PeriodicFrame.kStatus5, absoluteEncoderPosition ? 20 : 65535);
+    motor.setPeriodicFramePeriod(PeriodicFrame.kStatus6, absoluteEncoderVelocity ? 20 : 65535);
     // https://docs.revrobotics.com/sparkmax/operating-modes/control-interfaces
   }
 

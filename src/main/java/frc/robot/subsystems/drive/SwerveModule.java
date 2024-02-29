@@ -110,6 +110,9 @@ public class SwerveModule extends SubsystemBase {
     SparkMaxUtil.configurePID(this, driveMotor, DRIVE_MOTOR_PROFILE.kP, DRIVE_MOTOR_PROFILE.kI, DRIVE_MOTOR_PROFILE.kD, 0.0, false);
     SparkMaxUtil.configurePID(this, steerMotor, STEER_MOTOR_PROFILE.kP, STEER_MOTOR_PROFILE.kI, STEER_MOTOR_PROFILE.kD, 0.0, true);
     
+    SparkMaxUtil.configureCANStatusFrames(driveMotor, true, true);
+    SparkMaxUtil.configureCANStatusFrames(steerMotor, false, false);
+
     seedSteerEncoder();
 
     String logPath = "module" + name + "/";
@@ -185,7 +188,7 @@ public class SwerveModule extends SubsystemBase {
   }
   
   public SwerveModuleState getMeasuredState() {
-    return new SwerveModuleState(driveEncoder.getVelocity(), Rotation2d.fromRadians(MathUtil.angleModulus(steerEncoder.getPosition())));
+    return new SwerveModuleState(driveEncoder.getVelocity(), getTrueSteerDirection());
   }
 
   public SwerveModulePosition getModulePosition() {
@@ -306,9 +309,11 @@ public class SwerveModule extends SubsystemBase {
 
   private void doCalibrationPrep() {
     isCalibrating = true;
+    SparkMaxUtil.configureCANStatusFrames(steerMotor, true, true);
   }
 
   private void undoCalibrationPrep() {
     isCalibrating = false;
+    SparkMaxUtil.configureCANStatusFrames(steerMotor, false, false);
   }
 }
