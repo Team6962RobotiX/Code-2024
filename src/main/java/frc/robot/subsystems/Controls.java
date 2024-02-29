@@ -49,8 +49,8 @@ public class Controls {
     driver.y(); // USED
     driver.start().whileTrue(new MoveToNote("limelight-fnote", swerveDrive, driver));
     driver.back().whileTrue(stateController.setState(RobotStateController.State.AIM_SPEAKER));
-    driver.leftBumper();
-    driver.rightBumper();
+    driver.leftBumper().onTrue(Commands.runOnce(() -> swerveDrive.setTargetHeading(Rotation2d.fromDegrees(180.0))));
+    driver.rightBumper().onTrue(Commands.runOnce(() -> swerveDrive.setTargetHeading(Rotation2d.fromDegrees(0.0))));
     driver.leftStick(); // USED
     driver.rightStick(); // USED
     driver.povCenter(); // USED
@@ -66,12 +66,12 @@ public class Controls {
     operator.b();
     operator.x();
     operator.y();
-    operator.start().whileTrue(stateController.setState(RobotStateController.State.PLACE_AMP));
-    operator.back().whileTrue(stateController.setState(RobotStateController.State.LEAVE_AMP));
+    operator.start().whileTrue(stateController.setState(RobotStateController.State.LEAVE_AMP));
+    operator.back();
     operator.leftBumper();
     operator.rightBumper().whileTrue(stateController.setState(RobotStateController.State.INTAKE));
     operator.leftStick().whileTrue(stateController.setState(RobotStateController.State.PREPARE_AMP));
-    operator.rightStick().whileTrue(stateController.setState(RobotStateController.State.PREPARE_SPEAKER));
+    operator.rightStick().whileTrue(stateController.setState(RobotStateController.State.PLACE_AMP));
     operator.povCenter();
     operator.povUp();
     operator.povDown();

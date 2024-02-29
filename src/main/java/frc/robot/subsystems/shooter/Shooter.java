@@ -67,7 +67,7 @@ public class Shooter extends SubsystemBase {
           feedWheels.setState(FeedWheels.State.SHOOT)
         );
       case SHOOT:
-        return feedWheels.setState(FeedWheels.State.SHOOT).withTimeout(1.0);
+        return feedWheels.setState(FeedWheels.State.SHOOT);
     }
     return null;
   }
@@ -128,7 +128,7 @@ public class Shooter extends SubsystemBase {
     Rotation2d newTargetHeading = pointToAimTo.toTranslation2d().minus(swerveDrive.getPose().getTranslation()).getAngle();
     headingVelocity = newTargetHeading.minus(targetHeading).getRadians() / Robot.getLoopTime();
     targetHeading = newTargetHeading;
-    // swerveDrive.setTargetHeading(targetHeading.plus(Rotation2d.fromRadians(headingVelocity * SHOOTER_PIVOT.ROTATION_DELAY)).plus(Rotation2d.fromDegrees(180.0)));
+    swerveDrive.setTargetHeading(targetHeading.plus(Rotation2d.fromRadians(headingVelocity * SHOOTER_PIVOT.ROTATION_DELAY)).plus(Rotation2d.fromDegrees(180.0)));
   }
 
   public ShooterPivot getPivot() {

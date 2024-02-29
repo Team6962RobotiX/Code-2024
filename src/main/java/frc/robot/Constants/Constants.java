@@ -63,11 +63,11 @@ public final class Constants {
     // y is left-to-right
     // z it top-to-bottom
     public static final Map<String, Pose3d> APRILTAG_CAMERA_POSES = Map.of(
-      "limelight_ftag", new Pose3d(Units.inchesToMeters(7.329408), Units.inchesToMeters(-1.0), Units.inchesToMeters(23.530771 + 1.722460), new Rotation3d(0.0, Units.degreesToRadians(24.0), 0.0)),
-      "limelight_btag", new Pose3d(Units.inchesToMeters(2.670592), Units.inchesToMeters(-3.0), Units.inchesToMeters(23.530771 + 1.722460), new Rotation3d(0.0, Units.degreesToRadians(24.0), Units.degreesToRadians(180.0)))
+      "limelight-ftag", new Pose3d(Units.inchesToMeters(7.329408), Units.inchesToMeters(-1.0), Units.inchesToMeters(23.530771 + 1.722460), new Rotation3d(0.0, Units.degreesToRadians(24.0), 0.0)),
+      "limelight-btag", new Pose3d(Units.inchesToMeters(2.670592), Units.inchesToMeters(-3.0), Units.inchesToMeters(23.530771 + 1.722460), new Rotation3d(0.0, Units.degreesToRadians(24.0), Units.degreesToRadians(180.0)))
     );
 
-    public static final String NOTE_CAMERA_NAME = "limelight_fnote";
+    public static final String NOTE_CAMERA_NAME = "limelight-fnote";
 
     public static final Rotation2d NOTE_CAMERA_PITCH = Rotation2d.fromDegrees(0.0);
     // x is forward, y is left, z is up
@@ -177,7 +177,7 @@ public final class Constants {
       public static final double kP                 = 0.00500; // Proportion Gain
       public static final double kI                 = 0.00000; // Integral Gain
       public static final double kD                 = 0.00000; // Derivative Gain
-      public static final double kS                 = 0.081073; // volts 0.081073
+      public static final double kS                 = 0.18000; // volts 0.081073
       public static final double kV                 = 12.0 / PHYSICS.MAX_LINEAR_VELOCITY; // volts per m/s
       public static final double kA                 = 0.10000; // volts per m/s^2, free spinning
     }
@@ -194,9 +194,9 @@ public final class Constants {
 
     // TELEOPERATED
     public static final class ABSOLUTE_ROTATION_GAINS {
-      public static final double kP = 3.0;
+      public static final double kP = 4.0;
       public static final double kI = 0.0;
-      public static final double kD = 0.0;
+      public static final double kD = 0.2;
       public static final Rotation2d TOLERANCE = Rotation2d.fromDegrees(0.5);
     }
     
@@ -276,7 +276,7 @@ public final class Constants {
     public static final double SAFE_TEMPERATURE = 60;
     public static final int SAFE_STALL_CURRENT = 40;
     public static final int SAFE_FREE_CURRENT = 80;
-    public static final double SAFE_RAMP_RATE = 0.05;
+    public static final double SAFE_RAMP_RATE = 0.1;
 
     public static double maxTorqueCurrentLimited(int currentLimit) {
       return STATS.stallTorqueNewtonMeters / STATS.stallCurrentAmps * currentLimit;

@@ -45,9 +45,9 @@ public final class Preferences {
   }
 
   public static final class AMP_PIVOT {
-    public static final Rotation2d MAX_ANGLE = Rotation2d.fromDegrees(75.0);
+    public static final Rotation2d MAX_ANGLE = Rotation2d.fromDegrees(90.0);
     public static final Rotation2d MIN_ANGLE = Rotation2d.fromDegrees(-60.0);
-    public static final Rotation2d OUTPUT_ANGLE = Rotation2d.fromDegrees(70.0);
+    public static final Rotation2d OUTPUT_ANGLE = Rotation2d.fromDegrees(72.0);
     public static final Rotation2d INTAKE_ANGLE = Rotation2d.fromDegrees(-50.0);
   }
 

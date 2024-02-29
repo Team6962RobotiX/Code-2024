@@ -31,11 +31,11 @@ public class AprilTags extends SubsystemBase {
   public static void injectVisionData(Map<String, Pose3d> cameraPoses, SwerveDrive swerveDrive) {
     for (String name : cameraPoses.keySet()) {
       LimelightHelpers.PoseEstimate poseEstimate = LimelightHelpers.getBotPoseEstimate_wpiBlue(name);
-      if (poseEstimate.tagCount >= 2) {
-        Pose3d poseEstimate3d = new Pose3d(poseEstimate.pose);
-        Pose3d robotPose = poseEstimate3d.relativeTo(cameraPoses.get(name));
+      if (poseEstimate.tagCount >= 1) {
+        // Pose3d poseEstimate3d = new Pose3d(poseEstimate.pose);
+        // Pose3d robotPose = poseEstimate3d.relativeTo(cameraPoses.get(name));
         swerveDrive.setVisionMeasurementStdDevs(VecBuilder.fill(0.7, 0.7, Units.degreesToRadians(30.0)));
-        swerveDrive.addVisionMeasurement(robotPose.toPose2d(), poseEstimate.timestampSeconds);
+        swerveDrive.addVisionMeasurement(poseEstimate.pose, poseEstimate.timestampSeconds);
       }
     }
   }
