@@ -20,7 +20,7 @@ public class Transfer extends SubsystemBase {
     SHOOTER,
   }
 
-  public Transfer() {    
+  public Transfer() {
     transferIn = new TransferInWheels();
     transferOut = new TransferOutWheels();
   }

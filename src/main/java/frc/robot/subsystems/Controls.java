@@ -8,6 +8,7 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.Constants.Preferences;
 import frc.robot.Constants.Constants.DEVICES;
 import frc.robot.commands.drive.XBoxSwerve;
+import frc.robot.commands.vision.MoveToNote;
 import frc.robot.subsystems.amp.Amp;
 import frc.robot.subsystems.amp.AmpPivot;
 import frc.robot.subsystems.amp.AmpWheels;
@@ -41,10 +42,12 @@ public class Controls {
     {
 
     driver.a();
+
+
     driver.b();
     driver.x();
     driver.y(); // USED
-    driver.start();
+    driver.start().whileTrue(new MoveToNote("limelight-notes", swerveDrive, driver));
     driver.back().whileTrue(stateController.setState(RobotStateController.State.AIM_SPEAKER));
     driver.leftBumper();
     driver.rightBumper();
