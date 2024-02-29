@@ -74,7 +74,7 @@ import frc.robot.util.software.Logging.StatusChecks;
  */
 public class SwerveDrive extends SubsystemBase {
   public SwerveModule[] modules = new SwerveModule[SWERVE_DRIVE.MODULE_COUNT];
-  private AHRS gyro;
+  private static AHRS gyro;
 
   private SwerveDriveKinematics kinematics = getKinematics();
   private SwerveDrivePoseEstimator poseEstimator;
@@ -522,7 +522,7 @@ public class SwerveDrive extends SubsystemBase {
   /**
    * @return This swerve drive's NavX AHRS IMU Gyro
    */
-  public AHRS getGyro() {
+  public static AHRS getGyro() {
     return gyro;
   }
 
