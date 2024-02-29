@@ -190,7 +190,7 @@ public final class Constants {
 
     public static final class STEER_MOTOR_PROFILE {
       // FROM WPILIB SYSTEM IDENTIFICATION
-      public static final double kP                 = 0.90000; // Proportion Gain
+      public static final double kP                 = 0.50000; // Proportion Gain
       public static final double kI                 = 0.00000; // Integral Gain
       public static final double kD                 = 0.10000; // Derivative Gain
       public static final double kS                 = 0.00000; // volts
@@ -288,7 +288,7 @@ public final class Constants {
     public static final double SAFE_TEMPERATURE = 60;
     public static final int SAFE_STALL_CURRENT = 40;
     public static final int SAFE_FREE_CURRENT = 80;
-    public static final double SAFE_RAMP_RATE = 0.1;
+    public static final double SAFE_RAMP_RATE = 0.05;
 
     public static double maxTorqueCurrentLimited(int currentLimit) {
       return STATS.stallTorqueNewtonMeters / STATS.stallCurrentAmps * currentLimit;

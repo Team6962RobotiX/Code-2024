@@ -67,13 +67,13 @@ public final class SparkMaxUtil {
   }
 
   public static void configureCANStatusFrames(CANSparkMax motor, int CANStatus0, int CANStatus1, int CANStatus2, int CANStatus3, int CANStatus4, int CANStatus5, int CANStatus6) {
-    motor.setPeriodicFramePeriod(PeriodicFrame.kStatus0, CANStatus0);
-    motor.setPeriodicFramePeriod(PeriodicFrame.kStatus1, CANStatus1);
-    motor.setPeriodicFramePeriod(PeriodicFrame.kStatus2, CANStatus2);
-    motor.setPeriodicFramePeriod(PeriodicFrame.kStatus3, CANStatus3);
-    motor.setPeriodicFramePeriod(PeriodicFrame.kStatus4, CANStatus4);
-    motor.setPeriodicFramePeriod(PeriodicFrame.kStatus5, CANStatus5);
-    motor.setPeriodicFramePeriod(PeriodicFrame.kStatus6, CANStatus6);
+    // motor.setPeriodicFramePeriod(PeriodicFrame.kStatus0, CANStatus0);
+    // motor.setPeriodicFramePeriod(PeriodicFrame.kStatus1, CANStatus1);
+    // motor.setPeriodicFramePeriod(PeriodicFrame.kStatus2, CANStatus2);
+    // motor.setPeriodicFramePeriod(PeriodicFrame.kStatus3, CANStatus3);
+    // motor.setPeriodicFramePeriod(PeriodicFrame.kStatus4, CANStatus4);
+    // motor.setPeriodicFramePeriod(PeriodicFrame.kStatus5, CANStatus5);
+    // motor.setPeriodicFramePeriod(PeriodicFrame.kStatus6, CANStatus6);
     // https://docs.revrobotics.com/sparkmax/operating-modes/control-interfaces
   }
 

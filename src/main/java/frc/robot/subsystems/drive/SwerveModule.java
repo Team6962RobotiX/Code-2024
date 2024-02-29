@@ -17,6 +17,7 @@ import com.ctre.phoenix6.signals.AbsoluteSensorRangeValue;
 import com.revrobotics.CANSparkBase.ControlType;
 import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkLowLevel.MotorType;
+
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkPIDController;
@@ -32,6 +33,7 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.Voltage;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -164,9 +166,27 @@ public class SwerveModule extends SubsystemBase {
   }
     
   public void setTargetState(SwerveModuleState state) {
-    targetState = SwerveModuleState.optimize(state, getMeasuredState().angle);
+    targetState = optimize(state, getMeasuredState().angle);
   }
-    
+
+  public static SwerveModuleState optimize(SwerveModuleState desiredState, Rotation2d currentAngle) {
+    double delta = distance(desiredState.angle.getDegrees(), currentAngle.getDegrees());
+    if (Math.abs(delta) > 90.0) {
+      return new SwerveModuleState(
+          -desiredState.speedMetersPerSecond,
+          desiredState.angle.rotateBy(Rotation2d.fromDegrees(180.0)));
+    } else {
+      return new SwerveModuleState(desiredState.speedMetersPerSecond, desiredState.angle);
+    }
+  }
+
+  public static double distance(double alpha, double beta) {
+    double phi = Math.abs(beta - alpha) % 360.0;       // This is either the distance or 360 - distance
+    double distance = phi > 180.0 ? 360.0 - phi : phi;
+    return distance;
+  }
+
+  
   public void stop() {
     targetState = new SwerveModuleState(0.0, getMeasuredState().angle);
     // steerMotor.stopMotor();
