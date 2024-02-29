@@ -1,6 +1,5 @@
 package frc.robot.subsystems.transfer;
 
-import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
 
@@ -29,7 +28,7 @@ public class TransferInWheels extends SubsystemBase {
   public TransferInWheels() {    
     motor = new CANSparkMax(CAN.TRANSFER_IN, MotorType.kBrushless); // TODO
 
-    SparkMaxUtil.configureAndLog(this, motor, false, IdleMode.kBrake);
+    SparkMaxUtil.configureAndLog(this, motor, false, CANSparkMax.IdleMode.kBrake);
     SparkMaxUtil.save(motor);
 
     // detector = new NoteDetector(motor, Constants.TRANSFER.INTAKE_GEARING, Constants.TRANSFER.FREE_TORQUE, false);

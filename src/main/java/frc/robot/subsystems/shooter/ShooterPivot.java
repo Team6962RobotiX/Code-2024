@@ -8,7 +8,6 @@ import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.Volts;
 
-import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
 
@@ -37,7 +36,7 @@ public class ShooterPivot extends SubsystemBase {
   public ShooterPivot() {    
     motor = new CANSparkMax(CAN.SHOOTER_PIVOT, MotorType.kBrushless);
 
-    SparkMaxUtil.configureAndLog(this, motor, false, IdleMode.kBrake); // TODO CHANGE TO BRAKE
+    SparkMaxUtil.configureAndLog(this, motor, false, CANSparkMax.IdleMode.kBrake); // TODO CHANGE TO BRAKE
     SparkMaxUtil.save(motor);
 
     controller = new PivotController(

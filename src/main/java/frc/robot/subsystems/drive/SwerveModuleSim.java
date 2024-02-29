@@ -12,6 +12,7 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.system.plant.LinearSystemId;
 import edu.wpi.first.wpilibj.simulation.FlywheelSim;
+import frc.robot.Robot;
 import frc.robot.Constants.Constants.LOGGING;
 import frc.robot.Constants.Constants.NEO;
 import frc.robot.Constants.Constants.SWERVE_DRIVE;
@@ -81,7 +82,7 @@ public class SwerveModuleSim extends SwerveModule {
       speedMetersPerSecond *= Math.cos(SwerveMath.angleDistance(getMeasuredState().angle.getRadians(), getMeasuredState().angle.getRadians()));
     }
 
-    double wheelAcceleration = (speedMetersPerSecond - lastDrivenState.speedMetersPerSecond) / 0.02;
+    double wheelAcceleration = (speedMetersPerSecond - lastDrivenState.speedMetersPerSecond) / Robot.getLoopTime();
 
     for (int i = 0; i < 20; i++) {
       double driveVolts = driveFF.calculate(speedMetersPerSecond, 0.0) + 12.0 * drivePID.calculate(getMeasuredState().speedMetersPerSecond, speedMetersPerSecond);
@@ -89,7 +90,7 @@ public class SwerveModuleSim extends SwerveModule {
       
       driveVoltRamp += (MathUtil.clamp(driveVolts - driveVoltRamp, -12.0 / NEO.SAFE_RAMP_RATE / 1000.0, 12.0 / NEO.SAFE_RAMP_RATE / 1000.0));
       driveVolts = driveVoltRamp;
-
+      
       steerVoltRamp += (MathUtil.clamp(steerVolts - steerVoltRamp, -12.0 / NEO.SAFE_RAMP_RATE / 1000.0, 12.0 / NEO.SAFE_RAMP_RATE / 1000.0));
       steerVolts = steerVoltRamp;
 
@@ -115,8 +116,8 @@ public class SwerveModuleSim extends SwerveModule {
   @Override
   public double getTotalCurrent() {
     return 
-      MathUtil.clamp(driveMotor.getCurrentDrawAmps(), -SWERVE_DRIVE.DRIVE_MOTOR_PROFILE.CURRENT_LIMIT, SWERVE_DRIVE.DRIVE_MOTOR_PROFILE.CURRENT_LIMIT) + 
-      MathUtil.clamp(steerMotor.getCurrentDrawAmps(), -SWERVE_DRIVE.STEER_MOTOR_PROFILE.CURRENT_LIMIT, SWERVE_DRIVE.STEER_MOTOR_PROFILE.CURRENT_LIMIT);
+      driveMotor.getCurrentDrawAmps() + 
+      steerMotor.getCurrentDrawAmps();
   }
   
   @Override

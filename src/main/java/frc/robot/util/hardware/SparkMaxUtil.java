@@ -2,7 +2,6 @@ package frc.robot.util.hardware;
 
 import java.util.function.Supplier;
 
-import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkLowLevel.PeriodicFrame;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.REVLibError;
@@ -18,11 +17,11 @@ import frc.robot.util.software.Logging.Logger;
 import frc.robot.util.software.Logging.StatusChecks;
 
 public final class SparkMaxUtil {
-  public static void configureAndLog(SubsystemBase subsystem, CANSparkMax motor, boolean inverted, IdleMode idleMode) {
+  public static void configureAndLog(SubsystemBase subsystem, CANSparkMax motor, boolean inverted, CANSparkMax.IdleMode idleMode) {
     configureAndLog(subsystem, motor, inverted, idleMode, NEO.SAFE_FREE_CURRENT, NEO.SAFE_STALL_CURRENT);
   }
 
-  public static void configureAndLog(SubsystemBase subsystem, CANSparkMax motor, boolean inverted, IdleMode idleMode, int freeCurrentLimit, int stallCurrentLimit) {
+  public static void configureAndLog(SubsystemBase subsystem, CANSparkMax motor, boolean inverted, CANSparkMax.IdleMode idleMode, int freeCurrentLimit, int stallCurrentLimit) {
     configure(() -> motor.restoreFactoryDefaults(), motor);
     configure(() -> motor.setIdleMode(idleMode), motor);
     configure(() -> motor.enableVoltageCompensation(12.0), motor);
@@ -62,7 +61,7 @@ public final class SparkMaxUtil {
     DriverStation.reportError("Failure configuring spark max " + motor.getDeviceId() + "\n" + "Error: " + config.get().toString(), false);
   }
 
-  public static void configureAndLog550(SubsystemBase subsystem, CANSparkMax motor, boolean inverted, IdleMode idleMode) {
+  public static void configureAndLog550(SubsystemBase subsystem, CANSparkMax motor, boolean inverted, CANSparkMax.IdleMode idleMode) {
     configureAndLog(subsystem, motor, inverted, idleMode, 10, 40);
   }
 

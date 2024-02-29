@@ -7,7 +7,6 @@ package frc.robot.subsystems.hang;
 import com.kauailabs.navx.frc.AHRS;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
-import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 
 import edu.wpi.first.wpilibj.RobotState;
@@ -46,12 +45,12 @@ public class Hang extends SubsystemBase {
 
     leftMotor = new CANSparkMax(CAN.LEFT_MOTOR, MotorType.kBrushless); // TODO
     //todo: figure out which motor is inverted and confugire it as so
-    SparkMaxUtil.configureAndLog(this, leftMotor, false, IdleMode.kBrake);
+    SparkMaxUtil.configureAndLog(this, leftMotor, false, CANSparkMax.IdleMode.kBrake);
     SparkMaxUtil.save(leftMotor);
 
     rightMotor = new CANSparkMax(CAN.RIGHT_MOTOR, MotorType.kBrushless); // TODO
     
-    SparkMaxUtil.configureAndLog(this, rightMotor, false, IdleMode.kBrake);
+    SparkMaxUtil.configureAndLog(this, rightMotor, false, CANSparkMax.IdleMode.kBrake);
     SparkMaxUtil.save(rightMotor);   
 
     leftEncoder = leftMotor.getEncoder();

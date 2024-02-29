@@ -10,6 +10,7 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.RobotState;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Robot;
 import frc.robot.Constants.Constants;
 import frc.robot.Constants.Field;
 import frc.robot.Constants.Preferences;
@@ -56,7 +57,7 @@ public class NoteDetector extends SubsystemBase {
     }
 
     if (delayCounter <= delay) {
-      delayCounter += 0.02;
+      delayCounter += Robot.getLoopTime();
       filter.reset();
       return;
     }

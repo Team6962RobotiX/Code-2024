@@ -50,6 +50,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Robot;
 import frc.robot.Constants.Constants;
 import frc.robot.Constants.Constants.ENABLED_SYSTEMS;
 import frc.robot.Constants.Constants.LIMELIGHT;
@@ -225,7 +226,7 @@ public class SwerveDrive extends SubsystemBase {
     if (gyro.isConnected() && !RobotBase.isSimulation()) {
       gyroHeading = gyro.getRotation2d();
     } else {
-      gyroHeading = gyroHeading.plus(new Rotation2d(getMeasuredChassisSpeeds().omegaRadiansPerSecond * 0.02));
+      gyroHeading = gyroHeading.plus(new Rotation2d(getMeasuredChassisSpeeds().omegaRadiansPerSecond * Robot.getLoopTime()));
     }
 
     // Update pose based on measured heading and swerve module positions
@@ -318,13 +319,13 @@ public class SwerveDrive extends SubsystemBase {
     // Limit translational acceleration
     Translation2d targetLinearVelocity = new Translation2d(fieldRelativeSpeeds.vxMetersPerSecond, fieldRelativeSpeeds.vyMetersPerSecond);
     Translation2d currentLinearVelocity = new Translation2d(drivenChassisSpeeds.vxMetersPerSecond, drivenChassisSpeeds.vyMetersPerSecond);
-    Translation2d linearAcceleration = (targetLinearVelocity).minus(currentLinearVelocity).div(0.02);
+    Translation2d linearAcceleration = (targetLinearVelocity).minus(currentLinearVelocity).div(Robot.getLoopTime());
     double linearForce = linearAcceleration.getNorm() * SWERVE_DRIVE.ROBOT_MASS;
 
      // Limit rotational acceleration
     double targetAngularVelocity = fieldRelativeSpeeds.omegaRadiansPerSecond;
     double currentAngularVelocity = drivenChassisSpeeds.omegaRadiansPerSecond;
-    double angularAcceleration = (targetAngularVelocity - currentAngularVelocity) / 0.02;
+    double angularAcceleration = (targetAngularVelocity - currentAngularVelocity) / Robot.getLoopTime();
     double angularForce = Math.abs((SWERVE_DRIVE.PHYSICS.ROTATIONAL_INERTIA * angularAcceleration) / SWERVE_DRIVE.PHYSICS.DRIVE_RADIUS);
 
     double frictionForce = 9.80 * SWERVE_DRIVE.ROBOT_MASS * SWERVE_DRIVE.FRICTION_COEFFICIENT;
@@ -335,8 +336,8 @@ public class SwerveDrive extends SubsystemBase {
       angularAcceleration /= factor;
     }
 
-    Translation2d attainableLinearVelocity = currentLinearVelocity.plus(linearAcceleration.times(0.02));
-    double attainableAngularVelocity = currentAngularVelocity + (angularAcceleration * 0.02);
+    Translation2d attainableLinearVelocity = currentLinearVelocity.plus(linearAcceleration.times(Robot.getLoopTime()));
+    double attainableAngularVelocity = currentAngularVelocity + (angularAcceleration * Robot.getLoopTime());
 
     drivenChassisSpeeds = new ChassisSpeeds(attainableLinearVelocity.getX(), attainableLinearVelocity.getY(), attainableAngularVelocity);
 

@@ -1,10 +1,8 @@
 package frc.robot.util.hardware.MotionControl;
 
-import com.revrobotics.CANSparkBase;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkPIDController;
-import com.revrobotics.CANSparkBase.ControlType;
 import com.revrobotics.SparkPIDController.ArbFFUnits;
 
 import edu.wpi.first.math.controller.ArmFeedforward;
@@ -104,7 +102,7 @@ public class PivotController {
     // State targetState = new State(targetAngle.getRadians(), 0.0);
 
 
-    // setpointState = profile.calculate(0.02, setpointState, targetState);
+    // setpointState = profile.calculate(Robot.getLoopTime(), setpointState, targetState);
 
     // Set onboard PID controller to follow    
     pid.setReference(

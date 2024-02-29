@@ -14,14 +14,11 @@ import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.configs.MagnetSensorConfigs;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.signals.AbsoluteSensorRangeValue;
-import com.revrobotics.CANSparkBase.ControlType;
-import com.revrobotics.CANSparkBase.IdleMode;
+import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 
-import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkPIDController;
-import com.revrobotics.SparkPIDController.ArbFFUnits;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
@@ -33,15 +30,12 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.Voltage;
-import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants.Constants;
 import frc.robot.Constants.Constants.ENABLED_SYSTEMS;
-import frc.robot.Constants.Constants.LOGGING;
-import frc.robot.Constants.Constants.NEO;
 import frc.robot.Constants.Constants.SWERVE_DRIVE;
 import frc.robot.Constants.Constants.SWERVE_DRIVE.DRIVE_MOTOR_PROFILE;
 import frc.robot.Constants.Constants.SWERVE_DRIVE.MODULE_CONFIG;
@@ -57,7 +51,6 @@ public class SwerveModule extends SubsystemBase {
   private CANcoder absoluteSteerEncoder;
   private SparkPIDController drivePID, steerPID;
   private SwerveModuleState targetState = new SwerveModuleState();
-  private SwerveModuleState lastDrivenState = new SwerveModuleState();
   private MODULE_CONFIG config;
   private String name;
   private int corner;
@@ -109,11 +102,11 @@ public class SwerveModule extends SubsystemBase {
     BaseStatusSignal.setUpdateFrequencyForAll(50, absoluteSteerEncoder.getAbsolutePosition(), absoluteSteerEncoder.getFaultField(), absoluteSteerEncoder.getVersion());
     absoluteSteerEncoder.optimizeBusUtilization();
 
-    SparkMaxUtil.configureAndLog(this, driveMotor, false, IdleMode.kBrake);
-    SparkMaxUtil.configureAndLog(this, steerMotor, true, IdleMode.kCoast);
+    SparkMaxUtil.configureAndLog(this, driveMotor, false, CANSparkMax.IdleMode.kBrake);
+    SparkMaxUtil.configureAndLog(this, steerMotor, true, CANSparkMax.IdleMode.kCoast);
     SparkMaxUtil.configureEncoder(driveMotor, SWERVE_DRIVE.DRIVE_ENCODER_CONVERSION_FACTOR);
     SparkMaxUtil.configureEncoder(steerMotor, SWERVE_DRIVE.STEER_ENCODER_CONVERSION_FACTOR);
-    SparkMaxUtil.configurePID(this, driveMotor, DRIVE_MOTOR_PROFILE.kP, DRIVE_MOTOR_PROFILE.kI, DRIVE_MOTOR_PROFILE.kD, DRIVE_MOTOR_PROFILE.kV, false);
+    SparkMaxUtil.configurePID(this, driveMotor, DRIVE_MOTOR_PROFILE.kP, DRIVE_MOTOR_PROFILE.kI, DRIVE_MOTOR_PROFILE.kD, 0.0, false);
     SparkMaxUtil.configurePID(this, steerMotor, STEER_MOTOR_PROFILE.kP, STEER_MOTOR_PROFILE.kI, STEER_MOTOR_PROFILE.kD, 0.0, true);
     
     seedSteerEncoder();
@@ -152,40 +145,20 @@ public class SwerveModule extends SubsystemBase {
     
     drivePID.setReference(
       speedMetersPerSecond,
-      ControlType.kVelocity, 
-      0
+      CANSparkMax.ControlType.kVelocity,
+      0,
+      driveFF.calculate(speedMetersPerSecond)
     );
     
     steerPID.setReference(
       radians,
-      ControlType.kPosition,
-      0
+      CANSparkMax.ControlType.kPosition
     );
-
-    lastDrivenState = new SwerveModuleState(speedMetersPerSecond, Rotation2d.fromRadians(radians));
   }
     
   public void setTargetState(SwerveModuleState state) {
-    targetState = optimize(state, getMeasuredState().angle);
+    targetState = SwerveModuleState.optimize(state, getMeasuredState().angle);
   }
-
-  public static SwerveModuleState optimize(SwerveModuleState desiredState, Rotation2d currentAngle) {
-    double delta = distance(desiredState.angle.getDegrees(), currentAngle.getDegrees());
-    if (Math.abs(delta) > 90.0) {
-      return new SwerveModuleState(
-          -desiredState.speedMetersPerSecond,
-          desiredState.angle.rotateBy(Rotation2d.fromDegrees(180.0)));
-    } else {
-      return new SwerveModuleState(desiredState.speedMetersPerSecond, desiredState.angle);
-    }
-  }
-
-  public static double distance(double alpha, double beta) {
-    double phi = Math.abs(beta - alpha) % 360.0;       // This is either the distance or 360 - distance
-    double distance = phi > 180.0 ? 360.0 - phi : phi;
-    return distance;
-  }
-
   
   public void stop() {
     targetState = new SwerveModuleState(0.0, getMeasuredState().angle);
@@ -331,14 +304,10 @@ public class SwerveModule extends SubsystemBase {
   }
 
   private void doCalibrationPrep() {
-    driveMotor.setSmartCurrentLimit(NEO.SAFE_STALL_CURRENT, NEO.SAFE_STALL_CURRENT);
-    steerMotor.setSmartCurrentLimit(NEO.SAFE_STALL_CURRENT, NEO.SAFE_STALL_CURRENT);
     isCalibrating = true;
   }
 
   private void undoCalibrationPrep() {
-    driveMotor.setSmartCurrentLimit(Math.min(DRIVE_MOTOR_PROFILE.CURRENT_LIMIT, NEO.SAFE_STALL_CURRENT), DRIVE_MOTOR_PROFILE.CURRENT_LIMIT);
-    steerMotor.setSmartCurrentLimit(Math.min(STEER_MOTOR_PROFILE.CURRENT_LIMIT, NEO.SAFE_STALL_CURRENT), STEER_MOTOR_PROFILE.CURRENT_LIMIT);
     isCalibrating = false;
   }
 }

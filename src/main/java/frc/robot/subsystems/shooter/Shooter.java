@@ -126,7 +126,7 @@ public class Shooter extends SubsystemBase {
 
   public void orientToPointDelayCompensated(Translation3d pointToAimTo) {
     Rotation2d newTargetHeading = pointToAimTo.toTranslation2d().minus(swerveDrive.getPose().getTranslation()).getAngle();
-    headingVelocity = newTargetHeading.minus(targetHeading).getRadians() / 0.02;
+    headingVelocity = newTargetHeading.minus(targetHeading).getRadians() / Robot.getLoopTime();
     targetHeading = newTargetHeading;
     // swerveDrive.setTargetHeading(targetHeading.plus(Rotation2d.fromRadians(headingVelocity * SHOOTER_PIVOT.ROTATION_DELAY)).plus(Rotation2d.fromDegrees(180.0)));
   }

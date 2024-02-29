@@ -4,7 +4,6 @@
 
 package frc.robot.subsystems.amp;
 
-import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
 
@@ -35,7 +34,7 @@ public class AmpWheels extends SubsystemBase {
   public AmpWheels() {
     motor = new CANSparkMax(CAN.AMP_WHEELS, MotorType.kBrushless);
 
-    SparkMaxUtil.configureAndLog(this, motor, true, IdleMode.kBrake);
+    SparkMaxUtil.configureAndLog(this, motor, true, CANSparkMax.IdleMode.kBrake);
     SparkMaxUtil.save(motor);
 
     // detector = new NoteDetector(motor, Constants.AMP_WHEELS.GEARING, Constants.AMP_WHEELS.FREE_TORQUE, true);

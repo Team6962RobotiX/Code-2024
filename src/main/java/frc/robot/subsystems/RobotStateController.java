@@ -93,6 +93,6 @@ public class RobotStateController extends SubsystemBase {
 
   @Override
   public void periodic() {
-    System.out.println(beamBreakSensor.get());
+
   }
 }

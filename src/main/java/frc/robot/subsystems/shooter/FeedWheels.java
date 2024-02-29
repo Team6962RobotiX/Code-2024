@@ -4,7 +4,6 @@
 
 package frc.robot.subsystems.shooter;
 
-import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
 
@@ -35,7 +34,7 @@ public class FeedWheels extends SubsystemBase {
   public FeedWheels() {
     motor = new CANSparkMax(CAN.SHOOTER_FEED, MotorType.kBrushless);
 
-    SparkMaxUtil.configureAndLog(this, motor, true, IdleMode.kCoast);
+    SparkMaxUtil.configureAndLog(this, motor, true, CANSparkMax.IdleMode.kCoast);
     SparkMaxUtil.save(motor);
 
     // detector = new NoteDetector(motor, Constants.SHOOTER_FEED.GEARING, Constants.SHOOTER_FEED.FREE_TORQUE, false);
