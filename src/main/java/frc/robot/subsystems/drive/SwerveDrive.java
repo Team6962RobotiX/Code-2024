@@ -23,6 +23,7 @@ import com.pathplanner.lib.util.PIDConstants;
 import com.pathplanner.lib.util.PathPlannerLogging;
 import com.pathplanner.lib.util.ReplanningConfig;
 
+import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
@@ -33,6 +34,8 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.numbers.N1;
+import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -227,7 +230,7 @@ public class SwerveDrive extends SubsystemBase {
 
     // Update pose based on measured heading and swerve module positions
     poseEstimator.update(gyroHeading.plus(gyroOffset), getModulePositions());
-    AprilTags.injectVisionData(LIMELIGHT.APRILTAG_CAMERA_NAMES, this);
+    AprilTags.injectVisionData(LIMELIGHT.APRILTAG_CAMERA_POSES, this);
     
     // Update field
     FieldObject2d modulesObject = field.getObject("Swerve Modules");
@@ -427,6 +430,10 @@ public class SwerveDrive extends SubsystemBase {
    */
   public void addVisionMeasurement(Pose2d visionMeasurement, double timestamp) {
     poseEstimator.addVisionMeasurement(visionMeasurement, timestamp);
+  }
+
+  public void setVisionMeasurementStdDevs(Matrix<N3,N1> visionMeasurementStdDevs) {
+    poseEstimator.setVisionMeasurementStdDevs(visionMeasurementStdDevs);
   }
 
   /**

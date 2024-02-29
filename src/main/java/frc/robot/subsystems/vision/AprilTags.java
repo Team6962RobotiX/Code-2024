@@ -9,10 +9,12 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
+import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.Timer;
@@ -26,11 +28,14 @@ import frc.robot.util.software.LimelightHelpers.Results;
 
 
 public class AprilTags extends SubsystemBase {
-  public static void injectVisionData(String[] names, SwerveDrive swerveDrive) {
-    for (String name : names) {
+  public static void injectVisionData(Map<String, Pose3d> poses, SwerveDrive swerveDrive) {
+    for (String name : poses.keySet()) {
       LimelightHelpers.PoseEstimate poseEstimate = LimelightHelpers.getBotPoseEstimate_wpiBlue(name);
       if (poseEstimate.tagCount >= 2) {
-        swerveDrive.addVisionMeasurement(poseEstimate.pose, poseEstimate.timestampSeconds);
+        Pose3d poseEstimate3d = new Pose3d(poseEstimate.pose);
+        Pose3d robotPose = poseEstimate3d.relativeTo(poses.get(name));
+        swerveDrive.setVisionMeasurementStdDevs(VecBuilder.fill(0.7, 0.7, Units.degreesToRadians(30.0)));
+        swerveDrive.addVisionMeasurement(robotPose.toPose2d(), poseEstimate.timestampSeconds);
       }
     }
   }

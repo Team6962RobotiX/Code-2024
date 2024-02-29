@@ -3,10 +3,15 @@
 // the WPILib BSD license file in the root directory of this project.
 package frc.robot.Constants;
 
+import java.util.Map;
+
 import com.pathplanner.lib.path.PathConstraints;
 
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.util.Units;
@@ -54,8 +59,15 @@ public final class Constants {
 
   // LIMELIGHT
   public static final class LIMELIGHT {
-    public static final String[] APRILTAG_CAMERA_NAMES = {"limelight_apriltags_1", "limelight_apriltags_2"};
-    public static final String NOTE_CAMERA_NAME = "limelight_notes";
+    // x is front-to-back
+    // y is left-to-right
+    // z it top-to-bottom
+    public static final Map<String, Pose3d> APRILTAG_CAMERA_POSES = Map.of(
+      "limelight_ftag", new Pose3d(Units.inchesToMeters(7.329408), Units.inchesToMeters(-1.0), Units.inchesToMeters(23.530771 + 1.722460), new Rotation3d(0.0, Units.degreesToRadians(24.0), 0.0)),
+      "limelight_btag", new Pose3d(Units.inchesToMeters(2.670592), Units.inchesToMeters(-3.0), Units.inchesToMeters(23.530771 + 1.722460), new Rotation3d(0.0, Units.degreesToRadians(24.0), Units.degreesToRadians(180.0)))
+    );
+
+    public static final String NOTE_CAMERA_NAME = "limelight_fnote";
 
     public static final Rotation2d NOTE_CAMERA_PITCH = Rotation2d.fromDegrees(0.0);
     // x is forward, y is left, z is up
