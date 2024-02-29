@@ -7,13 +7,16 @@ import com.revrobotics.SparkPIDController.ArbFFUnits;
 
 import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.State;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.Constants;
+import frc.robot.Constants.Constants.AMP_PIVOT;
 import frc.robot.Constants.Constants.LOGGING;
 import frc.robot.Constants.Constants.NEO;
 import frc.robot.util.hardware.SparkMaxUtil;
@@ -50,6 +53,9 @@ public class PivotController {
 
   private SubsystemBase subsystem;
 
+  private Debouncer debouncer = new Debouncer(0.1);
+
+
   public PivotController(SubsystemBase subsystem, CANSparkMax motor, int absoluteEncoderDIO, double absolutePositionOffset, double kP, double gearing, double maxAcceleration, Rotation2d minAngle, Rotation2d maxAngle, boolean reversed) {
     this(subsystem, motor, absoluteEncoderDIO, absolutePositionOffset, kP, 0.0, 0.0, 0.0, 0.0, 12.0 / (NEO.STATS.freeSpeedRadPerSec / gearing), 0.0, gearing, NEO.STATS.freeSpeedRadPerSec / gearing, maxAcceleration, minAngle, maxAngle, reversed);
   }
@@ -75,7 +81,7 @@ public class PivotController {
     SparkMaxUtil.configurePID(subsystem, motor, kP, kI, kD, 0.0, true);
     
     Logger.autoLog(subsystem, "targetPosition",                   () -> getTargetAngle().getRadians());
-    Logger.autoLog(subsystem, "absolutePosition",                 () -> getAbsolutePosition().getRadians());
+    Logger.autoLog(subsystem, "position",                         () -> getPosition().getRadians());
     Logger.autoLog(subsystem, "rawAbsolutePosition",              () -> absoluteEncoder.getAbsolutePosition());
 
     StatusChecks.addCheck(subsystem, "absoluteEncoderConnected", () -> absoluteEncoder.isConnected());
@@ -92,7 +98,9 @@ public class PivotController {
     // System.out.println(getPosition().getDegrees());
 
     // Re-seed the relative encoder with the absolute encoder when not moving
-    encoder.setPosition(getAbsolutePosition().getRadians());
+    if (doneMoving()) {
+      encoder.setPosition(getPosition().getRadians());
+    }
     
     // if (setpointState == null) {
     //   setpointState = new State(getAbsolutePosition().getRadians(), getVelocity().getRadians());
@@ -113,14 +121,13 @@ public class PivotController {
 
     // System.out.println(feedforward.calculate(setpointState.position, setpointState.velocity));
 
-    if (motor.getAppliedOutput() > 0.0 && getAbsolutePosition().getRadians() > maxAngle.getRadians()) {
+    if (motor.getAppliedOutput() > 0.0 && getPosition().getRadians() > maxAngle.getRadians()) {
       motor.stopMotor();
     }
 
-    if (motor.getAppliedOutput() < 0.0 && getAbsolutePosition().getRadians() < minAngle.getRadians()) {
+    if (motor.getAppliedOutput() < 0.0 && getPosition().getRadians() < minAngle.getRadians()) {
       motor.stopMotor();
     }
-
   }
 
   public void setTargetAngle(Rotation2d angle) {
@@ -141,7 +148,7 @@ public class PivotController {
     return encoder.getPosition() > maxAngle.getRadians() || encoder.getPosition() < minAngle.getRadians();
   }
 
-  public Rotation2d getAbsolutePosition() {
+  public Rotation2d getPosition() {
     double factor = 1;
     if (reversed) {
       factor = -1;
@@ -159,11 +166,8 @@ public class PivotController {
     return Rotation2d.fromRadians(absoluteAngle);
   }
 
-  public Rotation2d getPosition() {
-    return Rotation2d.fromRadians(encoder.getPosition());
-  }
-
-  public Rotation2d getVelocity() {
-    return Rotation2d.fromRadians(encoder.getVelocity());
+  public boolean doneMoving() {
+    if (getTargetAngle() == null) return true;
+    return debouncer.calculate(Math.abs(getPosition().getRadians() - getTargetAngle().getRadians()) < Units.degreesToRadians(1.0));
   }
 }

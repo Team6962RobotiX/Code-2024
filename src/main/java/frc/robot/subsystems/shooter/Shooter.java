@@ -19,6 +19,7 @@ import frc.robot.Constants.Field;
 import frc.robot.Constants.Preferences;
 import frc.robot.subsystems.Controls;
 import frc.robot.subsystems.drive.SwerveDrive;
+import frc.robot.util.software.Logging.Logger;
 
 public class Shooter extends SubsystemBase {
   private SwerveDrive swerveDrive;
@@ -41,6 +42,8 @@ public class Shooter extends SubsystemBase {
     this.shooterPivot = new ShooterPivot();
     this.swerveDrive = swerveDrive;
     this.feedWheels = new FeedWheels();
+    
+    Logger.autoLog(this, "Shot Chance", () -> getShotChance());
   }
 
   @Override
@@ -56,7 +59,6 @@ public class Shooter extends SubsystemBase {
         );
       case AIM:
         return Commands.parallel(
-          Controls.rumble().repeatedly(),
           aim(Field.SPEAKER)
           // shooterWheels.setTargetVelocity(Preferences.SHOOTER_WHEELS.TARGET_SPEED),
           // feedWheels.setState(FeedWheels.State.SHOOT)
@@ -102,7 +104,7 @@ public class Shooter extends SubsystemBase {
         swerveDrive.getPose(),
         shooterWheels.getVelocity()
       ));
-    });
+    }).alongWith(Controls.rumble().repeatedly().onlyIf(() -> getShotChance() == 1.0));
   }
 
   public boolean doneMoving() {

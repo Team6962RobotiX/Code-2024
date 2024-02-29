@@ -11,6 +11,7 @@ import static edu.wpi.first.units.Units.Volts;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
 
+import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.Voltage;
@@ -37,7 +38,7 @@ public class ShooterPivot extends SubsystemBase {
     motor = new CANSparkMax(CAN.SHOOTER_PIVOT, MotorType.kBrushless);
 
     SparkMaxUtil.configureAndLog(this, motor, false, CANSparkMax.IdleMode.kBrake); // TODO CHANGE TO BRAKE
-    SparkMaxUtil.configureCANStatusFrames(motor, true, true);
+    SparkMaxUtil.configureCANStatusFrames(motor, false, false);
     SparkMaxUtil.save(motor);
 
     controller = new PivotController(
@@ -61,7 +62,7 @@ public class ShooterPivot extends SubsystemBase {
     if (!ENABLED_SYSTEMS.ENABLE_SHOOTER) return;
     if (isCalibrating) return;
     if (RobotState.isDisabled()) {
-      controller.setTargetAngle(controller.getAbsolutePosition());
+      controller.setTargetAngle(controller.getPosition());
     }
 
     if (doneMoving()) return;
@@ -84,42 +85,41 @@ public class ShooterPivot extends SubsystemBase {
   }
 
   public boolean doneMoving() {
-    if (controller.getTargetAngle() == null) return true;
-    return Math.abs(getPosition().minus(controller.getTargetAngle()).getRadians()) < SHOOTER_PIVOT.ANGLE_TOLERANCE.getRadians();
+    return controller.doneMoving();
   }
 
-  public Command calibrate() {
-    SysIdRoutine calibrationRoutine = new SysIdRoutine(
-      new SysIdRoutine.Config(),
-      new SysIdRoutine.Mechanism(
-        (Measure<Voltage> volts) -> {
-          motor.setVoltage(volts.in(Volts));
-        },
-        log -> {
-          log.motor("shooter-pivot")
-            .voltage(Volts.of(motor.getAppliedOutput() * motor.getBusVoltage()))
-            .angularPosition(Radians.of(controller.getPosition().getRadians()))
-            .angularVelocity(RadiansPerSecond.of(controller.getVelocity().getRadians()));
-        },
-        this
-      )
-    );
+  // public Command calibrate() {
+  //   SysIdRoutine calibrationRoutine = new SysIdRoutine(
+  //     new SysIdRoutine.Config(),
+  //     new SysIdRoutine.Mechanism(
+  //       (Measure<Voltage> volts) -> {
+  //         motor.setVoltage(volts.in(Volts));
+  //       },
+  //       log -> {
+  //         log.motor("shooter-pivot")
+  //           .voltage(Volts.of(motor.getAppliedOutput() * motor.getBusVoltage()))
+  //           .angularPosition(Radians.of(controller.getPosition().getRadians()))
+  //           .angularVelocity(RadiansPerSecond.of(controller.getVelocity().getRadians()));
+  //       },
+  //       this
+  //     )
+  //   );
 
-    return Commands.sequence(
-      Commands.runOnce(() -> isCalibrating = true),
-      calibrationRoutine.quasistatic(SysIdRoutine.Direction.kForward).until(controller::isPastLimit),
-      Commands.runOnce(() -> motor.stopMotor()),
-      Commands.waitSeconds(1.0),
-      calibrationRoutine.quasistatic(SysIdRoutine.Direction.kReverse).until(controller::isPastLimit),
-      Commands.runOnce(() -> motor.stopMotor()),
-      Commands.waitSeconds(1.0),
-      calibrationRoutine.dynamic(SysIdRoutine.Direction.kForward).until(controller::isPastLimit),
-      Commands.runOnce(() -> motor.stopMotor()),
-      Commands.waitSeconds(1.0),
-      calibrationRoutine.dynamic(SysIdRoutine.Direction.kReverse).until(controller::isPastLimit),
-      Commands.runOnce(() -> motor.stopMotor()),
-      Commands.waitSeconds(1.0),
-      Commands.runOnce(() -> isCalibrating = false)
-    );
-  }
+  //   return Commands.sequence(
+  //     Commands.runOnce(() -> isCalibrating = true),
+  //     calibrationRoutine.quasistatic(SysIdRoutine.Direction.kForward).until(controller::isPastLimit),
+  //     Commands.runOnce(() -> motor.stopMotor()),
+  //     Commands.waitSeconds(1.0),
+  //     calibrationRoutine.quasistatic(SysIdRoutine.Direction.kReverse).until(controller::isPastLimit),
+  //     Commands.runOnce(() -> motor.stopMotor()),
+  //     Commands.waitSeconds(1.0),
+  //     calibrationRoutine.dynamic(SysIdRoutine.Direction.kForward).until(controller::isPastLimit),
+  //     Commands.runOnce(() -> motor.stopMotor()),
+  //     Commands.waitSeconds(1.0),
+  //     calibrationRoutine.dynamic(SysIdRoutine.Direction.kReverse).until(controller::isPastLimit),
+  //     Commands.runOnce(() -> motor.stopMotor()),
+  //     Commands.waitSeconds(1.0),
+  //     Commands.runOnce(() -> isCalibrating = false)
+  //   );
+  // }
 }

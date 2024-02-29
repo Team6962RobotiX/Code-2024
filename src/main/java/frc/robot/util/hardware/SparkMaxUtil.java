@@ -10,7 +10,6 @@ import com.revrobotics.SparkPIDController;
 
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Constants.Constants.LOGGING;
 import frc.robot.Constants.Constants.NEO;
 import frc.robot.util.TunableNumber;
 import frc.robot.util.software.Logging.Logger;
@@ -25,7 +24,7 @@ public final class SparkMaxUtil {
     configure(() -> motor.restoreFactoryDefaults(), motor);
     configure(() -> motor.setIdleMode(idleMode), motor);
     configure(() -> motor.enableVoltageCompensation(12.0), motor);
-    configure(() -> motor.setSmartCurrentLimit(Math.min(stallCurrentLimit, NEO.SAFE_STALL_CURRENT), Math.min(freeCurrentLimit, NEO.SAFE_FREE_CURRENT)), motor);
+    configure(() -> motor.setSmartCurrentLimit(stallCurrentLimit, freeCurrentLimit), motor);
     configure(() -> motor.setClosedLoopRampRate(NEO.SAFE_RAMP_RATE), motor);
     configure(() -> motor.setOpenLoopRampRate(NEO.SAFE_RAMP_RATE), motor);
     motor.setInverted(inverted);
@@ -34,17 +33,16 @@ public final class SparkMaxUtil {
     
     String logPath = "motor" + motor.getDeviceId() + "/";
 
-    Logger.autoLog(subsystem, logPath + "current",                 () -> motor.getOutputCurrent());
-    Logger.autoLog(subsystem, logPath + "voltage",                 () -> motor.getBusVoltage());
-    Logger.autoLog(subsystem, logPath + "setOutput",               () -> motor.get());
-    Logger.autoLog(subsystem, logPath + "appliedOutput",           () -> motor.getAppliedOutput());
-    Logger.autoLog(subsystem, logPath + "appliedVoltage",          () -> motor.getBusVoltage() * motor.getAppliedOutput());
-    Logger.autoLog(subsystem, logPath + "powerWatts",              () -> motor.getBusVoltage() * motor.getAppliedOutput() * motor.getOutputCurrent());
-    Logger.autoLog(subsystem, logPath + "motorTemperature",        () -> motor.getMotorTemperature());
-    Logger.autoLog(subsystem, logPath + "position",                () -> encoder.getPosition());
-    Logger.autoLog(subsystem, logPath + "velocity",                () -> encoder.getVelocity());
-
-
+    Logger.autoLog(subsystem, logPath + "current",          () -> motor.getOutputCurrent());
+    Logger.autoLog(subsystem, logPath + "voltage",          () -> motor.getBusVoltage());
+    Logger.autoLog(subsystem, logPath + "setOutput",        () -> motor.get());
+    Logger.autoLog(subsystem, logPath + "appliedOutput",    () -> motor.getAppliedOutput());
+    Logger.autoLog(subsystem, logPath + "appliedVoltage",   () -> motor.getBusVoltage() * motor.getAppliedOutput());
+    Logger.autoLog(subsystem, logPath + "powerWatts",       () -> motor.getBusVoltage() * motor.getAppliedOutput() * motor.getOutputCurrent());
+    Logger.autoLog(subsystem, logPath + "motorTemperature", () -> motor.getMotorTemperature());
+    Logger.autoLog(subsystem, logPath + "position",         () -> encoder.getPosition());
+    Logger.autoLog(subsystem, logPath + "velocity",         () -> encoder.getVelocity());
+    
     StatusChecks.addCheck(subsystem, logPath + "hasFaults", () -> motor.getFaults() == 0);
     StatusChecks.addCheck(subsystem, logPath + "isConnected", () -> motor.getFirmwareVersion() != 0);
     // StatusChecks.addCheck(subsystem, logPath + "isTooHot", () -> motor.getMotorTemperature() <= NEO.SAFE_TEMPERATURE);
