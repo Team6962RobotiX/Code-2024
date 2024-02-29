@@ -88,8 +88,9 @@ public class ShooterWheels extends SubsystemBase {
     Logger.autoLog(logPath + "current",                 () -> motor.getOutputCurrent());
     Logger.autoLog(logPath + "appliedOutput",           () -> motor.getAppliedOutput());
     Logger.autoLog(logPath + "motorTemperature",        () -> motor.getMotorTemperature());
-    Logger.autoLog(logPath + "position",                () -> encoder.getPosition());
-    Logger.autoLog(logPath + "velocity",                () -> getVelocity());
+    Logger.autoLog(logPath + "measuredPosition",                () -> encoder.getPosition());
+    Logger.autoLog(logPath + "targetVelocity",                () -> getVelocity());
+    Logger.autoLog(logPath + "measuredVelocity",                () -> encoder.getVelocity());
     
     StatusChecks.addCheck("Shooter Wheels Motor", () -> motor.getFaults() == 0);
   }
