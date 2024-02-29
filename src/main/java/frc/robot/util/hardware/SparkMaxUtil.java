@@ -48,7 +48,7 @@ public final class SparkMaxUtil {
 
 
     StatusChecks.addCheck(subsystem, logPath + "hasFaults", () -> motor.getFaults() == 0);
-    // StatusChecks.addCheck(subsystem, logPath + "isConnected", () -> motor.getFirmwareVersion() != 0);
+    StatusChecks.addCheck(subsystem, logPath + "isConnected", () -> motor.getFirmwareVersion() != 0);
     // StatusChecks.addCheck(subsystem, logPath + "isTooHot", () -> motor.getMotorTemperature() <= NEO.SAFE_TEMPERATURE);
   }
 
