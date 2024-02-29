@@ -180,9 +180,6 @@ public final class Constants {
       public static final double kS                 = 0.081073; // volts 0.081073
       public static final double kV                 = 12.0 / PHYSICS.MAX_LINEAR_VELOCITY; // volts per m/s
       public static final double kA                 = 0.10000; // volts per m/s^2, free spinning
-      
-      // PREFERENCE
-      public static final int[]  STATUS_FRAMES      = { 10, 10, 10, 500, 500, 500, 500 }; // ms
     }
 
     public static final class STEER_MOTOR_PROFILE {
@@ -193,9 +190,6 @@ public final class Constants {
       public static final double kS                 = 0.00000; // volts
       public static final double kV                 = 12.0 / (NEO.STATS.freeSpeedRadPerSec / STEER_MOTOR_GEARING); // volts per rad/s
       public static final double kA                 = 0.02000; // volts per rad/s^2
-      
-      // PREFERENCE
-      public static final int[]  STATUS_FRAMES      = { 10, 10, 10, 500, 500, 500, 500 }; // ms
     }
 
     // TELEOPERATED
@@ -258,12 +252,12 @@ public final class Constants {
     public static final int PDH = 1;
     public static final int SHOOTER_WHEELS_TOP = 19;
     public static final int SHOOTER_WHEELS_BOTTOM = 26;
-    public static final int SHOOTER_PIVOT = 18; // DONE
+    public static final int SHOOTER_PIVOT = 18;
     public static final int SHOOTER_FEED = 20;
-    public static final int TRANSFER_OUT = 25; // DONE
-    public static final int TRANSFER_IN = 22; // REMOVE
-    public static final int AMP_PIVOT = 24;
-    public static final int AMP_WHEELS = 17;
+    public static final int TRANSFER_OUT = 24;
+    public static final int TRANSFER_IN = 22;
+    public static final int AMP_PIVOT = 17;
+    public static final int AMP_WHEELS = 25;
     // left/right is from the robot's view of from intake
     public static final int LEFT_MOTOR = 28; 
     public static final int RIGHT_MOTOR = 29; 
