@@ -64,6 +64,7 @@ import frc.robot.subsystems.shooter.ShooterMath;
 import frc.robot.subsystems.vision.AprilTags;
 import frc.robot.subsystems.vision.Notes;
 import frc.robot.util.software.LimelightHelpers;
+import frc.robot.util.software.MathUtils;
 import frc.robot.util.software.Dashboard.AutonChooser;
 import frc.robot.util.software.Logging.Logger;
 import frc.robot.util.software.Logging.StatusChecks;
@@ -190,6 +191,7 @@ public class SwerveDrive extends SubsystemBase {
     
     List<Translation2d> notePositions = Notes.getNotePositions(LIMELIGHT.NOTE_CAMERA_NAME, LIMELIGHT.NOTE_CAMERA_PITCH, getPose(), getFieldVelocity(), LIMELIGHT.NOTE_CAMERA_POSITION);
     SwerveDrive.getField().getObject("notes").setPoses(notePositions.stream().map(p -> new Pose2d(p, new Rotation2d())).toList());
+    SwerveDrive.getField().getObject("futurePosition").setPose(getFuturePose());
 
     // System.out.println(Constants.SHOOTER_WHEELS.PROFILE.kV);
 
@@ -556,6 +558,19 @@ public class SwerveDrive extends SubsystemBase {
     return poseEstimator.getEstimatedPosition();
     // Pose2d estimatedPose = poseEstimator.getEstimatedPosition();
     // return new Pose2d(estimatedPose.getTranslation(), estimatedPose.getRotation().rotateBy(gyroOffset));
+  }
+
+  public Pose2d getFuturePose() {
+    Translation2d futurePosition = getPose().getTranslation();
+    futurePosition = futurePosition.plus(getFieldVelocity().times(getFieldVelocity().getNorm()).div(2.0 * Constants.SWERVE_DRIVE.PHYSICS.MAX_LINEAR_ACCELERATION));
+    return new Pose2d(futurePosition, getPose().getRotation());
+  }
+
+  public boolean underStage() {
+    return MathUtils.isInsideTriangle(Field.BLUE_STAGE_CORNERS[0], Field.BLUE_STAGE_CORNERS[1], Field.BLUE_STAGE_CORNERS[2], getFuturePose().getTranslation()) ||
+           MathUtils.isInsideTriangle(Field.RED_STAGE_CORNERS[0], Field.RED_STAGE_CORNERS[1], Field.RED_STAGE_CORNERS[2], getFuturePose().getTranslation()) ||
+           MathUtils.isInsideTriangle(Field.BLUE_STAGE_CORNERS[0], Field.BLUE_STAGE_CORNERS[1], Field.BLUE_STAGE_CORNERS[2], getPose().getTranslation()) ||
+           MathUtils.isInsideTriangle(Field.RED_STAGE_CORNERS[0], Field.RED_STAGE_CORNERS[1], Field.RED_STAGE_CORNERS[2], getPose().getTranslation());
   }
 
   /**

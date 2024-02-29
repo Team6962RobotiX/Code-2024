@@ -59,6 +59,7 @@ public class Shooter extends SubsystemBase {
 
     SmartDashboard.putData("ShooterMechanism", mechanism);
   }
+  
 
   @Override
   public void periodic() {

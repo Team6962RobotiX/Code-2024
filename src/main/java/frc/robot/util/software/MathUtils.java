@@ -1,5 +1,7 @@
 package frc.robot.util.software;
 
+import org.opencv.core.Point;
+
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -110,5 +112,28 @@ public final class MathUtils {
       return false;
     }
     return true;
+  }
+
+  // public static double trangleArea(Translation2d p1, Translation2d p2, Translation2d p3) {
+  //   return Math.abs((p1.getX() * (p2.getY() - p3.getY()) + p2.getX() * (p3.getY() - p1.getY()) + p3.getX() * (p1.getY() - p2.getY())) / 2.0);
+  // }
+  public static boolean isInsideTriangle(Translation2d A, Translation2d B, Translation2d C, Translation2d P) {
+    // Calculate the barycentric coordinates
+    // of point P with respect to triangle ABC
+    double denominator = ((B.getY() - C.getY()) * (A.getX() - C.getX()) +
+                          (C.getX() - B.getX()) * (A.getY() - C.getY()));
+    double a = ((B.getY() - C.getY()) * (P.getX() - C.getX()) +
+                (C.getX() - B.getX()) * (P.getY() - C.getY())) / denominator;
+    double b = ((C.getY() - A.getY()) * (P.getX() - C.getX()) +
+                (A.getX() - C.getX()) * (P.getY() - C.getY())) / denominator;
+    double c = 1 - a - b;
+ 
+    // Check if all barycentric coordinates
+    // are non-negative
+    if (a >= 0 && b >= 0 && c >= 0) {
+      return true;
+    } else {
+      return false;
+    }
   }
 }

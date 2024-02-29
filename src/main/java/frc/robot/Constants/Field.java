@@ -51,6 +51,18 @@ public final class Field {
     point2d(4.5, 5.0)
   };
 
+  public static final Translation2d[] BLUE_STAGE_CORNERS = {
+    new Translation2d(3.0, 4.0),
+    new Translation2d(BLUE_WING_X, 5.8),
+    new Translation2d(BLUE_WING_X, 2.4)
+  };
+
+  public static final Translation2d[] RED_STAGE_CORNERS = {
+    new Translation2d(LENGTH - 3.0, 4.0),
+    new Translation2d(LENGTH - BLUE_WING_X, 5.8),
+    new Translation2d(LENGTH - BLUE_WING_X, 2.4)
+  };
+
 
   public static final Translation3d SPEAKER = point3d(0.23, WIDTH / 2.0 + Units.inchesToMeters(57) * 1.0, 2.055);
 

@@ -104,5 +104,12 @@ public class RobotStateController extends SubsystemBase {
 
   @Override
   public void periodic() {
+    if (swerveDrive.underStage()) {
+      shooter.getShooterPivot().setMaxAngle(Preferences.SHOOTER_PIVOT.MAX_ANGLE_UNDER_STAGE);
+      amp.getPivot().setMaxAngle(Preferences.AMP_PIVOT.MAX_ANGLE_UNDER_STAGE);
+    } else {
+      shooter.getShooterPivot().setMaxAngle(Preferences.SHOOTER_PIVOT.MAX_ANGLE);
+      amp.getPivot().setMaxAngle(Preferences.AMP_PIVOT.MAX_ANGLE);
+    }
   }
 }

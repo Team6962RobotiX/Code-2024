@@ -92,6 +92,10 @@ public class ShooterPivot extends SubsystemBase {
     return controller.doneMoving();
   }
 
+  public void setMaxAngle(Rotation2d angle) {
+    controller.setMaxAngle(angle);
+  }
+
   // public Command calibrate() {
   //   SysIdRoutine calibrationRoutine = new SysIdRoutine(
   //     new SysIdRoutine.Config(),

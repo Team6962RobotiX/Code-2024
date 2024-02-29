@@ -171,4 +171,8 @@ public class PivotController {
     if (getTargetAngle() == null) return true;
     return debouncer.calculate(Math.abs(getPosition().getRadians() - getTargetAngle().getRadians()) < Units.degreesToRadians(1.0));
   }
+  
+  public void setMaxAngle(Rotation2d newMaxAngle) {
+    maxAngle = newMaxAngle;
+  }
 }
