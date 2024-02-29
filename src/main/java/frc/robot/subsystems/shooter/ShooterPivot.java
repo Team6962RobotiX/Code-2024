@@ -79,6 +79,10 @@ public class ShooterPivot extends SubsystemBase {
     // System.out.println(angle);
   }
 
+  public Rotation2d getTargetAngle() {
+    return controller.getTargetAngle();
+  }
+
   public Rotation2d getPosition() {
     if (Robot.isSimulation() && controller.getTargetAngle() != null) return controller.getTargetAngle();
     return controller.getPosition();

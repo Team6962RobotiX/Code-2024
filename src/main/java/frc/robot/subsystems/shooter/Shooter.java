@@ -6,6 +6,11 @@ package frc.robot.subsystems.shooter;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.smartdashboard.Mechanism2d;
+import edu.wpi.first.wpilibj.smartdashboard.MechanismLigament2d;
+import edu.wpi.first.wpilibj.smartdashboard.MechanismRoot2d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -27,6 +32,10 @@ public class Shooter extends SubsystemBase {
   private ShooterPivot shooterPivot;
   private FeedWheels feedWheels;
 
+  private Mechanism2d mechanism = new Mechanism2d(0, 0);
+  private MechanismRoot2d pivotMechanism = mechanism.getRoot("pivot", SHOOTER_PIVOT.POSITION.getX(), SHOOTER_PIVOT.POSITION.getZ());
+  private MechanismLigament2d shooterMechanism = pivotMechanism.append(new MechanismLigament2d("shooter", SHOOTER_PIVOT.SHOOTER_LENGTH, .0));
+
   private double headingVelocity;
   private Rotation2d targetHeading = new Rotation2d();
 
@@ -44,13 +53,32 @@ public class Shooter extends SubsystemBase {
     this.feedWheels = new FeedWheels();
     
     Logger.autoLog(this, "Shot Chance", () -> getShotChance());
+    Logger.autoLog(this, "Shooter Position", () -> ShooterMath.calcShooterLocationOnField(swerveDrive.getPose(), shooterPivot.getPosition()));
     Logger.autoLog(this, "Speaker Distance", () -> ShooterMath.calcShooterLocationOnField(swerveDrive.getPose(), shooterPivot.getPosition()).getDistance(Field.SPEAKER));
     Logger.autoLog(this, "Speaker Floor Distance", () -> ShooterMath.calcShooterLocationOnField(swerveDrive.getPose(), shooterPivot.getPosition()).toTranslation2d().getDistance(Field.SPEAKER.toTranslation2d()));
+
+    SmartDashboard.putData("ShooterMechanism", mechanism);
   }
 
   @Override
   public void periodic() {
     if (!ENABLED_SYSTEMS.ENABLE_SHOOTER) return;
+    if (RobotBase.isSimulation()) {
+      shooterMechanism.setAngle(Rotation2d.fromDegrees(180.0).minus(shooterPivot.getTargetAngle()));
+      Translation3d velocityCompensatedPoint = ShooterMath.calcVelocityCompensatedPoint(
+        Field.SPEAKER,
+        swerveDrive.getPose(),
+        swerveDrive.getFieldVelocity(),
+        Preferences.SHOOTER_WHEELS.TARGET_SPEED,
+        shooterPivot.getTargetAngle()
+      );
+
+      shooterPivot.setTargetAngle(ShooterMath.calcPivotAngle(
+        velocityCompensatedPoint,
+        swerveDrive.getPose(),
+        Preferences.SHOOTER_WHEELS.TARGET_SPEED
+      ));
+    }
   }
 
   public Command setState(State state) {
