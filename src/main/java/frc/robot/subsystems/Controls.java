@@ -47,7 +47,7 @@ public class Controls {
     driver.b();
     driver.x();
     driver.y(); // USED
-    driver.start().whileTrue(new MoveToNote("limelight-notes", swerveDrive, driver));
+    driver.start().whileTrue(new MoveToNote("limelight-fnote", swerveDrive, driver));
     driver.back().whileTrue(stateController.setState(RobotStateController.State.AIM_SPEAKER));
     driver.leftBumper();
     driver.rightBumper();
