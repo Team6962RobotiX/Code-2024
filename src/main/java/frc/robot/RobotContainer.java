@@ -34,6 +34,7 @@ import frc.robot.commands.autonomous.Autonomous;
 import frc.robot.commands.drive.XBoxSwerve;
 import frc.robot.commands.vision.MoveToNote;
 import frc.robot.subsystems.Controls;
+import frc.robot.subsystems.LEDs;
 import frc.robot.subsystems.RobotStateController;
 import frc.robot.subsystems.RobotStateController.State;
 import frc.robot.subsystems.amp.Amp;
@@ -57,7 +58,6 @@ import frc.robot.util.software.Logging.StatusChecks;
  */
 public class RobotContainer {
 
-  // private final LEDs ledStrip = new LEDs();
 
   // The robot's subsystems and commands
   private final SwerveDrive swerveDrive;
@@ -67,7 +67,8 @@ public class RobotContainer {
   private final Amp amp;
   private final Hang hang;
   private final RobotStateController stateController;
-  
+  private final LEDs ledStrip;
+
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
     DataLogManager.start();
@@ -99,6 +100,7 @@ public class RobotContainer {
     amp = new Amp();
     stateController = new RobotStateController(amp, swerveDrive, shooter, transfer);
     hang = new Hang(swerveDrive);
+    ledStrip = new LEDs(stateController);
     
     // Configure the trigger bindings
     Controls.configureBindings(stateController, swerveDrive, transfer, transfer.getInWheels(), transfer.getOutWheels(), shooter, shooter.getWheels(), shooter.getPivot(), shooter.getFeedWheels(), amp, amp.getPivot(), amp.getWheels());

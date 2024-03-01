@@ -11,11 +11,13 @@ import java.awt.Color;
 import com.github.tommyettinger.colorful.oklab.ColorTools;
 
 public class LEDs extends SubsystemBase {
-  static AddressableLED strip;
-  static AddressableLEDBuffer buffer;
-  static int length = 200;
+  private static AddressableLED strip;
+  private static AddressableLEDBuffer buffer;
+  private RobotStateController stateController;
+  private static int length = 200;
   
-  public LEDs() {
+  public LEDs(RobotStateController stateController) {
+    this.stateController = stateController;
     strip = new AddressableLED(1);
     buffer = new AddressableLEDBuffer(length);
     strip.setLength(buffer.getLength());
@@ -26,8 +28,12 @@ public class LEDs extends SubsystemBase {
 
   @Override
   public void periodic() {
-    // setColorWave(0, length, new int[] {255, 20, 0});
-    setRainbow(0, length);
+    if (stateController.hasNote()) {
+      setColor(0, length, new int[] {255, 87, 3});
+    } else {
+      setColor(0, length, new int[] {2, 21, 61});
+    }    
+    //setRainbow(0, length);
     strip.setData(buffer);
     clear();
   }
