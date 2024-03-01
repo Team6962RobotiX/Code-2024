@@ -2,7 +2,7 @@
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
 
-package frc.robot.subsystems.shooter;
+package frc.robot.subsystems.amp;
 
 import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
@@ -20,37 +20,35 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
-import frc.robot.Robot;
+import frc.robot.Constants.Constants.AMP_PIVOT;
 import frc.robot.Constants.Constants.CAN;
 import frc.robot.Constants.Constants.DIO;
 import frc.robot.Constants.Constants.ENABLED_SYSTEMS;
-import frc.robot.Constants.Constants.SHOOTER_PIVOT;
+import frc.robot.Robot;
 import frc.robot.Constants.Preferences;
 import frc.robot.util.hardware.SparkMaxUtil;
 import frc.robot.util.hardware.MotionControl.PivotController;
 
-public class ShooterPivot extends SubsystemBase {
+public class AmpPivot extends SubsystemBase {
   private CANSparkMax motor;
   private PivotController controller;
   private boolean isCalibrating = false;
 
-  public ShooterPivot() {    
-    motor = new CANSparkMax(CAN.SHOOTER_PIVOT, MotorType.kBrushless);
-
-    SparkMaxUtil.configureAndLog(this, motor, false, IdleMode.kBrake);
-    SparkMaxUtil.save(motor);
+  public AmpPivot() {
+    motor = new CANSparkMax(CAN.AMP_PIVOT, MotorType.kBrushless);
+    SparkMaxUtil.configureAndLog(this, motor, true, IdleMode.kBrake);
 
     controller = new PivotController(
       this,
       motor,
-      DIO.SHOOTER_PIVOT,
-      SHOOTER_PIVOT.ABSOLUTE_POSITION_OFFSET,
-      SHOOTER_PIVOT.PROFILE.kP,
-      SHOOTER_PIVOT.GEARING,
-      SHOOTER_PIVOT.PROFILE.MAX_ACCELERATION,
-      Preferences.SHOOTER_PIVOT.MIN_ANGLE,
-      Preferences.SHOOTER_PIVOT.MAX_ANGLE,
-      true
+      DIO.AMP_PIVOT,
+      AMP_PIVOT.ABSOLUTE_POSITION_OFFSET,
+      AMP_PIVOT.PROFILE.kP,
+      AMP_PIVOT.GEARING,
+      AMP_PIVOT.PROFILE.MAX_ACCELERATION,
+      Preferences.AMP_PIVOT.MIN_ANGLE,
+      Preferences.AMP_PIVOT.MAX_ANGLE,
+      false
     );
 
     SparkMaxUtil.save(motor);
@@ -58,12 +56,17 @@ public class ShooterPivot extends SubsystemBase {
 
   @Override
   public void periodic() {
-    if (!ENABLED_SYSTEMS.ENABLE_SHOOTER) return;
+    if (!ENABLED_SYSTEMS.ENABLE_AMP) return;
     if (isCalibrating) return;
     if (RobotState.isDisabled()) {
       controller.setTargetAngle(getPosition());
     }
     controller.run();
+  }
+
+  public Rotation2d getPosition() {
+    if (Robot.isSimulation() && controller.getTargetAngle() != null) return controller.getTargetAngle();
+    return controller.getPosition();
   }
 
   public Command setTargetAngleCommand(Rotation2d angle) {
@@ -74,14 +77,9 @@ public class ShooterPivot extends SubsystemBase {
     controller.setTargetAngle(angle);
   }
 
-  public Rotation2d getPosition() {
-    if (Robot.isSimulation() && controller.getTargetAngle() != null) return controller.getTargetAngle();
-    return controller.getPosition();
-  }
-
   public boolean doneMoving() {
     if (controller.getTargetAngle() == null) return true;
-    return Math.abs(getPosition().minus(controller.getTargetAngle()).getRadians()) < SHOOTER_PIVOT.ANGLE_TOLERANCE.getRadians();
+    return Math.abs(getPosition().getRadians() - controller.getTargetAngle().getRadians()) < AMP_PIVOT.ANGLE_TOLERANCE.getRadians();
   }
 
   public Command calibrate() {
@@ -92,7 +90,7 @@ public class ShooterPivot extends SubsystemBase {
           motor.setVoltage(volts.in(Volts));
         },
         log -> {
-          log.motor("shooter-pivot")
+          log.motor("amp-pivot")
             .voltage(Volts.of(motor.getAppliedOutput() * motor.getBusVoltage()))
             .angularPosition(Radians.of(controller.getPosition().getRadians()))
             .angularVelocity(RadiansPerSecond.of(controller.getVelocity().getRadians()));

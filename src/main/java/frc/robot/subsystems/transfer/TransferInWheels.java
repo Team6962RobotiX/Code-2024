@@ -1,8 +1,4 @@
-// Copyright (c) FIRST and other WPILib contributors.
-// Open Source Software; you can modify and/or share it under the terms of
-// the WPILib BSD license file in the root directory of this project.
-
-package frc.robot.subsystems.amp;
+package frc.robot.subsystems.transfer;
 
 import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkLowLevel.MotorType;
@@ -19,26 +15,23 @@ import frc.robot.Constants.Preferences;
 import frc.robot.util.hardware.NoteDetector;
 import frc.robot.util.hardware.SparkMaxUtil;
 
-
-
-public class AmpWheels extends SubsystemBase {
+public class TransferInWheels extends SubsystemBase {
   private CANSparkMax motor;
-  private State state = State.OFF;
   private NoteDetector detector;
- 
+  private State state = State.OFF;
   public static enum State {
     IN,
     OUT,
-    OFF
+    OFF,
   }
 
-  public AmpWheels() {
-    motor = new CANSparkMax(CAN.AMP_WHEELS, MotorType.kBrushless);
+  public TransferInWheels() {    
+    motor = new CANSparkMax(CAN.TRANSFER_IN, MotorType.kBrushless); // TODO
 
-    SparkMaxUtil.configureAndLog(this, motor, false, IdleMode.kCoast);
+    SparkMaxUtil.configureAndLog(this, motor, true, IdleMode.kBrake);
     SparkMaxUtil.save(motor);
 
-    detector = new NoteDetector(motor, Constants.AMP_WHEELS.GEARING, Constants.AMP_WHEELS.FREE_TORQUE, true);
+    detector = new NoteDetector(motor, Constants.TRANSFER.GEARING, Constants.TRANSFER.FREE_TORQUE, false);
   }
 
   public Command setState(State state) {
@@ -47,23 +40,22 @@ public class AmpWheels extends SubsystemBase {
       () -> this.state = State.OFF
     );
   }
-
+  
   @Override
   public void periodic() {
-    if (!ENABLED_SYSTEMS.ENABLE_AMP) return;
+    if (!ENABLED_SYSTEMS.ENABLE_TRANSFER) return;
     if (RobotState.isDisabled()) {
       state = State.OFF;
     }
-
     switch(state) {
-      case OFF:
-        motor.set(0);
-        break;
       case IN:
-        motor.set(-Preferences.AMP_WHEELS.POWER);
+        motor.set(Preferences.TRANSFER.IN_POWER);
         break;
       case OUT:
-        motor.set(Preferences.AMP_WHEELS.POWER);
+        motor.set(-Preferences.TRANSFER.IN_POWER);
+        break;
+      case OFF:
+        motor.set(0);
         break;
     }
   }
@@ -71,7 +63,7 @@ public class AmpWheels extends SubsystemBase {
   public boolean hasNote() {
     return detector.hasNote();
   }
-  
+
   @Override
   public void simulationPeriodic() {
     // This method will be called once per scheduler run during simulation

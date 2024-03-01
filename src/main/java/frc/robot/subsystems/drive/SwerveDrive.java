@@ -4,21 +4,25 @@
 
 package frc.robot.subsystems.drive;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.BooleanSupplier;
+import java.util.function.Supplier;
 
 import com.choreo.lib.Choreo;
 import com.choreo.lib.ChoreoTrajectory;
 import com.kauailabs.navx.frc.AHRS;
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import com.pathplanner.lib.path.GoalEndState;
-import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
+import com.pathplanner.lib.pathfinding.Pathfinding;
 import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
 import com.pathplanner.lib.util.PIDConstants;
+import com.pathplanner.lib.util.PathPlannerLogging;
 import com.pathplanner.lib.util.ReplanningConfig;
 
-import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
@@ -34,7 +38,6 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.SPI;
-import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.simulation.BatterySim;
 import edu.wpi.first.wpilibj.simulation.RoboRioSim;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
@@ -43,13 +46,20 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Constants;
-import frc.robot.Constants.ENABLED_SYSTEMS;
-import frc.robot.Constants.LIMELIGHT;
-import frc.robot.Constants.SWERVE_DRIVE;
-import frc.robot.subsystems.vision.AprilTagPose;
-import frc.robot.util.StatusChecks;
-import frc.robot.util.Logging.Logger;
+import frc.robot.Constants.Constants;
+import frc.robot.Constants.Constants.ENABLED_SYSTEMS;
+import frc.robot.Constants.Constants.LIMELIGHT;
+import frc.robot.Constants.Constants.SWERVE_DRIVE;
+import frc.robot.Constants.Field;
+import frc.robot.Constants.Preferences;
+import frc.robot.subsystems.shooter.Shooter;
+import frc.robot.subsystems.shooter.ShooterMath;
+import frc.robot.subsystems.vision.AprilTags;
+import frc.robot.subsystems.vision.Notes;
+import frc.robot.util.software.LimelightHelpers;
+import frc.robot.util.software.Dashboard.AutonChooser;
+import frc.robot.util.software.Logging.Logger;
+import frc.robot.util.software.Logging.StatusChecks;
 
 /**
  * This class represents the subsystem for the swerve drive. It contains four
@@ -61,7 +71,7 @@ public class SwerveDrive extends SubsystemBase {
 
   private SwerveDriveKinematics kinematics = getKinematics();
   private SwerveDrivePoseEstimator poseEstimator;
-  private Field2d field = new Field2d();
+  private static Field2d field = new Field2d();
   private Rotation2d gyroHeading = Rotation2d.fromDegrees(0.0);
   private Rotation2d gyroOffset = SWERVE_DRIVE.STARTING_POSE.getRotation();
 
@@ -75,12 +85,11 @@ public class SwerveDrive extends SubsystemBase {
 
   private boolean isAligning = false;
   private boolean parked = false;
+  private boolean isDriven = false;
 
   SWERVE_DRIVE.MODULE_CONFIG[] equippedModules;
 
   public SwerveDrive() {
-    if (!ENABLED_SYSTEMS.ENABLE_DRIVE) return;
-
     // Create the serve module objects
     if (SWERVE_DRIVE.IS_PROTOTYPE_CHASSIS) {
       equippedModules = SWERVE_DRIVE.EQUIPPED_MODULES_PROTOTYPE;
@@ -110,7 +119,7 @@ public class SwerveDrive extends SubsystemBase {
     );
 
     alignmentController.enableContinuousInput(-Math.PI, Math.PI);
-    alignmentController.setTolerance(SWERVE_DRIVE.ABSOLUTE_ROTATION_GAINS.TOLERANCE);
+    alignmentController.setTolerance(SWERVE_DRIVE.ABSOLUTE_ROTATION_GAINS.TOLERANCE.getRadians());
     setTargetHeading(SWERVE_DRIVE.STARTING_POSE.getRotation());
 
     // If possible, connect to the gyroscope
@@ -133,8 +142,8 @@ public class SwerveDrive extends SubsystemBase {
     Logger.autoLog("SwerveDrive/targetHeading", () -> Units.radiansToDegrees(alignmentController.getSetpoint()));
     Logger.autoLog("SwerveDrive/targetStates", this::getTargetModuleStates);
     Logger.autoLog("SwerveDrive/measuredStates", this::getMeasuredModuleStates);
-
-    StatusChecks.addCheck("Gyro Connection", gyro::isConnected);
+    
+    StatusChecks.addCheck(this, "isGyroConnected", gyro::isConnected);
 
     AutoBuilder.configureHolonomic(
       this::getPose, // Robot pose supplier
@@ -146,17 +155,63 @@ public class SwerveDrive extends SubsystemBase {
         new PIDConstants(SWERVE_DRIVE.AUTONOMOUS.   ROTATION_GAINS.kP, SWERVE_DRIVE.AUTONOMOUS.   ROTATION_GAINS.kI, SWERVE_DRIVE.AUTONOMOUS.   ROTATION_GAINS.kD), // Rotation PID constants
         SWERVE_DRIVE.PHYSICS.MAX_LINEAR_VELOCITY, // Max module speed, in m/s
         SWERVE_DRIVE.PHYSICS.DRIVE_RADIUS, // Drive base radius in meters. Distance from robot center to furthest module.
-        new ReplanningConfig() // Default path replanning config. See the API for the options here
+        new ReplanningConfig(true, true) // Default path replanning config. See the API for the options here
       ),
       this::shouldFlipPaths,
       this // Reference to this subsystem to set requirements
     );
+
+    // Logging callback for target robot pose
+    PathPlannerLogging.setLogTargetPoseCallback((pose) -> {
+        // Do whatever you want with the pose here
+        field.getObject("Target Pose").setPose(pose);
+    });
+
+    // Logging callback for the active path, this is sent as a list of poses
+    PathPlannerLogging.setLogActivePathCallback((poses) -> {
+        // Do whatever you want with the poses here
+        field.getObject("Active Path").setPoses(poses);
+    });
   }
+
+  List<Pose2d> shotPoses = new ArrayList<>();
 
   @Override
   public void periodic() {
     if (!ENABLED_SYSTEMS.ENABLE_DRIVE) return;
-    
+
+    List<Translation2d> notePositions = Notes.getNotePositions(LIMELIGHT.NOTE_CAMERA_NAME, LIMELIGHT.NOTE_CAMERA_PITCH, getPose(), getFieldVelocity(), LIMELIGHT.NOTE_CAMERA_POSITION);
+    SwerveDrive.getField().getObject("notes").setPoses(notePositions.stream().map(p -> new Pose2d(p, new Rotation2d())).toList());
+
+    // FieldObject2d relativePositions = SwerveDrive.getField().getObject("visibleNotes");
+    // List<Pose2d> poses = new ArrayList<>();
+    // for (Integer note1 : List.of(0, 1, 2, 3, 4, 5, 6, 7)) {
+    //   Translation2d position = Field.NOTE_POSITIONS[note1];
+    //   Translation2d relativePosition = position.minus(getPose().getTranslation()).rotateBy(getPose().getRotation().unaryMinus());
+    //   poses.add(new Pose2d(relativePosition, new Rotation2d()));
+    // }
+    // relativePositions.setPoses(poses);
+
+
+    // Pose2d randomPose = new Pose2d(
+    //   new Translation2d(
+    //     Field.LENGTH * Math.random(),
+    //     Field.WIDTH * Math.random()
+    //   ),
+    //   new Rotation2d()
+    // );
+
+    // randomPose = new Pose2d(randomPose.getTranslation(), randomPose.getTranslation().minus(Field.SPEAKER.toTranslation2d()).getAngle());
+
+    // boolean inRange = ShooterMath.inRange(Field.SPEAKER, randomPose, Preferences.SHOOTER_WHEELS.TARGET_SPEED);
+    // if (inRange) {
+    //   shotPoses.add(randomPose);
+    // }
+    // FieldObject2d shotSpots = SwerveDrive.getField().getObject("shotSpots");
+    // shotSpots.setPoses(shotPoses);
+
+    // System.out.println(ShooterMath.calcPivotAngle(Field.SPEAKER, getPose(), Preferences.SHOOTER_WHEELS.TARGET_SPEED));
+
     // Update current heading based on gyroscope or wheel speeds
     if (gyro.isConnected() && !RobotBase.isSimulation()) {
       gyroHeading = gyro.getRotation2d();
@@ -164,11 +219,10 @@ public class SwerveDrive extends SubsystemBase {
       gyroHeading = gyroHeading.plus(new Rotation2d(getMeasuredChassisSpeeds().omegaRadiansPerSecond * 0.02));
     }
 
-    gyroHeading = Rotation2d.fromRadians(MathUtil.angleModulus(gyroHeading.getRadians()));
-
     // Update pose based on measured heading and swerve module positions
     poseEstimator.update(gyroHeading.plus(gyroOffset), getModulePositions());
-    AprilTagPose.injectVisionData(LIMELIGHT.APRILTAG_CAMERA_NAMES, this);    
+    AprilTags.injectVisionData(LIMELIGHT.APRILTAG_CAMERA_NAMES, this);
+    
     // Update field
     FieldObject2d modulesObject = field.getObject("Swerve Modules");
 
@@ -186,6 +240,11 @@ public class SwerveDrive extends SubsystemBase {
 
     // Update robot pose
     field.setRobotPose(getPose());
+
+    if (!isDriven) {
+      driveFieldRelative(0.0, 0.0, 0.0);
+    }
+    isDriven = false;
   }
 
   @Override
@@ -232,8 +291,12 @@ public class SwerveDrive extends SubsystemBase {
   }
 
   private void driveAttainableSpeeds(ChassisSpeeds fieldRelativeSpeeds) {    
-    double targetAngularSpeed = toLinear((fieldRelativeSpeeds.omegaRadiansPerSecond));
+    isDriven = true;
+
+    double targetAngularSpeed = Math.abs(toLinear(fieldRelativeSpeeds.omegaRadiansPerSecond));
     double alignmentAngularVelocity = alignmentController.calculate(getHeading().getRadians());
+
+    if (alignmentController.atSetpoint() || targetAngularSpeed > 0.0) isAligning = false;
 
     if (isAligning) fieldRelativeSpeeds.omegaRadiansPerSecond += alignmentAngularVelocity;
 
@@ -269,24 +332,27 @@ public class SwerveDrive extends SubsystemBase {
     drivenChassisSpeeds = new ChassisSpeeds(attainableLinearVelocity.getX(), attainableLinearVelocity.getY(), attainableAngularVelocity);
 
     SwerveModuleState[] drivenModuleStates = kinematics.toSwerveModuleStates(ChassisSpeeds.fromFieldRelativeSpeeds(drivenChassisSpeeds, getAllianceAwareHeading()));
-
+    
     boolean moving = false;
-    for (SwerveModuleState moduleState : kinematics.toSwerveModuleStates(fieldRelativeSpeeds)) if (Math.abs(moduleState.speedMetersPerSecond) > SWERVE_DRIVE.VELOCITY_DEADBAND) moving = true;
-    for (SwerveModuleState moduleState : drivenModuleStates) if (Math.abs(moduleState.speedMetersPerSecond) > SWERVE_DRIVE.VELOCITY_DEADBAND) moving = true;
-    if (!parked) {
-      for (SwerveModuleState moduleState : getMeasuredModuleStates()) if (Math.abs(moduleState.speedMetersPerSecond) > SWERVE_DRIVE.VELOCITY_DEADBAND) moving = true;
-    }
+    for (SwerveModuleState moduleState : kinematics.toSwerveModuleStates(fieldRelativeSpeeds)) if (Math.abs(moduleState.speedMetersPerSecond) > 0.0) moving = true;
+    for (SwerveModuleState moduleState : drivenModuleStates) if (Math.abs(moduleState.speedMetersPerSecond) > 0.0) moving = true;
+    // if (!parked) {
+    //   for (SwerveModuleState moduleState : getMeasuredModuleStates()) if (Math.abs(moduleState.speedMetersPerSecond) > 0.05) moving = true;
+    // }
     parked = false;
     if (!moving && !isAligning) {
       parkModules();
+      isAligning = false;
       return;
     }
-
-    if (alignmentAngularVelocity == 0.0) isAligning = false;
-
+    
     driveModules(drivenModuleStates);
   }
   
+  /**
+   * Drives the swerve modules at the calculated speeds
+   * @param moduleStates The calculated speeds and directions for each module
+   */
   private void driveModules(SwerveModuleState[] moduleStates) {
     // Drive the swerve modules at the calculated speeds
     for (int i = 0; i < SWERVE_DRIVE.MODULE_COUNT; i++) {
@@ -295,8 +361,8 @@ public class SwerveDrive extends SubsystemBase {
   }
 
   /**
-   * 
-   * @param heading 
+   * Sets the target heading for the robot
+   * @param heading The target heading for the robot
    */
   public void setTargetHeading(Rotation2d heading) {
     alignmentController.setSetpoint(heading.getRadians());
@@ -304,7 +370,7 @@ public class SwerveDrive extends SubsystemBase {
   }
 
   /**
-   * 
+   * Faces a point on the field
    * @param point The point on the field we want to face
    */
   public void facePoint(Translation2d point) {
@@ -312,6 +378,20 @@ public class SwerveDrive extends SubsystemBase {
     setTargetHeading(point.minus(currentPosition).getAngle());
   }
 
+  /**
+   * Faces a point on the field
+   * @param point The point on the field we want to face
+   */
+  public void facePointBackwards(Translation2d point) {
+    Translation2d currentPosition = getPose().getTranslation();
+    setTargetHeading(point.minus(currentPosition).getAngle().plus(Rotation2d.fromDegrees(180.0)));
+  }
+
+
+  /**
+   * 
+   * @return The target heading for the robot
+   */
   public Rotation2d getTargetHeading() {
     return Rotation2d.fromRadians(alignmentController.getSetpoint());
   }
@@ -463,7 +543,7 @@ public class SwerveDrive extends SubsystemBase {
   /**
    * @return Field2d object for SmartDashboard widget.
    */
-  public Field2d getField() {
+  public static Field2d getField() {
     return field;
   }
 
@@ -525,17 +605,6 @@ public class SwerveDrive extends SubsystemBase {
   Motor Max Speed: %.0f RPM
   Motor Max Torque: %.3f N * m
 
-------- MOTOR CALCULATOR -------
-  NEO
-  Current Limit: %s A
-
-(You've done it right when these all check out)
------- THEORETICAL -------
-  Floor Speed: %.3f m/s
-  Floor Accel: %.3f m/s^2
-  Ang Speed: %.3f rad/s
-  Ang Accel: %.3f rad/s^2
-
 
         """,
         SWERVE_DRIVE.ROBOT_MASS,
@@ -547,16 +616,17 @@ public class SwerveDrive extends SubsystemBase {
         SWERVE_DRIVE.WHEEL_RADIUS,
         SWERVE_DRIVE.DRIVE_MOTOR_GEARING,
         SWERVE_DRIVE.PHYSICS.MAX_MOTOR_SPEED,
-        SWERVE_DRIVE.PHYSICS.MAX_MOTOR_TORQUE,
-        SWERVE_DRIVE.PHYSICS.SLIPLESS_CURRENT_LIMIT,
-        SWERVE_DRIVE.PHYSICS.MAX_LINEAR_VELOCITY,
-        SWERVE_DRIVE.PHYSICS.MAX_LINEAR_ACCELERATION,
-        SWERVE_DRIVE.PHYSICS.MAX_ANGULAR_VELOCITY,
-        SWERVE_DRIVE.PHYSICS.MAX_ANGULAR_ACCELERATION
+        SWERVE_DRIVE.PHYSICS.MAX_MOTOR_TORQUE
       )
     );
   }
 
+  /**
+   * Follow a choreo trajectory
+   * @param pathName Name of the path to follow
+   * @param first Whether or not this is the first command in autonomous mode
+   * @return A command to run
+   */
   public Command followChoreoTrajectory(String pathName, boolean first) {
 
     ChoreoTrajectory trajectory = Choreo.getTrajectory(pathName);
@@ -621,33 +691,62 @@ public class SwerveDrive extends SubsystemBase {
     }
   }
 
+
+  public void setRotationTargetOverride(Supplier<Optional<Rotation2d>> heading) {
+    PPHolonomicDriveController.setRotationTargetOverride(heading);
+  }
+
+  public void setRotationTargetOverrideFromPoint(Translation2d point) {
+    if (point != null) {
+      setRotationTargetOverride(() -> Optional.of(point.minus(getPose().getTranslation()).getAngle()));
+    } else {
+      setRotationTargetOverride(() -> Optional.empty());
+    }
+  }
+
+  public void setRotationTargetOverrideFromPointBackwards(Translation2d point) {
+    if (point != null) {
+      setRotationTargetOverride(() -> Optional.of(point.minus(getPose().getTranslation()).getAngle().plus(Rotation2d.fromDegrees(180.0))));
+    } else {
+      setRotationTargetOverride(() -> Optional.empty());
+    }
+  }
+
   /**
    * Go to a position on the field
    * @param goalPosition Field-relative position on the field to go to
    * @param orientation Field-relative orientation to rotate to
    * @return A command to run
    */
-  public Command goTo(Pose2d pose, XboxController xboxController) {
-    Command pathfindingCommand = goToSimple(pose, xboxController);
+  public Command goTo(Pose2d pose) {
+    // Command pathfindingCommand = goToSimple(pose);
 
-    if (pose.getTranslation().getDistance(getPose().getTranslation()) > 1.0) {
+    // if (pose.getTranslation().getDistance(getPose().getTranslation()) > 1.0) {
+    //   // Since AutoBuilder is configured, we can use it to build pathfinding commands
+    //   pathfindingCommand = AutoBuilder.pathfindToPose(
+    //     pose,
+    //     SWERVE_DRIVE.AUTONOMOUS.DEFAULT_PATH_CONSTRAINTS,
+    //     0.0, // Goal end velocity in meters/sec
+    //     0.0 // Rotation delay distance in meters. This is how far the robot should travel before attempting to rotate.
+    //   );
+    // }
+    Command pathfindingCommand = AutoBuilder.pathfindToPose(
+      pose,
+      SWERVE_DRIVE.AUTONOMOUS.DEFAULT_PATH_CONSTRAINTS,
+      0.0, // Goal end velocity in meters/sec
+      0.0 // Rotation delay distance in meters. This is how far the robot should travel before attempting to rotate.
+    );
 
-      // Since AutoBuilder is configured, we can use it to build pathfinding commands
-      pathfindingCommand = AutoBuilder.pathfindToPose(
-        pose,
-        SWERVE_DRIVE.AUTONOMOUS.DEFAULT_PATH_CONSTRAINTS,
-        0.0, // Goal end velocity in meters/sec
-        0.0 // Rotation delay distance in meters. This is how far the robot should travel before attempting to rotate.
-      );
-    }
-
-    return Commands.sequence(
-      pathfindingCommand,
-      goToSimple(pose, xboxController)
-    ).onlyWhile(() -> Constants.isIdle(xboxController));
+    return pathfindingCommand;
   }
 
-  private Command goToSimple(Pose2d pose, XboxController xboxController) {
+  /**
+   * Go to a position on the field (without object avoidence)
+   * @param pose Field-relative pose on the field to go to
+   * @param xboxController Xbox controller to cancel the command
+   * @return A command to run
+   */
+  public Command goToSimple(Pose2d pose) {
     Rotation2d angle = pose.getTranslation().minus(getPose().getTranslation()).getAngle();
 
     List<Translation2d> bezierPoints = PathPlannerPath.bezierFromPoses(
@@ -667,57 +766,21 @@ public class SwerveDrive extends SubsystemBase {
 
     return Commands.sequence(
       AutoBuilder.followPath(path),
-      Commands.runOnce(() -> setTargetHeading(pose.getRotation()))
-    ).onlyWhile(() -> Constants.isIdle(xboxController));
-  }
-
-  public Command goToNearestPose(List<Pose2d> poses, XboxController xboxController) {
-   return goTo(getPose().nearest(poses), xboxController).onlyWhile(() -> Constants.isIdle(xboxController));
-  }
-  
-  public boolean shouldFlipPaths() {
-    Optional<Alliance> optional = DriverStation.getAlliance();
-
-    if (!optional.isPresent()) {
-      System.out.println("Cannot determine alliance. Defaulting to blue");
-
-      return false;
-    }
-
-    return optional.get().equals(Alliance.Red);
+      runOnce(() -> setTargetHeading(pose.getRotation()))
+    );
   }
 
   /**
-   * Go to a position on the field
-   * @param goalPosition Field-relative position on the field to go to
-   * @param orientation Field-relative orientation to rotate to
+   * Go to the nearest pose in a list of poses
+   * @param poses List of poses to go to
+   * @param xboxController Xbox controller to cancel the command
    * @return A command to run
    */
-  public Command goTo(Translation2d goalPosition, Rotation2d orientation) {
-    Rotation2d angle = goalPosition.minus(getPose().getTranslation()).getAngle();
-
-    List<Translation2d> bezierPoints = PathPlannerPath.bezierFromPoses(
-      new Pose2d(getPose().getTranslation(), angle),
-      new Pose2d(goalPosition, angle)
-    );
-
-    PathPlannerPath path = new PathPlannerPath(
-      bezierPoints,
-      new PathConstraints(
-        SWERVE_DRIVE.PHYSICS.MAX_LINEAR_VELOCITY, 
-        SWERVE_DRIVE.PHYSICS.MAX_LINEAR_ACCELERATION,
-        SWERVE_DRIVE.PHYSICS.MAX_ANGULAR_VELOCITY, 
-        SWERVE_DRIVE.PHYSICS.MAX_ANGULAR_ACCELERATION
-      ),
-      new GoalEndState(
-        0.0,
-        orientation
-      )
-    );
-
-    return Commands.sequence(
-      AutoBuilder.followPath(path),
-      Commands.runOnce(() -> setTargetHeading(orientation))
-    );
+  public Command goToNearestPose(List<Pose2d> poses) {
+   return goTo(getPose().nearest(poses));
+  }
+  
+  public boolean shouldFlipPaths() {
+    return false;
   }
 }

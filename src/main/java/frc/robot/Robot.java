@@ -56,6 +56,7 @@ public class Robot extends TimedRobot {
   @Override
   public void disabledInit() {
     DataLogManager.getLog().flush();
+    robotContainer.disabledInit();
   }
 
   @Override
@@ -88,6 +89,7 @@ public class Robot extends TimedRobot {
     if (autonomousCommand != null) {
       autonomousCommand.cancel();
     }
+    CommandScheduler.getInstance().cancelAll();
   }
 
   /** This function is called periodically during operator control. */

@@ -24,6 +24,17 @@
         }
       },
       "/SmartDashboard/Field": {
+        "Active Path": {
+          "arrows": false,
+          "color": [
+            247.5,
+            255.0,
+            0.0,
+            255.0
+          ],
+          "style": "Line",
+          "weight": 4.300000190734863
+        },
         "Robot": {
           "arrowColor": [
             1.0,
@@ -59,9 +70,62 @@
           "style": "Hidden",
           "weight": 3.0
         },
+        "Target Pose": {
+          "arrowColor": [
+            22.50002098083496,
+            255.0,
+            0.0,
+            255.0
+          ],
+          "arrowWeight": 3.0,
+          "color": [
+            1.0,
+            0.7941176891326904,
+            0.0,
+            255.0
+          ],
+          "length": 0.4000000059604645,
+          "weight": 3.0,
+          "width": 0.4000000059604645
+        },
         "bottom": 1476,
+        "futurePosition": {
+          "arrowColor": [
+            0.0,
+            0.47058820724487305,
+            1.0,
+            255.0
+          ],
+          "arrowSize": 0,
+          "arrowWeight": 3.0,
+          "arrows": false,
+          "color": [
+            0.0,
+            0.4411764144897461,
+            1.0,
+            255.0
+          ],
+          "length": 0.8759999871253967,
+          "weight": 3.0,
+          "width": 0.8759999871253967
+        },
         "height": 8.210550308227539,
         "left": 150,
+        "possibleShotPositions": {
+          "arrowSize": 22,
+          "arrowWeight": 1.0,
+          "arrows": false,
+          "color": [
+            1.0,
+            0.0,
+            0.0,
+            255.0
+          ],
+          "length": 0.8759999871253967,
+          "selectable": false,
+          "weight": 1.0,
+          "width": 0.8759999871253967
+        },
         "right": 2961,
         "top": 79,
         "traj": {
@@ -95,6 +159,18 @@
           ],
           "style": "Line",
           "weight": 3.0
+        },
+        "visibleNotes": {
+          "arrows": false,
+          "color": [
+            0.0,
+            1.0,
+            0.058823585510253906,
+            255.0
+          ],
+          "length": 0.5,
+          "weight": 3.0,
+          "width": 0.5
         },
         "width": 16.541748046875,
         "window": {

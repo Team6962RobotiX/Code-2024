@@ -4,22 +4,34 @@
 
 package frc.robot;
 
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution;
+import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
-import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import frc.robot.Constants.CAN;
-import frc.robot.Constants.DEVICES;
+import frc.robot.Constants.Constants;
+import frc.robot.Constants.Field;
+import frc.robot.Constants.Preferences;
+import frc.robot.Constants.Constants.CAN;
+import frc.robot.Constants.Constants.DEVICES;
+import frc.robot.Constants.Constants.SHOOTER_PIVOT;
+import frc.robot.commands.autonomous.AutonCommand;
 import frc.robot.commands.drive.XBoxSwerve;
+import frc.robot.commands.vision.MoveToNote;
+import frc.robot.subsystems.RobotStateController;
+import frc.robot.subsystems.RobotStateController.State;
+import frc.robot.subsystems.amp.Amp;
 import frc.robot.subsystems.drive.SwerveDrive;
-import frc.robot.subsystems.intake.IntakeWheels;
-import frc.robot.subsystems.transfer.TransferWheels;
-import frc.robot.util.Logging.Logger;
+import frc.robot.subsystems.shooter.Shooter;
+import frc.robot.subsystems.shooter.ShooterMath;
+import frc.robot.subsystems.transfer.Transfer;
+import frc.robot.util.software.Dashboard.AutonChooser;
+import frc.robot.util.software.Logging.Logger;
 
 
 /**
@@ -30,15 +42,18 @@ import frc.robot.util.Logging.Logger;
  */
 public class RobotContainer {
 
+  // private final LEDs ledStrip = new LEDs();
+
   // The robot's subsystems and commands
   private final CommandXboxController operatorController = new CommandXboxController(DEVICES.OPERATOR_XBOX_CONTROLLER);
   private final CommandXboxController driveController = new CommandXboxController(DEVICES.DRIVE_XBOX_CONTROLLER);
-  private final SwerveDrive swerveDrive = new SwerveDrive();
-  // private final Shooter shooter = new Shooter(swerveDrive);
+  private final SwerveDrive swerveDrive;
   
-  private final SendableChooser<Command> calibrationChooser = new SendableChooser<>();
-  private final IntakeWheels intake = new IntakeWheels();
-  private final TransferWheels transfer = new TransferWheels();
+  private final Shooter shooter;
+  private final Transfer transfer;
+  private final Amp amp;
+
+  private final RobotStateController stateController;
   
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
@@ -47,35 +62,47 @@ public class RobotContainer {
     Logger.log("constants", this, Constants.class);
     Logger.autoLog("PDH", new PowerDistribution(CAN.PDH, ModuleType.kRev));
     Logger.startLog();
+    AutonChooser.getNotes();
+
+    swerveDrive = new SwerveDrive();
+    shooter = new Shooter(swerveDrive);
+    transfer = new Transfer();
+    amp = new Amp();
+    stateController = new RobotStateController(amp, swerveDrive, shooter, transfer);
 
     swerveDrive.setDefaultCommand(new XBoxSwerve(swerveDrive, driveController.getHID()));
-    
-    calibrationChooser.setDefaultOption("Calibrate Drive Motor (FL)", swerveDrive.modules[0].calibrateDriveMotor());
-    calibrationChooser.setDefaultOption("Calibrate Steer Motor (FL)", swerveDrive.modules[0].calibrateSteerMotor());
-    SmartDashboard.putData("Swerve Module Calibration", calibrationChooser);
 
     // Configure the trigger bindings
     configureBindings();
 
     SwerveDrive.printChoreoConfig();
   }
-
+  
   private void configureBindings() {
-    operatorController.leftTrigger(0.1).whileTrue(Commands.startEnd(() -> intake.setState(IntakeWheels.IntakeState.REVERSE), () -> intake.setState(IntakeWheels.IntakeState.OFF)));
-    operatorController.rightTrigger(0.1).whileTrue(Commands.startEnd(() -> intake.setState(IntakeWheels.IntakeState.FORWARD), () -> intake.setState(IntakeWheels.IntakeState.OFF)));
-    operatorController.leftBumper().whileTrue(Commands.startEnd(() -> transfer.setState(TransferWheels.TransferState.AMP), () -> transfer.setState(TransferWheels.TransferState.OFF)));
-    operatorController.rightBumper().whileTrue(Commands.startEnd(() -> transfer.setState(TransferWheels.TransferState.SHOOTER), () -> transfer.setState(TransferWheels.TransferState.OFF)));
+    operatorController.rightTrigger().whileTrue(stateController.setState(State.INTAKE));
+    operatorController.x().onTrue(stateController.setState(State.INTAKE_OUT));
+    operatorController.leftStick().onTrue(stateController.setState(State.PREPARE_AMP));
+    operatorController.rightStick().onTrue(stateController.setState(State.PREPARE_SPEAKER));
+    operatorController.leftTrigger().toggleOnTrue(stateController.setState(State.AIM_SPEAKER));
+    operatorController.rightBumper().onTrue(stateController.setState(State.SHOOT_SPEAKER));
+    operatorController.start().onTrue(stateController.setState(State.PLACE_AMP));
+
+    driveController.b().whileTrue(new MoveToNote("limelight-notes", swerveDrive, driveController));
   }
+
   public Command getAutonomousCommand() {
-    // return swerveDrive.goTo(new Translation2d(5.0, 5.0), Rotation2d.fromDegrees(90.0));
-    // return swerveDrive.followChoreoTrajectory("simple", true);
-    return null;
+    return new AutonCommand(stateController, swerveDrive, AutonChooser.getNotes());
   }
 
   public void disabledPeriodic() {
+
+  }
+
+  public void disabledInit() {
+    
   }
 
   public void testInit() {
-    calibrationChooser.getSelected().schedule();
+    
   }
 }

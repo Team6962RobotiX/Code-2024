@@ -4,115 +4,82 @@
 
 package frc.robot.subsystems.shooter;
 
-import static edu.wpi.first.units.Units.Meters;
-import static edu.wpi.first.units.Units.MetersPerSecond;
+import static edu.wpi.first.units.Units.Radians;
+import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.Volts;
 
-import java.util.List;
-
-import com.revrobotics.CANSparkMax;
-import com.revrobotics.RelativeEncoder;
-import com.revrobotics.SparkPIDController;
-import com.revrobotics.SparkPIDController.ArbFFUnits;
 import com.revrobotics.CANSparkBase.ControlType;
 import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkLowLevel.MotorType;
+import com.revrobotics.CANSparkMax;
+import com.revrobotics.RelativeEncoder;
+import com.revrobotics.SparkPIDController;
 
-import edu.wpi.first.math.Nat;
-import edu.wpi.first.math.VecBuilder;
-import edu.wpi.first.math.controller.ArmFeedforward;
-import edu.wpi.first.math.controller.LinearQuadraticRegulator;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
-import edu.wpi.first.math.estimator.KalmanFilter;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation3d;
-import edu.wpi.first.math.numbers.N1;
-import edu.wpi.first.math.system.LinearSystem;
-import edu.wpi.first.math.system.LinearSystemLoop;
-import edu.wpi.first.math.system.plant.LinearSystemId;
-import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.Voltage;
-import edu.wpi.first.wpilibj.RobotController;
+import edu.wpi.first.wpilibj.RobotState;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
-import frc.robot.commands.*;
-import frc.robot.subsystems.drive.SwerveDrive;
-import frc.robot.util.ConfigUtils;
-import frc.robot.util.StatusChecks;
-import frc.robot.util.Logging.Logger;
-import frc.robot.Constants;
-import frc.robot.Constants.CAN;
-import frc.robot.Constants.ENABLED_SYSTEMS;
-import frc.robot.Constants.NEO;
-import frc.robot.Constants.SHOOTER;
-import frc.robot.Constants.SHOOTER.PIVOT;
-import frc.robot.Constants.SHOOTER.WHEELS;
-import frc.robot.Constants.SWERVE_DRIVE;
+import frc.robot.Robot;
+import frc.robot.Constants.Preferences;
+import frc.robot.Constants.Constants.CAN;
+import frc.robot.Constants.Constants.ENABLED_SYSTEMS;
+import frc.robot.Constants.Constants.SHOOTER_WHEELS;
+import frc.robot.util.hardware.SparkMaxUtil;
 
 public class ShooterWheels extends SubsystemBase {
   private double targetVelocity = 0.0;
-  private CANSparkMax motor;
+  private CANSparkMax motor, motorFollower;
   private RelativeEncoder encoder;
   private SparkPIDController pid;
-  private SimpleMotorFeedforward feedforward = new SimpleMotorFeedforward(WHEELS.PROFILE.kS, WHEELS.PROFILE.kV, WHEELS.PROFILE.kA);
+  private SimpleMotorFeedforward feedforward = new SimpleMotorFeedforward(SHOOTER_WHEELS.PROFILE.kS, SHOOTER_WHEELS.PROFILE.kV, SHOOTER_WHEELS.PROFILE.kA);
   private boolean isCalibrating = false;
 
   public ShooterWheels() {
-    if (!ENABLED_SYSTEMS.ENABLE_SHOOTER) return;
-
-    motor = new CANSparkMax(CAN.SHOOTER_WHEELS, MotorType.kBrushless);
+    motor = new CANSparkMax(CAN.SHOOTER_WHEELS_BOTTOM, MotorType.kBrushless);
+    motorFollower = new CANSparkMax(CAN.SHOOTER_WHEELS_TOP, MotorType.kBrushless);
+    
     encoder = motor.getEncoder();
     pid = motor.getPIDController();
-    
 
-    ConfigUtils.configure(List.of(
-      () -> motor.restoreFactoryDefaults(),
-      () -> { motor.setInverted(false); return true; },
-      () -> motor.setIdleMode(IdleMode.kCoast),
-      () -> motor.enableVoltageCompensation(12.0),
-      () -> motor.setSmartCurrentLimit(NEO.SAFE_STALL_CURRENT, WHEELS.PROFILE.CURRENT_LIMIT),
-      () -> motor.setClosedLoopRampRate(WHEELS.PROFILE.RAMP_RATE),
-      () -> encoder.setPositionConversionFactor(WHEELS.ENCODER_CONVERSION_FACTOR),
-      () -> encoder.setVelocityConversionFactor(WHEELS.ENCODER_CONVERSION_FACTOR / 60.0),
-      () -> pid.setP(PIVOT.PROFILE.kP, 0),
-      () -> pid.setI(PIVOT.PROFILE.kI, 0),
-      () -> pid.setD(PIVOT.PROFILE.kD, 0),
-      () -> pid.setFF(PIVOT.PROFILE.kV / 12.0, 0),
-      () -> motor.burnFlash()
-    ));
+    SparkMaxUtil.configureAndLog(this, motor, true, IdleMode.kCoast);
+    SparkMaxUtil.configureEncoder(motor, SHOOTER_WHEELS.ENCODER_CONVERSION_FACTOR);
+    SparkMaxUtil.configurePID(this, motor, SHOOTER_WHEELS.PROFILE.kP, SHOOTER_WHEELS.PROFILE.kI, SHOOTER_WHEELS.PROFILE.kD, SHOOTER_WHEELS.PROFILE.kV, false);
+    SparkMaxUtil.save(motor);
 
-    String logPath = "shooter-wheels/";
-    Logger.autoLog(logPath + "current",                 () -> motor.getOutputCurrent());
-    Logger.autoLog(logPath + "appliedOutput",           () -> motor.getAppliedOutput());
-    Logger.autoLog(logPath + "motorTemperature",        () -> motor.getMotorTemperature());
-    Logger.autoLog(logPath + "position",                () -> encoder.getPosition());
-    Logger.autoLog(logPath + "velocity",                () -> getVelocity());
-    
-    StatusChecks.addCheck("Shooter Wheels Motor", () -> motor.getFaults() == 0);
+    motorFollower.follow(motor, true);
+    SparkMaxUtil.save(motorFollower);
   }
 
-  public void setTargetVelocity(double angularVelocity) {
-    targetVelocity = angularVelocity;
+  public Command setTargetVelocity(double angularVelocity) {
+    return runEnd(
+      () -> targetVelocity = angularVelocity,
+      () -> targetVelocity = 0.0
+    );
   }
 
   public double getVelocity() {
-    return WHEELS.TARGET_SPEED;
+    if (Robot.isSimulation()) return targetVelocity;
+    return encoder.getVelocity();
   }
 
   @Override
   public void periodic() {
     if (!ENABLED_SYSTEMS.ENABLE_SHOOTER) return;
     if (isCalibrating) return;
-
+    if (RobotState.isAutonomous()) {
+      targetVelocity = Preferences.SHOOTER_WHEELS.TARGET_SPEED;
+    }
+    if (RobotState.isDisabled()) {
+      setTargetVelocity(0.0);
+    }
     pid.setReference(
       targetVelocity,
       ControlType.kVelocity,
-      0,
-      feedforward.calculate(targetVelocity, 0.0),
-      ArbFFUnits.kVoltage
+      0
     );
   }
 
@@ -126,13 +93,13 @@ public class ShooterWheels extends SubsystemBase {
       new SysIdRoutine.Config(),
       new SysIdRoutine.Mechanism(
         (Measure<Voltage> volts) -> {
-          motor.set(volts.in(Volts) / RobotController.getBatteryVoltage());
+          motor.setVoltage(volts.in(Volts));
         },
         log -> {
           log.motor("shooter-wheels")
-            .voltage(Volts.of(motor.get() * RobotController.getBatteryVoltage()))
-            .linearPosition(Meters.of(encoder.getPosition()))
-            .linearVelocity(MetersPerSecond.of(encoder.getVelocity()));
+            .voltage(Volts.of(motor.getAppliedOutput() * motor.getBusVoltage()))
+            .angularPosition(Radians.of(encoder.getPosition()))
+            .angularVelocity(RadiansPerSecond.of(encoder.getVelocity()));
         },
         this
       )
@@ -141,7 +108,17 @@ public class ShooterWheels extends SubsystemBase {
     return Commands.sequence(
       Commands.runOnce(() -> isCalibrating = true),
       calibrationRoutine.quasistatic(SysIdRoutine.Direction.kForward),
+      Commands.runOnce(() -> motor.stopMotor()),
+      Commands.waitSeconds(1.0),
+      calibrationRoutine.quasistatic(SysIdRoutine.Direction.kReverse),
+      Commands.runOnce(() -> motor.stopMotor()),
+      Commands.waitSeconds(1.0),
       calibrationRoutine.dynamic(SysIdRoutine.Direction.kForward),
+      Commands.runOnce(() -> motor.stopMotor()),
+      Commands.waitSeconds(1.0),
+      calibrationRoutine.dynamic(SysIdRoutine.Direction.kReverse),
+      Commands.runOnce(() -> motor.stopMotor()),
+      Commands.waitSeconds(1.0),
       Commands.runOnce(() -> isCalibrating = false)
     );
   }

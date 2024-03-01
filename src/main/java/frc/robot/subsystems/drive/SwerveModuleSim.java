@@ -10,20 +10,15 @@ import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.system.plant.LinearSystemId;
-import edu.wpi.first.math.util.Units;
-import edu.wpi.first.units.Unit;
-import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.simulation.FlywheelSim;
-import frc.robot.Constants.NEO;
-import frc.robot.Constants.SWERVE_DRIVE;
-import frc.robot.Constants.SWERVE_MATH;
-import frc.robot.Constants.SWERVE_DRIVE.DRIVE_MOTOR_PROFILE;
-import frc.robot.Constants.SWERVE_DRIVE.MODULE_CONFIG;
-import frc.robot.Constants.SWERVE_DRIVE.STEER_MOTOR_PROFILE;
-import frc.robot.util.MathUtils.SwerveMath;
-import frc.robot.util.Logging.Logger;
+import frc.robot.Constants.Constants.NEO;
+import frc.robot.Constants.Constants.SWERVE_DRIVE;
+import frc.robot.Constants.Constants.SWERVE_DRIVE.DRIVE_MOTOR_PROFILE;
+import frc.robot.Constants.Constants.SWERVE_DRIVE.MODULE_CONFIG;
+import frc.robot.Constants.Constants.SWERVE_DRIVE.STEER_MOTOR_PROFILE;
+import frc.robot.util.software.MathUtils.SwerveMath;
+import frc.robot.util.software.Logging.Logger;
 
 public class SwerveModuleSim extends SwerveModule {
   private FlywheelSim driveMotor = new FlywheelSim(
@@ -65,15 +60,15 @@ public class SwerveModuleSim extends SwerveModule {
     super(config, corner, name);
     steerPID.enableContinuousInput(-Math.PI, Math.PI);
 
-    String logPath = "module_" + name + "/";
-    Logger.autoLog(logPath + "current",                 () -> getTotalCurrent());
-    Logger.autoLog(logPath + "getAbsoluteSteerDegrees", () -> getMeasuredState().angle.getDegrees());
-    Logger.autoLog(logPath + "measuredState",           () -> getMeasuredState());
-    Logger.autoLog(logPath + "measuredAngle",           () -> getMeasuredState().angle.getDegrees());
-    Logger.autoLog(logPath + "measuredVelocity",        () -> getMeasuredState().speedMetersPerSecond);
-    Logger.autoLog(logPath + "targetState",             () -> getTargetState());
-    Logger.autoLog(logPath + "targetAngle",             () -> getTargetState().angle.getDegrees());
-    Logger.autoLog(logPath + "targetVelocity",          () -> getTargetState().speedMetersPerSecond);
+    String logPath = "module" + name + "/";
+    Logger.autoLog(this, logPath + "current",                 () -> getTotalCurrent());
+    Logger.autoLog(this, logPath + "getAbsoluteSteerDegrees", () -> getMeasuredState().angle.getDegrees());
+    Logger.autoLog(this, logPath + "measuredState",           () -> getMeasuredState());
+    Logger.autoLog(this, logPath + "measuredAngle",           () -> getMeasuredState().angle.getDegrees());
+    Logger.autoLog(this, logPath + "measuredVelocity",        () -> getMeasuredState().speedMetersPerSecond);
+    Logger.autoLog(this, logPath + "targetState",             () -> getTargetState());
+    Logger.autoLog(this, logPath + "targetAngle",             () -> getTargetState().angle.getDegrees());
+    Logger.autoLog(this, logPath + "targetVelocity",          () -> getTargetState().speedMetersPerSecond);
   }
 
   @Override
@@ -88,13 +83,13 @@ public class SwerveModuleSim extends SwerveModule {
     double wheelAcceleration = (speedMetersPerSecond - lastDrivenState.speedMetersPerSecond) / 0.02;
 
     for (int i = 0; i < 20; i++) {
-      double driveVolts = driveFF.calculate(speedMetersPerSecond, wheelAcceleration) + 12.0 * drivePID.calculate(getMeasuredState().speedMetersPerSecond, speedMetersPerSecond);
+      double driveVolts = driveFF.calculate(speedMetersPerSecond, 0.0) + 12.0 * drivePID.calculate(getMeasuredState().speedMetersPerSecond, speedMetersPerSecond);
       double steerVolts = 12.0 * steerPID.calculate(getMeasuredState().angle.getRadians(), radians);
       
-      driveVoltRamp += (MathUtil.clamp(driveVolts - driveVoltRamp, -12.0 / DRIVE_MOTOR_PROFILE.RAMP_RATE / 1000.0, 12.0 / DRIVE_MOTOR_PROFILE.RAMP_RATE / 1000.0));
+      driveVoltRamp += (MathUtil.clamp(driveVolts - driveVoltRamp, -12.0 / NEO.SAFE_RAMP_RATE / 1000.0, 12.0 / NEO.SAFE_RAMP_RATE / 1000.0));
       driveVolts = driveVoltRamp;
 
-      steerVoltRamp += (MathUtil.clamp(steerVolts - steerVoltRamp, -12.0 / STEER_MOTOR_PROFILE.RAMP_RATE / 1000.0, 12.0 / STEER_MOTOR_PROFILE.RAMP_RATE / 1000.0));
+      steerVoltRamp += (MathUtil.clamp(steerVolts - steerVoltRamp, -12.0 / NEO.SAFE_RAMP_RATE / 1000.0, 12.0 / NEO.SAFE_RAMP_RATE / 1000.0));
       steerVolts = steerVoltRamp;
 
       driveMotor.setInputVoltage(MathUtil.clamp(driveVolts, -12.0, 12.0));

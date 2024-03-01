@@ -1,4 +1,4 @@
-package frc.robot.util.Logging;
+package frc.robot.util.software.Logging;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -8,7 +8,7 @@ import com.revrobotics.CANSparkMax;
 import com.revrobotics.REVLibError;
 
 import edu.wpi.first.wpilibj.DriverStation;
-import frc.robot.Constants;
+import frc.robot.Constants.Constants;
 
 public final class ErrorLogging {
   public static void REV(REVLibError error, String message) {
