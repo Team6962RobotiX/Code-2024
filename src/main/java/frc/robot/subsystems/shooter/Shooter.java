@@ -128,13 +128,18 @@ public class Shooter extends SubsystemBase {
         shooterPivot.getPosition()
       );
 
-      swerveDrive.facePointBackwards(velocityCompensatedPoint.toTranslation2d());
-      
-      shooterPivot.setTargetAngle(ShooterMath.calcPivotAngle(
+      Rotation2d targetAngle = ShooterMath.calcPivotAngle(
         velocityCompensatedPoint,
         swerveDrive.getPose(),
         shooterWheels.getVelocity()
-      ));
+      );
+
+      //System.out.println(targetAngle.getDegrees());
+      swerveDrive.facePointBackwards(velocityCompensatedPoint.toTranslation2d());
+      
+      shooterPivot.setTargetAngle(targetAngle);
+
+      //shooterPivot.setTargetAngle(Rotation2d.fromDegrees(30));
     }).alongWith(Controls.rumble().repeatedly().onlyIf(() -> getShotChance() == 1.0));
   }
 
