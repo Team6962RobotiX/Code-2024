@@ -1,5 +1,6 @@
 package frc.robot.subsystems;
 
+import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -19,6 +20,7 @@ public class RobotStateController extends SubsystemBase {
   private Shooter shooter;
   private Transfer transfer;
   private DigitalInput beamBreakSensor;
+  private Debouncer beamBreakDebouncer = new Debouncer(0.1);
 
   public enum State {
     INTAKE,
@@ -55,7 +57,7 @@ public class RobotStateController extends SubsystemBase {
       case INTAKE:
         return Commands.parallel(
           transfer.setState(Transfer.State.IN)
-        ).until(() -> !beamBreakSensor.get()).andThen(Controls.rumble());
+        ).until(() -> hasNote()).andThen(Controls.rumble());
       case INTAKE_OUT:
         return transfer.setState(Transfer.State.OUT);
       case PREPARE_AMP:
@@ -63,7 +65,7 @@ public class RobotStateController extends SubsystemBase {
           amp.setState(Amp.State.DOWN),
           amp.setState(Amp.State.IN).alongWith(
             transfer.setState(Transfer.State.AMP)
-          ).until(() -> beamBreakSensor.get()),
+          ).until(() -> !hasNote()),
           transfer.setState(Transfer.State.AMP).withTimeout(0.05),
           amp.setState(Amp.State.UP).raceWith(
             amp.setState(Amp.State.IN)
@@ -82,7 +84,7 @@ public class RobotStateController extends SubsystemBase {
         return Commands.parallel(
           // shooter.setState(Shooter.State.IN),
           transfer.setState(Transfer.State.SHOOTER)
-        ).until(() -> beamBreakSensor.get()).andThen(Controls.rumble());
+        ).until(() -> hasNote()).andThen(Controls.rumble());
       case AIM_SPEAKER:
         return shooter.setState(Shooter.State.AIM);
       case SHOOT_SPEAKER:
@@ -96,6 +98,10 @@ public class RobotStateController extends SubsystemBase {
       default:
         return Commands.run(() -> {});
     }
+  }
+
+  public boolean hasNote() {
+    return beamBreakDebouncer.calculate(!beamBreakSensor.get());
   }
 
   @Override

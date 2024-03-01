@@ -36,7 +36,7 @@ public class AprilTags extends SubsystemBase {
     for (String name : cameraPoses.keySet()) {
       LimelightHelpers.PoseEstimate poseEstimate = LimelightHelpers.getBotPoseEstimate_wpiBlue(name);
       if (poseEstimate.tagCount >= 2) {
-        if (swerveDrive.isParked()) {
+        if (swerveDrive.canZeroHeading()) {
           swerveDrive.setVisionMeasurementStdDevs(VecBuilder.fill(0.7, 0.7, Units.degreesToRadians(30.0)));
         } else {
           swerveDrive.setVisionMeasurementStdDevs(VecBuilder.fill(0.7, 0.7, Units.degreesToRadians(999999)));

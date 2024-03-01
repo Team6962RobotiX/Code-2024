@@ -194,9 +194,9 @@ public final class Constants {
 
     // TELEOPERATED
     public static final class ABSOLUTE_ROTATION_GAINS {
-      public static final double kP = 4.0;
+      public static final double kP = 3.0;
       public static final double kI = 0.0;
-      public static final double kD = 0.2;
+      public static final double kD = 0.1;
       public static final Rotation2d TOLERANCE = Rotation2d.fromDegrees(0.5);
     }
     

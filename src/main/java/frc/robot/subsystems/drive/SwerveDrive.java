@@ -189,9 +189,9 @@ public class SwerveDrive extends SubsystemBase {
   public void periodic() {
     if (!ENABLED_SYSTEMS.ENABLE_DRIVE) return;
     
-    List<Translation2d> notePositions = Notes.getNotePositions(LIMELIGHT.NOTE_CAMERA_NAME, LIMELIGHT.NOTE_CAMERA_PITCH, getPose(), getFieldVelocity(), LIMELIGHT.NOTE_CAMERA_POSITION);
-    SwerveDrive.getField().getObject("notes").setPoses(notePositions.stream().map(p -> new Pose2d(p, new Rotation2d())).toList());
-    SwerveDrive.getField().getObject("futurePosition").setPose(getFuturePose());
+    // List<Translation2d> notePositions = Notes.getNotePositions(LIMELIGHT.NOTE_CAMERA_NAME, LIMELIGHT.NOTE_CAMERA_PITCH, getPose(), getFieldVelocity(), LIMELIGHT.NOTE_CAMERA_POSITION);
+    // SwerveDrive.getField().getObject("notes").setPoses(notePositions.stream().map(p -> new Pose2d(p, new Rotation2d())).toList());
+    // SwerveDrive.getField().getObject("futurePosition").setPose(getFuturePose());
 
     // System.out.println(Constants.SHOOTER_WHEELS.PROFILE.kV);
 
@@ -427,8 +427,8 @@ public class SwerveDrive extends SubsystemBase {
     poseEstimator.resetPosition(getHeading(), getModulePositions(), pose);
   }
 
-  public boolean isParked() {
-    return parked;
+  public boolean canZeroHeading() {
+    return parked || isAligning;
   }
 
   /**
