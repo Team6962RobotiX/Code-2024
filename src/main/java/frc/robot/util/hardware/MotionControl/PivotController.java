@@ -15,6 +15,7 @@ import edu.wpi.first.math.trajectory.TrapezoidProfile.State;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Robot;
 import frc.robot.Constants.Constants;
 import frc.robot.Constants.Constants.AMP_PIVOT;
 import frc.robot.Constants.Constants.LOGGING;
@@ -42,7 +43,7 @@ public class PivotController {
   // Rev absolute through-bore encoder
   private DutyCycleEncoder absoluteEncoder;
 
-  private Rotation2d minAngle, maxAngle;
+  private Rotation2d minAngle, maxAngle, tolerance;
 
   private double encoderOffset = 0.0;
 
@@ -52,16 +53,15 @@ public class PivotController {
 
   private Debouncer debouncer = new Debouncer(0.1);
 
+  private Rotation2d simAngle = new Rotation2d();
 
-  public PivotController(SubsystemBase subsystem, CANSparkMax motor, int absoluteEncoderDIO, double absolutePositionOffset, double kP, double gearing, double maxAcceleration, Rotation2d minAngle, Rotation2d maxAngle, boolean reversed) {
-    this(subsystem, motor, absoluteEncoderDIO, absolutePositionOffset, kP, 0.0, 0.0, 0.0, 0.0, 12.0 / (NEO.STATS.freeSpeedRadPerSec / gearing), 0.0, gearing, NEO.STATS.freeSpeedRadPerSec / gearing, maxAcceleration, minAngle, maxAngle, reversed);
-  }
 
-  public PivotController(SubsystemBase subsystem, CANSparkMax motor, int absoluteEncoderDIO, double absolutePositionOffset, double kP, double kI, double kD, double kS, double kG, double kV, double kA, double gearing, double maxVelocity, double maxAcceleration, Rotation2d minAngle, Rotation2d maxAngle, boolean reversed) {
-    // feedforward = new ArmFeedforward(kS, kG, kV, kA);
+  public PivotController(SubsystemBase subsystem, CANSparkMax motor, int absoluteEncoderDIO, double absolutePositionOffset, double kP, double kS, double gearing, Rotation2d minAngle, Rotation2d maxAngle, Rotation2d tolerance, boolean reversed) {
+    // feedforward = new ArmFeedforward(kS, 0.0, 0.0, 0.0);
     // profile = new TrapezoidProfile(
     //   new Constraints(maxVelocity, maxAcceleration)
     // );
+    this.kS = kS;
     pid = motor.getPIDController();
     encoder = motor.getEncoder();
     absoluteEncoder = new DutyCycleEncoder(absoluteEncoderDIO);
@@ -69,13 +69,14 @@ public class PivotController {
     this.motor = motor;
     this.minAngle = minAngle;
     this.maxAngle = maxAngle;
+    this.tolerance = tolerance;
 
     this.reversed = reversed;
     this.subsystem = subsystem;
     encoderOffset = absolutePositionOffset;
 
     SparkMaxUtil.configureEncoder(motor, 2.0 * Math.PI / gearing);
-    SparkMaxUtil.configurePID(subsystem, motor, kP, kI, kD, 0.0, true);
+    SparkMaxUtil.configurePID(subsystem, motor, kP, 0.0, 0.0, 0.0, true);
     
     Logger.autoLog(subsystem, "targetPosition",                   () -> getTargetAngle().getRadians());
     Logger.autoLog(subsystem, "position",                         () -> getPosition().getRadians());
@@ -109,17 +110,25 @@ public class PivotController {
 
 
     // setpointState = profile.calculate(Robot.getLoopTime(), setpointState, targetState);
+    Rotation2d achievableAngle = Rotation2d.fromRadians(targetAngle.getRadians());
+    if (achievableAngle.getRadians() < minAngle.getRadians()) {
+        achievableAngle = minAngle;
+    } else if (achievableAngle.getRadians() > maxAngle.getRadians()) {
+        achievableAngle = maxAngle;
+    }
+
+    simAngle = achievableAngle;
 
     // Set onboard PID controller to follow    
     pid.setReference(
-      targetAngle.getRadians(),
+      achievableAngle.getRadians(),
       CANSparkMax.ControlType.kPosition,
       0,
-      kS * Math.signum(targetAngle.getRadians() - getPosition().getRadians())
+      kS * Math.signum(achievableAngle.getRadians() - getPosition().getRadians())
     );
 
-    System.out.println(Math.signum(targetAngle.getRadians() - getPosition().getRadians()));
-    System.out.println("kS: " + kS);
+    // System.out.println(Math.signum(targetAngle.getRadians() - getPosition().getRadians()));
+    // System.out.println("kS: " + kS);
     // System.out.println(feedforward.calculate(setpointState.position, setpointState.velocity));
 
     if (motor.getAppliedOutput() > 0.0 && getPosition().getRadians() > maxAngle.getRadians()) {
@@ -132,21 +141,11 @@ public class PivotController {
   }
 
   public void setTargetAngle(Rotation2d angle) {
-    if (angle.getRadians() < minAngle.getRadians()) {
-        targetAngle = minAngle;
-    } else if (angle.getRadians() > maxAngle.getRadians()) {
-        targetAngle = maxAngle;
-    } else {
-        targetAngle = angle;
-    }
+    targetAngle = angle;
   }
 
   public Rotation2d getTargetAngle() {
     return targetAngle;
-  }
-
-  public void setKS(double kS) {
-    this.kS = kS;
   }
 
   public boolean isPastLimit() {
@@ -154,6 +153,8 @@ public class PivotController {
   }
 
   public Rotation2d getPosition() {
+    if (Robot.isSimulation()) return simAngle;
+
     double factor = 1;
     if (reversed) {
       factor = -1;
@@ -173,7 +174,7 @@ public class PivotController {
 
   public boolean doneMoving() {
     if (getTargetAngle() == null) return true;
-    return debouncer.calculate(Math.abs(getPosition().getRadians() - getTargetAngle().getRadians()) < Units.degreesToRadians(1.0));
+    return debouncer.calculate(Math.abs(getPosition().getRadians() - getTargetAngle().getRadians()) < tolerance.getRadians());
   }
   
   public void setMaxAngle(Rotation2d newMaxAngle) {

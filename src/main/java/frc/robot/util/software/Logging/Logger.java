@@ -96,20 +96,6 @@ public final class Logger {
     else table.getEntry(key).setValue(obj);
   }
 
-  public static void log(String path, CANSparkMax sparkMax) {
-    log(path + "/power", sparkMax.get());
-    log(path + "/motorTemperature", sparkMax.getMotorTemperature());
-    log(path + "/outputCurrent", sparkMax.getOutputCurrent());
-    log(path + "/busVoltage", sparkMax.getBusVoltage());
-    log(path + "/appliedOutput", sparkMax.getAppliedOutput());
-    log(path + "/encoder", sparkMax.getEncoder());
-  }
-
-  public static void log(String path, RelativeEncoder encoder) {
-    log(path + "/position", encoder.getPosition());
-    log(path + "/velocity", encoder.getVelocity());
-  }
-
   public static void log(String path, Translation3d translation) {
     log(path, new double[] {translation.getX(), translation.getY(), translation.getZ()});
   }
@@ -159,7 +145,6 @@ public final class Logger {
     log(path + "_radians", new double[] { pose.getX(), pose.getY(), pose.getRotation().getRadians() });
     log(path + "_degrees", new double[] { pose.getX(), pose.getY(), pose.getRotation().getDegrees() });
   }
-
 
   public static void log(String path, SwerveModuleState swerveModuleState) {
     log(path + "/state", new double[] {

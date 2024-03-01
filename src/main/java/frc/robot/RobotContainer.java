@@ -69,11 +69,13 @@ public class RobotContainer {
   private final RobotStateController stateController;
   private final LEDs ledStrip;
 
+  private static PowerDistribution PDH = new PowerDistribution(CAN.PDH, ModuleType.kRev);
+
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
     DataLogManager.start();
     DriverStation.startDataLog(DataLogManager.getLog(), true);
-    Logger.autoLog("PDH", new PowerDistribution(CAN.PDH, ModuleType.kRev));
+    Logger.autoLog("PDH", PDH);
 
     Logger.startLog();
     AutonChooser.init();
@@ -111,6 +113,10 @@ public class RobotContainer {
 
   public Command getAutonomousCommand() {
     return new Autonomous(stateController, swerveDrive, AutonChooser.getNotes());
+  }
+
+  public static double getVoltage() {
+    return PDH.getVoltage();
   }
 
   public void disabledPeriodic() {

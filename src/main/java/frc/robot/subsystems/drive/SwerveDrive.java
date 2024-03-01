@@ -307,7 +307,7 @@ public class SwerveDrive extends SubsystemBase {
 
     double targetAngularSpeed = Math.abs(toLinear(fieldRelativeSpeeds.omegaRadiansPerSecond));
     double alignmentAngularVelocity = alignmentController.calculate(getHeading().getRadians());
-
+    
     if (isAligning && !alignmentController.atSetpoint()) fieldRelativeSpeeds.omegaRadiansPerSecond += alignmentAngularVelocity;
 
     SwerveModuleState[] moduleStates = kinematics.toSwerveModuleStates(ChassisSpeeds.fromFieldRelativeSpeeds(fieldRelativeSpeeds, getAllianceAwareHeading()));
@@ -327,7 +327,7 @@ public class SwerveDrive extends SubsystemBase {
     double currentAngularVelocity = drivenChassisSpeeds.omegaRadiansPerSecond;
     double angularAcceleration = (targetAngularVelocity - currentAngularVelocity) / Robot.getLoopTime();
     double angularForce = Math.abs((SWERVE_DRIVE.PHYSICS.ROTATIONAL_INERTIA * angularAcceleration) / SWERVE_DRIVE.PHYSICS.DRIVE_RADIUS);
-
+    
     double frictionForce = 9.80 * SWERVE_DRIVE.ROBOT_MASS * SWERVE_DRIVE.FRICTION_COEFFICIENT;
 
     if (linearForce + angularForce > frictionForce) {
@@ -385,18 +385,26 @@ public class SwerveDrive extends SubsystemBase {
    * Faces a point on the field
    * @param point The point on the field we want to face
    */
-  public void facePoint(Translation2d point) {
-    Translation2d currentPosition = getPose().getTranslation();
-    setTargetHeading(point.minus(currentPosition).getAngle());
+  public Command facePoint(Supplier<Translation2d> point) {
+    return Commands.run(
+      () -> {
+        Translation2d currentPosition = getPose().getTranslation();
+        setTargetHeading(point.get().minus(currentPosition).getAngle());
+      }
+    );
   }
 
   /**
    * Faces a point on the field
    * @param point The point on the field we want to face
    */
-  public void facePointBackwards(Translation2d point) {
-    Translation2d currentPosition = getPose().getTranslation();
-    setTargetHeading(point.minus(currentPosition).getAngle().plus(Rotation2d.fromDegrees(180.0)));
+  public Command facePointBackwards(Supplier<Translation2d> point) {
+    return Commands.run(
+      () -> {
+        Translation2d currentPosition = getPose().getTranslation();
+        setTargetHeading(point.get().minus(currentPosition).getAngle().plus(Rotation2d.fromDegrees(180.0)));
+      }
+    );
   }
 
 

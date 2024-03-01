@@ -24,7 +24,9 @@ import frc.robot.Constants.Constants.AMP_PIVOT;
 import frc.robot.Constants.Constants.CAN;
 import frc.robot.Constants.Constants.DIO;
 import frc.robot.Constants.Constants.ENABLED_SYSTEMS;
+import frc.robot.Constants.Preferences.VOLTAGE_LADDER;
 import frc.robot.Robot;
+import frc.robot.RobotContainer;
 import frc.robot.Constants.Preferences;
 import frc.robot.util.hardware.SparkMaxUtil;
 import frc.robot.util.hardware.MotionControl.PivotController;
@@ -45,10 +47,11 @@ public class AmpPivot extends SubsystemBase {
       DIO.AMP_PIVOT,
       AMP_PIVOT.ABSOLUTE_POSITION_OFFSET,
       AMP_PIVOT.PROFILE.kP,
+      AMP_PIVOT.PROFILE.kS,
       AMP_PIVOT.GEARING,
-      AMP_PIVOT.PROFILE.MAX_ACCELERATION,
       Preferences.AMP_PIVOT.MIN_ANGLE,
       Preferences.AMP_PIVOT.MAX_ANGLE,
+      Rotation2d.fromDegrees(1.0),
       false
     );
 
@@ -63,6 +66,8 @@ public class AmpPivot extends SubsystemBase {
       controller.setTargetAngle(controller.getPosition());
     }
     controller.run();
+
+    if (RobotContainer.getVoltage() < VOLTAGE_LADDER.AMP) motor.stopMotor();
   }
 
   public Rotation2d getPosition() {
@@ -72,12 +77,11 @@ public class AmpPivot extends SubsystemBase {
 
   public Command setTargetAngleCommand(Rotation2d angle) {
     return runOnce(() -> {
-      System.out.println("PIVOT ANGLE SET");
       setTargetAngle(angle);
     });
   }
 
-  public void setTargetAngle(Rotation2d angle) {
+  private void setTargetAngle(Rotation2d angle) {
     controller.setTargetAngle(angle);
   }
 

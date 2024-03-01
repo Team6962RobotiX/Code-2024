@@ -12,10 +12,12 @@ import com.revrobotics.CANSparkLowLevel.MotorType;
 import edu.wpi.first.wpilibj.RobotState;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.RobotContainer;
 import frc.robot.Constants.Constants;
 import frc.robot.Constants.Constants.CAN;
 import frc.robot.Constants.Constants.ENABLED_SYSTEMS;
 import frc.robot.Constants.Preferences;
+import frc.robot.Constants.Preferences.VOLTAGE_LADDER;
 import frc.robot.commands.*;
 import frc.robot.subsystems.drive.SwerveDrive;
 import frc.robot.util.hardware.SparkMaxUtil;
@@ -125,6 +127,10 @@ public class Hang extends SubsystemBase {
         break;
     }
 
+    if (RobotContainer.getVoltage() < VOLTAGE_LADDER.HANG) {
+      leftMotor.stopMotor();
+      rightMotor.stopMotor();
+    }
   }
 
   @Override

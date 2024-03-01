@@ -5,7 +5,7 @@ import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import frc.robot.Constants.Preferences;
+import frc.robot.Constants.Constants;
 import frc.robot.Constants.Constants.DEVICES;
 import frc.robot.commands.drive.XBoxSwerve;
 import frc.robot.commands.vision.MoveToNote;
@@ -47,10 +47,10 @@ public class Controls {
     driver.b();
     driver.x();
     driver.y(); // USED
-    driver.start().whileTrue(new MoveToNote("limelight-fnote", swerveDrive, driver));
+    driver.start().whileTrue(new MoveToNote(Constants.LIMELIGHT.NOTE_CAMERA_NAME, swerveDrive, driver));
     driver.back().whileTrue(stateController.setState(RobotStateController.State.AIM_SPEAKER));
-    driver.leftBumper().onTrue(Commands.runOnce(() -> swerveDrive.setTargetHeading(Rotation2d.fromDegrees(180.0))));
-    driver.rightBumper().onTrue(Commands.runOnce(() -> swerveDrive.setTargetHeading(Rotation2d.fromDegrees(0.0))));
+    driver.leftBumper();
+    driver.rightBumper();
     driver.leftStick(); // USED
     driver.rightStick(); // USED
     driver.povCenter(); // USED
@@ -61,15 +61,18 @@ public class Controls {
     driver.leftTrigger(); // USED
     driver.rightTrigger(); // USED
     swerveDrive.setDefaultCommand(new XBoxSwerve(swerveDrive, driver.getHID()));
-    
+
+    driver.button(1).whileTrue(stateController.setState(RobotStateController.State.AIM_SPEAKER));
+
+
     operator.a();
     operator.b();
     operator.x();
     operator.y();
     operator.start().whileTrue(stateController.setState(RobotStateController.State.LEAVE_AMP));
-    operator.back().onTrue(Commands.runOnce(() -> shooterPivot.setTargetAngle(Rotation2d.fromDegrees(25))));
+    operator.back().onTrue(shooterPivot.setTargetAngleCommand(() -> Rotation2d.fromDegrees(25)));
     operator.leftBumper();
-    operator.rightBumper().whileTrue(stateController.setState(RobotStateController.State.INTAKE));
+    operator.rightBumper().whileTrue(stateController.setState(RobotStateController.State.INTAKE).andThen(Commands.runOnce(() -> stateController.setState(RobotStateController.State.CENTER_NOTE).andThen(Controls.rumble()).schedule())));
     operator.leftStick().whileTrue(stateController.setState(RobotStateController.State.PREPARE_AMP));
     operator.rightStick().whileTrue(stateController.setState(RobotStateController.State.PLACE_AMP));
     operator.povCenter();
@@ -77,7 +80,7 @@ public class Controls {
     operator.povDown();
     operator.povLeft();
     operator.povRight();
-    operator.leftTrigger().toggleOnTrue(shooter.setState(Shooter.State.SPIN_UP));
+    operator.leftTrigger().toggleOnTrue(stateController.setState(RobotStateController.State.SPIN_UP));
     operator.rightTrigger().whileTrue(stateController.setState(RobotStateController.State.SHOOT_SPEAKER));
   }
 

@@ -43,7 +43,7 @@ public final class Constants {
   }
 
   public static final class LOGGING {
-    public static final int LOGGING_PERIOD_MS = 20;
+    public static final int LOGGING_PERIOD_MS = 100;
   }
 
   // DEVICES
@@ -177,7 +177,7 @@ public final class Constants {
       public static final double kP                 = 0.00500; // Proportion Gain
       public static final double kI                 = 0.00000; // Integral Gain
       public static final double kD                 = 0.00000; // Derivative Gain
-      public static final double kS                 = 0.18000; // volts 0.081073
+      public static final double kS                 = 1.18000; // volts 0.081073
       public static final double kV                 = 12.0 / PHYSICS.MAX_LINEAR_VELOCITY; // volts per m/s
       public static final double kA                 = 0.10000; // volts per m/s^2, free spinning
     }
@@ -194,9 +194,9 @@ public final class Constants {
 
     // TELEOPERATED
     public static final class ABSOLUTE_ROTATION_GAINS {
-      public static final double kP = 3.0;
+      public static final double kP = 4.0;
       public static final double kI = 0.0;
-      public static final double kD = 0.1;
+      public static final double kD = 0.2;
       public static final Rotation2d TOLERANCE = Rotation2d.fromDegrees(0.5);
     }
     
@@ -335,6 +335,7 @@ public final class Constants {
     
     public static final class PROFILE {
       public static final double kP = 20.0;
+      public static final double kS = 0.2;
       public static final double MAX_ACCELERATION = 30.0; // rad/s^2
     }
   }
@@ -351,6 +352,7 @@ public final class Constants {
 
     public static final class PROFILE {
       public static final double kP = 2.0;
+      public static final double kS = 0.0;
       public static final double MAX_ACCELERATION = 40.0; // rad/s^2
     }
   }

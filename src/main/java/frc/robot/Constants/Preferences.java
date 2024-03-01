@@ -38,6 +38,7 @@ public final class Preferences {
   public static final class SHOOTER_PIVOT {
     public static final Rotation2d MAX_ANGLE = Rotation2d.fromDegrees(63.0);
     public static final Rotation2d MIN_ANGLE = Rotation2d.fromDegrees(22.0); // 21.148 (really 21.6626)
+    public static final Rotation2d IDLE_ANGLE = Rotation2d.fromDegrees(30.0);
     public static final Rotation2d MAX_ANGLE_UNDER_STAGE = Rotation2d.fromDegrees(50.0);
   }
 
@@ -50,7 +51,7 @@ public final class Preferences {
     public static final Rotation2d MIN_ANGLE = Rotation2d.fromDegrees(-60.0);
     public static final Rotation2d OUTPUT_ANGLE = Rotation2d.fromDegrees(72.0);
     public static final Rotation2d INTAKE_ANGLE = Rotation2d.fromDegrees(-50.0);
-    public static final Rotation2d MAX_ANGLE_UNDER_STAGE = INTAKE_ANGLE;
+    public static final Rotation2d MAX_ANGLE_UNDER_STAGE = Rotation2d.fromDegrees(-20.0);
   }
 
   public static final class TRANSFER {
@@ -68,5 +69,13 @@ public final class Preferences {
     // the angle that the robot will start correcting itself at when hanging
     public static final double MAX_ROLL_ANGLE = 25;
     
+  }
+
+  public static final class VOLTAGE_LADDER {
+    public static final double SWERVE_DRIVE = 7.0;
+    public static final double SHOOTER = 8.0;
+    public static final double HANG = 9.0;
+    public static final double TRANSFER = 9.0;
+    public static final double AMP = 10.0;
   }
 }

@@ -2,6 +2,7 @@ package frc.robot.subsystems;
 
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -31,6 +32,7 @@ public class RobotStateController extends SubsystemBase {
     PREPARE_SPEAKER,
     AIM_SPEAKER,
     SHOOT_SPEAKER,
+    SPIN_UP,
     PREPARE_SOURCE,
     INTAKE_SOURCE,
     PREPARE_TRAP,
@@ -59,7 +61,7 @@ public class RobotStateController extends SubsystemBase {
         return Commands.parallel(
           transfer.setState(Transfer.State.IN),
           amp.setState(Amp.State.DOWN)
-        ).until(() -> hasNote()).andThen(Commands.runOnce(() -> setState(State.CENTER_NOTE).schedule())).andThen(Controls.rumble());
+        ).until(() -> hasNote()).andThen(Controls.rumble());
       case CENTER_NOTE:
         return Commands.sequence(
           amp.setState(Amp.State.DOWN),
@@ -96,7 +98,6 @@ public class RobotStateController extends SubsystemBase {
         );
       case PREPARE_SPEAKER:
         return Commands.parallel(
-          // shooter.setState(Shooter.State.IN),
           transfer.setState(Transfer.State.SHOOTER)
         ).until(() -> hasNote()).andThen(Controls.rumble());
       case AIM_SPEAKER:
@@ -105,10 +106,9 @@ public class RobotStateController extends SubsystemBase {
         return Commands.parallel(
           transfer.setState(Transfer.State.SHOOTER),
           shooter.setState(Shooter.State.SHOOT)
-          // Commands.runOnce(() -> {
-          //   SmartDashboard.putNumber("Distance", ShooterMath.calcShooterLocationOnField(swerveDrive.getPose(), shooter.getPivot().getPosition()).getDistance(Field.SPEAKER));
-          // })
         );
+      case SPIN_UP:
+        return shooter.setState(Shooter.State.SPIN_UP);
       default:
         return Commands.run(() -> {});
     }

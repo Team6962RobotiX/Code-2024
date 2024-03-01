@@ -8,6 +8,8 @@ import static edu.wpi.first.units.Units.Radians;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.Volts;
 
+import java.util.function.Supplier;
+
 import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
 
@@ -21,11 +23,13 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Robot;
+import frc.robot.RobotContainer;
 import frc.robot.Constants.Constants.CAN;
 import frc.robot.Constants.Constants.DIO;
 import frc.robot.Constants.Constants.ENABLED_SYSTEMS;
 import frc.robot.Constants.Constants.SHOOTER_PIVOT;
 import frc.robot.Constants.Preferences;
+import frc.robot.Constants.Preferences.VOLTAGE_LADDER;
 import frc.robot.util.TunableNumber;
 import frc.robot.util.hardware.SparkMaxUtil;
 import frc.robot.util.hardware.MotionControl.PivotController;
@@ -48,13 +52,13 @@ public class ShooterPivot extends SubsystemBase {
       DIO.SHOOTER_PIVOT,
       SHOOTER_PIVOT.ABSOLUTE_POSITION_OFFSET,
       SHOOTER_PIVOT.PROFILE.kP,
+      SHOOTER_PIVOT.PROFILE.kS,
       SHOOTER_PIVOT.GEARING,
-      SHOOTER_PIVOT.PROFILE.MAX_ACCELERATION,
       Preferences.SHOOTER_PIVOT.MIN_ANGLE,
       Preferences.SHOOTER_PIVOT.MAX_ANGLE,
+      Rotation2d.fromDegrees(0.5),
       true
     );
-    controller.setKS(0.3);
 
     SparkMaxUtil.save(motor);
 
@@ -80,15 +84,19 @@ public class ShooterPivot extends SubsystemBase {
     if (motor.getAppliedOutput() < 0.0 && getPosition().getRadians() < Preferences.SHOOTER_PIVOT.MIN_ANGLE.getRadians()) {
       motor.stopMotor();
     }
+
+    if (RobotContainer.getVoltage() < VOLTAGE_LADDER.SHOOTER) motor.stopMotor();
   }
 
-  public Command setTargetAngleCommand(Rotation2d angle) {
-    return runOnce(() -> setTargetAngle(angle));
+  public Command setTargetAngleCommand(Supplier<Rotation2d> angleSupplier) {
+    return runEnd(
+      () -> setTargetAngle(angleSupplier.get()),
+      () -> setTargetAngle(Preferences.SHOOTER_PIVOT.IDLE_ANGLE)
+    );
   }
 
-  public void setTargetAngle(Rotation2d angle) {
+  private void setTargetAngle(Rotation2d angle) {
     controller.setTargetAngle(angle);
-    // System.out.println(angle);
   }
 
   public Rotation2d getTargetAngle() {
@@ -96,7 +104,6 @@ public class ShooterPivot extends SubsystemBase {
   }
 
   public Rotation2d getPosition() {
-    if (Robot.isSimulation() && controller.getTargetAngle() != null) return controller.getTargetAngle();
     return controller.getPosition();
   }
 

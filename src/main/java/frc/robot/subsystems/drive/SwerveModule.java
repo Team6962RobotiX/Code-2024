@@ -35,6 +35,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import frc.robot.RobotContainer;
 import frc.robot.Constants.Constants;
 import frc.robot.Constants.Constants.ENABLED_SYSTEMS;
 import frc.robot.Constants.Constants.SWERVE_DRIVE;
@@ -42,6 +43,7 @@ import frc.robot.Constants.Constants.SWERVE_DRIVE.DRIVE_MOTOR_PROFILE;
 import frc.robot.Constants.Constants.SWERVE_DRIVE.MODULE_CONFIG;
 import frc.robot.Constants.Constants.SWERVE_DRIVE.PHYSICS;
 import frc.robot.Constants.Constants.SWERVE_DRIVE.STEER_MOTOR_PROFILE;
+import frc.robot.Constants.Preferences.VOLTAGE_LADDER;
 import frc.robot.util.hardware.SparkMaxUtil;
 import frc.robot.util.software.MathUtils.SwerveMath;
 import frc.robot.util.software.Logging.Logger;
@@ -138,6 +140,9 @@ public class SwerveModule extends SubsystemBase {
     }
     
     drive(targetState);
+
+    if (RobotContainer.getVoltage() < VOLTAGE_LADDER.SWERVE_DRIVE) stop();
+
   }
   
   public void drive(SwerveModuleState state) {
