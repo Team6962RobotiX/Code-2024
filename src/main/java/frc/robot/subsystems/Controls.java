@@ -67,7 +67,7 @@ public class Controls {
     operator.x();
     operator.y();
     operator.start().whileTrue(stateController.setState(RobotStateController.State.LEAVE_AMP));
-    operator.back();
+    operator.back().onTrue(Commands.runOnce(() -> shooterPivot.setTargetAngle(Preferences.SHOOTER_PIVOT.MIN_ANGLE)));
     operator.leftBumper();
     operator.rightBumper().whileTrue(stateController.setState(RobotStateController.State.INTAKE));
     operator.leftStick().whileTrue(stateController.setState(RobotStateController.State.PREPARE_AMP));

@@ -98,9 +98,9 @@ public class PivotController {
     // System.out.println(getPosition().getDegrees());
 
     // Re-seed the relative encoder with the absolute encoder when not moving
-    if (doneMoving()) {
-      encoder.setPosition(getPosition().getRadians());
-    }
+    // if (doneMoving()) {
+    encoder.setPosition(getPosition().getRadians());
+    // }
     
     // if (setpointState == null) {
     //   setpointState = new State(getAbsolutePosition().getRadians(), getVelocity().getRadians());
