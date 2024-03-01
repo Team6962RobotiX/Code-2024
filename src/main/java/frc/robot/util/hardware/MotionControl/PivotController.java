@@ -141,7 +141,6 @@ public class PivotController {
   }
 
   public Rotation2d getTargetAngle() {
-    if (targetAngle == null) return minAngle;
     return targetAngle;
   }
 
