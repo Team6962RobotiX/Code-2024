@@ -134,6 +134,8 @@ public class Shooter extends SubsystemBase {
         shooterWheels.getVelocity()
       );
 
+      System.out.println(targetAngle);
+
       //System.out.println(targetAngle.getDegrees());
       swerveDrive.facePointBackwards(velocityCompensatedPoint.toTranslation2d());
       
