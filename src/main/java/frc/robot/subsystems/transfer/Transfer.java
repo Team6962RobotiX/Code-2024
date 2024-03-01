@@ -18,6 +18,7 @@ public class Transfer extends SubsystemBase {
     OUT,
     AMP,
     SHOOTER,
+    FROM_AMP,
   }
 
   public Transfer() {
@@ -54,6 +55,11 @@ public class Transfer extends SubsystemBase {
         return Commands.parallel( 
           transferIn.setState(TransferInWheels.State.THROUGH),
           transferOut.setState(TransferOutWheels.State.SHOOTER)
+        );
+      case FROM_AMP:
+        return Commands.parallel(
+          transferIn.setState(TransferInWheels.State.OUT),
+          transferOut.setState(TransferOutWheels.State.AMP_OUT)
         );
     }
     return null;

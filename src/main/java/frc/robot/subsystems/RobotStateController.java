@@ -20,7 +20,7 @@ public class RobotStateController extends SubsystemBase {
   private Shooter shooter;
   private Transfer transfer;
   private DigitalInput beamBreakSensor;
-  private Debouncer beamBreakDebouncer = new Debouncer(0.1);
+  private Debouncer beamBreakDebouncer = new Debouncer(0.05);
 
   public enum State {
     INTAKE,
@@ -34,7 +34,8 @@ public class RobotStateController extends SubsystemBase {
     PREPARE_SOURCE,
     INTAKE_SOURCE,
     PREPARE_TRAP,
-    SHOOT_TRAP
+    SHOOT_TRAP,
+    CENTER_NOTE
   }
 
   public RobotStateController(Amp amp, SwerveDrive swerveDrive, Shooter shooter, Transfer transfer) {
@@ -56,8 +57,21 @@ public class RobotStateController extends SubsystemBase {
     switch(state) {
       case INTAKE:
         return Commands.parallel(
-          transfer.setState(Transfer.State.IN)
-        ).until(() -> hasNote()).andThen(Controls.rumble());
+          transfer.setState(Transfer.State.IN),
+          amp.setState(Amp.State.DOWN)
+        ).until(() -> hasNote()).andThen(Commands.runOnce(() -> setState(State.CENTER_NOTE).schedule())).andThen(Controls.rumble());
+      case CENTER_NOTE:
+        return Commands.sequence(
+          amp.setState(Amp.State.DOWN),
+          amp.setState(Amp.State.IN).alongWith(
+            transfer.setState(Transfer.State.AMP)
+          ).until(() -> !hasNote()),
+          amp.setState(Amp.State.OUT).alongWith(
+            transfer.setState(Transfer.State.FROM_AMP)
+          ).until(() -> hasNote()),
+          transfer.setState(Transfer.State.FROM_AMP).until(() -> !hasNote()),
+          transfer.setState(Transfer.State.IN).until(() -> hasNote())
+        );
       case INTAKE_OUT:
         return transfer.setState(Transfer.State.OUT);
       case PREPARE_AMP:

@@ -18,6 +18,8 @@ public class TransferOutWheels extends SubsystemBase {
   public static enum State {
     AMP,
     SHOOTER,
+    AMP_OUT,
+    SHOOTER_OUT,
     OFF,
   }
 
@@ -44,14 +46,17 @@ public class TransferOutWheels extends SubsystemBase {
     }
     switch(state) {
       case AMP:
+      case SHOOTER_OUT:
         motor.set(-Preferences.TRANSFER.OUT_POWER_TOP);
         break;
       case SHOOTER:
+      case AMP_OUT:
         motor.set(Preferences.TRANSFER.OUT_POWER_TOP);
         break;
       case OFF:
         motor.set(0);
         break;
+
     }
   }
 

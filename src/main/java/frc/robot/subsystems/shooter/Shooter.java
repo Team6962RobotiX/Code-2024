@@ -44,6 +44,7 @@ public class Shooter extends SubsystemBase {
     AIM,
     SPIN_UP,
     SHOOT,
+    DOWN,
   }
 
   public Shooter(SwerveDrive swerveDrive) {
@@ -101,6 +102,8 @@ public class Shooter extends SubsystemBase {
         );
       case SHOOT:
         return feedWheels.setState(FeedWheels.State.SHOOT);
+      case DOWN:
+        return Commands.runOnce(() -> shooterPivot.setTargetAngle(Preferences.SHOOTER_PIVOT.MIN_ANGLE));
     }
     return null;
   }

@@ -31,10 +31,7 @@ import frc.robot.util.software.Logging.StatusChecks;
 public class PivotController {
   private Rotation2d targetAngle = null;
   // State setpointState;
-  // Feedfoward controller, read: https://docs.wpilib.org/en/stable/docs/software/advanced-controls/controllers/feedforward.html
-  private ArmFeedforward feedforward;
-  // Trapezoidal Profile controller, read: https://docs.wpilib.org/en/stable/docs/software/advanced-controls/controllers/trapezoidal-profiles.html
-  private TrapezoidProfile profile;
+  private double kS = 0.0;
   // Onboard spark max PID controller. Runs at 1kHz
   // private SparkPIDController pid;
   private SparkPIDController pid;
@@ -117,9 +114,12 @@ public class PivotController {
     pid.setReference(
       targetAngle.getRadians(),
       CANSparkMax.ControlType.kPosition,
-      0
+      0,
+      kS * Math.signum(targetAngle.getRadians() - getPosition().getRadians())
     );
 
+    System.out.println(Math.signum(targetAngle.getRadians() - getPosition().getRadians()));
+    System.out.println("kS: " + kS);
     // System.out.println(feedforward.calculate(setpointState.position, setpointState.velocity));
 
     if (motor.getAppliedOutput() > 0.0 && getPosition().getRadians() > maxAngle.getRadians()) {
@@ -143,6 +143,10 @@ public class PivotController {
 
   public Rotation2d getTargetAngle() {
     return targetAngle;
+  }
+
+  public void setKS(double kS) {
+    this.kS = kS;
   }
 
   public boolean isPastLimit() {

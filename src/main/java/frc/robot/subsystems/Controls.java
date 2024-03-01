@@ -67,7 +67,7 @@ public class Controls {
     operator.x();
     operator.y();
     operator.start().whileTrue(stateController.setState(RobotStateController.State.LEAVE_AMP));
-    operator.back().onTrue(Commands.runOnce(() -> shooterPivot.setTargetAngle(Preferences.SHOOTER_PIVOT.MIN_ANGLE)));
+    operator.back().onTrue(Commands.runOnce(() -> shooterPivot.setTargetAngle(Rotation2d.fromDegrees(25))));
     operator.leftBumper();
     operator.rightBumper().whileTrue(stateController.setState(RobotStateController.State.INTAKE));
     operator.leftStick().whileTrue(stateController.setState(RobotStateController.State.PREPARE_AMP));
@@ -77,7 +77,7 @@ public class Controls {
     operator.povDown();
     operator.povLeft();
     operator.povRight();
-    operator.leftTrigger().whileTrue(shooter.setState(Shooter.State.SPIN_UP));
+    operator.leftTrigger().toggleOnTrue(shooter.setState(Shooter.State.SPIN_UP));
     operator.rightTrigger().whileTrue(stateController.setState(RobotStateController.State.SHOOT_SPEAKER));
   }
 

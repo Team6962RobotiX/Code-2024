@@ -308,7 +308,7 @@ public class SwerveDrive extends SubsystemBase {
     double targetAngularSpeed = Math.abs(toLinear(fieldRelativeSpeeds.omegaRadiansPerSecond));
     double alignmentAngularVelocity = alignmentController.calculate(getHeading().getRadians());
 
-    if (isAligning) fieldRelativeSpeeds.omegaRadiansPerSecond += alignmentAngularVelocity;
+    if (isAligning && !alignmentController.atSetpoint()) fieldRelativeSpeeds.omegaRadiansPerSecond += alignmentAngularVelocity;
 
     SwerveModuleState[] moduleStates = kinematics.toSwerveModuleStates(ChassisSpeeds.fromFieldRelativeSpeeds(fieldRelativeSpeeds, getAllianceAwareHeading()));
     SwerveDriveKinematics.desaturateWheelSpeeds(moduleStates, SWERVE_DRIVE.PHYSICS.MAX_LINEAR_VELOCITY);

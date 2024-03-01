@@ -26,6 +26,7 @@ import frc.robot.Constants.Constants.DIO;
 import frc.robot.Constants.Constants.ENABLED_SYSTEMS;
 import frc.robot.Constants.Constants.SHOOTER_PIVOT;
 import frc.robot.Constants.Preferences;
+import frc.robot.util.TunableNumber;
 import frc.robot.util.hardware.SparkMaxUtil;
 import frc.robot.util.hardware.MotionControl.PivotController;
 
@@ -53,8 +54,11 @@ public class ShooterPivot extends SubsystemBase {
       Preferences.SHOOTER_PIVOT.MAX_ANGLE,
       true
     );
+    controller.setKS(0.3);
 
     SparkMaxUtil.save(motor);
+
+    new TunableNumber(this, "Shooter Pivot Power", (x) -> controller.setTargetAngle(Rotation2d.fromDegrees(x)), 0);
   }
 
   @Override
@@ -68,6 +72,14 @@ public class ShooterPivot extends SubsystemBase {
     if (doneMoving()) return;
 
     controller.run();
+
+    if (motor.getAppliedOutput() > 0.0 && getPosition().getRadians() > Preferences.SHOOTER_PIVOT.MAX_ANGLE.getRadians()) {
+      motor.stopMotor();
+    }
+
+    if (motor.getAppliedOutput() < 0.0 && getPosition().getRadians() < Preferences.SHOOTER_PIVOT.MIN_ANGLE.getRadians()) {
+      motor.stopMotor();
+    }
   }
 
   public Command setTargetAngleCommand(Rotation2d angle) {
