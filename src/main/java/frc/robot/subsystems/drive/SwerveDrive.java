@@ -90,6 +90,8 @@ public class SwerveDrive extends SubsystemBase {
   SWERVE_DRIVE.MODULE_CONFIG[] equippedModules;
 
   public SwerveDrive() {
+    if (!ENABLED_SYSTEMS.ENABLE_DRIVE) return;
+
     // Create the serve module objects
     if (SWERVE_DRIVE.IS_PROTOTYPE_CHASSIS) {
       equippedModules = SWERVE_DRIVE.EQUIPPED_MODULES_PROTOTYPE;
