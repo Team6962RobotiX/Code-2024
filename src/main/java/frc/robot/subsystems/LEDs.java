@@ -45,7 +45,7 @@ public class LEDs extends SubsystemBase {
 
   @Override
   public void periodic() {
-    setState(State.DRIVING_TELEOP);
+    //setState(State.DRIVING_TELEOP);
     switch (state) {
       case OFF:
         setColor(0, length, new int[] {0, 0, 0});
@@ -78,7 +78,7 @@ public class LEDs extends SubsystemBase {
 
   @Override
   public void simulationPeriodic() {
-    setState(State.DISABLED);
+    //setState(State.DISABLED);
   }
 
   public static Command setStateCommand(State state) {
@@ -118,7 +118,7 @@ public class LEDs extends SubsystemBase {
       }
     }
   }
-  
+
   private static void setColorWave(int start, int stop, int[] firstRGB, int[] secondRGB, double speed) {
     double time = Timer.getFPGATimestamp();
     for (int pixel = start; pixel < stop; pixel++) {
