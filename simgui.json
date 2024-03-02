@@ -2,8 +2,9 @@
   "HALProvider": {
     "Addressable LEDs": {
       "0": {
-        "columns": 20,
-        "order": 1
+        "columns": 100,
+        "order": 1,
+        "serpentine": true
       },
       "window": {
         "visible": true
@@ -28,7 +29,7 @@
       "/SmartDashboard/VisionSystemSim-main/Sim Field": "Field2d"
     },
     "windows": {
-      "/FMSInfo": {
+      "/Shuffleboard/Status Checks/Refresh": {
         "window": {
           "visible": true
         }
@@ -208,6 +209,18 @@
     }
   },
   "NetworkTables Info": {
+    "Clients": {
+      "open": true
+    },
+    "Connections": {
+      "open": true
+    },
+    "Server": {
+      "Publishers": {
+        "open": true
+      },
+      "open": true
+    },
     "visible": true
   }
 }

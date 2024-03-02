@@ -6,6 +6,7 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants.Constants;
 
 import java.awt.Color;
 
@@ -22,6 +23,7 @@ public class LEDs extends SubsystemBase {
     OFF,
     DISABLED,
     NO_NOTE,
+    DRIVING_TELEOP,
     HAS_NOTE,
     AIMING,
     AIMED,
@@ -43,6 +45,7 @@ public class LEDs extends SubsystemBase {
 
   @Override
   public void periodic() {
+    setState(State.DRIVING_TELEOP);
     switch (state) {
       case OFF:
         setColor(0, length, new int[] {0, 0, 0});
@@ -53,17 +56,20 @@ public class LEDs extends SubsystemBase {
       case NO_NOTE:
         setColor(0, length, ANTARES_BLUE);
         break;
+      case DRIVING_TELEOP:
+        setBumperColorWave(0, length);
+        break;
+      
       case HAS_NOTE:
         setColor(0, length, ANTARES_YELLOW);
         break;
       case AIMING:
-        setColorWave(0, length, ANTARES_YELLOW);
+        setColorWave(0, length, ANTARES_YELLOW, 2.5);
         break;
       case AIMED:
         setColor(0, length, GREEN);
         break;
     }
-
     strip.setData(buffer);
     clear();
 
@@ -72,7 +78,7 @@ public class LEDs extends SubsystemBase {
 
   @Override
   public void simulationPeriodic() {
-
+    setState(State.DISABLED);
   }
 
   public static Command setStateCommand(State state) {
@@ -101,10 +107,10 @@ public class LEDs extends SubsystemBase {
     }
   }
 
-  private static void setColorWave(int start, int stop, int[] RGB) {
+  private static void setColorWave(int start, int stop, int[] RGB, double speed) {
     double time = Timer.getFPGATimestamp();
     for (int pixel = start; pixel < stop; pixel++) {
-      double val = (pixel / 200.0 + time * 2.5) % 1.0;
+      double val = (pixel / 200.0 + time * speed) % 1.0;
       if (val < 0.5) {
         setColor(pixel, RGB);
       } else {
@@ -112,6 +118,28 @@ public class LEDs extends SubsystemBase {
       }
     }
   }
+  
+  private static void setColorWave(int start, int stop, int[] firstRGB, int[] secondRGB, double speed) {
+    double time = Timer.getFPGATimestamp();
+    for (int pixel = start; pixel < stop; pixel++) {
+      double val = (pixel / 200.0 + time * speed) % 1.0;
+      if (val < 0.5) {
+        setColor(pixel, firstRGB);
+      } else {
+        setColor(pixel, secondRGB);
+      }
+    }
+  }
+
+  private static void setBumperColorWave(int start, int stop) {
+    if (Constants.IS_BLUE_TEAM) {
+      setColorWave(start, stop, ANTARES_BLUE, new int[] {179, 0, 255}, 2.5);
+    } else {
+      setColorWave(start, stop, new int[] {255, 0, 0},  ANTARES_YELLOW, 2.5);
+    }
+    
+  }
+
 
   private static void clear() {
     setColor(0, length, new int[] {0, 0, 0});
