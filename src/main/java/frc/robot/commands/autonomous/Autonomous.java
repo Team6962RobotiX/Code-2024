@@ -126,6 +126,7 @@ public class Autonomous extends Command {
       .andThen(() -> swerveDrive.setRotationTargetOverrideFromPoint(notePosition))
       .andThen(swerveDrive.goTo(new Pose2d(pathfindPosition, heading)).until(() -> hasPickedUpNote(notePosition)))
       .andThen(controller.setState(RobotStateController.State.INTAKE))
+      .andThen(controller.setState(RobotStateController.State.CENTER_NOTE))
       .andThen(() -> swerveDrive.setRotationTargetOverrideFromPoint(null));
   }
 

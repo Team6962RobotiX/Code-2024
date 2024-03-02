@@ -22,13 +22,22 @@ public class Notes {
 
     List<Translation2d> notePositions = new ArrayList<>();
     for (LimelightTarget_Detector target : targets) {
-      if (target.confidence < 0.8) continue;
       double x = target.tx;
       double y = target.ty;
+      
+      if (target.confidence < 0.8) continue;
+      if (Units.degreesToRadians(y) + pitch.getRadians() > 0) continue;
+
       double latency = (results.targetingResults.latency_capture + results.targetingResults.latency_jsonParse + results.targetingResults.latency_pipeline) / 1000.0;
-      double dist = ((cameraToRobot.getZ() - Field.NOTE_THICKNESS / 2.0) / (Math.tan(Math.abs(Units.degreesToRadians(y) + pitch.getRadians())) * Math.abs(Math.cos(Units.degreesToRadians(x)))));
+      double distance = cameraToRobot.getZ() / Math.tan(Units.degreesToRadians(y) + pitch.getRadians());
+     
+      Translation2d relativePosition = new Translation2d(
+        distance * Math.sin(Units.degreesToRadians(x)),
+        distance * Math.cos(Units.degreesToRadians(x))
+      );
+      
       Translation2d robotPosition = robotPose.getTranslation().minus(fieldVelocity.times(latency / 1000.0));
-      Translation2d notePosition = robotPosition.plus(cameraToRobot.toTranslation2d().plus(new Translation2d(dist, 0)).rotateBy(robotPose.getRotation()));
+      Translation2d notePosition = robotPosition.plus(relativePosition.rotateBy(robotPose.getRotation()));
       notePositions.add(notePosition);
     }
     
