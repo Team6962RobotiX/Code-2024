@@ -127,13 +127,14 @@ public class RobotStateController extends SubsystemBase {
   public void periodic() {
     if (RobotState.isDisabled()) {
       LEDs.setState(LEDs.State.DISABLED);
-      return;
     }
     
     if (hasNote()) {
       LEDs.setState(LEDs.State.HAS_NOTE);
     } else {
-      LEDs.setState(LEDs.State.NO_NOTE);
+      if (!RobotState.isDisabled()) {
+        LEDs.setState(LEDs.State.NO_NOTE);
+      }
     }
 
     // if (swerveDrive.underStage()) {
