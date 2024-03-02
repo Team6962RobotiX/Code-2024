@@ -28,11 +28,11 @@ public class LEDs extends SubsystemBase {
 
   @Override
   public void periodic() {
-    if (stateController.hasNote()) {
-      setColor(0, length, new int[] {255, 87, 3});
-    } else {
-      setColor(0, length, new int[] {2, 21, 61});
-    }    
+    // if (stateController.hasNote()) {
+    //   setColor(0, length, new int[] {255, 87, 3});
+    // } else {
+    //   setColor(0, length, new int[] {2, 21, 61});
+    // }
     //setRainbow(0, length);
     strip.setData(buffer);
     clear();

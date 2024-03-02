@@ -69,13 +69,14 @@ public class ShooterMath {
       double floorDistance = shooterLocation.toTranslation2d().getDistance(targetPoint.toTranslation2d());
       double projectileVelocity = calcProjectileVelocity(shooterWheelVelocity);
       double gravity = 9.80;
+
       double exitRadians = Math.atan((Math.pow(projectileVelocity, 2.0) - Math.sqrt(Math.pow(projectileVelocity, 4.0) - gravity * (gravity * Math.pow(floorDistance, 2.0) + 2.0 * targetHeight * Math.pow(projectileVelocity, 2.0)))) / (gravity * floorDistance));
       double distanceAtApex = projectileVelocity * Math.cos(exitRadians) * (projectileVelocity * (Math.sin(exitRadians) / gravity));
       if (Double.isNaN(exitRadians) || distanceAtApex < floorDistance) {
         return Rotation2d.fromDegrees(0.0);
       }
       Rotation2d exitAngle = Rotation2d.fromRadians(exitRadians);
-      pivotAngle = exitAngle.plus(SHOOTER_PIVOT.NOTE_ROTATION_OFFSET);
+      pivotAngle = exitAngle.minus(SHOOTER_PIVOT.NOTE_ROTATION_OFFSET);
     }
 
     return pivotAngle;
@@ -88,7 +89,7 @@ public class ShooterMath {
    */
   public static double calcProjectileVelocity(double shooterWheelVelocity) {
     // Derived from https://www.reca.lc/shooterWheel
-    //return 100000.0;
+    // return 1000000.0;
     return 13 * (shooterWheelVelocity / 1000);
     
     // return (shooterWheelVelocity * (SHOOTER_WHEELS.WHEEL_RADIUS + (Field.NOTE_THICKNESS - SHOOTER_WHEELS.COMPRESSION) / 2.0)) / 4.0;
@@ -188,24 +189,26 @@ public class ShooterMath {
     double targetHeight = targetPoint.getZ() - calcShooterLocationOnField(currentPose, pivotAngle).getZ();
     double projectileVelocity = calcProjectileVelocity(shooterWheelVelocity);
     double gravity = 9.80;
-    Rotation2d exitAngle = pivotAngle.minus(SHOOTER_PIVOT.NOTE_ROTATION_OFFSET);
+    Rotation2d exitAngle = pivotAngle.plus(SHOOTER_PIVOT.NOTE_ROTATION_OFFSET);
     return (projectileVelocity * Math.sin(exitAngle.getRadians()) - Math.sqrt(Math.pow(projectileVelocity * Math.sin(exitAngle.getRadians()), 2.0) - 2.0 * gravity * targetHeight)) / gravity;
   }
 
   public static Translation3d calcVelocityCompensatedPoint(Translation3d targetPoint, Pose2d currentPose, Translation2d currentVelocity, double shooterWheelVelocity, Rotation2d pivotAngle) {
-    if (shooterWheelVelocity == 0.0) return targetPoint;
+    return targetPoint;
     
-    double flightTime = calculateFlightTime(targetPoint, currentPose, shooterWheelVelocity, pivotAngle);
-
-    if (Double.isNaN(flightTime)) return targetPoint;
-
-    Translation2d projectileOffset = currentVelocity.times(flightTime);
+    // if (shooterWheelVelocity == 0.0) return targetPoint;
     
-    return new Translation3d(
-      targetPoint.getX() - projectileOffset.getX(),
-      targetPoint.getY() - projectileOffset.getY(),
-      targetPoint.getZ()
-    );
+    // double flightTime = calculateFlightTime(targetPoint, currentPose, shooterWheelVelocity, pivotAngle);
+
+    // if (Double.isNaN(flightTime)) return targetPoint;
+
+    // Translation2d projectileOffset = currentVelocity.times(flightTime);
+    
+    // return new Translation3d(
+    //   targetPoint.getX() - projectileOffset.getX(),
+    //   targetPoint.getY() - projectileOffset.getY(),
+    //   targetPoint.getZ()
+    // );
   }
 
 }

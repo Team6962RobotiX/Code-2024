@@ -177,7 +177,7 @@ public final class Constants {
       public static final double kP                 = 0.00500; // Proportion Gain
       public static final double kI                 = 0.00000; // Integral Gain
       public static final double kD                 = 0.00000; // Derivative Gain
-      public static final double kS                 = 1.18000; // volts 0.081073
+      public static final double kS                 = 0.18000; // volts 0.081073
       public static final double kV                 = 12.0 / PHYSICS.MAX_LINEAR_VELOCITY; // volts per m/s
       public static final double kA                 = 0.10000; // volts per m/s^2, free spinning
     }
@@ -330,7 +330,7 @@ public final class Constants {
     public static final Rotation2d HEADING_PRECISION = Rotation2d.fromDegrees(0.5);
     public static final Translation3d POSITION = new Translation3d(Units.inchesToMeters(3.33), 0.0, Units.inchesToMeters(12.1));
     public static final double ABSOLUTE_POSITION_OFFSET = -0.0701738889;
-    public static final Rotation2d NOTE_ROTATION_OFFSET = Rotation2d.fromDegrees(-2.5);
+    public static final Rotation2d NOTE_ROTATION_OFFSET = Rotation2d.fromDegrees(2.5); // Theoretically -3.1480961
     public static final double SHOOTER_LENGTH = Units.inchesToMeters(15.023);
     
     public static final class PROFILE {

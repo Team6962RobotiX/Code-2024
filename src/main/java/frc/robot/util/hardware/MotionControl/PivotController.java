@@ -14,6 +14,7 @@ import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.State;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Robot;
 import frc.robot.Constants.Constants;
@@ -110,7 +111,7 @@ public class PivotController {
 
 
     // setpointState = profile.calculate(Robot.getLoopTime(), setpointState, targetState);
-    Rotation2d achievableAngle = Rotation2d.fromRadians(targetAngle.getRadians());
+    Rotation2d achievableAngle = targetAngle;
     if (achievableAngle.getRadians() < minAngle.getRadians()) {
         achievableAngle = minAngle;
     } else if (achievableAngle.getRadians() > maxAngle.getRadians()) {
@@ -119,7 +120,12 @@ public class PivotController {
 
     simAngle = achievableAngle;
 
-    // Set onboard PID controller to follow    
+
+    if (doneMoving()) {
+      motor.stopMotor();
+    }
+
+    // Set onboard PID controller to follow
     pid.setReference(
       achievableAngle.getRadians(),
       CANSparkMax.ControlType.kPosition,

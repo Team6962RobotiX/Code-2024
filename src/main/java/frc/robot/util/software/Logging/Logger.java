@@ -33,7 +33,7 @@ import frc.robot.Constants.Constants.LOGGING;
 public final class Logger {
   private static NetworkTable table = NetworkTableInstance.getDefault().getTable("Logs");
   private static Map<String, Supplier<Object>> suppliers = new HashMap<String, Supplier<Object>>();
-  private static Map<String, Supplier<Object>> values = new HashMap<String, Supplier<Object>>();
+  private static Map<String, Object> values = new HashMap<String, Object>();
   private static ShuffleboardTab tab = Shuffleboard.getTab("Logging");
   private static GenericEntry loggingButton = tab.add("Enable Logging", true).withWidget(BuiltInWidgets.kToggleButton).withSize(1, 1).withPosition(0, 0).getEntry();
 
@@ -58,7 +58,10 @@ public final class Logger {
     for (String key : suppliers.keySet()) {
       Object supplied_value = suppliers.get(key).get();
       Object saved_value = values.get(key);
-      if (supplied_value.equals(saved_value)) continue;
+      if (supplied_value.equals(saved_value)) {
+        // System.out.println("SKIPPED");
+        continue;
+      }
       try {
         log(key, supplied_value);
       } catch (IllegalArgumentException e) {
@@ -92,8 +95,10 @@ public final class Logger {
     else if (obj instanceof PowerDistribution) log(key, (PowerDistribution) obj);
     else if (obj instanceof Translation2d) log(key, (Translation2d) obj);
     else if (obj instanceof Translation3d) log(key, (Translation3d) obj);
-
-    else table.getEntry(key).setValue(obj);
+    else {
+      table.getEntry(key).setValue(obj);
+      values.put(key, obj);
+    };
   }
 
   public static void log(String path, Translation3d translation) {

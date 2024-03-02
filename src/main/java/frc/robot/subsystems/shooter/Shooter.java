@@ -54,6 +54,11 @@ public class Shooter extends SubsystemBase {
     
     Logger.autoLog(this, "Shot Chance", () -> getShotChance());
     Logger.autoLog(this, "Shooter Position", () -> ShooterMath.calcShooterLocationOnField(swerveDrive.getPose(), shooterPivot.getPosition()));
+    Logger.autoLog(this, "Straight Line Angle", () -> {
+      Translation3d loc = Field.SPEAKER.minus(ShooterMath.calcShooterLocationOnField(swerveDrive.getPose(), shooterPivot.getPosition()));
+      return Rotation2d.fromRadians(Math.atan(loc.getZ() / loc.toTranslation2d().getNorm())).minus(Constants.SHOOTER_PIVOT.NOTE_ROTATION_OFFSET).getRadians();
+    }
+    );
     Logger.autoLog(this, "Speaker Distance", () -> ShooterMath.calcShooterLocationOnField(swerveDrive.getPose(), shooterPivot.getPosition()).getDistance(Field.SPEAKER));
     Logger.autoLog(this, "Speaker Floor Distance", () -> ShooterMath.calcShooterLocationOnField(swerveDrive.getPose(), shooterPivot.getPosition()).toTranslation2d().getDistance(Field.SPEAKER.toTranslation2d()));
 
@@ -64,6 +69,7 @@ public class Shooter extends SubsystemBase {
   @Override
   public void periodic() {
     if (!ENABLED_SYSTEMS.ENABLE_SHOOTER) return;
+    shooterMechanism.setAngle(Rotation2d.fromDegrees(180.0).minus(shooterPivot.getPosition()));
   }
 
   public Command setState(State state) {

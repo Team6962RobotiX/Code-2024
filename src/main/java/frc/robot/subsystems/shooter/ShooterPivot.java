@@ -72,11 +72,9 @@ public class ShooterPivot extends SubsystemBase {
     if (RobotState.isDisabled()) {
       controller.setTargetAngle(controller.getPosition());
     }
-
-    if (doneMoving()) return;
-
+        
     controller.run();
-
+    
     if (motor.getAppliedOutput() > 0.0 && getPosition().getRadians() > Preferences.SHOOTER_PIVOT.MAX_ANGLE.getRadians()) {
       motor.stopMotor();
     }
