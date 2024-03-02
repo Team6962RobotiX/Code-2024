@@ -15,9 +15,9 @@ public class LEDs extends SubsystemBase {
   private static AddressableLED strip;
   private static AddressableLEDBuffer buffer;
   private RobotStateController stateController;
-  private static int length = 200;
+  private static int length = 96;
   public static State state = State.OFF;
-
+  
   public static enum State {
     OFF,
     DISABLED,
@@ -112,7 +112,6 @@ public class LEDs extends SubsystemBase {
       }
     }
   }
-
 
   private static void clear() {
     setColor(0, length, new int[] {0, 0, 0});

@@ -39,7 +39,7 @@ public class MoveToNote extends Command {
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
-    //The robot won't move unless it sees a note
+    // The robot won't move unless it sees a note
     goToCommand = null;
   }
 
@@ -47,8 +47,8 @@ public class MoveToNote extends Command {
   @Override
   public void execute() {
 
-    //If the camera can see the note, it updates the position. 
-    //As soon at the camera can't see the note, the robot continues driving to the last known note position.
+    // If the camera can see the note, it updates the position. 
+    // As soon at the camera can't see the note, the robot continues driving to the last known note position.
     List<Translation2d> notePositions = Notes.getNotePositions(cameraName, LIMELIGHT.NOTE_CAMERA_PITCH, swerveDrive.getPose(), swerveDrive.getFieldVelocity(), LIMELIGHT.NOTE_CAMERA_POSITION);
     if (notePositions.size() > 0) {
       Translation2d targetPoint = swerveDrive.getPose().getTranslation().nearest(notePositions);
@@ -61,7 +61,7 @@ public class MoveToNote extends Command {
       }
     }
 
-    //THIS DOES BOTH ROTATION AND TRANSLATION
+    // THIS DOES BOTH ROTATION AND TRANSLATION
     // swerveDrive.goTo(targetPose, controller);
 
   }
