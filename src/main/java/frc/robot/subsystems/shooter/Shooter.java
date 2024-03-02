@@ -23,6 +23,7 @@ import frc.robot.Constants.Constants;
 import frc.robot.Constants.Field;
 import frc.robot.Constants.Preferences;
 import frc.robot.subsystems.Controls;
+import frc.robot.subsystems.LEDs;
 import frc.robot.subsystems.drive.SwerveDrive;
 import frc.robot.util.software.Logging.Logger;
 
@@ -70,6 +71,9 @@ public class Shooter extends SubsystemBase {
   public void periodic() {
     if (!ENABLED_SYSTEMS.ENABLE_SHOOTER) return;
     shooterMechanism.setAngle(Rotation2d.fromDegrees(180.0).minus(shooterPivot.getPosition()));
+    if (getShotChance() == 1.0) {
+      LEDs.setStateCommand(LEDs.State.AIMED);
+    }
   }
 
   public Command setState(State state) {
@@ -131,6 +135,8 @@ public class Shooter extends SubsystemBase {
       )
     ).alongWith(
       Controls.rumble(() -> getShotChance() == 1.0)
+    ).alongWith(
+      LEDs.setStateCommand(LEDs.State.AIMING)
     );
   }
 
