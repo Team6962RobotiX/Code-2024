@@ -96,7 +96,7 @@ public class LEDs extends SubsystemBase {
   private static void setRainbow(int start, int stop) {
     double time = Timer.getFPGATimestamp();
     for (int pixel = start; pixel < stop; pixel++) {
-      setColor(pixel, HCLtoRGB(new double[] {(pixel / 100.0 + time * 1.0) % 1.0, 1.0, 0.5}));
+      setColor(pixel, HCLtoRGB(new double[] {(pixel / 100.0 + time * 1.0) % 1.0, 0.15, 0.6}));
     }
   }
 
