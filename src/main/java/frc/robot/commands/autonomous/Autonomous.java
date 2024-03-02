@@ -84,6 +84,9 @@ public class Autonomous extends Command {
   }
 
   public Translation2d getClosestShootingPoint() {
+    if ((swerveDrive.getPose().getX() < Field.WING_X && Constants.IS_BLUE_TEAM) || (swerveDrive.getPose().getX() > Field.WING_X && !Constants.IS_BLUE_TEAM)) {
+      return swerveDrive.getPose().getTranslation();
+    }
     if (notesToGet.isEmpty()) {
       return swerveDrive.getPose().getTranslation().nearest(List.of(Field.SHOT_POSITIONS));
     }
@@ -131,19 +134,17 @@ public class Autonomous extends Command {
   }
 
   public Command moveAndShoot() {
-    System.out.println("moveAndShoot");
-    if ((swerveDrive.getPose().getX() < Field.WING_X && Constants.IS_BLUE_TEAM) || (swerveDrive.getPose().getX() > Field.WING_X && !Constants.IS_BLUE_TEAM)) {
-      return controller.setState(RobotStateController.State.PREPARE_SPEAKER)
-        .andThen(controller.setState(RobotStateController.State.SHOOT_SPEAKER))
-        .andThen(() -> System.out.println("SHOOTING"));
-    }
     Translation2d shotPosition = getClosestShootingPoint();
     Rotation2d heading = Field.SPEAKER.toTranslation2d().minus(shotPosition).getAngle().plus(Rotation2d.fromDegrees(180.0));
     return Commands.runOnce(() -> System.out.println("MOVING TO SHOOTING POSITION"))
       .andThen(() -> swerveDrive.setRotationTargetOverrideFromPointBackwards(Field.SPEAKER.toTranslation2d()))
-      .andThen(swerveDrive.goTo(new Pose2d(shotPosition, heading)).alongWith(controller.setState(RobotStateController.State.PREPARE_SPEAKER)))
+      .andThen(
+        swerveDrive.goTo(new Pose2d(shotPosition, heading))
+        .alongWith(controller.setState(RobotStateController.State.SPIN_UP))
+        .alongWith(controller.setState(RobotStateController.State.AIM_SPEAKER))
+      ).until(() -> controller.getShotChance() == 1.0)
       .andThen(() -> System.out.println("SHOOTING"))
-      .andThen(controller.setState(RobotStateController.State.SHOOT_SPEAKER))
+      .andThen(controller.setState(RobotStateController.State.SHOOT_SPEAKER)).withTimeout(1.0)
       .andThen(() -> swerveDrive.setRotationTargetOverrideFromPointBackwards(null));
   }
 
