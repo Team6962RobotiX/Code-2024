@@ -46,10 +46,10 @@ public class Controls {
     driver.a();
 
 
-    driver.b();
+    driver.b().whileTrue(new MoveToNote(Constants.LIMELIGHT.NOTE_CAMERA_NAME, swerveDrive, driver));
     driver.x();
     driver.y(); // USED
-    driver.start().whileTrue(new MoveToNote(Constants.LIMELIGHT.NOTE_CAMERA_NAME, swerveDrive, driver));
+    driver.start();
     driver.back().whileTrue(stateController.setState(RobotStateController.State.AIM_SPEAKER));
     driver.leftBumper();
     driver.rightBumper();

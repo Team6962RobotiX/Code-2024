@@ -56,9 +56,7 @@ public class MoveToNote extends Command {
       Pose2d targetPose = new Pose2d(targetPoint, targetPoint.minus(swerveDrive.getPose().getTranslation()).getAngle());
       
       if (goToCommand == null || goToCommand.isFinished()) {
-        goToCommand = Commands.runOnce(() -> swerveDrive.setRotationTargetOverrideFromPoint(targetPoint))
-          .andThen(swerveDrive.goToSimple(targetPose))
-          .andThen(() -> swerveDrive.setRotationTargetOverrideFromPoint(null));
+        goToCommand = swerveDrive.goToSimple(targetPose);
         goToCommand.schedule();
       }
     }

@@ -25,18 +25,18 @@ public class Notes {
       double x = target.tx;
       double y = target.ty;
       
-      if (target.confidence < 0.8) continue;
+      if (target.confidence < 0.65) continue;
       if (Units.degreesToRadians(y) + pitch.getRadians() > 0) continue;
 
       double latency = (results.targetingResults.latency_capture + results.targetingResults.latency_jsonParse + results.targetingResults.latency_pipeline) / 1000.0;
-      double distance = cameraToRobot.getZ() / Math.tan(Units.degreesToRadians(y) + pitch.getRadians());
-     
+      double distance = (cameraToRobot.getZ() - Field.NOTE_THICKNESS) / -Math.tan(Units.degreesToRadians(y) + pitch.getRadians());
+      System.out.println(latency);
       Translation2d relativePosition = new Translation2d(
-        distance * Math.sin(Units.degreesToRadians(x)),
-        distance * Math.cos(Units.degreesToRadians(x))
+        distance * Math.cos(Units.degreesToRadians(x)),
+        -distance * Math.sin(Units.degreesToRadians(x))
       );
       
-      Translation2d robotPosition = robotPose.getTranslation().minus(fieldVelocity.times(latency / 1000.0));
+      Translation2d robotPosition = robotPose.getTranslation().minus(fieldVelocity.times(latency));
       Translation2d notePosition = robotPosition.plus(relativePosition.rotateBy(robotPose.getRotation()));
       notePositions.add(notePosition);
     }

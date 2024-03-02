@@ -69,9 +69,9 @@ public final class Constants {
 
     public static final String NOTE_CAMERA_NAME = "limelight-fnote";
 
-    public static final Rotation2d NOTE_CAMERA_PITCH = Rotation2d.fromDegrees(0.0);
+    public static final Rotation2d NOTE_CAMERA_PITCH = Rotation2d.fromDegrees(-22.32);
     // x is forward, y is left, z is up
-    public static final Translation3d NOTE_CAMERA_POSITION = new Translation3d(Units.inchesToMeters(13.5), 0.0, Units.inchesToMeters(4.5));
+    public static final Translation3d NOTE_CAMERA_POSITION = new Translation3d(Units.inchesToMeters(9.5), 0.0, Units.inchesToMeters(25.5));
 
     public static final Rotation2d FOV_HEIGHT = Rotation2d.fromDegrees(48.9); // Degrees
     public static final Rotation2d FOV_WIDTH = Rotation2d.fromDegrees(62.5); // Degrees
@@ -161,7 +161,7 @@ public final class Constants {
         public static final double kD = 0.0;
       }
 
-      public static final double ACCELERATION_REDUCTION = 1.0; // (SWERVE_DRIVE.PHYSICS.MAX_LINEAR_ACCELERATION * SWERVE_DRIVE.ROBOT_MASS + ((SWERVE_DRIVE.PHYSICS.ROTATIONAL_INERTIA * SWERVE_DRIVE.PHYSICS.MAX_ANGULAR_ACCELERATION) / SWERVE_DRIVE.PHYSICS.DRIVE_RADIUS)) / (9.80 * SWERVE_DRIVE.ROBOT_MASS * SWERVE_DRIVE.FRICTION_COEFFICIENT);
+      public static final double ACCELERATION_REDUCTION = (SWERVE_DRIVE.PHYSICS.MAX_LINEAR_ACCELERATION * SWERVE_DRIVE.ROBOT_MASS + ((SWERVE_DRIVE.PHYSICS.ROTATIONAL_INERTIA * SWERVE_DRIVE.PHYSICS.MAX_ANGULAR_ACCELERATION) / SWERVE_DRIVE.PHYSICS.DRIVE_RADIUS)) / (9.80 * SWERVE_DRIVE.ROBOT_MASS * SWERVE_DRIVE.FRICTION_COEFFICIENT);
 
       public static final PathConstraints DEFAULT_PATH_CONSTRAINTS =
         new PathConstraints(
