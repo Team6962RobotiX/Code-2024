@@ -28,7 +28,7 @@ public class LEDs extends SubsystemBase {
   }
 
   public static int[] ANTARES_BLUE = { 36, 46, 68 };
-  public static int[] ANTARES_YELLOW = { 242, 222, 141 };
+  public static int[] ANTARES_YELLOW = { 255, 100, 0 };
   public static int[] GREEN = { 86, 211, 100 };
   
   public LEDs(RobotStateController stateController) {
@@ -96,7 +96,8 @@ public class LEDs extends SubsystemBase {
   private static void setRainbow(int start, int stop) {
     double time = Timer.getFPGATimestamp();
     for (int pixel = start; pixel < stop; pixel++) {
-      setColor(pixel, HCLtoRGB(new double[] {(pixel / 100.0 + time * 1.0) % 1.0, 0.15, 0.6}));
+      int[] rgb = HCLtoRGB(new double[] {(pixel / 100.0 + time * 1.0) % 1.0, 0.2, 0.6});
+      setColor(pixel, rgb);
     }
   }
 
