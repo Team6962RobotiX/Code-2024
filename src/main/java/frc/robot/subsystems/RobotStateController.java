@@ -123,6 +123,7 @@ public class RobotStateController extends SubsystemBase {
   public void periodic() {
     if (RobotState.isDisabled()) {
       LEDs.setState(LEDs.State.DISABLED);
+      return;
     }
     
     if (hasNote()) {

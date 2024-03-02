@@ -72,7 +72,7 @@ public class Shooter extends SubsystemBase {
     if (!ENABLED_SYSTEMS.ENABLE_SHOOTER) return;
     shooterMechanism.setAngle(Rotation2d.fromDegrees(180.0).minus(shooterPivot.getPosition()));
     if (getShotChance() == 1.0) {
-      LEDs.setStateCommand(LEDs.State.AIMED);
+      LEDs.setState(LEDs.State.AIMED);
     }
   }
 
