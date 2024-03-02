@@ -1,5 +1,7 @@
 package frc.robot.subsystems;
 
+import java.util.function.BooleanSupplier;
+
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -88,6 +90,23 @@ public class Controls {
     return Commands.runEnd(() -> {
       operator.getHID().setRumble(RumbleType.kBothRumble, 1.0);
       driver.getHID().setRumble(RumbleType.kBothRumble, 1.0);
+    },
+    () -> {
+      operator.getHID().setRumble(RumbleType.kBothRumble, 0.0);
+      driver.getHID().setRumble(RumbleType.kBothRumble, 0.0);
+    }
+    ).withTimeout(0.5);
+  }
+
+  public static Command rumble(BooleanSupplier booleanSupplier) {
+    return Commands.runEnd(() -> {
+      if (booleanSupplier.getAsBoolean()) {
+        operator.getHID().setRumble(RumbleType.kBothRumble, 1.0);
+        driver.getHID().setRumble(RumbleType.kBothRumble, 1.0);
+      } else {
+        operator.getHID().setRumble(RumbleType.kBothRumble, 0.0);
+        driver.getHID().setRumble(RumbleType.kBothRumble, 0.0);
+      }
     },
     () -> {
       operator.getHID().setRumble(RumbleType.kBothRumble, 0.0);

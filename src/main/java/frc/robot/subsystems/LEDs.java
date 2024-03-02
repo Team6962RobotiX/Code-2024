@@ -33,7 +33,7 @@ public class LEDs extends SubsystemBase {
     // } else {
     //   setColor(0, length, new int[] {2, 21, 61});
     // }
-    //setRainbow(0, length);
+    setRainbow(0, length);
     strip.setData(buffer);
     clear();
   }

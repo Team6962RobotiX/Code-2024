@@ -1,5 +1,14 @@
 {
   "HALProvider": {
+    "Addressable LEDs": {
+      "0": {
+        "columns": 40,
+        "serpentine": true
+      },
+      "window": {
+        "visible": true
+      }
+    },
     "RoboRIO": {
       "RoboRIO Input": {
         "open": true

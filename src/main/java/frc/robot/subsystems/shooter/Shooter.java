@@ -130,7 +130,7 @@ public class Shooter extends SubsystemBase {
         ).toTranslation2d()
       )
     ).alongWith(
-      Controls.rumble().onlyIf(() -> getShotChance() == 1.0).repeatedly()
+      Controls.rumble(() -> getShotChance() == 1.0)
     );
   }
 
