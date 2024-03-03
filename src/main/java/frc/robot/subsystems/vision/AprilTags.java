@@ -14,6 +14,7 @@ import com.badlogic.gdx.math.MathUtils;
 
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
@@ -36,20 +37,15 @@ public class AprilTags extends SubsystemBase {
   public static void injectVisionData(Map<String, Pose3d> cameraPoses, SwerveDrive swerveDrive) {
     for (String name : cameraPoses.keySet()) {
       LimelightHelpers.PoseEstimate poseEstimate = LimelightHelpers.getBotPoseEstimate_wpiBlue(name);
-      if (poseEstimate.tagCount >= 1) {
-        if (RobotState.isAutonomous() && poseEstimate.tagCount == 1) {
-          continue;
-        }
-        
-        if (swerveDrive.canZeroHeading() && poseEstimate.tagCount >= 2) {
-          swerveDrive.setVisionMeasurementStdDevs(VecBuilder.fill(0.7, 0.7, Units.degreesToRadians(30.0)));
-        } else {
-          swerveDrive.setVisionMeasurementStdDevs(VecBuilder.fill(0.7, 0.7, Units.degreesToRadians(999999)));
-        }
-        // Pose3d poseEstimate3d = new Pose3d(poseEstimate.pose);
-        // Pose3d robotPose = poseEstimate3d.relativeTo(cameraPoses.get(name));
-        swerveDrive.addVisionMeasurement(poseEstimate.pose, poseEstimate.timestampSeconds);
+      if (poseEstimate.tagCount == 0) continue;
+      if (RobotState.isAutonomous() && poseEstimate.tagCount == 1) continue;
+      double rotationAccuracy = Units.degreesToRadians(999999);
+      double translationAccuracy = (swerveDrive.getFieldVelocity().getNorm() + Math.sqrt(poseEstimate.avgTagDist)) / Math.pow(poseEstimate.tagCount, 2.0);
+      if (swerveDrive.canZeroHeading() && poseEstimate.tagCount >= 2) {
+        rotationAccuracy = Units.degreesToRadians(30.0);
       }
+      swerveDrive.setVisionMeasurementStdDevs(VecBuilder.fill(translationAccuracy, translationAccuracy, rotationAccuracy));
+      swerveDrive.addVisionMeasurement(poseEstimate.pose, poseEstimate.timestampSeconds);
     }
   }
 
