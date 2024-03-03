@@ -510,6 +510,10 @@ public class SwerveDrive extends SubsystemBase {
     return new Translation2d(fieldRelativeChassisSpeeds.vxMetersPerSecond, fieldRelativeChassisSpeeds.vyMetersPerSecond);
   }
 
+  public double getRotationalVelocity() {
+    return getMeasuredChassisSpeeds().omegaRadiansPerSecond;
+  }
+
   /**
    * @return Target chassis x, y, and rotational velocity (robot-relative)
    */
@@ -875,5 +879,4 @@ public class SwerveDrive extends SubsystemBase {
   public boolean shouldFlipPaths() {
     return false;
   }
-
 }

@@ -33,7 +33,7 @@ public class RobotStateController extends SubsystemBase {
   private boolean isAiming;
   private ShuffleboardTab driverTab = Shuffleboard.getTab("Driver Dashboard");
   private SuppliedValueWidget<Double> shotChanceWidget;
-  private Debouncer shotDebouncer = new Debouncer(1.0);
+  private Debouncer shotDebouncer = new Debouncer(0.25);
 
   public enum State {
     INTAKE,

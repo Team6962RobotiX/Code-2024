@@ -35,6 +35,10 @@ import frc.robot.util.software.LimelightHelpers.Results;
 
 public class AprilTags extends SubsystemBase {
   public static void injectVisionData(Map<String, Pose3d> cameraPoses, SwerveDrive swerveDrive) {
+    if (swerveDrive.getRotationalVelocity() > SWERVE_DRIVE.PHYSICS.MAX_ANGULAR_VELOCITY / 10.0) {
+      return;
+    }
+
     for (String name : cameraPoses.keySet()) {
       LimelightHelpers.PoseEstimate poseEstimate = LimelightHelpers.getBotPoseEstimate_wpiBlue(name);
       if (poseEstimate.tagCount == 0) continue;

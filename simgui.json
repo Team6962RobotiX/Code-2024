@@ -19,6 +19,7 @@
   "NTProvider": {
     "types": {
       "/FMSInfo": "FMSInfo",
+      "/Shuffleboard/Autonomous/Refresh": "Command",
       "/Shuffleboard/Status Checks/Refresh": "Command",
       "/SmartDashboard/Field": "Field2d",
       "/SmartDashboard/ShooterMechanism": "Mechanism2d",
