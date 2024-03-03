@@ -145,12 +145,17 @@ public class Autonomous extends Command {
     Rotation2d heading = notePosition.minus(swerveDrive.getPose().getTranslation()).getAngle();
     Translation2d pathfindPosition = Field.SPEAKER.toTranslation2d().minus(notePosition);
     Rotation2d speakerNoteAngle = pathfindPosition.getAngle();
-    pathfindPosition = pathfindPosition.div(pathfindPosition.getNorm()).times(Constants.SWERVE_DRIVE.BUMPER_LENGTH / 2.0);
+    pathfindPosition = pathfindPosition.div(pathfindPosition.getNorm()).times(Constants.SWERVE_DRIVE.BUMPER_LENGTH / 2.0 - Field.NOTE_LENGTH / 2.0);
     pathfindPosition = pathfindPosition.plus(notePosition);
     
     Command pathplannerCommand = Commands.run(() -> {});
     if (pathfind) {
-      pathplannerCommand = swerveDrive.goTo(new Pose2d(pathfindPosition, swerveDrive.getHeading()));
+      pathplannerCommand = 
+      
+      Commands.sequence(
+        Commands.runOnce(() -> swerveDrive.setRotationTargetOverrideFromPoint(notePosition)),
+        swerveDrive.goTo(new Pose2d(pathfindPosition, swerveDrive.getHeading()))
+      ).finallyDo(() -> swerveDrive.setRotationTargetOverrideFromPoint(null));
     } else {
 
       List<Translation2d> bezierPoints = PathPlannerPath.bezierFromPoses(
@@ -175,19 +180,20 @@ public class Autonomous extends Command {
         )
       );
 
-      pathplannerCommand = AutoBuilder.followPath(path);
+      pathplannerCommand = Commands.sequence(
+        Commands.runOnce(() -> swerveDrive.setRotationTargetOverrideFromPointBackwards(Field.SPEAKER.toTranslation2d())),
+        AutoBuilder.followPath(path)
+      ).finallyDo(() -> swerveDrive.setRotationTargetOverrideFromPoint(null));
     }
 
     return Commands.sequence(
-      Commands.runOnce(() -> swerveDrive.setRotationTargetOverrideFromPointBackwards(Field.SPEAKER.toTranslation2d())),
       pathplannerCommand.alongWith(
         Commands.sequence(
           Commands.waitUntil(() -> swerveDrive.getPose().getTranslation().getDistance(notePosition) < robotDiagonal / 2.0 + Field.NOTE_LENGTH),
           controller.setState(RobotStateController.State.INTAKE).onlyIf(() -> RobotBase.isReal())
         )
       ).until(() -> controller.hasNote()),
-      Commands.runOnce(() -> controller.setState(RobotStateController.State.CENTER_NOTE)),
-      Commands.runOnce(() -> swerveDrive.setRotationTargetOverrideFromPoint(null))
+      Commands.runOnce(() -> controller.setState(RobotStateController.State.CENTER_NOTE))
     );
     
     // return Commands.sequence(

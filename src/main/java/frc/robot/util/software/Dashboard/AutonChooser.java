@@ -20,6 +20,7 @@ public final class AutonChooser {
   public static List<SimpleWidget> notes = new ArrayList<>();
 
   public static List<Integer> getNotes() {
+
     if (tab == null) {
       init();
     }

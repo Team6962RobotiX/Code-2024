@@ -147,6 +147,9 @@ public class RobotStateController extends SubsystemBase {
   }
 
   public double getShotChance() {
+    if (swerveDrive.underStage() && RobotState.isAutonomous()) {
+      return 0.0;
+    }
     return shooter.getShotChance();
   }
 
