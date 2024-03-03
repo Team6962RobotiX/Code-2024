@@ -16,6 +16,7 @@ import frc.robot.RobotContainer;
 import frc.robot.Constants.Constants;
 import frc.robot.Constants.Constants.CAN;
 import frc.robot.Constants.Constants.ENABLED_SYSTEMS;
+import frc.robot.Constants.Constants.HANG;
 import frc.robot.Constants.Preferences;
 import frc.robot.Constants.Preferences.VOLTAGE_LADDER;
 import frc.robot.commands.*;
@@ -42,16 +43,16 @@ public class Hang extends SubsystemBase {
 
   /** Creates a new ExampleSubsystem. */
   public Hang(SwerveDrive swerve) {
-    gyro = swerve.getGyro();
+    gyro = SwerveDrive.getGyro();
     // Gyro = SwerveDrive.getGyro()
 
-    leftMotor = new CANSparkMax(CAN.LEFT_MOTOR, MotorType.kBrushless); // TODO
-    //todo: figure out which motor is inverted and confugire it as so
+    leftMotor = new CANSparkMax(CAN.LEFT_MOTOR, MotorType.kBrushless);
+    // todo: figure out which motor is inverted and confugire it as so
     SparkMaxUtil.configureAndLog(this, leftMotor, false, CANSparkMax.IdleMode.kBrake);
     SparkMaxUtil.configureCANStatusFrames(leftMotor, false, true);
     SparkMaxUtil.save(leftMotor);
 
-    rightMotor = new CANSparkMax(CAN.RIGHT_MOTOR, MotorType.kBrushless); // TODO
+    rightMotor = new CANSparkMax(CAN.RIGHT_MOTOR, MotorType.kBrushless);
     
     SparkMaxUtil.configureAndLog(this, rightMotor, false, CANSparkMax.IdleMode.kBrake);
     SparkMaxUtil.configureCANStatusFrames(rightMotor, false, true);
@@ -60,8 +61,8 @@ public class Hang extends SubsystemBase {
     leftEncoder = leftMotor.getEncoder();
     rightEncoder = rightMotor.getEncoder();
 
-    SparkMaxUtil.configureEncoder(leftMotor, 1.0);
-    SparkMaxUtil.configureEncoder(rightMotor, 1.0);
+    SparkMaxUtil.configureEncoder(leftMotor, (1.0 / HANG.GEARING) * 2.0 * Math.PI * HANG.SPOOL_RADIUS);
+    SparkMaxUtil.configureEncoder(rightMotor, (1.0 / HANG.GEARING) * 2.0 * Math.PI * HANG.SPOOL_RADIUS);
  
   }
   public Command setState(State state) {
@@ -77,55 +78,49 @@ public class Hang extends SubsystemBase {
       state = State.OFF;
     }
 
+    double leftMotorPower = 0.0;
+    double rightMotorPower = 0.0;
+
     switch(state) {
       case OFF:
-        leftMotor.set(0);
-        rightMotor.set(0);
+        leftMotorPower = 0.0;
+        rightMotorPower = 0.0;
         break;
       case EXTEND:
-        if (rightEncoder.getPosition() < Constants.HANG.EXTEND_MAX_ROTATIONS) {
-            rightMotor.set(Preferences.HANG.LEFT_MOTOR_EXTEND_POWER);
-        } else {
-            rightEncoder.setPosition(0);
-            state = State.OFF; 
-        }
-
-        if (leftEncoder.getPosition() < Constants.HANG.EXTEND_MAX_ROTATIONS) {
-            leftMotor.set(Preferences.HANG.RIGHT_MOTOR_EXTEND_POWER);
-        } else {
-            leftEncoder.setPosition(0);
-            state = State.OFF; 
-        }
-
+        rightMotorPower = Preferences.HANG.RIGHT_MOTOR_EXTEND_POWER;
+        leftMotorPower = Preferences.HANG.LEFT_MOTOR_EXTEND_POWER;
         break;
       case RETRACT:
         gyroRotation = gyro.getRoll();
         // if it's tilting to the left and it can still retract
-        if (gyroRotation > Preferences.HANG.MAX_ROLL_ANGLE && leftEncoder.getPosition() > -Constants.HANG.EXTEND_MAX_ROTATIONS){
-            // then retract the left side
-            leftMotor.set(Preferences.HANG.LEFT_MOTOR_RETRACT_POWER);
+        if (gyroRotation > Preferences.HANG.MAX_ROLL_ANGLE) {
+          // then retract the left side
+          leftMotorPower = Preferences.HANG.LEFT_MOTOR_RETRACT_POWER;
         }
         // if it's tilting to the right and it can still retract
-        else if (gyroRotation < -Preferences.HANG.MAX_ROLL_ANGLE && rightEncoder.getPosition() > -Constants.HANG.EXTEND_MAX_ROTATIONS){
-            // then retract the right side
-            rightMotor.set(Preferences.HANG.RIGHT_MOTOR_RETRACT_POWER);
+        else if (gyroRotation < -Preferences.HANG.MAX_ROLL_ANGLE) {
+          // then retract the right side
+          rightMotorPower = Preferences.HANG.RIGHT_MOTOR_RETRACT_POWER;
         }
         else {
-            // otherwise, retract on all arms than can still retract
-            if (rightEncoder.getPosition() > -Constants.HANG.EXTEND_MAX_ROTATIONS){
-                rightMotor.set(Preferences.HANG.RIGHT_MOTOR_RETRACT_POWER);
-            } else {
-                rightEncoder.setPosition(0);
-            }
-
-            if (leftEncoder.getPosition() > -Constants.HANG.EXTEND_MAX_ROTATIONS){
-                leftMotor.set(Preferences.HANG.LEFT_MOTOR_RETRACT_POWER);
-            } else { 
-                leftEncoder.setPosition(0);
-            }
+          rightMotorPower = Preferences.HANG.RIGHT_MOTOR_RETRACT_POWER;
+          leftMotorPower = Preferences.HANG.LEFT_MOTOR_RETRACT_POWER;
         }
         break;
     }
+
+    // Makes sure we dont overshoot our limits for right hang arm
+    if ((rightEncoder.getPosition() >= Constants.HANG.EXTEND_HEIGHT && rightMotorPower > 0.0) || (rightEncoder.getPosition() <= 0.0 && rightMotorPower < 0.0)) {
+      rightMotorPower = 0.0;
+    }
+
+    // Makes sure we dont overshoot our limits for left hang arm
+    if ((leftEncoder.getPosition() >= Constants.HANG.EXTEND_HEIGHT && leftMotorPower > 0.0) || (leftEncoder.getPosition() <= 0.0 && leftMotorPower < 0.0)) {
+      leftMotorPower = 0.0;
+    }
+
+    leftMotor.set(leftMotorPower);
+    rightMotor.set(rightMotorPower);
 
     if (RobotContainer.getVoltage() < VOLTAGE_LADDER.HANG) {
       leftMotor.stopMotor();

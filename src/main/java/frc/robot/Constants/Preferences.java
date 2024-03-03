@@ -61,11 +61,11 @@ public final class Preferences {
   }
 
   public static final class HANG {
-    public static final double LEFT_MOTOR_EXTEND_POWER = 0.3; 
-    public static final double RIGHT_MOTOR_EXTEND_POWER = 0.3; 
+    public static final double LEFT_MOTOR_EXTEND_POWER = 0.1; 
+    public static final double RIGHT_MOTOR_EXTEND_POWER = 0.1; 
 
-    public static final double LEFT_MOTOR_RETRACT_POWER = -1; 
-    public static final double RIGHT_MOTOR_RETRACT_POWER = -1; 
+    public static final double LEFT_MOTOR_RETRACT_POWER = -0.1;
+    public static final double RIGHT_MOTOR_RETRACT_POWER = -0.1;
     // the angle that the robot will start correcting itself at when hanging
     public static final double MAX_ROLL_ANGLE = 25;
     

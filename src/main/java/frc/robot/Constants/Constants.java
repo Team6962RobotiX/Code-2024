@@ -366,13 +366,9 @@ public final class Constants {
     public static final double TRANSFER_RADIUS = Units.inchesToMeters(1.0);
   }
 
-  public static final class HANG{
-
-    public static final double SPOOL_RADIUS = Units.inchesToMeters(1.15);
-    public static final double EXTEND_HEIGHT = Units.inchesToMeters((86.69-37.46));
-    // the 2 is the extra tolerance 
-    public static final double EXTEND_MAX_ROTATIONS = EXTEND_HEIGHT/(Math.PI * SPOOL_RADIUS)-2;
-
-
+  public static final class HANG {
+    public static final double SPOOL_RADIUS = Units.inchesToMeters((0.75 + 0.0511811024) / 2.0);
+    public static final double GEARING = 48.0;
+    public static final double EXTEND_HEIGHT = Units.inchesToMeters(39 - 20.5);
   }
 }
