@@ -309,23 +309,24 @@ public class SwerveDrive extends SubsystemBase {
 
   private void driveAttainableSpeeds(ChassisSpeeds fieldRelativeSpeeds) {
     isDriven = true;
-
+    
     if (RobotState.isAutonomous() && rotationOverridePoint != null) {
       fieldRelativeSpeeds.omegaRadiansPerSecond = 0.0;
-      if (rotationOverrideBackwards) {
-        Translation2d currentPosition = getPose().getTranslation();
-        setTargetHeading(rotationOverridePoint.minus(currentPosition).getAngle().plus(Rotation2d.fromDegrees(180.0)));
-      } else {
-        Translation2d currentPosition = getPose().getTranslation();
-        setTargetHeading(rotationOverridePoint.minus(currentPosition).getAngle());
+      if (rotationOverridePoint.getDistance(getPose().getTranslation()) > Math.min(SWERVE_DRIVE.BUMPER_LENGTH, SWERVE_DRIVE.BUMPER_WIDTH) / 2.0) {
+        if (rotationOverrideBackwards) {
+          setTargetHeading(rotationOverridePoint.minus(getPose().getTranslation()).getAngle().plus(Rotation2d.fromDegrees(180.0)));
+        } else {
+          setTargetHeading(rotationOverridePoint.minus(getPose().getTranslation()).getAngle());
+        }
       }
     }
 
+    
     double targetAngularSpeed = Math.abs(toLinear(fieldRelativeSpeeds.omegaRadiansPerSecond));
     double alignmentAngularVelocity = alignmentController.calculate(getHeading().getRadians());
     
     if (isAligning && !alignmentController.atSetpoint()) fieldRelativeSpeeds.omegaRadiansPerSecond += alignmentAngularVelocity;
-
+    
     SwerveModuleState[] moduleStates = kinematics.toSwerveModuleStates(ChassisSpeeds.fromFieldRelativeSpeeds(fieldRelativeSpeeds, getAllianceAwareHeading()));
     SwerveDriveKinematics.desaturateWheelSpeeds(moduleStates, SWERVE_DRIVE.PHYSICS.MAX_LINEAR_VELOCITY);
     fieldRelativeSpeeds = ChassisSpeeds.fromRobotRelativeSpeeds(kinematics.toChassisSpeeds(moduleStates), getAllianceAwareHeading());

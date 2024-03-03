@@ -14,6 +14,7 @@ import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.smartdashboard.FieldObject2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -29,6 +30,8 @@ public class Autonomous extends Command {
   private SwerveDrive swerveDrive;
   private List<Integer> notesToGet = List.of();
   private List<Integer> notesThatExist = List.of();
+  private double robotDiagonal = Math.sqrt(Math.pow(Constants.SWERVE_DRIVE.BUMPER_LENGTH, 2.0) + Math.pow(Constants.SWERVE_DRIVE.BUMPER_WIDTH, 2.0));
+  private double noteAvoidRadius = Field.NOTE_LENGTH / 2.0 + Math.max(Constants.SWERVE_DRIVE.BUMPER_LENGTH, Constants.SWERVE_DRIVE.BUMPER_WIDTH) / 2.0;
 
   public Autonomous(RobotStateController controller, SwerveDrive swerveDrive, List<Integer> notesToGet) {
     this.controller = controller;
@@ -44,15 +47,13 @@ public class Autonomous extends Command {
   }
 
   public void addDynamicObstacles() {
-    List<Pair<Translation2d, Translation2d>> dynamicObstacles = new ArrayList<>();
-    double radius = Field.NOTE_LENGTH / 2.0 + Math.max(Constants.SWERVE_DRIVE.BUMPER_LENGTH, Constants.SWERVE_DRIVE.BUMPER_WIDTH) / 2.0;
-    
+    List<Pair<Translation2d, Translation2d>> dynamicObstacles = new ArrayList<>();    
     for (Integer note : notesThatExist) {      
       // Define bounding box for each note
       dynamicObstacles.add(
         Pair.of(
-          Field.NOTE_POSITIONS[note].minus(new Translation2d(radius, radius)), // example bounding box corner
-          Field.NOTE_POSITIONS[note].plus(new Translation2d(radius, radius)) // example bounding box corner
+          Field.NOTE_POSITIONS[note].minus(new Translation2d(noteAvoidRadius, noteAvoidRadius)), // example bounding box corner
+          Field.NOTE_POSITIONS[note].plus(new Translation2d(noteAvoidRadius, noteAvoidRadius)) // example bounding box corner
         )
       );
     }
@@ -111,46 +112,50 @@ public class Autonomous extends Command {
     Translation2d notePosition = Field.NOTE_POSITIONS[closestNote];
     Rotation2d heading = notePosition.minus(swerveDrive.getPose().getTranslation()).getAngle();
     
-    return Commands.runOnce(() -> System.out.println("PICKING UP NOTE"))
-      .andThen(() -> notesThatExist.remove(closestNote))
-      .andThen(() -> addDynamicObstacles())
-      .andThen(pickupNote(notePosition))
-      .andThen(() -> notesToGet.remove(closestNote))
-      .andThen(() -> swerveDrive.setRotationTargetOverrideFromPoint(null));
+    return Commands.sequence(
+      Commands.runOnce(() -> {
+        addDynamicObstacles();
+        notesThatExist.remove(closestNote);
+      }),
+      pickupNote(notePosition),
+      Commands.runOnce(() -> {
+        notesToGet.remove(closestNote);
+        swerveDrive.setRotationTargetOverrideFromPoint(null);
+      })
+    );
   }
 
   public Command pickupNote(Translation2d notePosition) {
     Rotation2d heading = notePosition.minus(swerveDrive.getPose().getTranslation()).getAngle();
     Translation2d pathfindPosition = Field.SPEAKER.toTranslation2d().minus(notePosition);
-    pathfindPosition = pathfindPosition.div(pathfindPosition.getNorm()).times(Constants.SWERVE_DRIVE.BUMPER_LENGTH / 16.0);
+    pathfindPosition = pathfindPosition.div(pathfindPosition.getNorm()).times(robotDiagonal / 2.0 + Field.NOTE_LENGTH / 2.0);
     pathfindPosition = pathfindPosition.plus(notePosition);
-    
-    return Commands.runOnce(() -> System.out.println("PICKING UP NOTE"))
-      .andThen(() -> swerveDrive.setRotationTargetOverrideFromPoint(notePosition))
-      .andThen(
-        swerveDrive.goTo(new Pose2d(pathfindPosition, heading))
-        .alongWith(controller.setState(RobotStateController.State.INTAKE))
-        .until(() -> controller.hasNote())
-      )
-      .andThen(Commands.runOnce(() -> controller.setState(RobotStateController.State.CENTER_NOTE)))
-      .andThen(() -> swerveDrive.setRotationTargetOverrideFromPoint(null));
+
+    return Commands.sequence(
+      Commands.runOnce(() -> swerveDrive.setRotationTargetOverrideFromPoint(notePosition)),
+      swerveDrive.goTo(new Pose2d(pathfindPosition, swerveDrive.getHeading())),
+      Commands.runOnce(() -> addDynamicObstacles()),
+      controller.setState(RobotStateController.State.INTAKE).onlyIf(() -> RobotBase.isReal())
+        .alongWith(swerveDrive.goTo(new Pose2d(notePosition, swerveDrive.getHeading())))
+        .until(() -> controller.hasNote()),
+      Commands.runOnce(() -> controller.setState(RobotStateController.State.CENTER_NOTE)),
+      Commands.runOnce(() -> swerveDrive.setRotationTargetOverrideFromPoint(null))
+    );
   }
 
   public Command moveAndShoot() {
     Translation2d shotPosition = getClosestShootingPoint();
     Rotation2d heading = Field.SPEAKER.toTranslation2d().minus(shotPosition).getAngle().plus(Rotation2d.fromDegrees(180.0));
-    return Commands.runOnce(() -> System.out.println("MOVING TO SHOOTING POSITION"))
-      .andThen(() -> swerveDrive.setRotationTargetOverrideFromPointBackwards(Field.SPEAKER.toTranslation2d()))
-      .andThen(
-        swerveDrive.goTo(new Pose2d(shotPosition, heading))
+    return Commands.sequence(
+      Commands.runOnce(() -> swerveDrive.setRotationTargetOverrideFromPointBackwards(Field.SPEAKER.toTranslation2d())),
+      swerveDrive.goTo(new Pose2d(shotPosition, heading))
         .alongWith(controller.setState(RobotStateController.State.SPIN_UP))
         .alongWith(controller.setState(RobotStateController.State.AIM_SPEAKER))
-      ).until(() -> controller.canShoot())
-      .andThen(
-        controller.setState(RobotStateController.State.SHOOT_SPEAKER)
-        .until(() -> !controller.hasNote())
-      )
-      .andThen(() -> swerveDrive.setRotationTargetOverrideFromPointBackwards(null));
+        .until(() -> controller.canShoot()),
+      controller.setState(RobotStateController.State.SHOOT_SPEAKER)
+        .until(() -> !controller.hasNote()),
+      Commands.runOnce(() -> swerveDrive.setRotationTargetOverrideFromPointBackwards(null))
+    );
   }
 
   public boolean hasPickedUpNote(Translation2d notePosition) {
@@ -166,7 +171,11 @@ public class Autonomous extends Command {
       cancel();
       return Commands.runOnce(() -> System.out.println("NO MORE NOTES TO PICKUP"));
     } else {
-      return pickupClosestNote().andThen(() -> moveAndShoot().andThen(() -> pickupAndShootAll().schedule()).schedule());
+      return pickupClosestNote().andThen(
+        () -> moveAndShoot().andThen(
+          () -> pickupAndShootAll().schedule()
+        ).schedule()
+      );
     }
   }
 

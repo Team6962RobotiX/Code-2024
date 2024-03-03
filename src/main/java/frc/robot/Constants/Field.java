@@ -47,7 +47,7 @@ public final class Field {
 
   public static final Translation2d[] SHOT_POSITIONS = {
     point2d(BLUE_WING_X, 6.50),
-    point2d(BLUE_WING_X, 1.75),
+    // point2d(BLUE_WING_X, 1.75),
     point2d(4.5, 5.0)
   };
 

@@ -168,6 +168,8 @@ public class RobotStateController extends SubsystemBase {
       }
     }
 
+    shotDebouncer.calculate(getShotChance() == 1.0);
+
     // if (swerveDrive.underStage()) {
     //   shooter.getShooterPivot().setMaxAngle(Preferences.SHOOTER_PIVOT.MAX_ANGLE_UNDER_STAGE);
     //   amp.getPivot().setMaxAngle(Preferences.AMP_PIVOT.MAX_ANGLE_UNDER_STAGE);
