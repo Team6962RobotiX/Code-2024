@@ -18,6 +18,7 @@ import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.smartdashboard.FieldObject2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import frc.robot.Constants.Constants;
 import frc.robot.Constants.Field;
 import frc.robot.Constants.Constants.SWERVE_DRIVE;
@@ -121,6 +122,7 @@ public class Autonomous extends Command {
       Commands.runOnce(() -> {
         notesToGet.remove(closestNote);
         swerveDrive.setRotationTargetOverrideFromPoint(null);
+        addDynamicObstacles();
       })
     );
   }
@@ -130,17 +132,30 @@ public class Autonomous extends Command {
     Translation2d pathfindPosition = Field.SPEAKER.toTranslation2d().minus(notePosition);
     pathfindPosition = pathfindPosition.div(pathfindPosition.getNorm()).times(robotDiagonal / 2.0 + Field.NOTE_LENGTH / 2.0);
     pathfindPosition = pathfindPosition.plus(notePosition);
-
+    
     return Commands.sequence(
       Commands.runOnce(() -> swerveDrive.setRotationTargetOverrideFromPoint(notePosition)),
-      swerveDrive.goTo(new Pose2d(pathfindPosition, swerveDrive.getHeading())),
-      Commands.runOnce(() -> addDynamicObstacles()),
-      controller.setState(RobotStateController.State.INTAKE).onlyIf(() -> RobotBase.isReal())
-        .alongWith(swerveDrive.goTo(new Pose2d(notePosition, swerveDrive.getHeading())))
-        .until(() -> controller.hasNote()),
+      swerveDrive.pathfindThenFollowPath(new Pose2d(pathfindPosition, swerveDrive.getHeading()), new Pose2d(notePosition, swerveDrive.getHeading())).alongWith(
+        new ConditionalCommand(
+          controller.setState(RobotStateController.State.INTAKE),
+          Commands.run(() -> {}),
+          () -> notePosition.getDistance(swerveDrive.getPose().getTranslation()) < robotDiagonal / 2.0 + Field.NOTE_LENGTH / 2.0
+        ).onlyIf(() -> RobotBase.isReal())
+      ).until(() -> controller.hasNote()),
       Commands.runOnce(() -> controller.setState(RobotStateController.State.CENTER_NOTE)),
       Commands.runOnce(() -> swerveDrive.setRotationTargetOverrideFromPoint(null))
     );
+    
+    // return Commands.sequence(
+    //   Commands.runOnce(() -> swerveDrive.setRotationTargetOverrideFromPoint(notePosition)),
+    //   swerveDrive.goTo(new Pose2d(pathfindPosition, swerveDrive.getHeading())),
+    //   Commands.runOnce(() -> addDynamicObstacles()),
+    //   controller.setState(RobotStateController.State.INTAKE).onlyIf(() -> RobotBase.isReal())
+    //     .alongWith(swerveDrive.goTo(new Pose2d(notePosition, swerveDrive.getHeading())))
+    //     .until(() -> controller.hasNote()),
+    //   Commands.runOnce(() -> controller.setState(RobotStateController.State.CENTER_NOTE)),
+    //   Commands.runOnce(() -> swerveDrive.setRotationTargetOverrideFromPoint(null))
+    // );
   }
 
   public Command moveAndShoot() {

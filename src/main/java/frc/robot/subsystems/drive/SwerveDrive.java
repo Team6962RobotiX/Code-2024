@@ -16,6 +16,7 @@ import com.kauailabs.navx.frc.AHRS;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import com.pathplanner.lib.path.GoalEndState;
+import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
 import com.pathplanner.lib.pathfinding.Pathfinding;
 import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
@@ -438,12 +439,27 @@ public class SwerveDrive extends SubsystemBase {
   public void setRotationTargetOverrideFromPointBackwards(Translation2d point) {
     rotationOverridePoint = point;
     rotationOverrideBackwards = true;
+    if (point != null) {
+      setRotationTargetOverride(() -> Optional.of(point.minus(getPose().getTranslation()).getAngle().plus(Rotation2d.fromDegrees(180.0))));
+    } else {
+      setRotationTargetOverride(() -> Optional.empty());
+    }
   }
 
   public void setRotationTargetOverrideFromPoint(Translation2d point) {
     rotationOverridePoint = point;
     rotationOverrideBackwards = false;
+    if (point != null) {
+      setRotationTargetOverride(() -> Optional.of(point.minus(getPose().getTranslation()).getAngle()));
+    } else {
+      setRotationTargetOverride(() -> Optional.empty());
+    }
   }
+
+  public void setRotationTargetOverride(Supplier<Optional<Rotation2d>> heading) {
+    PPHolonomicDriveController.setRotationTargetOverride(heading);
+  }
+
 
   /**
    * This creates an "X" pattern with the wheels which makes the robot very hard to move
@@ -789,6 +805,31 @@ public class SwerveDrive extends SubsystemBase {
     );
 
     return pathfindingCommand;
+  }
+
+  public Command pathfindThenFollowPath(Pose2d firstPoint, Pose2d secondPoint) {
+    Rotation2d angle = secondPoint.getTranslation().minus(firstPoint.getTranslation()).getAngle();
+
+    List<Translation2d> bezierPoints = PathPlannerPath.bezierFromPoses(
+      new Pose2d(firstPoint.getTranslation(), angle),
+      new Pose2d(secondPoint.getTranslation(), angle)
+    );
+
+    PathPlannerPath path = new PathPlannerPath(
+      bezierPoints,
+      SWERVE_DRIVE.AUTONOMOUS.DEFAULT_PATH_CONSTRAINTS,
+      new GoalEndState(
+        0.0,
+        secondPoint.getRotation(),
+        true
+      )
+    );
+    
+    return AutoBuilder.pathfindThenFollowPath(
+      path,
+      SWERVE_DRIVE.AUTONOMOUS.DEFAULT_PATH_CONSTRAINTS,
+      0.0 // Rotation delay distance in meters. This is how far the robot should travel before attempting to rotate.
+    );
   }
 
   /**
