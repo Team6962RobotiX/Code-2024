@@ -119,6 +119,10 @@ public class RobotStateController extends SubsystemBase {
     return beamBreakDebouncer.calculate(!beamBreakSensor.get());
   }
 
+  public double getShooterVelocity() {
+    return shooter.getVelocity();
+  }
+
   public double getShotChance() {
     return shooter.getShotChance();
   }
