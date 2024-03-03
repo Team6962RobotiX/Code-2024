@@ -1,5 +1,7 @@
 package frc.robot.subsystems;
 
+import java.util.Map;
+
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.RobotBase;
@@ -30,10 +32,7 @@ public class RobotStateController extends SubsystemBase {
   private Debouncer beamBreakDebouncer = new Debouncer(0.05);
   private boolean isAiming;
   private ShuffleboardTab driverTab = Shuffleboard.getTab("Driver Dashboard");
-  private SuppliedValueWidget<Double> shotChanceWidget = driverTab.addDouble("Shot Chance", shooter::getShotChance)
-    .withWidget(BuiltInWidgets.kDial)
-    .withSize(2, 2)
-    .withPosition(0, 0);
+  private SuppliedValueWidget<Double> shotChanceWidget;
 
   public enum State {
     INTAKE,
@@ -58,6 +57,12 @@ public class RobotStateController extends SubsystemBase {
     this.shooter = shooter;
     this.transfer = transfer;
     beamBreakSensor = new DigitalInput(Constants.DIO.BEAM_BREAK);
+    shotChanceWidget = driverTab.addDouble("Shot Chance", shooter::getShotChance)
+    .withWidget(BuiltInWidgets.kDial)
+    .withSize(2, 2)
+    .withPosition(0, 0)
+    .withProperties(Map.of("min", 0, "max", 1));
+
     StatusChecks.addCheck(new SubsystemBase() {}, "Beam Break Sensor", () -> beamBreakSensor.get());
   }
 

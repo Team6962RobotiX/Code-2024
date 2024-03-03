@@ -73,8 +73,8 @@ public class Controls {
     
 
     operator.a();
-    operator.b();
-    operator.x();
+    operator.b().whileTrue(hang.setState(Hang.State.EXTEND));
+    operator.x().whileTrue(hang.setState(Hang.State.RETRACT));
     operator.y();
     operator.start().whileTrue(stateController.setState(RobotStateController.State.LEAVE_AMP));
     operator.back().onTrue(shooterPivot.setTargetAngleCommand(() -> Rotation2d.fromDegrees(10).plus(frc.robot.Constants.Preferences.SHOOTER_PIVOT.MAX_ANGLE)));
