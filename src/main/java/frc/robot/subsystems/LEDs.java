@@ -49,8 +49,6 @@ public class LEDs extends SubsystemBase {
 
   @Override
   public void periodic() {
-    setState(State.DRIVING_TELEOP);
-    
     switch (state) {
       case OFF:
         setColor(0, length, new int[] {0, 0, 0});
