@@ -42,19 +42,19 @@ public class Hang extends SubsystemBase {
       
 
   /** Creates a new ExampleSubsystem. */
-  public Hang(SwerveDrive swerve) {
+  public Hang() {
     gyro = SwerveDrive.getGyro();
     // Gyro = SwerveDrive.getGyro()
 
-    leftMotor = new CANSparkMax(CAN.LEFT_MOTOR, MotorType.kBrushless);
+    leftMotor = new CANSparkMax(CAN.HANG_LEFT, MotorType.kBrushless);
     // todo: figure out which motor is inverted and confugire it as so
     SparkMaxUtil.configureAndLog(this, leftMotor, false, CANSparkMax.IdleMode.kBrake);
     SparkMaxUtil.configureCANStatusFrames(leftMotor, false, true);
     SparkMaxUtil.save(leftMotor);
 
-    rightMotor = new CANSparkMax(CAN.RIGHT_MOTOR, MotorType.kBrushless);
+    rightMotor = new CANSparkMax(CAN.HANG_RIGHT, MotorType.kBrushless);
     
-    SparkMaxUtil.configureAndLog(this, rightMotor, false, CANSparkMax.IdleMode.kBrake);
+    SparkMaxUtil.configureAndLog(this, rightMotor, true, CANSparkMax.IdleMode.kBrake);
     SparkMaxUtil.configureCANStatusFrames(rightMotor, false, true);
     SparkMaxUtil.save(rightMotor);   
 

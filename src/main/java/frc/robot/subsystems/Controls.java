@@ -18,6 +18,7 @@ import frc.robot.subsystems.amp.Amp;
 import frc.robot.subsystems.amp.AmpPivot;
 import frc.robot.subsystems.amp.AmpWheels;
 import frc.robot.subsystems.drive.SwerveDrive;
+import frc.robot.subsystems.hang.Hang;
 import frc.robot.subsystems.shooter.FeedWheels;
 import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.shooter.ShooterPivot;
@@ -42,7 +43,8 @@ public class Controls {
       FeedWheels feedWheels,
       Amp amp, 
       AmpPivot ampPivot, 
-      AmpWheels ampWheels
+      AmpWheels ampWheels,
+      Hang hang
       ) 
     {
 
@@ -68,7 +70,7 @@ public class Controls {
     swerveDrive.setDefaultCommand(new XBoxSwerve(swerveDrive, driver.getHID(), stateController));
 
     driver.button(1).whileTrue(stateController.setState(RobotStateController.State.AIM_SPEAKER));
-
+    
 
     operator.a();
     operator.b();

@@ -259,8 +259,8 @@ public final class Constants {
     public static final int AMP_PIVOT = 17;
     public static final int AMP_WHEELS = 25;
     // left/right is from the robot's view of from intake
-    public static final int LEFT_MOTOR = 28; 
-    public static final int RIGHT_MOTOR = 29; 
+    public static final int HANG_LEFT = 28; 
+    public static final int HANG_RIGHT = 29;
 
   }
 
