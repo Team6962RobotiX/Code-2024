@@ -7,6 +7,7 @@ package frc.robot.subsystems.shooter;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
 
+import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.wpilibj.RobotState;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -56,6 +57,9 @@ public class FeedWheels extends SubsystemBase {
     if (!ENABLED_SYSTEMS.ENABLE_SHOOTER) return;
     if (RobotState.isDisabled()) {
       state = State.OFF;
+    }
+    if (RobotState.isAutonomous()) {
+      state = State.SHOOT;
     }
     switch(state) {
       case OFF:

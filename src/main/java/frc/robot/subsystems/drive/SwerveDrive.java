@@ -42,6 +42,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.RobotController;
+import edu.wpi.first.wpilibj.RobotState;
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.simulation.BatterySim;
 import edu.wpi.first.wpilibj.simulation.RoboRioSim;
@@ -95,6 +96,9 @@ public class SwerveDrive extends SubsystemBase {
   private boolean isAligning = false;
   private boolean parked = false;
   private boolean isDriven = false;
+
+  private Translation2d rotationOverridePoint = null;
+  private boolean rotationOverrideBackwards = false;
 
   SWERVE_DRIVE.MODULE_CONFIG[] equippedModules;
 
@@ -303,8 +307,19 @@ public class SwerveDrive extends SubsystemBase {
     driveFieldRelative(ChassisSpeeds.fromRobotRelativeSpeeds(robotRelativeSpeeds, getAllianceAwareHeading()));
   }
 
-  private void driveAttainableSpeeds(ChassisSpeeds fieldRelativeSpeeds) {    
+  private void driveAttainableSpeeds(ChassisSpeeds fieldRelativeSpeeds) {
     isDriven = true;
+
+    if (RobotState.isAutonomous() && rotationOverridePoint != null) {
+      fieldRelativeSpeeds.omegaRadiansPerSecond = 0.0;
+      if (rotationOverrideBackwards) {
+        Translation2d currentPosition = getPose().getTranslation();
+        setTargetHeading(rotationOverridePoint.minus(currentPosition).getAngle().plus(Rotation2d.fromDegrees(180.0)));
+      } else {
+        Translation2d currentPosition = getPose().getTranslation();
+        setTargetHeading(rotationOverridePoint.minus(currentPosition).getAngle());
+      }
+    }
 
     double targetAngularSpeed = Math.abs(toLinear(fieldRelativeSpeeds.omegaRadiansPerSecond));
     double alignmentAngularVelocity = alignmentController.calculate(getHeading().getRadians());
@@ -415,6 +430,16 @@ public class SwerveDrive extends SubsystemBase {
    */
   public Rotation2d getTargetHeading() {
     return Rotation2d.fromRadians(alignmentController.getSetpoint());
+  }
+
+  public void setRotationTargetOverrideFromPointBackwards(Translation2d point) {
+    rotationOverridePoint = point;
+    rotationOverrideBackwards = true;
+  }
+
+  public void setRotationTargetOverrideFromPoint(Translation2d point) {
+    rotationOverridePoint = point;
+    rotationOverrideBackwards = false;
   }
 
   /**
@@ -730,27 +755,6 @@ public class SwerveDrive extends SubsystemBase {
         Commands.runOnce(() -> System.out.println("===== STARTING AUTO =====")),
         swerveCommand
       );
-    }
-  }
-
-
-  public void setRotationTargetOverride(Supplier<Optional<Rotation2d>> heading) {
-    PPHolonomicDriveController.setRotationTargetOverride(heading);
-  }
-
-  public void setRotationTargetOverrideFromPoint(Translation2d point) {
-    if (point != null) {
-      setRotationTargetOverride(() -> Optional.of(point.minus(getPose().getTranslation()).getAngle()));
-    } else {
-      setRotationTargetOverride(() -> Optional.empty());
-    }
-  }
-
-  public void setRotationTargetOverrideFromPointBackwards(Translation2d point) {
-    if (point != null) {
-      setRotationTargetOverride(() -> Optional.of(point.minus(getPose().getTranslation()).getAngle().plus(Rotation2d.fromDegrees(180.0))));
-    } else {
-      setRotationTargetOverride(() -> Optional.empty());
     }
   }
 

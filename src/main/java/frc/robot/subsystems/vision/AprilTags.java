@@ -20,6 +20,7 @@ import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.wpilibj.RobotState;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.Constants.LIMELIGHT;
@@ -36,6 +37,10 @@ public class AprilTags extends SubsystemBase {
     for (String name : cameraPoses.keySet()) {
       LimelightHelpers.PoseEstimate poseEstimate = LimelightHelpers.getBotPoseEstimate_wpiBlue(name);
       if (poseEstimate.tagCount >= 1) {
+        if (RobotState.isAutonomous() && poseEstimate.tagCount == 1) {
+          continue;
+        }
+        
         if (swerveDrive.canZeroHeading() && poseEstimate.tagCount >= 2) {
           swerveDrive.setVisionMeasurementStdDevs(VecBuilder.fill(0.7, 0.7, Units.degreesToRadians(30.0)));
         } else {
@@ -74,9 +79,9 @@ public class AprilTags extends SubsystemBase {
           limelight.getValue().getTranslation().getX(),
           limelight.getValue().getTranslation().getY(),
           limelight.getValue().getTranslation().getZ(),
-          limelight.getValue().getRotation().getX(),
-          limelight.getValue().getRotation().getY(),
-          limelight.getValue().getRotation().getZ()
+          Units.radiansToDegrees(limelight.getValue().getRotation().getX()),
+          Units.radiansToDegrees(limelight.getValue().getRotation().getY()),
+          Units.radiansToDegrees(limelight.getValue().getRotation().getZ())
         )
       );
     }

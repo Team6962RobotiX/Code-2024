@@ -85,6 +85,9 @@ public class ShooterWheels extends SubsystemBase {
     if (RobotState.isDisabled()) {
       state = State.OFF;
     }
+    if (RobotState.isAutonomous()) {
+      state = State.SPIN_UP;
+    }
 
     switch(state) {
       case SPIN_UP:

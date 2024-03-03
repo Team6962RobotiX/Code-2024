@@ -7,6 +7,7 @@ package frc.robot.subsystems.shooter;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.RobotState;
 import edu.wpi.first.wpilibj.smartdashboard.Mechanism2d;
 import edu.wpi.first.wpilibj.smartdashboard.MechanismLigament2d;
 import edu.wpi.first.wpilibj.smartdashboard.MechanismRoot2d;
@@ -73,6 +74,21 @@ public class Shooter extends SubsystemBase {
     shooterMechanism.setAngle(Rotation2d.fromDegrees(180.0).minus(shooterPivot.getPosition()));
     if (getShotChance() == 1.0) {
       LEDs.setState(LEDs.State.AIMED);
+    }
+    if (RobotState.isAutonomous()) {
+      shooterPivot.setTargetAngle(
+        ShooterMath.calcPivotAngle(
+          ShooterMath.calcVelocityCompensatedPoint(
+            Field.SPEAKER,
+            swerveDrive.getPose(),
+            swerveDrive.getFieldVelocity(),
+            shooterWheels.getVelocity(),
+            shooterPivot.getPosition()
+          ),
+          swerveDrive.getPose(),
+          shooterWheels.getVelocity()
+        )
+      );
     }
   }
 
@@ -146,7 +162,7 @@ public class Shooter extends SubsystemBase {
     return shooterPivot.doneMoving();
   }
 
-  public double getShotChance() {
+  public double getShotChance() {    
     return ShooterMath.calcShotChance(
       Field.SPEAKER,
       swerveDrive.getPose(),

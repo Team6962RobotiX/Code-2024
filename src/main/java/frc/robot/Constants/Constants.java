@@ -156,12 +156,12 @@ public final class Constants {
         public static final double kD = 0.0;
       }
       public static final class ROTATION_GAINS {
-        public static final double kP = 3.0;
+        public static final double kP = 1.0;
         public static final double kI = 0.0;
         public static final double kD = 0.0;
       }
 
-      public static final double ACCELERATION_REDUCTION = (SWERVE_DRIVE.PHYSICS.MAX_LINEAR_ACCELERATION * SWERVE_DRIVE.ROBOT_MASS + ((SWERVE_DRIVE.PHYSICS.ROTATIONAL_INERTIA * SWERVE_DRIVE.PHYSICS.MAX_ANGULAR_ACCELERATION) / SWERVE_DRIVE.PHYSICS.DRIVE_RADIUS)) / (9.80 * SWERVE_DRIVE.ROBOT_MASS * SWERVE_DRIVE.FRICTION_COEFFICIENT);
+      public static final double ACCELERATION_REDUCTION = 5;//(SWERVE_DRIVE.PHYSICS.MAX_LINEAR_ACCELERATION * SWERVE_DRIVE.ROBOT_MASS + ((SWERVE_DRIVE.PHYSICS.ROTATIONAL_INERTIA * SWERVE_DRIVE.PHYSICS.MAX_ANGULAR_ACCELERATION) / SWERVE_DRIVE.PHYSICS.DRIVE_RADIUS)) / (9.80 * SWERVE_DRIVE.ROBOT_MASS * SWERVE_DRIVE.FRICTION_COEFFICIENT);
 
       public static final PathConstraints DEFAULT_PATH_CONSTRAINTS =
         new PathConstraints(
@@ -369,8 +369,8 @@ public final class Constants {
   public static final class HANG {
     public static final double SPOOL_RADIUS = Units.inchesToMeters((0.75 + 0.0511811024) / 2.0);
     public static final double GEARING = 48.0;
-    public static final double EXTEND_HEIGHT = Units.inchesToMeters(39 - 20.5);
-    public static final double RETRACT_HEIGHT = 0.2;
+    public static final double EXTEND_HEIGHT = Units.inchesToMeters(39 - 20.5 + 11.0);
+    public static final double RETRACT_HEIGHT = Units.inchesToMeters(2.25);
   }
 
   // LED

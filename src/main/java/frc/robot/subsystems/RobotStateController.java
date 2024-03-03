@@ -33,6 +33,7 @@ public class RobotStateController extends SubsystemBase {
   private boolean isAiming;
   private ShuffleboardTab driverTab = Shuffleboard.getTab("Driver Dashboard");
   private SuppliedValueWidget<Double> shotChanceWidget;
+  private Debouncer shotDebouncer = new Debouncer(1.0);
 
   public enum State {
     INTAKE,
@@ -147,6 +148,10 @@ public class RobotStateController extends SubsystemBase {
 
   public double getShotChance() {
     return shooter.getShotChance();
+  }
+
+  public boolean canShoot() {
+    return shotDebouncer.calculate(getShotChance() == 1.0);
   }
 
   @Override

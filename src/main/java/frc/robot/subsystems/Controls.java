@@ -73,15 +73,16 @@ public class Controls {
     
 
     operator.a();
-    operator.b().whileTrue(hang.setState(Hang.State.EXTEND));
-    operator.x().whileTrue(hang.setState(Hang.State.RETRACT));
+    operator.b().whileTrue(hang.setState(Hang.State.RETRACT));
+    operator.x().whileTrue(hang.setState(Hang.State.EXTEND));
     operator.y();
     operator.start().whileTrue(stateController.setState(RobotStateController.State.LEAVE_AMP));
     operator.back().onTrue(shooterPivot.setTargetAngleCommand(() -> Rotation2d.fromDegrees(10).plus(frc.robot.Constants.Preferences.SHOOTER_PIVOT.MAX_ANGLE)));
     operator.leftBumper();
     operator.rightBumper().whileTrue(stateController.setState(RobotStateController.State.INTAKE).andThen(
       Commands.runOnce(() -> stateController.setState(RobotStateController.State.CENTER_NOTE).andThen(Controls.rumbleBoth()).schedule())
-      ));
+      )
+    );
     operator.leftStick().whileTrue(stateController.setState(RobotStateController.State.PREPARE_AMP));
     operator.rightStick().whileTrue(stateController.setState(RobotStateController.State.PLACE_AMP));
     operator.povCenter();

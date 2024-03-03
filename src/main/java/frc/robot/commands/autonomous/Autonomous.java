@@ -122,14 +122,17 @@ public class Autonomous extends Command {
   public Command pickupNote(Translation2d notePosition) {
     Rotation2d heading = notePosition.minus(swerveDrive.getPose().getTranslation()).getAngle();
     Translation2d pathfindPosition = Field.SPEAKER.toTranslation2d().minus(notePosition);
-    pathfindPosition = pathfindPosition.div(pathfindPosition.getNorm()).times(Constants.SWERVE_DRIVE.BUMPER_LENGTH / 2.0);
+    pathfindPosition = pathfindPosition.div(pathfindPosition.getNorm()).times(Constants.SWERVE_DRIVE.BUMPER_LENGTH / 16.0);
     pathfindPosition = pathfindPosition.plus(notePosition);
-
+    
     return Commands.runOnce(() -> System.out.println("PICKING UP NOTE"))
       .andThen(() -> swerveDrive.setRotationTargetOverrideFromPoint(notePosition))
-      .andThen(swerveDrive.goTo(new Pose2d(pathfindPosition, heading)).until(() -> hasPickedUpNote(notePosition)))
-      .andThen(controller.setState(RobotStateController.State.INTAKE))
-      .andThen(controller.setState(RobotStateController.State.CENTER_NOTE))
+      .andThen(
+        swerveDrive.goTo(new Pose2d(pathfindPosition, heading))
+        .alongWith(controller.setState(RobotStateController.State.INTAKE))
+        .until(() -> controller.hasNote())
+      )
+      .andThen(Commands.runOnce(() -> controller.setState(RobotStateController.State.CENTER_NOTE)))
       .andThen(() -> swerveDrive.setRotationTargetOverrideFromPoint(null));
   }
 
@@ -142,9 +145,11 @@ public class Autonomous extends Command {
         swerveDrive.goTo(new Pose2d(shotPosition, heading))
         .alongWith(controller.setState(RobotStateController.State.SPIN_UP))
         .alongWith(controller.setState(RobotStateController.State.AIM_SPEAKER))
-      ).until(() -> controller.getShotChance() == 1.0)
-      .andThen(() -> System.out.println("SHOOTING"))
-      .andThen(controller.setState(RobotStateController.State.SHOOT_SPEAKER)).withTimeout(1.0)
+      ).until(() -> controller.canShoot())
+      .andThen(
+        controller.setState(RobotStateController.State.SHOOT_SPEAKER)
+        .until(() -> !controller.hasNote())
+      )
       .andThen(() -> swerveDrive.setRotationTargetOverrideFromPointBackwards(null));
   }
 
