@@ -309,7 +309,7 @@ public class SwerveDrive extends SubsystemBase {
 
   private void driveAttainableSpeeds(ChassisSpeeds fieldRelativeSpeeds) {
     isDriven = true;
-    
+
     if (RobotState.isAutonomous() && rotationOverridePoint != null) {
       fieldRelativeSpeeds.omegaRadiansPerSecond = 0.0;
       if (rotationOverridePoint.getDistance(getPose().getTranslation()) > Math.min(SWERVE_DRIVE.BUMPER_LENGTH, SWERVE_DRIVE.BUMPER_WIDTH) / 2.0) {
@@ -463,7 +463,7 @@ public class SwerveDrive extends SubsystemBase {
   }
 
   public boolean canZeroHeading() {
-    return parked || isAligning;
+    return parked || isAligning || RobotState.isDisabled();
   }
 
   /**
