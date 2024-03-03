@@ -17,7 +17,7 @@ public class LEDs extends SubsystemBase {
   private static AddressableLEDBuffer buffer;
   private RobotStateController stateController;
   private static int length = 96;
-  public static State state = State.OFF;
+  private static State state = State.OFF;
   
   public static enum State {
     OFF,
@@ -25,8 +25,12 @@ public class LEDs extends SubsystemBase {
     NO_NOTE,
     DRIVING_TELEOP,
     HAS_NOTE,
+    SHOOTING_WARMUP,
     AIMING,
     AIMED,
+    SHOOTING_SPEAKER,
+    
+    
   }
 
   public static int[] ANTARES_BLUE = { 36, 46, 68 };
@@ -45,7 +49,8 @@ public class LEDs extends SubsystemBase {
 
   @Override
   public void periodic() {
-    //setState(State.DRIVING_TELEOP);
+    //setState(State.SHOOTING_SPEAKER);
+    
     switch (state) {
       case OFF:
         setColor(0, length, new int[] {0, 0, 0});
@@ -59,9 +64,11 @@ public class LEDs extends SubsystemBase {
       case DRIVING_TELEOP:
         setBumperColorWave(0, length);
         break;
-      
       case HAS_NOTE:
         setColor(0, length, ANTARES_YELLOW);
+        break;
+      case SHOOTING_WARMUP:
+        setColorWave(0, length, ANTARES_YELLOW, this.stateController.getShooterVelocity() / 250);
         break;
       case AIMING:
         setColorWave(0, length, ANTARES_YELLOW, 2.5);
@@ -69,6 +76,11 @@ public class LEDs extends SubsystemBase {
       case AIMED:
         setColor(0, length, GREEN);
         break;
+      case SHOOTING_SPEAKER:
+        setColorFlash(0, length, getBumperColor(), 5);
+        break;
+      
+      
     }
     strip.setData(buffer);
     clear();
@@ -107,6 +119,18 @@ public class LEDs extends SubsystemBase {
     }
   }
 
+  private static void setColorFlash(int start, int stop, int[] RGB, double speed) {
+    double time = Timer.getFPGATimestamp();
+
+    double val = (time * speed) % 1.0;
+    if (val < 0.5) {
+      setColor(0, length, RGB);
+    } else {
+      setColor(0, length, new int[] {0, 0, 0});
+    }
+    
+  }
+
   private static void setColorWave(int start, int stop, int[] RGB, double speed) {
     double time = Timer.getFPGATimestamp();
     for (int pixel = start; pixel < stop; pixel++) {
@@ -131,15 +155,24 @@ public class LEDs extends SubsystemBase {
     }
   }
 
+  private static int[] getBumperColor() {
+    if (Constants.IS_BLUE_TEAM) {
+      return ANTARES_BLUE;  
+    } else {
+      return new int[] {255, 0, 0};
+    }
+  }
+
   private static void setBumperColorWave(int start, int stop) {
     if (Constants.IS_BLUE_TEAM) {
-      setColorWave(start, stop, ANTARES_BLUE, new int[] {179, 0, 255}, 2.5);
+      setColorWave(start, stop, getBumperColor(), new int[] {179, 0, 255}, 2.5);
     } else {
-      setColorWave(start, stop, new int[] {255, 0, 0},  ANTARES_YELLOW, 2.5);
+      setColorWave(start, stop, new int[] {255, 0, 0},  getBumperColor(), 2.5);
     }
     
   }
 
+  //private static void setAcceleratingColorWav
 
   private static void clear() {
     setColor(0, length, new int[] {0, 0, 0});

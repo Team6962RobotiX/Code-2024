@@ -140,6 +140,10 @@ public class Shooter extends SubsystemBase {
     );
   }
 
+  public double getVelocity() {
+    return shooterWheels.getVelocity();
+  }
+
   public boolean doneMoving() {
     return shooterPivot.doneMoving();
   }
