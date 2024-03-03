@@ -110,12 +110,12 @@ public class Hang extends SubsystemBase {
     }
 
     // Makes sure we dont overshoot our limits for right hang arm
-    if ((rightEncoder.getPosition() >= Constants.HANG.EXTEND_HEIGHT && rightMotorPower > 0.0) || (rightEncoder.getPosition() <= 0.0 && rightMotorPower < 0.0)) {
+    if ((rightEncoder.getPosition() >= Constants.HANG.EXTEND_HEIGHT && rightMotorPower > 0.0) || (rightEncoder.getPosition() <= Constants.HANG.RETRACT_HEIGHT && rightMotorPower < 0.0)) {
       rightMotorPower = 0.0;
     }
 
     // Makes sure we dont overshoot our limits for left hang arm
-    if ((leftEncoder.getPosition() >= Constants.HANG.EXTEND_HEIGHT && leftMotorPower > 0.0) || (leftEncoder.getPosition() <= 0.0 && leftMotorPower < 0.0)) {
+    if ((leftEncoder.getPosition() >= Constants.HANG.EXTEND_HEIGHT && leftMotorPower > 0.0) || (leftEncoder.getPosition() <= Constants.HANG.RETRACT_HEIGHT && leftMotorPower < 0.0)) {
       leftMotorPower = 0.0;
     }
 
