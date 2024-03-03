@@ -2,7 +2,10 @@ package frc.robot.subsystems;
 
 import java.util.function.BooleanSupplier;
 
+import com.badlogic.gdx.utils.reflect.Field;
+
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.Preferences;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -49,7 +52,7 @@ public class Controls {
     driver.b().whileTrue(new MoveToNote(Constants.LIMELIGHT.NOTE_CAMERA_NAME, swerveDrive, driver));
     driver.x();
     driver.y(); // USED
-    driver.start();
+    driver.start().whileTrue(swerveDrive.goTo(frc.robot.Constants.Field.AUTO_MOVE_POSITIONS.get("AMP")));
     driver.back().whileTrue(stateController.setState(RobotStateController.State.AIM_SPEAKER));
     driver.leftBumper();
     driver.rightBumper();
@@ -62,7 +65,7 @@ public class Controls {
     driver.povRight(); // USED
     driver.leftTrigger(); // USED
     driver.rightTrigger(); // USED
-    swerveDrive.setDefaultCommand(new XBoxSwerve(swerveDrive, driver.getHID()));
+    swerveDrive.setDefaultCommand(new XBoxSwerve(swerveDrive, driver.getHID(), stateController));
 
     driver.button(1).whileTrue(stateController.setState(RobotStateController.State.AIM_SPEAKER));
 
@@ -72,9 +75,11 @@ public class Controls {
     operator.x();
     operator.y();
     operator.start().whileTrue(stateController.setState(RobotStateController.State.LEAVE_AMP));
-    operator.back().onTrue(shooterPivot.setTargetAngleCommand(() -> Rotation2d.fromDegrees(25)));
+    operator.back().onTrue(shooterPivot.setTargetAngleCommand(() -> Rotation2d.fromDegrees(10).plus(frc.robot.Constants.Preferences.SHOOTER_PIVOT.MAX_ANGLE)));
     operator.leftBumper();
-    operator.rightBumper().whileTrue(stateController.setState(RobotStateController.State.INTAKE).andThen(Commands.runOnce(() -> stateController.setState(RobotStateController.State.CENTER_NOTE).andThen(Controls.rumble()).schedule())));
+    operator.rightBumper().whileTrue(stateController.setState(RobotStateController.State.INTAKE).andThen(
+      Commands.runOnce(() -> stateController.setState(RobotStateController.State.CENTER_NOTE).andThen(Controls.rumbleBoth()).schedule())
+      ));
     operator.leftStick().whileTrue(stateController.setState(RobotStateController.State.PREPARE_AMP));
     operator.rightStick().whileTrue(stateController.setState(RobotStateController.State.PLACE_AMP));
     operator.povCenter();
@@ -86,32 +91,51 @@ public class Controls {
     operator.rightTrigger().whileTrue(stateController.setState(RobotStateController.State.SHOOT_SPEAKER));
   }
 
-  public static Command rumble() {
+  private static Command rumble(CommandXboxController controller) {
     return Commands.runEnd(() -> {
-      operator.getHID().setRumble(RumbleType.kBothRumble, 1.0);
-      driver.getHID().setRumble(RumbleType.kBothRumble, 1.0);
+      controller.getHID().setRumble(RumbleType.kBothRumble, 1.0);
     },
     () -> {
-      operator.getHID().setRumble(RumbleType.kBothRumble, 0.0);
-      driver.getHID().setRumble(RumbleType.kBothRumble, 0.0);
+      controller.getHID().setRumble(RumbleType.kBothRumble, 0.0);
     }
     ).withTimeout(0.5);
   }
 
-  public static Command rumble(BooleanSupplier booleanSupplier) {
+  private static Command rumble(CommandXboxController controller, BooleanSupplier booleanSupplier) {
     return Commands.runEnd(() -> {
       if (booleanSupplier.getAsBoolean()) {
-        operator.getHID().setRumble(RumbleType.kBothRumble, 1.0);
-        driver.getHID().setRumble(RumbleType.kBothRumble, 1.0);
+        controller.getHID().setRumble(RumbleType.kBothRumble, 1.0);
       } else {
-        operator.getHID().setRumble(RumbleType.kBothRumble, 0.0);
-        driver.getHID().setRumble(RumbleType.kBothRumble, 0.0);
+        controller.getHID().setRumble(RumbleType.kBothRumble, 0.0);
       }
     },
     () -> {
-      operator.getHID().setRumble(RumbleType.kBothRumble, 0.0);
-      driver.getHID().setRumble(RumbleType.kBothRumble, 0.0);
+      controller.getHID().setRumble(RumbleType.kBothRumble, 0.0);
     }
     ).withTimeout(0.5);
+  }
+
+  public static Command rumbleDriver() {
+    return rumble(driver);
+  }
+
+  public static Command rumbleDriver(BooleanSupplier booleanSupplier) {
+    return rumble(driver, booleanSupplier);
+  }
+
+  public static Command rumbleOperator() {
+    return rumble(operator);
+  }
+
+  public static Command rumbleOperator(BooleanSupplier booleanSupplier) {
+    return rumble(operator, booleanSupplier);
+  }
+
+  public static Command rumbleBoth() {
+    return rumbleOperator().alongWith(rumbleDriver());
+  }
+
+  public static Command rumbleBoth(BooleanSupplier booleanSupplier) {
+    return rumbleOperator(booleanSupplier).alongWith(rumbleDriver(booleanSupplier));
   }
 }

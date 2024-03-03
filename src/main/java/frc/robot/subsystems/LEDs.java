@@ -35,7 +35,7 @@ public class LEDs extends SubsystemBase {
 
   public static int[] ANTARES_BLUE = { 36, 46, 68 };
   public static int[] ANTARES_YELLOW = { 255, 100, 0 };
-  public static int[] GREEN = { 86, 211, 100 };
+  public static int[] GREEN = { 0, 255, 0 };
   
   public LEDs(RobotStateController stateController) {
     this.stateController = stateController;
