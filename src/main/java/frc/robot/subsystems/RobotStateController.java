@@ -31,8 +31,6 @@ public class RobotStateController extends SubsystemBase {
   private DigitalInput beamBreakSensor;
   private Debouncer beamBreakDebouncer = new Debouncer(0.05);
   private boolean isAiming;
-  private ShuffleboardTab driverTab = Shuffleboard.getTab("Driver Dashboard");
-  private SuppliedValueWidget<Double> shotChanceWidget;
   private Debouncer shotDebouncer = new Debouncer(0.25);
 
   public enum State {
@@ -58,11 +56,6 @@ public class RobotStateController extends SubsystemBase {
     this.shooter = shooter;
     this.transfer = transfer;
     beamBreakSensor = new DigitalInput(Constants.DIO.BEAM_BREAK);
-    shotChanceWidget = driverTab.addDouble("Shot Chance", shooter::getShotChance)
-    .withWidget(BuiltInWidgets.kDial)
-    .withSize(2, 2)
-    .withPosition(0, 0)
-    .withProperties(Map.of("min", 0, "max", 1));
 
     StatusChecks.addCheck(new SubsystemBase() {}, "Beam Break Sensor", () -> beamBreakSensor.get());
   }

@@ -1,11 +1,16 @@
 package frc.robot.subsystems;
 
+import java.util.Map;
 import java.util.function.BooleanSupplier;
 
 import com.badlogic.gdx.utils.reflect.Field;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.Preferences;
+import edu.wpi.first.wpilibj.shuffleboard.BuiltInWidgets;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
+import edu.wpi.first.wpilibj.shuffleboard.SuppliedValueWidget;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -45,7 +50,7 @@ public class Controls {
       AmpPivot ampPivot, 
       AmpWheels ampWheels,
       Hang hang
-      ) 
+      )
     {
 
     driver.a();
@@ -92,6 +97,19 @@ public class Controls {
     operator.povRight();
     operator.leftTrigger().toggleOnTrue(stateController.setState(RobotStateController.State.SPIN_UP));
     operator.rightTrigger().whileTrue(stateController.setState(RobotStateController.State.SHOOT_SPEAKER));
+
+    ShuffleboardTab driverTab = Shuffleboard.getTab("Driver Dashboard");
+
+    driverTab.addDouble("Shot Chance", () -> shooter.getShotChance() * 100)
+      .withWidget(BuiltInWidgets.kDial)
+      .withSize(2, 2)
+      .withPosition(3, 0)
+      .withProperties(Map.of("min", 0, "max", 100));
+    
+    driverTab.addBoolean("Has Note", stateController::hasNote)
+      .withWidget(BuiltInWidgets.kBooleanBox)
+      .withSize(3, 1)
+      .withPosition(0, 2);
   }
 
   private static Command rumble(CommandXboxController controller) {
