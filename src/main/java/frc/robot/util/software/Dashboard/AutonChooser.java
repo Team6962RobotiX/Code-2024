@@ -20,7 +20,6 @@ public final class AutonChooser {
   public static List<SimpleWidget> notes = new ArrayList<>();
 
   public static List<Integer> getNotes() {
-
     if (tab == null) {
       init();
     }
@@ -37,12 +36,12 @@ public final class AutonChooser {
   public static void init() {
     for (int i = 0; i < Field.NOTE_POSITIONS.length; i++) {
       int row = i;
-      int column = 0;
+      int column = 1;
       if (i > 2) {
         row = i - 3;
-        column = 1;
+        column = 2;
       }
-      notes.add(tab.add("Note " + i, false).withWidget(BuiltInWidgets.kToggleButton).withSize(1, 1).withPosition(column, row));
+      notes.add(tab.add("Note " + i, false).withWidget(BuiltInWidgets.kToggleSwitch).withSize(1, 1).withPosition(column, row));
     }
   }
 }

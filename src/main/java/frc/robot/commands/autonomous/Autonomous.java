@@ -145,29 +145,28 @@ public class Autonomous extends Command {
     Rotation2d heading = notePosition.minus(swerveDrive.getPose().getTranslation()).getAngle();
     Translation2d pathfindPosition = Field.SPEAKER.toTranslation2d().minus(notePosition);
     Rotation2d speakerNoteAngle = pathfindPosition.getAngle();
-    pathfindPosition = pathfindPosition.div(pathfindPosition.getNorm()).times(Constants.SWERVE_DRIVE.BUMPER_LENGTH / 2.0 - Field.NOTE_LENGTH / 2.0);
+    pathfindPosition = pathfindPosition.div(pathfindPosition.getNorm()).times(Constants.SWERVE_DRIVE.BUMPER_LENGTH / 2.0 + Field.NOTE_LENGTH / 2.0);
     pathfindPosition = pathfindPosition.plus(notePosition);
     
     Command pathplannerCommand = Commands.run(() -> {});
     if (pathfind) {
-      pathplannerCommand = 
-      
-      Commands.sequence(
+      pathplannerCommand = Commands.sequence(
         Commands.runOnce(() -> swerveDrive.setRotationTargetOverrideFromPoint(notePosition)),
-        swerveDrive.goTo(new Pose2d(pathfindPosition, swerveDrive.getHeading()))
+        swerveDrive.goTo(new Pose2d(notePosition, swerveDrive.getHeading()))
       ).finallyDo(() -> swerveDrive.setRotationTargetOverrideFromPoint(null));
     } else {
 
       List<Translation2d> bezierPoints = PathPlannerPath.bezierFromPoses(
         new Pose2d(swerveDrive.getPose().getTranslation(), Field.SPEAKER.toTranslation2d().minus(swerveDrive.getPose().getTranslation()).getAngle()),
-        new Pose2d(
-          new Translation2d(
-            Math.signum(pathfindPosition.minus(Field.SPEAKER.toTranslation2d()).getX()) * -0.6 + pathfindPosition.getX(),
-            pathfindPosition.minus(swerveDrive.getPose().getTranslation()).div(2.0).plus(swerveDrive.getPose().getTranslation()).getY()
-          ),
-          pathfindPosition.minus(swerveDrive.getPose().getTranslation()).getAngle()
-        ),
-        new Pose2d(pathfindPosition, speakerNoteAngle.plus(Rotation2d.fromDegrees(180.0)))
+        new Pose2d(pathfindPosition, notePosition.minus(Field.SPEAKER.toTranslation2d()).getAngle()),
+        // new Pose2d(
+        //   new Translation2d(
+        //     Math.signum(notePosition.minus(Field.SPEAKER.toTranslation2d()).getX()) * -0.6 + notePosition.getX(),
+        //     notePosition.minus(swerveDrive.getPose().getTranslation()).div(2.0).plus(swerveDrive.getPose().getTranslation()).getY()
+        //   ),
+        //   notePosition.minus(swerveDrive.getPose().getTranslation()).getAngle()
+        // ),
+        new Pose2d(notePosition, speakerNoteAngle.plus(Rotation2d.fromDegrees(180.0)))
       );
 
       PathPlannerPath path = new PathPlannerPath(
