@@ -12,11 +12,8 @@ import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants.Constants;
 import frc.robot.Constants.Preferences;
-<<<<<<< Updated upstream
 import frc.robot.subsystems.LEDs;
-=======
 import frc.robot.subsystems.RobotStateController;
->>>>>>> Stashed changes
 import frc.robot.subsystems.drive.SwerveDrive;
 import frc.robot.subsystems.drive.SwerveModule;
 import frc.robot.util.software.MathUtils;
