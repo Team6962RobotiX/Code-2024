@@ -29,8 +29,7 @@ public class LEDs extends SubsystemBase {
     AIMING,
     AIMED,
     SHOOTING_SPEAKER,
-    
-    
+    HANG,
   }
 
   public static int[] ANTARES_BLUE = { 36, 46, 68 };
@@ -49,7 +48,7 @@ public class LEDs extends SubsystemBase {
 
   @Override
   public void periodic() {
-    //setState(State.SHOOTING_SPEAKER);
+    setState(State.HANG);
     
     switch (state) {
       case OFF:
@@ -79,8 +78,12 @@ public class LEDs extends SubsystemBase {
       case SHOOTING_SPEAKER:
         setColorFlash(0, length, getBumperColor(), 5);
         break;
-      
-      
+      case HANG:
+        setTopStripColor(new int[] {255, 100, 0});
+
+        setColorWave(0, Constants.LED.SIDE_STRIP_HEIGHT, ANTARES_BLUE, 1);
+        setColorWave(length - Constants.LED.SIDE_STRIP_HEIGHT, length, ANTARES_BLUE, 1);
+        break;
     }
     strip.setData(buffer);
     clear();
@@ -109,6 +112,10 @@ public class LEDs extends SubsystemBase {
     for (int pixel = start; pixel < stop; pixel++) {
       setColor(pixel, RGB);
     }
+  }
+
+  private static void setTopStripColor(int[] RGB) {
+    setColor(Constants.LED.SIDE_STRIP_HEIGHT, length - Constants.LED.SIDE_STRIP_HEIGHT, RGB);
   }
 
   private static void setRainbow(int start, int stop) {

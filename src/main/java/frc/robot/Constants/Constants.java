@@ -375,4 +375,9 @@ public final class Constants {
 
 
   }
+
+  // LED
+  public static final class LED {
+    public static final int SIDE_STRIP_HEIGHT = 15; // Change to actual height (in pixels) of the LED side strip
+  }
 }
