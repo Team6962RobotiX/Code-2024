@@ -49,7 +49,7 @@ public class MoveToNote extends Command {
 
     // If the camera can see the note, it updates the position. 
     // As soon at the camera can't see the note, the robot continues driving to the last known note position.
-    List<Translation2d> notePositions = Notes.getNotePositions(cameraName, LIMELIGHT.NOTE_CAMERA_PITCH, swerveDrive.getPose(), swerveDrive.getFieldVelocity(), LIMELIGHT.NOTE_CAMERA_POSITION);
+    List<Translation2d> notePositions = Notes.getNotePositions(cameraName, LIMELIGHT.NOTE_CAMERA_PITCH, swerveDrive, swerveDrive.getFieldVelocity(), LIMELIGHT.NOTE_CAMERA_POSITION);
     if (notePositions.size() > 0) {
       Translation2d targetPoint = swerveDrive.getPose().getTranslation().nearest(notePositions);
 

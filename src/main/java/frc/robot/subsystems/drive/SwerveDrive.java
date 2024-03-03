@@ -30,6 +30,7 @@ import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.interpolation.TimeInterpolatableBuffer;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
@@ -65,6 +66,7 @@ import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.shooter.ShooterMath;
 import frc.robot.subsystems.vision.AprilTags;
 import frc.robot.subsystems.vision.Notes;
+import frc.robot.util.software.CustomSwerveDrivePoseEstimator;
 import frc.robot.util.software.LimelightHelpers;
 import frc.robot.util.software.MathUtils;
 import frc.robot.util.software.Dashboard.AutonChooser;
@@ -80,7 +82,7 @@ public class SwerveDrive extends SubsystemBase {
   private static AHRS gyro;
 
   private SwerveDriveKinematics kinematics = getKinematics();
-  private SwerveDrivePoseEstimator poseEstimator;
+  private CustomSwerveDrivePoseEstimator poseEstimator;
   private static Field2d field = new Field2d();
   private Rotation2d gyroHeading = Rotation2d.fromDegrees(0.0);
   private Rotation2d gyroOffset = SWERVE_DRIVE.STARTING_POSE.getRotation();
@@ -122,7 +124,7 @@ public class SwerveDrive extends SubsystemBase {
     }
 
     // Set up pose estimator and rotation controller
-    poseEstimator = new SwerveDrivePoseEstimator(
+    poseEstimator = new CustomSwerveDrivePoseEstimator(
       kinematics,
       SWERVE_DRIVE.STARTING_POSE.getRotation(),
       getModulePositions(),
@@ -194,7 +196,7 @@ public class SwerveDrive extends SubsystemBase {
   public void periodic() {
     if (!ENABLED_SYSTEMS.ENABLE_DRIVE) return;
     
-    List<Translation2d> notePositions = Notes.getNotePositions(LIMELIGHT.NOTE_CAMERA_NAME, LIMELIGHT.NOTE_CAMERA_PITCH, getPose(), getFieldVelocity(), LIMELIGHT.NOTE_CAMERA_POSITION);
+    List<Translation2d> notePositions = Notes.getNotePositions(LIMELIGHT.NOTE_CAMERA_NAME, LIMELIGHT.NOTE_CAMERA_PITCH, this, getFieldVelocity(), LIMELIGHT.NOTE_CAMERA_POSITION);
     SwerveDrive.getField().getObject("notes").setPoses(notePositions.stream().map(p -> new Pose2d(p, new Rotation2d())).toList());
     // SwerveDrive.getField().getObject("futurePosition").setPose(getFuturePose());
 
@@ -591,8 +593,10 @@ public class SwerveDrive extends SubsystemBase {
    */
   public Pose2d getPose() {
     return poseEstimator.getEstimatedPosition();
-    // Pose2d estimatedPose = poseEstimator.getEstimatedPosition();
-    // return new Pose2d(estimatedPose.getTranslation(), estimatedPose.getRotation().rotateBy(gyroOffset));
+  }
+
+  public Pose2d getPose(double timestampSeconds) {
+    return poseEstimator.getEstimatedPosition(timestampSeconds);
   }
 
   public Pose2d getFuturePose() {
@@ -830,4 +834,5 @@ public class SwerveDrive extends SubsystemBase {
   public boolean shouldFlipPaths() {
     return false;
   }
+
 }
