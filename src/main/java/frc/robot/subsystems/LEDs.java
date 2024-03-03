@@ -11,6 +11,7 @@ import frc.robot.Constants.Constants;
 import java.awt.Color;
 
 import com.github.tommyettinger.colorful.oklab.ColorTools;
+import com.github.tommyettinger.colorful.oklab.GradientTools;
 
 public class LEDs extends SubsystemBase {
   private static AddressableLED strip;
@@ -48,7 +49,7 @@ public class LEDs extends SubsystemBase {
 
   @Override
   public void periodic() {
-    setState(State.HANG);
+    setState(State.DRIVING_TELEOP);
     
     switch (state) {
       case OFF:
@@ -61,7 +62,7 @@ public class LEDs extends SubsystemBase {
         setColor(0, length, ANTARES_BLUE);
         break;
       case DRIVING_TELEOP:
-        setBumperColorWave(0, length);
+        setBumperGradientWave(0, length);
         break;
       case HAS_NOTE:
         setColor(0, length, ANTARES_YELLOW);
@@ -162,6 +163,30 @@ public class LEDs extends SubsystemBase {
     }
   }
 
+  private static void setGradientWave(int start, int stop, int[] firstRGB, int[] secondRGB, double speed) {
+    double time = Timer.getFPGATimestamp();
+    int numLEDs = stop - start;
+    double maxPoint = (40 + time * 100) % numLEDs; // Pixel index with second rgb
+
+    double rDiff = (secondRGB[0] - firstRGB[0]);
+    double gDiff = (secondRGB[1] - firstRGB[1]);
+    double bDiff = (secondRGB[2] - firstRGB[2]);
+
+    for (int pixel = start; pixel < stop; pixel ++) {
+      // int r = (int)(firstRGB[0] + rStep * (pixel - start));
+      // int g = (int)(firstRGB[1] + gStep * (pixel - start));
+      // int b = (int)(firstRGB[2] + bStep * (pixel - start));
+      int[] newColor = firstRGB;
+      newColor[0] = (int) (((newColor[0] + time * 50) * rDiff / 500 + pixel * 10) % 255);
+      newColor[1] = (int) (((newColor[1] + time * 50) * gDiff / 500 + pixel * 10) % 255);
+      newColor[2] = (int) (((newColor[2] + time * 50) * bDiff / 500 + pixel * 10) % 255);
+
+      setColor(pixel, newColor);
+    }
+
+
+  }
+
   private static int[] getBumperColor() {
     if (Constants.IS_BLUE_TEAM) {
       return ANTARES_BLUE;  
@@ -170,11 +195,11 @@ public class LEDs extends SubsystemBase {
     }
   }
 
-  private static void setBumperColorWave(int start, int stop) {
+  private static void setBumperGradientWave(int start, int stop) {
     if (Constants.IS_BLUE_TEAM) {
-      setColorWave(start, stop, getBumperColor(), new int[] {179, 0, 255}, 2.5);
+      setGradientWave(start, stop, getBumperColor(), new int[] {179, 0, 255}, 2.5);
     } else {
-      setColorWave(start, stop, new int[] {255, 0, 0},  getBumperColor(), 2.5);
+      setGradientWave(start, stop, new int[] {255, 0, 0},  getBumperColor(), 2.5);
     }
     
   }
