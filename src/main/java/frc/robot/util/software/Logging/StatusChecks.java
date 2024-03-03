@@ -33,6 +33,7 @@ public class StatusChecks {
 
   public static void addCheck(SubsystemBase subsystem, String name, BooleanSupplier supplier) {
     addCheck(subsystem.getClass().getSimpleName() + "/" + name, supplier);
+    
   }
 
   public static Command refresh() {
