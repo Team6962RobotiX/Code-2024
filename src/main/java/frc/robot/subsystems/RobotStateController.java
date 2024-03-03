@@ -4,6 +4,11 @@ import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.RobotState;
+import edu.wpi.first.wpilibj.shuffleboard.BuiltInWidgets;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
+import edu.wpi.first.wpilibj.shuffleboard.SimpleWidget;
+import edu.wpi.first.wpilibj.shuffleboard.SuppliedValueWidget;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -23,6 +28,12 @@ public class RobotStateController extends SubsystemBase {
   private Transfer transfer;
   private DigitalInput beamBreakSensor;
   private Debouncer beamBreakDebouncer = new Debouncer(0.05);
+  private boolean isAiming;
+  private ShuffleboardTab driverTab = Shuffleboard.getTab("Driver Dashboard");
+  private SuppliedValueWidget<Double> shotChanceWidget = driverTab.addDouble("Shot Chance", shooter::getShotChance)
+    .withWidget(BuiltInWidgets.kDial)
+    .withSize(2, 2)
+    .withPosition(0, 0);
 
   public enum State {
     INTAKE,
@@ -62,7 +73,7 @@ public class RobotStateController extends SubsystemBase {
         return Commands.parallel(
           transfer.setState(Transfer.State.IN),
           amp.setState(Amp.State.DOWN)
-        ).until(() -> hasNote()).andThen(Controls.rumble());
+        ).until(() -> hasNote()).andThen(Commands.runOnce(() -> Controls.rumbleDriver().schedule()));
       case CENTER_NOTE:
         return Commands.sequence(
           amp.setState(Amp.State.DOWN),
@@ -92,7 +103,7 @@ public class RobotStateController extends SubsystemBase {
         return Commands.sequence(
           amp.setState(Amp.State.UP),
           amp.setState(Amp.State.OUT).withTimeout(2.0)
-        ).andThen(Controls.rumble());
+        ).andThen(Controls.rumbleBoth());
       case LEAVE_AMP:
         return Commands.sequence(
           amp.setState(Amp.State.DOWN)
@@ -100,13 +111,15 @@ public class RobotStateController extends SubsystemBase {
       case PREPARE_SPEAKER:
         return Commands.parallel(
           transfer.setState(Transfer.State.SHOOTER)
-        ).until(() -> hasNote()).andThen(Controls.rumble());
+        ).until(() -> hasNote()).andThen(Controls.rumbleBoth());
       case AIM_SPEAKER:
-        return shooter.setState(Shooter.State.AIM);
+        return shooter.setState(Shooter.State.AIM).alongWith(
+          Commands.runOnce(
+            () -> isAiming = true)
+          ).finallyDo(() -> isAiming = false);
       case SHOOT_SPEAKER:
         return Commands.parallel(
-          transfer.setState(Transfer.State.SHOOTER),
-          shooter.setState(Shooter.State.SHOOT)
+          transfer.setState(Transfer.State.SHOOTER)
         );
       case SPIN_UP:
         return shooter.setState(Shooter.State.SPIN_UP);
@@ -121,6 +134,10 @@ public class RobotStateController extends SubsystemBase {
 
   public double getShooterVelocity() {
     return shooter.getVelocity();
+  }
+
+  public boolean isAiming() {
+    return isAiming;
   }
 
   public double getShotChance() {

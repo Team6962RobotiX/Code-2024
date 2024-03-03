@@ -329,8 +329,8 @@ public final class Constants {
     public static final Rotation2d ANGLE_PRECISION = Rotation2d.fromDegrees(0.5);
     public static final Rotation2d HEADING_PRECISION = Rotation2d.fromDegrees(0.5);
     public static final Translation3d POSITION = new Translation3d(Units.inchesToMeters(3.33), 0.0, Units.inchesToMeters(12.1));
-    public static final double ABSOLUTE_POSITION_OFFSET = -0.0701738889;
-    public static final Rotation2d NOTE_ROTATION_OFFSET = Rotation2d.fromDegrees(-3.1480961); // Theoretically -3.1480961
+    public static final double ABSOLUTE_POSITION_OFFSET = Units.degreesToRotations(-29.31);
+    public static final Rotation2d NOTE_ROTATION_OFFSET = Rotation2d.fromDegrees(-2.8); // Theoretically -3.1480961
     public static final double SHOOTER_LENGTH = Units.inchesToMeters(15.023);
     
     public static final class PROFILE {
@@ -346,7 +346,7 @@ public final class Constants {
     public static final double RADIUS = Units.inchesToMeters(1.625 / 2.0);
   }
   public static final class AMP_PIVOT {
-    public static final double GEARING = (78.0 / 10.0) * (78.0 / 24.0) * (26.0 / 12.0);
+    public static final double GEARING = (78.0 / 10.0) * (78.0 / 16.0) * (26.0 / 12.0);
     public static final Rotation2d ANGLE_TOLERANCE = Rotation2d.fromDegrees(5.0);
     public static final double ABSOLUTE_POSITION_OFFSET = -0.814;
 

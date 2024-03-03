@@ -44,7 +44,6 @@ public class Shooter extends SubsystemBase {
     IN,
     AIM,
     SPIN_UP,
-    SHOOT,
   }
 
   public Shooter(SwerveDrive swerveDrive) {
@@ -61,6 +60,7 @@ public class Shooter extends SubsystemBase {
     }
     );
     Logger.autoLog(this, "Speaker Distance", () -> ShooterMath.calcShooterLocationOnField(swerveDrive.getPose(), shooterPivot.getPosition()).getDistance(Field.SPEAKER));
+    Logger.autoLog(this, "Speaker Height", () -> ShooterMath.calcShooterLocationOnField(swerveDrive.getPose(), shooterPivot.getPosition()).minus(Field.SPEAKER).getZ());
     Logger.autoLog(this, "Speaker Floor Distance", () -> ShooterMath.calcShooterLocationOnField(swerveDrive.getPose(), shooterPivot.getPosition()).toTranslation2d().getDistance(Field.SPEAKER.toTranslation2d()));
 
     SmartDashboard.putData("ShooterMechanism", mechanism);
@@ -91,8 +91,6 @@ public class Shooter extends SubsystemBase {
           shooterWheels.setState(ShooterWheels.State.SPIN_UP),
           feedWheels.setState(FeedWheels.State.SHOOT)
         );
-      case SHOOT:
-        return feedWheels.setState(FeedWheels.State.SHOOT);
     }
     return null;
   }
@@ -134,7 +132,7 @@ public class Shooter extends SubsystemBase {
         ).toTranslation2d()
       )
     ).alongWith(
-      Controls.rumble(() -> getShotChance() == 1.0)
+      Controls.rumbleBoth(() -> getShotChance() == 1.0)
     ).alongWith(
       LEDs.setStateCommand(LEDs.State.AIMING)
     );

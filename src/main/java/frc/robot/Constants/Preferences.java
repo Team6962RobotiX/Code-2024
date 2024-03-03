@@ -20,6 +20,7 @@ public final class Preferences {
     public static final double   TELEOPERATED_DRIVE_POWER           = 0.5; // Percent driving power
     public static final double   TELEOPERATED_BOOST_POWER           = 1.0; // Percent power when using the triggers
     public static final double   TELEOPERATED_ROTATE_POWER          = 0.5; // Percent rotating power
+    public static final double   TELEOPERATED_SHOOTER_SPEED         = 1.0; // m/s
   }
 
   public final class NOTE_DETECTION {
@@ -37,7 +38,7 @@ public final class Preferences {
 
   public static final class SHOOTER_PIVOT {
     public static final Rotation2d MAX_ANGLE = Rotation2d.fromDegrees(63.0);
-    public static final Rotation2d MIN_ANGLE = Rotation2d.fromDegrees(22.0); // 21.148 (really 21.6626)
+    public static final Rotation2d MIN_ANGLE = Rotation2d.fromDegrees(26.0); // 21.148 (really 21.6626)
     public static final Rotation2d IDLE_ANGLE = Rotation2d.fromDegrees(30.0);
     public static final Rotation2d MAX_ANGLE_UNDER_STAGE = Rotation2d.fromDegrees(50.0);
   }

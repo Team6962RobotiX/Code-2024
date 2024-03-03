@@ -35,8 +35,8 @@ public class AprilTags extends SubsystemBase {
   public static void injectVisionData(Map<String, Pose3d> cameraPoses, SwerveDrive swerveDrive) {
     for (String name : cameraPoses.keySet()) {
       LimelightHelpers.PoseEstimate poseEstimate = LimelightHelpers.getBotPoseEstimate_wpiBlue(name);
-      if (poseEstimate.tagCount >= 2) {
-        if (swerveDrive.canZeroHeading()) {
+      if (poseEstimate.tagCount >= 1) {
+        if (swerveDrive.canZeroHeading() && poseEstimate.tagCount >= 2) {
           swerveDrive.setVisionMeasurementStdDevs(VecBuilder.fill(0.7, 0.7, Units.degreesToRadians(30.0)));
         } else {
           swerveDrive.setVisionMeasurementStdDevs(VecBuilder.fill(0.7, 0.7, Units.degreesToRadians(999999)));

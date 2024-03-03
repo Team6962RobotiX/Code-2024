@@ -123,6 +123,7 @@ public class PivotController {
 
     if (doneMoving()) {
       motor.stopMotor();
+      return;
     }
 
     // Set onboard PID controller to follow

@@ -12,7 +12,11 @@ import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants.Constants;
 import frc.robot.Constants.Preferences;
+<<<<<<< Updated upstream
 import frc.robot.subsystems.LEDs;
+=======
+import frc.robot.subsystems.RobotStateController;
+>>>>>>> Stashed changes
 import frc.robot.subsystems.drive.SwerveDrive;
 import frc.robot.subsystems.drive.SwerveModule;
 import frc.robot.util.software.MathUtils;
@@ -21,7 +25,8 @@ import frc.robot.util.software.MathUtils.InputMath;
 public class XBoxSwerve extends Command {
   private XboxController controller;
   private SwerveDrive swerveDrive;
-  
+  private RobotStateController stateController;
+
   public final double MAX_DRIVE_VELOCITY = SwerveModule.calcWheelVelocity(Preferences.SWERVE_DRIVE.TELEOPERATED_BOOST_POWER);
   public final double NOMINAL_DRIVE_VELOCITY = SwerveModule.calcWheelVelocity(Preferences.SWERVE_DRIVE.TELEOPERATED_DRIVE_POWER);
   public final double FINE_TUNE_DRIVE_VELOCITY = SwerveModule.calcWheelVelocity(Preferences.SWERVE_DRIVE.TELEOPERATED_FINE_TUNE_DRIVE_POWER);
@@ -31,9 +36,10 @@ public class XBoxSwerve extends Command {
   private Translation2d velocity = new Translation2d();
   private double angularVelocity = 0.0;
   
-  public XBoxSwerve(SwerveDrive swerveDrive, XboxController xboxController) {
+  public XBoxSwerve(SwerveDrive swerveDrive, XboxController xboxController, RobotStateController stateController) {
     this.swerveDrive = swerveDrive;
     this.controller = xboxController;
+    this.stateController = stateController;
     // controller.setRumble(RumbleType.kBothRumble, 1.0);
     addRequirements(swerveDrive);
   }
@@ -70,15 +76,18 @@ public class XBoxSwerve extends Command {
     leftStick = InputMath.addCircularDeadband(leftStick, 0.05);
     rightStick = InputMath.addCircularDeadband(rightStick, 0.05);
 
-    angularVelocity += -rightStick.getX() * MathUtils.map(Math.max(leftTrigger, rightTrigger), 0, 1, NOMINAL_ANGULAR_VELOCITY, MAX_ANGULAR_VELOCITY);
+    angularVelocity += -rightStick.getX() * MathUtils.map(rightTrigger, 0, 1, NOMINAL_ANGULAR_VELOCITY, MAX_ANGULAR_VELOCITY);
     
-    velocity = velocity.plus(leftStick.times(MathUtils.map(Math.max(leftTrigger, rightTrigger), 0, 1, NOMINAL_DRIVE_VELOCITY, MAX_DRIVE_VELOCITY)));
+    velocity = velocity.plus(leftStick.times(MathUtils.map(rightTrigger, 0, 1, NOMINAL_DRIVE_VELOCITY, MAX_DRIVE_VELOCITY)));
 
     if (controller.getPOV() != -1) {
       Translation2d povVelocity = new Translation2d(Math.cos(Units.degreesToRadians(controller.getPOV())) * FINE_TUNE_DRIVE_VELOCITY, -Math.sin(Units.degreesToRadians(controller.getPOV())) * FINE_TUNE_DRIVE_VELOCITY);
       velocity = velocity.plus(povVelocity);
     }
 
+    if (stateController.isAiming() && velocity.getNorm() > 0) {
+      velocity = velocity.div(velocity.getNorm()).times(Preferences.SWERVE_DRIVE.TELEOPERATED_SHOOTER_SPEED);
+    }
     // Zero heading when Y is pressed
     if (controller.getYButton()) {
       Rotation2d newHeading = new Rotation2d();
