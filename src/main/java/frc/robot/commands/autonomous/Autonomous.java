@@ -191,7 +191,9 @@ public class Autonomous extends Command {
           Commands.waitUntil(() -> swerveDrive.getPose().getTranslation().getDistance(notePosition) < robotDiagonal / 2.0 + Field.NOTE_LENGTH),
           controller.setState(RobotStateController.State.INTAKE).onlyIf(() -> RobotBase.isReal())
         )
-      ).until(() -> controller.hasNote()),
+      ).raceWith(
+        Commands.waitUntil(() -> controller.hasNote())
+      ),
       Commands.runOnce(() -> controller.setState(RobotStateController.State.CENTER_NOTE))
     );
     
