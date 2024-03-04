@@ -808,7 +808,11 @@ public class SwerveDrive extends SubsystemBase {
       0.0 // Rotation delay distance in meters. This is how far the robot should travel before attempting to rotate.
     );
 
-    return pathfindingCommand;
+    if (RobotState.isAutonomous()) {
+      return pathfindingCommand;
+    } else {
+      return pathfindingCommand.andThen(Commands.runOnce(() -> setTargetHeading(pose.getRotation())));
+    }
   }
 
   public Command pathfindThenFollowPath(Pose2d firstPoint, Pose2d secondPoint) {

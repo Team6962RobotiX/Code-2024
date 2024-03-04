@@ -72,9 +72,6 @@ public class Shooter extends SubsystemBase {
   public void periodic() {
     if (!ENABLED_SYSTEMS.ENABLE_SHOOTER) return;
     shooterMechanism.setAngle(Rotation2d.fromDegrees(180.0).minus(shooterPivot.getPosition()));
-    if (getShotChance() == 1.0) {
-      LEDs.setState(LEDs.State.AIMED);
-    }
     if (RobotState.isAutonomous()) {
       shooterPivot.setTargetAngle(
         ShooterMath.calcPivotAngle(

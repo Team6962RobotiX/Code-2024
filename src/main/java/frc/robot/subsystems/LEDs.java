@@ -17,7 +17,7 @@ public class LEDs extends SubsystemBase {
   private static AddressableLED strip;
   private static AddressableLEDBuffer buffer;
   private RobotStateController stateController;
-  private static int length = 96 * 2;
+  private static int length = 200;
   private static State state = State.OFF;
   
   public static enum State {
@@ -49,12 +49,14 @@ public class LEDs extends SubsystemBase {
 
   @Override
   public void periodic() {
+    // state = State.DRIVING_TELEOP;
     switch (state) {
       case OFF:
         setColor(0, length, new int[] {0, 0, 0});
         break;
       case DISABLED:
-        setRainbow(0, length);
+        //setRainbow(0, length);
+        setBumperColorWave(0, length);
         break;
       case NO_NOTE:
         setColor(0, length, ANTARES_BLUE);
@@ -65,11 +67,11 @@ public class LEDs extends SubsystemBase {
       case HAS_NOTE:
         setColor(0, length, ANTARES_YELLOW);
         break;
+      case AIMING:
+        setColorWave(0, length, ANTARES_YELLOW, 2.5); 
+        break;
       case SHOOTING_WARMUP:
         setColorWave(0, length, ANTARES_YELLOW, this.stateController.getShooterVelocity() / 250);
-        break;
-      case AIMING:
-        setColorWave(0, length, ANTARES_YELLOW, 2.5);
         break;
       case AIMED:
         setColor(0, length, GREEN);
@@ -197,7 +199,7 @@ public class LEDs extends SubsystemBase {
 
   private static void setBumperColorWave(int start, int stop) {
     if (Constants.IS_BLUE_TEAM) {
-      setColorWave(start, stop, getBumperColor(), new int[] {179, 0, 255}, 2.5);
+      setColorWave(start, stop, new int[] {23, 127, 255}, new int[] {209, 23, 255}, 2.5);
     } else {
       setColorWave(start, stop, new int[] {255, 0, 0},  getBumperColor(), 2.5);
     } 

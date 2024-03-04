@@ -161,7 +161,7 @@ public final class Constants {
         public static final double kD = 0.0;
       }
 
-      public static final double ACCELERATION_REDUCTION = (SWERVE_DRIVE.PHYSICS.MAX_LINEAR_ACCELERATION * SWERVE_DRIVE.ROBOT_MASS + ((SWERVE_DRIVE.PHYSICS.ROTATIONAL_INERTIA * SWERVE_DRIVE.PHYSICS.MAX_ANGULAR_ACCELERATION) / SWERVE_DRIVE.PHYSICS.DRIVE_RADIUS)) / (9.80 * SWERVE_DRIVE.ROBOT_MASS * SWERVE_DRIVE.FRICTION_COEFFICIENT);
+      public static final double ACCELERATION_REDUCTION = 2.0 * ((SWERVE_DRIVE.PHYSICS.MAX_LINEAR_ACCELERATION * SWERVE_DRIVE.ROBOT_MASS + ((SWERVE_DRIVE.PHYSICS.ROTATIONAL_INERTIA * SWERVE_DRIVE.PHYSICS.MAX_ANGULAR_ACCELERATION) / SWERVE_DRIVE.PHYSICS.DRIVE_RADIUS)) / (9.80 * SWERVE_DRIVE.ROBOT_MASS * SWERVE_DRIVE.FRICTION_COEFFICIENT));
 
       public static final PathConstraints DEFAULT_PATH_CONSTRAINTS =
         new PathConstraints(
@@ -325,17 +325,17 @@ public final class Constants {
   public static final class SHOOTER_PIVOT {
     public static final double GEARING = 25.0 * (78.0 / 20.0) * (200.0 / 18.0);
     public static final double ROTATION_DELAY = 0.3; // seconds
-    public static final Rotation2d ANGLE_TOLERANCE = Rotation2d.fromDegrees(0.5);
+    public static final Rotation2d ANGLE_TOLERANCE = Rotation2d.fromDegrees(0.25);
     public static final Rotation2d ANGLE_PRECISION = Rotation2d.fromDegrees(0.5);
     public static final Rotation2d HEADING_PRECISION = Rotation2d.fromDegrees(0.5);
     public static final Translation3d POSITION = new Translation3d(Units.inchesToMeters(3.33), 0.0, Units.inchesToMeters(12.1));
-    public static final double ABSOLUTE_POSITION_OFFSET = Units.degreesToRotations(-151.3537128);
-    public static final Rotation2d NOTE_ROTATION_OFFSET = Rotation2d.fromDegrees(-2.8); // Theoretically -3.1480961
+    public static final double ABSOLUTE_POSITION_OFFSET = Units.degreesToRotations(-149.281);
+    public static final Rotation2d NOTE_ROTATION_OFFSET = Rotation2d.fromDegrees(-1.0); // Theoretically 3.1480961
     public static final double SHOOTER_LENGTH = Units.inchesToMeters(15.023);
     
     public static final class PROFILE {
       public static final double kP = 20.0;
-      public static final double kS = 0.2;
+      public static final double kS = 0.3;
       public static final double MAX_ACCELERATION = 30.0; // rad/s^2
     }
   }

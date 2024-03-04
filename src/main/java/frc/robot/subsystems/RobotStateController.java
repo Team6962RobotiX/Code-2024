@@ -155,6 +155,10 @@ public class RobotStateController extends SubsystemBase {
     if (RobotState.isDisabled()) {
       LEDs.setState(LEDs.State.DISABLED);
     }
+
+    if (canShoot()) {
+      LEDs.setState(LEDs.State.AIMED);
+    }
     
     if (hasNote()) {
       LEDs.setState(LEDs.State.HAS_NOTE);
