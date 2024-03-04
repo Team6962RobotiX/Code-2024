@@ -89,7 +89,7 @@ public final class SparkMaxUtil {
       configure(() -> pid.setPositionPIDWrappingMaxInput(Math.PI), motor);
     }
 
-    new TunableNumber(subsystem, "PID " + motor.getDeviceId(), pid::setP, 0.0);
+    // new TunableNumber(subsystem, "PID " + motor.getDeviceId(), pid::setP, 0.0);
   }
 
   public static void configureEncoder(CANSparkMax motor, double encoderConversionFactor) {

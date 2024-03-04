@@ -52,6 +52,10 @@ public final class Logger {
     notifier.startPeriodic(LOGGING.LOGGING_PERIOD_MS / 1000.0);
   }
 
+  public static boolean loggingEnabled() {
+    return loggingButton.getBoolean(false);
+  }
+
   private static void logAll() {
     if (!loggingButton.getBoolean(false)) return;
 
@@ -59,7 +63,6 @@ public final class Logger {
       Object supplied_value = suppliers.get(key).get();
       Object saved_value = values.get(key);
       if (supplied_value.equals(saved_value)) {
-        // System.out.println("SKIPPED");
         continue;
       }
       try {
