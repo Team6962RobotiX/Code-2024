@@ -166,6 +166,9 @@ public class PivotController {
     if (reversed) {
       factor = -1;
     }
+
+    // ((0.26934 + x) * -1)
+
     // Map absolute encoder position from 0 - 1 rotations to -pi - pi radians, where 0 is straight out
     double absoluteAngle = (absoluteEncoder.getAbsolutePosition() + encoderOffset) * factor;
     while (absoluteAngle < 0) absoluteAngle++;
