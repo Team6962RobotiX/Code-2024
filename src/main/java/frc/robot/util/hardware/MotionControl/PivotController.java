@@ -56,6 +56,8 @@ public class PivotController {
 
   private Rotation2d simAngle = new Rotation2d();
 
+  private Rotation2d achievableAngle = new Rotation2d();
+
 
   public PivotController(SubsystemBase subsystem, CANSparkMax motor, int absoluteEncoderDIO, double absolutePositionOffset, double kP, double kS, double gearing, Rotation2d minAngle, Rotation2d maxAngle, Rotation2d tolerance, boolean reversed) {
     // feedforward = new ArmFeedforward(kS, 0.0, 0.0, 0.0);
@@ -111,7 +113,7 @@ public class PivotController {
 
 
     // setpointState = profile.calculate(Robot.getLoopTime(), setpointState, targetState);
-    Rotation2d achievableAngle = targetAngle;
+    achievableAngle = targetAngle;
     if (achievableAngle.getRadians() < minAngle.getRadians()) {
         achievableAngle = minAngle;
     } else if (achievableAngle.getRadians() > maxAngle.getRadians()) {
@@ -184,7 +186,7 @@ public class PivotController {
 
   public boolean doneMoving() {
     if (getTargetAngle() == null) return true;
-    return debouncer.calculate(Math.abs(getPosition().getRadians() - getTargetAngle().getRadians()) < tolerance.getRadians());
+    return debouncer.calculate(Math.abs(getPosition().getRadians() - achievableAngle.getRadians()) < tolerance.getRadians());
   }
   
   public void setMaxAngle(Rotation2d newMaxAngle) {

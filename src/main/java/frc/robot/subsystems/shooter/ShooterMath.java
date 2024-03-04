@@ -193,22 +193,20 @@ public class ShooterMath {
     return (projectileVelocity * Math.sin(exitAngle.getRadians()) - Math.sqrt(Math.pow(projectileVelocity * Math.sin(exitAngle.getRadians()), 2.0) - 2.0 * gravity * targetHeight)) / gravity;
   }
 
-  public static Translation3d calcVelocityCompensatedPoint(Translation3d targetPoint, Pose2d currentPose, Translation2d currentVelocity, double shooterWheelVelocity, Rotation2d pivotAngle) {
-    return targetPoint;
+  public static Translation3d calcVelocityCompensatedPoint(Translation3d targetPoint, Pose2d currentPose, Translation2d currentVelocity, double shooterWheelVelocity, Rotation2d pivotAngle) {    
+    if (shooterWheelVelocity == 0.0) return targetPoint;
     
-    // if (shooterWheelVelocity == 0.0) return targetPoint;
-    
-    // double flightTime = calculateFlightTime(targetPoint, currentPose, shooterWheelVelocity, pivotAngle);
+    double flightTime = calculateFlightTime(targetPoint, currentPose, shooterWheelVelocity, pivotAngle);
 
-    // if (Double.isNaN(flightTime)) return targetPoint;
-
-    // Translation2d projectileOffset = currentVelocity.times(flightTime);
+    if (Double.isNaN(flightTime)) return targetPoint;
     
-    // return new Translation3d(
-    //   targetPoint.getX() - projectileOffset.getX(),
-    //   targetPoint.getY() - projectileOffset.getY(),
-    //   targetPoint.getZ()
-    // );
+    Translation2d projectileOffset = currentVelocity.times(flightTime);
+    
+    return new Translation3d(
+      targetPoint.getX() - projectileOffset.getX(),
+      targetPoint.getY() - projectileOffset.getY(),
+      targetPoint.getZ()
+    );
   }
 
 }

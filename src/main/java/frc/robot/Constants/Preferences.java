@@ -37,7 +37,7 @@ public final class Preferences {
   }
 
   public static final class SHOOTER_PIVOT {
-    public static final Rotation2d MAX_ANGLE = Rotation2d.fromDegrees(63.0);
+    public static final Rotation2d MAX_ANGLE = Rotation2d.fromDegrees(50.0); // 63.0
     public static final Rotation2d MIN_ANGLE = Rotation2d.fromDegrees(27.5); // 21.148 (really 21.6626)
     public static final Rotation2d IDLE_ANGLE = Rotation2d.fromDegrees(30.0);
     public static final Rotation2d MAX_ANGLE_UNDER_STAGE = Rotation2d.fromDegrees(50.0);
@@ -50,7 +50,7 @@ public final class Preferences {
   public static final class AMP_PIVOT {
     public static final Rotation2d MAX_ANGLE = Rotation2d.fromDegrees(90.0);
     public static final Rotation2d MIN_ANGLE = Rotation2d.fromDegrees(-60.0);
-    public static final Rotation2d OUTPUT_ANGLE = Rotation2d.fromDegrees(72.0);
+    public static final Rotation2d OUTPUT_ANGLE = Rotation2d.fromDegrees(68.0);
     public static final Rotation2d INTAKE_ANGLE = Rotation2d.fromDegrees(-50.0);
     public static final Rotation2d MAX_ANGLE_UNDER_STAGE = Rotation2d.fromDegrees(-20.0);
   }

@@ -15,6 +15,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.Constants;
+import frc.robot.Constants.Preferences;
 import frc.robot.subsystems.amp.Amp;
 import frc.robot.subsystems.drive.SwerveDrive;
 import frc.robot.subsystems.shooter.Shooter;
@@ -170,12 +171,12 @@ public class RobotStateController extends SubsystemBase {
 
     shotDebouncer.calculate(getShotChance() == 1.0);
 
-    // if (swerveDrive.underStage()) {
-    //   shooter.getShooterPivot().setMaxAngle(Preferences.SHOOTER_PIVOT.MAX_ANGLE_UNDER_STAGE);
-    //   amp.getPivot().setMaxAngle(Preferences.AMP_PIVOT.MAX_ANGLE_UNDER_STAGE);
-    // } else {
-    //   shooter.getShooterPivot().setMaxAngle(Preferences.SHOOTER_PIVOT.MAX_ANGLE);
-    //   amp.getPivot().setMaxAngle(Preferences.AMP_PIVOT.MAX_ANGLE);
-    // }
+    if (swerveDrive.underStage()) {
+      shooter.getShooterPivot().setMaxAngle(Preferences.SHOOTER_PIVOT.MAX_ANGLE_UNDER_STAGE);
+      amp.getPivot().setMaxAngle(Preferences.AMP_PIVOT.MAX_ANGLE_UNDER_STAGE);
+    } else {
+      shooter.getShooterPivot().setMaxAngle(Preferences.SHOOTER_PIVOT.MAX_ANGLE);
+      amp.getPivot().setMaxAngle(Preferences.AMP_PIVOT.MAX_ANGLE);
+    }
   }
 }

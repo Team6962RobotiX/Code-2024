@@ -75,6 +75,8 @@ public class Hang extends SubsystemBase {
 
   @Override
   public void periodic() {
+    if (!ENABLED_SYSTEMS.ENABLE_HANG) return;
+
     if (RobotState.isDisabled()) {
       state = State.OFF;
     }
