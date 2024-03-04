@@ -39,6 +39,7 @@ public class Autonomous extends Command {
   private double robotDiagonal = Math.sqrt(Math.pow(Constants.SWERVE_DRIVE.BUMPER_LENGTH, 2.0) + Math.pow(Constants.SWERVE_DRIVE.BUMPER_WIDTH, 2.0));
   private double noteAvoidRadius = 0.75 * (Field.NOTE_LENGTH / 2.0 + Math.max(Constants.SWERVE_DRIVE.BUMPER_LENGTH, Constants.SWERVE_DRIVE.BUMPER_WIDTH) / 2.0);
   private boolean firstNote = true;
+  private boolean dontPathfind = false;
 
   public Autonomous(RobotStateController controller, SwerveDrive swerveDrive, List<Integer> notesToGet) {
     this.controller = controller;
@@ -126,6 +127,10 @@ public class Autonomous extends Command {
       pathfind = true;
       firstNote = false;
     }
+    if (dontPathfind) {
+      pathfind = false;
+      dontPathfind = false;
+    }
 
     return Commands.sequence(
       Commands.runOnce(() -> {
@@ -142,13 +147,15 @@ public class Autonomous extends Command {
   }
 
   public Command pickupNote(Translation2d notePosition, boolean pathfind) {
+    
+
     Rotation2d heading = notePosition.minus(swerveDrive.getPose().getTranslation()).getAngle();
     Translation2d pathfindPosition = Field.SPEAKER.toTranslation2d().minus(notePosition);
     Rotation2d speakerNoteAngle = pathfindPosition.getAngle();
     pathfindPosition = pathfindPosition.div(pathfindPosition.getNorm()).times(Constants.SWERVE_DRIVE.BUMPER_LENGTH / 2.0 + Field.NOTE_LENGTH / 2.0);
     pathfindPosition = pathfindPosition.plus(notePosition);
     
-    Command pathplannerCommand = Commands.run(() -> {});
+    Command pathplannerCommand = Commands.runOnce(() -> {});
     if (pathfind) {
       pathplannerCommand = Commands.sequence(
         Commands.runOnce(() -> swerveDrive.setRotationTargetOverrideFromPoint(notePosition)),
@@ -210,11 +217,17 @@ public class Autonomous extends Command {
   }
 
   public Command moveAndShoot() {
+    if (!controller.hasNote()) {
+      return Commands.runOnce(() -> {
+        dontPathfind = true;
+      });
+    }
+
     Translation2d shotPosition = getClosestShootingPoint();
     Rotation2d heading = Field.SPEAKER.toTranslation2d().minus(shotPosition).getAngle().plus(Rotation2d.fromDegrees(180.0));
     Command moveToCommand = swerveDrive.goTo(new Pose2d(shotPosition, heading));
     if (shotPosition.getDistance(swerveDrive.getPose().getTranslation()) < Units.inchesToMeters(6.0)) {
-      moveToCommand = Commands.run(() -> {});
+      moveToCommand = Commands.runOnce(() -> {});
     }
     return Commands.sequence(
       Commands.runOnce(() -> swerveDrive.setRotationTargetOverrideFromPointBackwards(Field.SPEAKER.toTranslation2d())),
