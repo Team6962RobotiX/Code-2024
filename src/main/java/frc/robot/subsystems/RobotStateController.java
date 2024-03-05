@@ -120,7 +120,7 @@ public class RobotStateController extends SubsystemBase {
           .alongWith(new ConditionalCommand(
             LEDs.setStateCommand(LEDs.State.NO_NOTE),
             Commands.runOnce(() -> {}),
-            () -> !hasNote()
+            () -> !hasNote() && !RobotBase.isSimulation()
           )).finallyDo(() -> isAiming = false);
       case SHOOT_SPEAKER:
         return Commands.parallel(
@@ -149,7 +149,7 @@ public class RobotStateController extends SubsystemBase {
     if (swerveDrive.underStage()) {
       return 0.0;
     }
-    if (!hasNote()) {
+    if (!hasNote() && !RobotBase.isSimulation()) {
       return 0.0;
     }
     return shooter.getShotChance();

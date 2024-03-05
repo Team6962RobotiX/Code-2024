@@ -64,7 +64,7 @@ public class Controls {
     driver.b().whileTrue(new MoveToNote(Constants.LIMELIGHT.NOTE_CAMERA_NAME, swerveDrive, driver, stateController));
     driver.x();
     driver.y(); // USED
-    driver.start().whileTrue(swerveDrive.goTo(frc.robot.Constants.Field.AUTO_MOVE_POSITIONS.get("AMP")));
+    driver.start().whileTrue(swerveDrive.goTo(frc.robot.Constants.Field.AUTO_MOVE_POSITIONS.get("AMP").get()));
     driver.back().whileTrue(stateController.setState(RobotStateController.State.AIM_SPEAKER));
     driver.leftBumper();
     driver.rightBumper();
@@ -90,8 +90,7 @@ public class Controls {
     operator.back().onTrue(shooterPivot.setTargetAngleCommand(() -> Rotation2d.fromDegrees(10).plus(frc.robot.Constants.Preferences.SHOOTER_PIVOT.MAX_ANGLE)));
     operator.leftBumper();
     operator.rightBumper().whileTrue(stateController.setState(RobotStateController.State.INTAKE).andThen(
-      Commands.runOnce(() -> stateController.setState(RobotStateController.State.CENTER_NOTE).andThen(Controls.rumbleBoth()).schedule())
-      )
+      Commands.runOnce(() -> stateController.setState(RobotStateController.State.CENTER_NOTE).andThen(Controls.rumbleBoth()).schedule()))
     );
     operator.leftStick().whileTrue(stateController.setState(RobotStateController.State.PREPARE_AMP));
     operator.rightStick().whileTrue(stateController.setState(RobotStateController.State.PLACE_AMP));

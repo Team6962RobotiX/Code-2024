@@ -190,7 +190,7 @@ public class LEDs extends SubsystemBase {
   // }
 
   private static int[] getBumperColor() {
-    if (Constants.IS_BLUE_TEAM) {
+    if (Constants.IS_BLUE_TEAM.get()) {
       return ANTARES_BLUE;  
     } else {
       return new int[] {255, 0, 0};
@@ -198,7 +198,7 @@ public class LEDs extends SubsystemBase {
   }
 
   private static void setBumperColorWave(int start, int stop) {
-    if (Constants.IS_BLUE_TEAM) {
+    if (Constants.IS_BLUE_TEAM.get()) {
       setColorWave(start, stop, new int[] {23, 127, 255}, new int[] {209, 23, 255}, 2.5);
     } else {
       setColorWave(start, stop, new int[] {255, 0, 0},  getBumperColor(), 2.5);

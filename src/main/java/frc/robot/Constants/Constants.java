@@ -4,6 +4,7 @@
 package frc.robot.Constants;
 
 import java.util.Map;
+import java.util.function.Supplier;
 
 import com.pathplanner.lib.path.PathConstraints;
 
@@ -28,9 +29,10 @@ import frc.robot.Robot;
  * <p>It is advised to statically import this class (or one of its inner classes) wherever the
  * constants are needed, to reduce verbosity.
  */
+
 public final class Constants {
 
-  public static final boolean IS_BLUE_TEAM = true;// !(DriverStation.getAlliance().isPresent() && DriverStation.getAlliance().get() == DriverStation.Alliance.Red);
+  public static final Supplier<Boolean> IS_BLUE_TEAM = () -> !(DriverStation.getAlliance().isPresent() && DriverStation.getAlliance().get() == DriverStation.Alliance.Red);
 
   // ENABLED SYSTEMS
   public static final class ENABLED_SYSTEMS {
@@ -103,7 +105,7 @@ public final class Constants {
     // public static final double   VELOCITY_DEADBAND                  = 0.05; // Velocity we stop moving at
     
     // ODOMETER
-    public static final Pose2d   STARTING_POSE                      = Field.pose2d(0.0, 0.0, 0.0);
+    public static final Supplier<Pose2d>   STARTING_POSE            = Field.pose2d(0.0, 0.0, 0.0);
 
     // TESTING
     public static final double   MOTOR_POWER_HARD_CAP               = 1.0; // Only use for testing, otherwise set to 1.0

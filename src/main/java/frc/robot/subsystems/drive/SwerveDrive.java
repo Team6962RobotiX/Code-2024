@@ -86,7 +86,7 @@ public class SwerveDrive extends SubsystemBase {
   private CustomSwerveDrivePoseEstimator poseEstimator;
   private static Field2d field = new Field2d();
   private Rotation2d gyroHeading = Rotation2d.fromDegrees(0.0);
-  private Rotation2d gyroOffset = SWERVE_DRIVE.STARTING_POSE.getRotation();
+  private Rotation2d gyroOffset = SWERVE_DRIVE.STARTING_POSE.get().getRotation();
 
   private ChassisSpeeds drivenChassisSpeeds = new ChassisSpeeds();
 
@@ -127,9 +127,9 @@ public class SwerveDrive extends SubsystemBase {
     // Set up pose estimator and rotation controller
     poseEstimator = new CustomSwerveDrivePoseEstimator(
       kinematics,
-      SWERVE_DRIVE.STARTING_POSE.getRotation(),
+      SWERVE_DRIVE.STARTING_POSE.get().getRotation(),
       getModulePositions(),
-      SWERVE_DRIVE.STARTING_POSE,
+      SWERVE_DRIVE.STARTING_POSE.get(),
       VecBuilder.fill(0.05, 0.05, Units.degreesToRadians(2)),
       VecBuilder.fill(1.0, 1.0, Units.degreesToRadians(30))
     );
@@ -605,7 +605,7 @@ public class SwerveDrive extends SubsystemBase {
    * @return Heading as a Rotation2d based on alliance
    */
   public Rotation2d getAllianceAwareHeading() {
-    return getHeading().plus(Rotation2d.fromDegrees(Constants.IS_BLUE_TEAM ? 0.0 : 180.0));
+    return getHeading().plus(Rotation2d.fromDegrees(Constants.IS_BLUE_TEAM.get() ? 0.0 : 180.0));
   }
 
   /**

@@ -25,7 +25,7 @@ public final class AutonChooser {
     }
 
     List<Integer> notesToGet = new ArrayList<>();
-    for (int i = 0; i < Field.NOTE_POSITIONS.length; i++) {
+    for (int i = 0; i < Field.NOTE_POSITIONS.size(); i++) {
       if (notes.get(i).getEntry().getBoolean(false)) {
         notesToGet.add(i);
       }
@@ -34,7 +34,7 @@ public final class AutonChooser {
   }
 
   public static void init() {
-    for (int i = 0; i < Field.NOTE_POSITIONS.length; i++) {
+    for (int i = 0; i < Field.NOTE_POSITIONS.size(); i++) {
       int row = i;
       int column = 1;
       if (i > 2) {

@@ -107,7 +107,7 @@ public class ShooterMath {
     
     Translation3d speakerOffset = new Translation3d();
 
-    if (Constants.IS_BLUE_TEAM) {
+    if (Constants.IS_BLUE_TEAM.get()) {
       speakerOffset = new Translation3d(
         Math.cos(Field.SPEAKER_ANGLE) * (Field.SPEAKER_HEIGHT - Field.NOTE_THICKNESS) / 2.0,
         0.0,
@@ -161,7 +161,7 @@ public class ShooterMath {
   // Assuming we're already lined up with the target, what's the chance we'll hit it?
   public static double calcOptimalShotChance(Translation3d targetPoint, Pose2d currentPose) {
     double shooterWheelVelocity = Preferences.SHOOTER_WHEELS.TARGET_SPEED;
-    Translation3d aimingPoint = Field.SPEAKER;
+    Translation3d aimingPoint = Field.SPEAKER.get();
     
     currentPose = new Pose2d(
       currentPose.getTranslation(),

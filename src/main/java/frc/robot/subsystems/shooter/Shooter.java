@@ -56,13 +56,13 @@ public class Shooter extends SubsystemBase {
     Logger.autoLog(this, "Shot Chance", () -> getShotChance());
     Logger.autoLog(this, "Shooter Position", () -> ShooterMath.calcShooterLocationOnField(swerveDrive.getPose(), shooterPivot.getPosition()));
     Logger.autoLog(this, "Straight Line Angle", () -> {
-      Translation3d loc = Field.SPEAKER.minus(ShooterMath.calcShooterLocationOnField(swerveDrive.getPose(), shooterPivot.getPosition()));
+      Translation3d loc = Field.SPEAKER.get().minus(ShooterMath.calcShooterLocationOnField(swerveDrive.getPose(), shooterPivot.getPosition()));
       return Rotation2d.fromRadians(Math.atan(loc.getZ() / loc.toTranslation2d().getNorm())).minus(Constants.SHOOTER_PIVOT.NOTE_ROTATION_OFFSET).getRadians();
     }
     );
-    Logger.autoLog(this, "Speaker Distance", () -> ShooterMath.calcShooterLocationOnField(swerveDrive.getPose(), shooterPivot.getPosition()).getDistance(Field.SPEAKER));
-    Logger.autoLog(this, "Speaker Height", () -> ShooterMath.calcShooterLocationOnField(swerveDrive.getPose(), shooterPivot.getPosition()).minus(Field.SPEAKER).getZ());
-    Logger.autoLog(this, "Speaker Floor Distance", () -> ShooterMath.calcShooterLocationOnField(swerveDrive.getPose(), shooterPivot.getPosition()).toTranslation2d().getDistance(Field.SPEAKER.toTranslation2d()));
+    Logger.autoLog(this, "Speaker Distance", () -> ShooterMath.calcShooterLocationOnField(swerveDrive.getPose(), shooterPivot.getPosition()).getDistance(Field.SPEAKER.get()));
+    Logger.autoLog(this, "Speaker Height", () -> ShooterMath.calcShooterLocationOnField(swerveDrive.getPose(), shooterPivot.getPosition()).minus(Field.SPEAKER.get()).getZ());
+    Logger.autoLog(this, "Speaker Floor Distance", () -> ShooterMath.calcShooterLocationOnField(swerveDrive.getPose(), shooterPivot.getPosition()).toTranslation2d().getDistance(Field.SPEAKER.get().toTranslation2d()));
 
     SmartDashboard.putData("ShooterMechanism", mechanism);
   }
@@ -76,7 +76,7 @@ public class Shooter extends SubsystemBase {
       shooterPivot.setTargetAngle(
         ShooterMath.calcPivotAngle(
           ShooterMath.calcVelocityCompensatedPoint(
-            Field.SPEAKER,
+            Field.SPEAKER.get(),
             swerveDrive.getPose(),
             swerveDrive.getFieldVelocity(),
             shooterWheels.getVelocity(),
@@ -97,7 +97,7 @@ public class Shooter extends SubsystemBase {
         );
       case AIM:
         return Commands.parallel(
-          aim(Field.SPEAKER)
+          aim(Field.SPEAKER.get())
         );
       case SPIN_UP:
         return Commands.parallel(
@@ -157,7 +157,7 @@ public class Shooter extends SubsystemBase {
 
   public double getShotChance() {    
     return ShooterMath.calcShotChance(
-      Field.SPEAKER,
+      Field.SPEAKER.get(),
       swerveDrive.getPose(),
       swerveDrive.getFieldVelocity(),
       shooterPivot.getPosition(),
