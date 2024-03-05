@@ -118,9 +118,10 @@ public class RobotStateController extends SubsystemBase {
       case SHOOT_SPEAKER:
         return Commands.parallel(
           transfer.setState(Transfer.State.SHOOTER)
+          .alongWith(LEDs.setStateCommand(LEDs.State.SHOOTING))
         );
       case SPIN_UP:
-        return shooter.setState(Shooter.State.SPIN_UP);
+        return shooter.setState(Shooter.State.SPIN_UP).alongWith(LEDs.setStateCommand(LEDs.State.SPIN_UP));
       default:
         return Commands.run(() -> {});
     }

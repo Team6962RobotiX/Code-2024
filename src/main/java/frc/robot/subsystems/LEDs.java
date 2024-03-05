@@ -19,15 +19,15 @@ public class LEDs extends SubsystemBase {
   
   public static enum State {
     OFF,
-    GREEN,
     DISABLED,
-    NO_NOTE,
     DRIVING_TELEOP,
     HAS_NOTE,
-    SHOOTING_WARMUP,
+    SPIN_UP,
     AIMING,
-    SHOOTING_SPEAKER,
+    NO_NOTE,
+    SHOOTING,
     HANG,
+    GREEN
   }
 
   public static int[] ANTARES_BLUE = { 36, 46, 68 };
@@ -64,7 +64,7 @@ public class LEDs extends SubsystemBase {
       case AIMING:
         setColorWave(0, length, ANTARES_YELLOW, 2.5); 
         break;
-      case SHOOTING_WARMUP:
+      case SPIN_UP:
         setColorWave(0, length, ANTARES_YELLOW, this.stateController.getShooterVelocity() / 250);
         break;
       case GREEN:
@@ -73,7 +73,7 @@ public class LEDs extends SubsystemBase {
       case NO_NOTE:
         setColor(0, length, new int[] {255, 0, 0});
         break;
-      case SHOOTING_SPEAKER:
+      case SHOOTING:
         setColorFlash(0, length, getBumperColor(), 5);
         break;
       case HANG:
