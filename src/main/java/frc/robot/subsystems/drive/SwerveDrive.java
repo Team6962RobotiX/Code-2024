@@ -161,7 +161,6 @@ public class SwerveDrive extends SubsystemBase {
       this::shouldFlipPaths,
       this // Reference to this subsystem to set requirements
     );
-
     // Logging callback for target robot pose
     PathPlannerLogging.setLogTargetPoseCallback((pose) -> {
         // Do whatever you want with the pose here

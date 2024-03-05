@@ -10,6 +10,7 @@ import java.util.List;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.Constants.Constants.LIMELIGHT;
 import frc.robot.subsystems.RobotStateController;
 import frc.robot.subsystems.drive.SwerveDrive;
@@ -20,7 +21,7 @@ public class MoveToNote extends Command {
   private final SwerveDrive swerveDrive;
   private final RobotStateController stateController;
   private final String cameraName;
-  private Command goToCommand;
+  private Command goToCommand = Commands.runOnce(() -> {});
 
   public MoveToNote(String cameraName, SwerveDrive swerveDrive, RobotStateController stateController) {
     
@@ -35,7 +36,7 @@ public class MoveToNote extends Command {
   @Override
   public void initialize() {
     // The robot won't move unless it sees a note
-    goToCommand = null;
+    goToCommand = Commands.runOnce(() -> {});;
   }
 
   // Called every time the scheduler runs while the command is scheduled.
@@ -50,10 +51,9 @@ public class MoveToNote extends Command {
 
       Pose2d targetPose = new Pose2d(targetPoint, targetPoint.minus(swerveDrive.getPose().getTranslation()).getAngle());
       
-      if (goToCommand == null || goToCommand.isFinished()) {
-        goToCommand = swerveDrive.goToSimple(targetPose).until(() -> stateController.hasNote());
-        goToCommand.schedule();
-      }
+      goToCommand.cancel();
+      goToCommand = swerveDrive.goToSimple(targetPose).until(() -> stateController.hasNote());
+      goToCommand.schedule();
     }
 
     // THIS DOES BOTH ROTATION AND TRANSLATION
@@ -64,7 +64,7 @@ public class MoveToNote extends Command {
   // Called once the command ends or is interrupted.
   @Override
   public void end(boolean interrupted) {
-    if (goToCommand != null) goToCommand.cancel();
+    goToCommand.cancel();
   }
 
   // Returns true when the command should end.
