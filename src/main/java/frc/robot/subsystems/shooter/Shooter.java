@@ -144,10 +144,6 @@ public class Shooter extends SubsystemBase {
           shooterPivot.getPosition()
         ).toTranslation2d()
       )
-    ).alongWith(
-      Controls.rumbleBoth(() -> getShotChance() == 1.0)
-    ).alongWith(
-      LEDs.setStateCommand(LEDs.State.AIMING)
     );
   }
 

@@ -61,7 +61,7 @@ public class Controls {
     driver.a();
 
 
-    driver.b().whileTrue(new MoveToNote(Constants.LIMELIGHT.NOTE_CAMERA_NAME, swerveDrive, driver));
+    driver.b().whileTrue(new MoveToNote(Constants.LIMELIGHT.NOTE_CAMERA_NAME, swerveDrive, driver, stateController));
     driver.x();
     driver.y(); // USED
     driver.start().whileTrue(swerveDrive.goTo(frc.robot.Constants.Field.AUTO_MOVE_POSITIONS.get("AMP")));
@@ -120,6 +120,7 @@ public class Controls {
   private static Command rumble(CommandXboxController controller) {
     return Commands.runEnd(() -> {
       controller.getHID().setRumble(RumbleType.kBothRumble, 1.0);
+      LEDs.setState(LEDs.State.GREEN);
     },
     () -> {
       controller.getHID().setRumble(RumbleType.kBothRumble, 0.0);
@@ -131,6 +132,7 @@ public class Controls {
     return Commands.runEnd(() -> {
       if (booleanSupplier.getAsBoolean()) {
         controller.getHID().setRumble(RumbleType.kBothRumble, 1.0);
+        LEDs.setState(LEDs.State.GREEN);
       } else {
         controller.getHID().setRumble(RumbleType.kBothRumble, 0.0);
       }

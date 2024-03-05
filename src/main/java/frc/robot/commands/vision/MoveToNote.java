@@ -6,6 +6,7 @@
 package frc.robot.commands.vision;
 
 import frc.robot.Constants.Constants.LIMELIGHT;
+import frc.robot.subsystems.RobotStateController;
 import frc.robot.subsystems.drive.SwerveDrive;
 import frc.robot.subsystems.vision.Notes;
 import frc.robot.util.software.LimelightHelpers;
@@ -24,14 +25,16 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 public class MoveToNote extends Command {
   private final SwerveDrive swerveDrive;
   private final CommandXboxController controller;
+  private final RobotStateController stateController;
   private final String cameraName;
   private Command goToCommand;
 
-  public MoveToNote(String cameraName, SwerveDrive swerveDrive, CommandXboxController controller) {
+  public MoveToNote(String cameraName, SwerveDrive swerveDrive, CommandXboxController controller, RobotStateController stateController) {
     
     this.swerveDrive = swerveDrive;
     this.controller = controller;
     this.cameraName = cameraName;
+    this.stateController = stateController;
     // Use addRequirements() here to declare subsystem dependencies.
     // addRequirements(swerveDrive);
   }
@@ -56,7 +59,7 @@ public class MoveToNote extends Command {
       Pose2d targetPose = new Pose2d(targetPoint, targetPoint.minus(swerveDrive.getPose().getTranslation()).getAngle());
       
       if (goToCommand == null || goToCommand.isFinished()) {
-        goToCommand = swerveDrive.goToSimple(targetPose);
+        goToCommand = swerveDrive.goToSimple(targetPose).until(() -> stateController.hasNote());
         goToCommand.schedule();
       }
     }

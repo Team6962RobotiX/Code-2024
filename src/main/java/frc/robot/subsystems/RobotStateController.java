@@ -13,6 +13,7 @@ import edu.wpi.first.wpilibj.shuffleboard.SimpleWidget;
 import edu.wpi.first.wpilibj.shuffleboard.SuppliedValueWidget;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.Constants;
 import frc.robot.Constants.Preferences;
@@ -113,10 +114,14 @@ public class RobotStateController extends SubsystemBase {
           transfer.setState(Transfer.State.SHOOTER)
         ).until(() -> hasNote()).andThen(Controls.rumbleBoth());
       case AIM_SPEAKER:
-        return shooter.setState(Shooter.State.AIM).alongWith(
-          Commands.runOnce(
-            () -> isAiming = true)
-          ).finallyDo(() -> isAiming = false);
+        return shooter.setState(Shooter.State.AIM)
+          .alongWith(Commands.runOnce(() -> isAiming = true))
+          .alongWith(Controls.rumbleBoth(() -> canShoot()))
+          .alongWith(new ConditionalCommand(
+            LEDs.setStateCommand(LEDs.State.NO_NOTE),
+            Commands.runOnce(() -> {}),
+            () -> !hasNote()
+          )).finallyDo(() -> isAiming = false);
       case SHOOT_SPEAKER:
         return Commands.parallel(
           transfer.setState(Transfer.State.SHOOTER)
@@ -141,7 +146,10 @@ public class RobotStateController extends SubsystemBase {
   }
 
   public double getShotChance() {
-    if (swerveDrive.underStage() && RobotState.isAutonomous()) {
+    if (swerveDrive.underStage()) {
+      return 0.0;
+    }
+    if (!hasNote()) {
       return 0.0;
     }
     return shooter.getShotChance();
@@ -153,24 +161,17 @@ public class RobotStateController extends SubsystemBase {
 
   @Override
   public void periodic() {
+    shotDebouncer.calculate(getShotChance() == 1.0);
+    beamBreakDebouncer.calculate(!beamBreakSensor.get());
+
     if (RobotState.isDisabled()) {
       LEDs.setState(LEDs.State.DISABLED);
-    }
-
-    if (canShoot()) {
-      LEDs.setState(LEDs.State.AIMED);
     }
     
     if (hasNote()) {
       LEDs.setState(LEDs.State.HAS_NOTE);
-    } else {
-      if (!RobotState.isDisabled()) {
-        LEDs.setState(LEDs.State.NO_NOTE);
-      }
     }
-
-    shotDebouncer.calculate(getShotChance() == 1.0);
-
+    
     if (swerveDrive.underStage()) {
       shooter.getShooterPivot().setMaxAngle(Preferences.SHOOTER_PIVOT.MAX_ANGLE_UNDER_STAGE);
       amp.getPivot().setMaxAngle(Preferences.AMP_PIVOT.MAX_ANGLE_UNDER_STAGE);
