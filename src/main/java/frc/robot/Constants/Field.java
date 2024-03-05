@@ -47,7 +47,7 @@ public final class Field {
   public static final Supplier<Double> WING_X = flipIfRed(BLUE_WING_X);
 
   public static final List<Supplier<Translation2d>> SHOT_POSITIONS = List.of(
-    point2d(BLUE_WING_X, 6.50),
+    point2d(4.5, 6.50),
     // point2d(BLUE_WING_X, 1.75),
     point2d(4.3, 5.3)
   );
