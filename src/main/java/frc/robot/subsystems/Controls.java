@@ -9,6 +9,7 @@ import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.cscore.HttpCamera;
 import edu.wpi.first.cscore.VideoSource;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.net.PortForwarder;
 import edu.wpi.first.util.datalog.DoubleLogEntry;
 import edu.wpi.first.wpilibj.Preferences;
 import edu.wpi.first.wpilibj.shuffleboard.BuiltInWidgets;
@@ -114,21 +115,6 @@ public class Controls {
       .withWidget(BuiltInWidgets.kBooleanBox)
       .withPosition(0, 2)
       .withSize(3, 1);
-    
-    HttpCamera ftag = new HttpCamera("Front Apriltag Camera", "http://limelight-ftag.local:5802");
-    CameraServer.addCamera(ftag);
-    driverTab
-      .add(ftag);
-
-    HttpCamera btag = new HttpCamera("Back Apriltag Camera", "http://limelight-btag.local:5802");
-    CameraServer.addCamera(btag);
-    driverTab
-      .add(btag);
-
-    HttpCamera fnote = new HttpCamera("Front Note Camera", "http://limelight-fnote.local:5802");
-    CameraServer.addCamera(fnote);
-    driverTab
-      .add(fnote);
   }
 
   private static Command rumble(CommandXboxController controller) {

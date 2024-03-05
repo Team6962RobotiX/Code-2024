@@ -24,6 +24,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import frc.robot.RobotContainer;
 import frc.robot.Constants.Constants;
 import frc.robot.Constants.Field;
 import frc.robot.Constants.Constants.SWERVE_DRIVE;
@@ -51,7 +52,14 @@ public class Autonomous extends Command {
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
-    pickupAndShootAll().schedule();
+    if (controller.hasNote()) {
+      Commands.sequence(
+        moveAndShoot(),
+        pickupAndShootAll()
+      ).schedule();
+    } else {
+      pickupAndShootAll().schedule();
+    }
   }
 
   public void addDynamicObstacles() {
