@@ -31,7 +31,7 @@ public class AprilTags extends SubsystemBase {
       if (poseEstimate.pose.getX() < 0.0 || poseEstimate.pose.getY() < 0.0 || poseEstimate.pose.getX() > Field.LENGTH || poseEstimate.pose.getY() > Field.WIDTH) continue;
       
       double rotationAccuracy = Units.degreesToRadians(999999);
-      double translationAccuracy = (swerveDrive.getFieldVelocity().getNorm() + poseEstimate.avgTagDist) / Math.pow(poseEstimate.tagCount, 2.0);
+      double translationAccuracy = Math.sqrt(swerveDrive.getFieldVelocity().getNorm() + Math.abs(swerveDrive.getRotationalVelocity()) + poseEstimate.avgTagDist) / Math.pow(poseEstimate.tagCount, 2.0);
       if (swerveDrive.canZeroHeading() && poseEstimate.tagCount >= 2) {
         rotationAccuracy = Units.degreesToRadians(30.0);
       }
