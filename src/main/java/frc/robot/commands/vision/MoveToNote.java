@@ -46,7 +46,7 @@ public class MoveToNote extends Command {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-
+  
     // If the camera can see the note, it updates the position. 
     // As soon at the camera can't see the note, the robot continues driving to the last known note position.
     List<Translation2d> notePositions = Notes.getNotePositions(cameraName, LIMELIGHT.NOTE_CAMERA_PITCH, swerveDrive, swerveDrive.getFieldVelocity(), LIMELIGHT.NOTE_CAMERA_POSITION);

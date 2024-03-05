@@ -15,6 +15,7 @@ import frc.robot.Constants.Field;
 import frc.robot.subsystems.drive.SwerveDrive;
 import frc.robot.util.software.LimelightHelpers;
 import frc.robot.util.software.LimelightHelpers.LimelightTarget_Detector;
+import frc.robot.util.software.Logging.Logger;
 
 public class Notes {
   public static List<Translation2d> getNotePositions(String name, Rotation2d pitch, SwerveDrive swerveDrive, Translation2d fieldVelocity, Translation3d cameraToRobot) {
@@ -30,8 +31,8 @@ public class Notes {
       if (Units.degreesToRadians(y) + pitch.getRadians() > 0) continue;
 
       double latency = (results.targetingResults.latency_capture + results.targetingResults.latency_jsonParse + results.targetingResults.latency_pipeline) / 1000.0;
-      double distance = (cameraToRobot.getZ() - Field.NOTE_THICKNESS) / -Math.tan(Units.degreesToRadians(y) + pitch.getRadians());
-      System.out.println(latency);
+      double distance = (cameraToRobot.getZ() - Field.NOTE_THICKNESS/2) / -Math.tan(Units.degreesToRadians(y) + pitch.getRadians());
+      Logger.log("note-distance", distance);
       Translation2d relativePosition = new Translation2d(
         distance * Math.cos(Units.degreesToRadians(x)),
         -distance * Math.sin(Units.degreesToRadians(x))
