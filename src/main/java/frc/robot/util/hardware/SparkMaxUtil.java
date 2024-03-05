@@ -11,7 +11,6 @@ import com.revrobotics.SparkPIDController;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.Constants.NEO;
-import frc.robot.util.TunableNumber;
 import frc.robot.util.software.Logging.Logger;
 import frc.robot.util.software.Logging.StatusChecks;
 

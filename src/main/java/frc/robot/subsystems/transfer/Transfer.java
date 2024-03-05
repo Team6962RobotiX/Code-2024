@@ -1,10 +1,8 @@
 package frc.robot.subsystems.transfer;
 
-import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Constants.Constants;
 import frc.robot.Constants.Constants.ENABLED_SYSTEMS;
 
 

@@ -5,34 +5,26 @@
 
 package frc.robot.commands.vision;
 
+import java.util.List;
+
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants.Constants.LIMELIGHT;
 import frc.robot.subsystems.RobotStateController;
 import frc.robot.subsystems.drive.SwerveDrive;
 import frc.robot.subsystems.vision.Notes;
-import frc.robot.util.software.LimelightHelpers;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
-
-import java.util.List;
-
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
-
-import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 
 
 public class MoveToNote extends Command {
   private final SwerveDrive swerveDrive;
-  private final CommandXboxController controller;
   private final RobotStateController stateController;
   private final String cameraName;
   private Command goToCommand;
 
-  public MoveToNote(String cameraName, SwerveDrive swerveDrive, CommandXboxController controller, RobotStateController stateController) {
+  public MoveToNote(String cameraName, SwerveDrive swerveDrive, RobotStateController stateController) {
     
     this.swerveDrive = swerveDrive;
-    this.controller = controller;
     this.cameraName = cameraName;
     this.stateController = stateController;
     // Use addRequirements() here to declare subsystem dependencies.

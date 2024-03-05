@@ -1,27 +1,13 @@
 package frc.robot.util.hardware;
 
 import com.revrobotics.CANSparkMax;
-import com.revrobotics.RelativeEncoder;
 
-import edu.wpi.first.math.filter.Debouncer;
-import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.math.filter.MedianFilter;
-import edu.wpi.first.math.util.Units;
-import edu.wpi.first.wpilibj.RobotState;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Robot;
-import frc.robot.Constants.Constants;
-import frc.robot.Constants.Field;
-import frc.robot.Constants.Preferences;
 import frc.robot.Constants.Constants.NEO;
 import frc.robot.Constants.Constants.NEO550;
 import frc.robot.util.software.Logging.Logger;
-
-import java.util.ArrayDeque;
-import java.util.Queue;
-
-import javax.print.attribute.standard.Media;
 
 public class NoteDetector extends SubsystemBase {
   int filterSize = 3;

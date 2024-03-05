@@ -3,8 +3,6 @@ package frc.robot.subsystems.vision;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.ctre.phoenix6.mechanisms.swerve.SwerveRequest.SwerveDriveBrake;
-
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;

@@ -1,5 +1,7 @@
 package frc.robot.subsystems;
 
+import com.github.tommyettinger.colorful.oklab.ColorTools;
+
 import edu.wpi.first.wpilibj.AddressableLED;
 import edu.wpi.first.wpilibj.AddressableLEDBuffer;
 import edu.wpi.first.wpilibj.Timer;
@@ -7,11 +9,6 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.Constants;
-
-import java.awt.Color;
-
-import com.github.tommyettinger.colorful.oklab.ColorTools;
-import com.github.tommyettinger.colorful.oklab.GradientTools;
 
 public class LEDs extends SubsystemBase {
   private static AddressableLED strip;

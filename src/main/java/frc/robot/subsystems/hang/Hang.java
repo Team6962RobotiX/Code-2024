@@ -5,9 +5,9 @@
 package frc.robot.subsystems.hang;
 
 import com.kauailabs.navx.frc.AHRS;
+import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
-import com.revrobotics.CANSparkLowLevel.MotorType;
 
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.RobotState;
@@ -20,10 +20,8 @@ import frc.robot.Constants.Constants.ENABLED_SYSTEMS;
 import frc.robot.Constants.Constants.HANG;
 import frc.robot.Constants.Preferences;
 import frc.robot.Constants.Preferences.VOLTAGE_LADDER;
-import frc.robot.commands.*;
 import frc.robot.subsystems.drive.SwerveDrive;
 import frc.robot.util.hardware.SparkMaxUtil;
-import frc.robot.subsystems.drive.SwerveDrive;
 
 public class Hang extends SubsystemBase {
     private CANSparkMax leftMotor;

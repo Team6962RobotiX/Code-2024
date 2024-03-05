@@ -3,20 +3,11 @@ package frc.robot.subsystems;
 import java.util.Map;
 import java.util.function.BooleanSupplier;
 
-import com.badlogic.gdx.utils.reflect.Field;
-
-import edu.wpi.first.cameraserver.CameraServer;
-import edu.wpi.first.cscore.HttpCamera;
-import edu.wpi.first.cscore.VideoSource;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.net.PortForwarder;
-import edu.wpi.first.util.datalog.DoubleLogEntry;
-import edu.wpi.first.wpilibj.Preferences;
+import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.shuffleboard.BuiltInWidgets;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
-import edu.wpi.first.wpilibj.shuffleboard.SuppliedValueWidget;
-import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -61,7 +52,7 @@ public class Controls {
     driver.a();
 
 
-    driver.b().whileTrue(new MoveToNote(Constants.LIMELIGHT.NOTE_CAMERA_NAME, swerveDrive, driver, stateController));
+    driver.b().whileTrue(new MoveToNote(Constants.LIMELIGHT.NOTE_CAMERA_NAME, swerveDrive, stateController));
     driver.x();
     driver.y(); // USED
     driver.start().whileTrue(swerveDrive.goTo(frc.robot.Constants.Field.AUTO_MOVE_POSITIONS.get("AMP").get()));

@@ -1,20 +1,16 @@
 package frc.robot.subsystems.shooter;
 
-import java.util.List;
-
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
-import frc.robot.subsystems.drive.SwerveDrive;
-import frc.robot.util.software.Logging.Logger;
-import frc.robot.Constants.Field;
-import frc.robot.Constants.Preferences;
 import frc.robot.Constants.Constants;
 import frc.robot.Constants.Constants.SHOOTER_PIVOT;
 import frc.robot.Constants.Constants.SHOOTER_WHEELS;
+import frc.robot.Constants.Field;
+import frc.robot.Constants.Preferences;
 
 public class ShooterMath {
   

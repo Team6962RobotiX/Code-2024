@@ -3,17 +3,11 @@ package frc.robot.util.software.Dashboard;
 import java.util.ArrayList;
 import java.util.List;
 
-import edu.wpi.first.networktables.GenericEntry;
 import edu.wpi.first.wpilibj.shuffleboard.BuiltInWidgets;
-import edu.wpi.first.wpilibj.shuffleboard.ComplexWidget;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
-import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardComponent;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj.shuffleboard.SimpleWidget;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.Constants.Field;
-import frc.robot.util.software.Logging.StatusChecks;
 
 public final class AutonChooser {
   public static ShuffleboardTab tab = Shuffleboard.getTab("Autonomous"); 

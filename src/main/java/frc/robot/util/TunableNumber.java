@@ -1,7 +1,6 @@
 package frc.robot.util;
 
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 import edu.wpi.first.networktables.GenericEntry;
 import edu.wpi.first.wpilibj.shuffleboard.BuiltInWidgets;

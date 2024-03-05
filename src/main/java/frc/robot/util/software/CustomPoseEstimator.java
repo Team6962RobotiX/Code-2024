@@ -4,10 +4,15 @@
 
 package frc.robot.util.software;
 
+import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.Objects;
+
 import edu.wpi.first.math.MathSharedStore;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.Nat;
 import edu.wpi.first.math.VecBuilder;
+import edu.wpi.first.math.estimator.DifferentialDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Twist2d;
@@ -18,9 +23,6 @@ import edu.wpi.first.math.kinematics.Odometry;
 import edu.wpi.first.math.kinematics.WheelPositions;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
-import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.Objects;
 
 /**
  * This class wraps {@link Odometry} to fuse latency-compensated vision measurements with encoder
