@@ -9,6 +9,7 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.RobotState;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.Constants.SWERVE_DRIVE;
+import frc.robot.subsystems.LEDs;
 import frc.robot.subsystems.drive.SwerveDrive;
 import frc.robot.util.software.LimelightHelpers;
 
@@ -30,6 +31,7 @@ public class AprilTags extends SubsystemBase {
       }
       swerveDrive.setVisionMeasurementStdDevs(VecBuilder.fill(translationAccuracy, translationAccuracy, rotationAccuracy));
       swerveDrive.addVisionMeasurement(poseEstimate.pose, poseEstimate.timestampSeconds);
+      LEDs.setState(LEDs.State.HAS_VISION_TARGET);
     }
   }
 

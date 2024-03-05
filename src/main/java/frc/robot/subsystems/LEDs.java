@@ -21,6 +21,7 @@ public class LEDs extends SubsystemBase {
     OFF,
     DISABLED,
     DRIVING_TELEOP,
+    HAS_VISION_TARGET,
     HAS_NOTE,
     SPIN_UP,
     AIMING,
@@ -75,6 +76,9 @@ public class LEDs extends SubsystemBase {
         break;
       case SHOOTING:
         setColorFlash(0, length, getBumperColor(), 5);
+        break;
+      case HAS_VISION_TARGET:
+        setColor(0, length, new int[] {128, 0, 255});
         break;
       case HANG:
         setTopStripColor(new int[] {255, 100, 0});
