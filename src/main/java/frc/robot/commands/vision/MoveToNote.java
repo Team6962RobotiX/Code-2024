@@ -10,6 +10,7 @@ import java.util.List;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.Constants.Constants.LIMELIGHT;
 import frc.robot.subsystems.RobotStateController;
 import frc.robot.subsystems.drive.SwerveDrive;
@@ -20,7 +21,8 @@ public class MoveToNote extends Command {
   private final SwerveDrive swerveDrive;
   private final RobotStateController stateController;
   private final String cameraName;
-  private Command goToCommand;
+  private Command goToCommand = Commands.runOnce(() -> {});
+  private double timer = 0.0;
 
   public MoveToNote(String cameraName, SwerveDrive swerveDrive, RobotStateController stateController) {
     
@@ -35,7 +37,8 @@ public class MoveToNote extends Command {
   @Override
   public void initialize() {
     // The robot won't move unless it sees a note
-    goToCommand = null;
+    goToCommand = Commands.runOnce(() -> {});
+    goToCommand.schedule();
   }
 
   // Called every time the scheduler runs while the command is scheduled.
@@ -44,15 +47,18 @@ public class MoveToNote extends Command {
   
     // If the camera can see the note, it updates the position. 
     // As soon at the camera can't see the note, the robot continues driving to the last known note position.
+    timer++;
     List<Translation2d> notePositions = Notes.getNotePositions(cameraName, LIMELIGHT.NOTE_CAMERA_PITCH, swerveDrive, swerveDrive.getFieldVelocity(), LIMELIGHT.NOTE_CAMERA_POSITION);
     if (notePositions.size() > 0) {
       Translation2d targetPoint = swerveDrive.getPose().getTranslation().nearest(notePositions);
 
       Pose2d targetPose = new Pose2d(targetPoint, targetPoint.minus(swerveDrive.getPose().getTranslation()).getAngle());
       
-      if (goToCommand == null || goToCommand.isFinished()) {
+      if (timer > 75 || goToCommand.isFinished()) {
+        goToCommand.cancel();
         goToCommand = swerveDrive.goToSimple(targetPose).until(() -> stateController.hasNote());
         goToCommand.schedule();
+        timer = 0.0;
       }
     }
 
@@ -64,7 +70,7 @@ public class MoveToNote extends Command {
   // Called once the command ends or is interrupted.
   @Override
   public void end(boolean interrupted) {
-    if (goToCommand != null) goToCommand.cancel();
+    goToCommand.cancel();
   }
 
   // Returns true when the command should end.

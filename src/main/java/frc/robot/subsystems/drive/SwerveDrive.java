@@ -149,7 +149,7 @@ public class SwerveDrive extends SubsystemBase {
     AutoBuilder.configureHolonomic(
       this::getPose, // Robot pose supplier
       this::resetPose, // Method to reset odometry (will be called if your auto has a starting pose)
-      this::getMeasuredChassisSpeeds, // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
+      this::getDrivenChassisSpeeds, // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
       this::driveRobotRelative, // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds
       new HolonomicPathFollowerConfig( // HolonomicPathFollowerConfig, this should likely live in your Constants class
         new PIDConstants(SWERVE_DRIVE.AUTONOMOUS.TRANSLATION_GAINS.kP, SWERVE_DRIVE.AUTONOMOUS.TRANSLATION_GAINS.kI, SWERVE_DRIVE.AUTONOMOUS.TRANSLATION_GAINS.kD), // Translation PID constants
@@ -161,7 +161,6 @@ public class SwerveDrive extends SubsystemBase {
       this::shouldFlipPaths,
       this // Reference to this subsystem to set requirements
     );
-
     // Logging callback for target robot pose
     PathPlannerLogging.setLogTargetPoseCallback((pose) -> {
         // Do whatever you want with the pose here

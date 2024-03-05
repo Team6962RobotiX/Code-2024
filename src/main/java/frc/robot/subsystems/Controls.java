@@ -52,15 +52,15 @@ public class Controls {
     driver.a();
 
 
-    driver.b().whileTrue(new MoveToNote(Constants.LIMELIGHT.NOTE_CAMERA_NAME, swerveDrive, stateController));
+    driver.b();
     driver.x();
     driver.y(); // USED
-    driver.start().whileTrue(swerveDrive.goTo(frc.robot.Constants.Field.AUTO_MOVE_POSITIONS.get("AMP").get()));
-    driver.back().whileTrue(stateController.setState(RobotStateController.State.AIM_SPEAKER));
+    driver.start();
+    driver.back().whileTrue(swerveDrive.goTo(frc.robot.Constants.Field.AUTO_MOVE_POSITIONS.get("AMP").get()));
     driver.leftBumper();
     driver.rightBumper();
-    driver.leftStick(); // USED
-    driver.rightStick(); // USED
+    driver.leftStick().whileTrue(stateController.setState(RobotStateController.State.AIM_SPEAKER));
+    driver.rightStick().whileTrue(new MoveToNote(Constants.LIMELIGHT.NOTE_CAMERA_NAME, swerveDrive, stateController));
     driver.povCenter(); // USED
     driver.povUp(); // USED
     driver.povDown(); // USED
