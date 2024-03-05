@@ -1,17 +1,20 @@
 
 package frc.robot.subsystems.vision;
 
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.wpilibj.RobotState;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.Constants.SWERVE_DRIVE;
+import frc.robot.Constants.Field;
 import frc.robot.subsystems.LEDs;
 import frc.robot.subsystems.drive.SwerveDrive;
 import frc.robot.util.software.LimelightHelpers;
+import frc.robot.util.software.LimelightHelpers.PoseEstimate;
 
 
 public class AprilTags extends SubsystemBase {
@@ -20,13 +23,22 @@ public class AprilTags extends SubsystemBase {
       return;
     }
 
-    for (String name : cameraPoses.keySet()) {
-      LimelightHelpers.PoseEstimate poseEstimate = LimelightHelpers.getBotPoseEstimate_wpiBlue(name);
-      if (poseEstimate.tagCount == 0) continue;
-      if (RobotState.isAutonomous() && poseEstimate.tagCount == 1) continue;
+    List<LimelightHelpers.PoseEstimate> poseEstimates = cameraPoses.keySet().stream().map(LimelightHelpers::getBotPoseEstimate_wpiBlue).collect(Collectors.toList());
+
+    int tagCount = 0;
+    for (PoseEstimate poseEstimate : poseEstimates) {
+      tagCount += poseEstimate.tagCount;
+    }
+    if (tagCount == 0) return;
+
+    for (PoseEstimate poseEstimate : poseEstimates) {
+      if (tagCount == 1) continue;
+      if (poseEstimate.pose.getTranslation().getDistance(swerveDrive.getPose().getTranslation()) > (Field.LENGTH + Field.WIDTH) * 2.0) continue;
+      if (poseEstimate.pose.getX() < 0.0 || poseEstimate.pose.getY() < 0.0 || poseEstimate.pose.getX() > Field.LENGTH || poseEstimate.pose.getY() > Field.WIDTH) continue;
+      
       double rotationAccuracy = Units.degreesToRadians(999999);
-      double translationAccuracy = (swerveDrive.getFieldVelocity().getNorm() + Math.sqrt(poseEstimate.avgTagDist)) / Math.pow(poseEstimate.tagCount, 2.0);
-      if (swerveDrive.canZeroHeading() && poseEstimate.tagCount >= 2) {
+      double translationAccuracy = (swerveDrive.getFieldVelocity().getNorm() + poseEstimate.avgTagDist) / Math.pow(poseEstimate.tagCount, 2.0);
+      if (swerveDrive.canZeroHeading() && tagCount >= 2) {
         rotationAccuracy = Units.degreesToRadians(30.0);
       }
       swerveDrive.setVisionMeasurementStdDevs(VecBuilder.fill(translationAccuracy, translationAccuracy, rotationAccuracy));
