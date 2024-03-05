@@ -32,7 +32,7 @@ public class AprilTags extends SubsystemBase {
       
       double rotationAccuracy = Units.degreesToRadians(999999);
       double translationAccuracy = (swerveDrive.getFieldVelocity().getNorm() + poseEstimate.avgTagDist) / Math.pow(poseEstimate.tagCount, 2.0);
-      if (swerveDrive.canZeroHeading() && tagCount >= 2) {
+      if (swerveDrive.canZeroHeading() && poseEstimate.tagCount >= 2) {
         rotationAccuracy = Units.degreesToRadians(30.0);
       }
       swerveDrive.setVisionMeasurementStdDevs(VecBuilder.fill(translationAccuracy, translationAccuracy, rotationAccuracy));
