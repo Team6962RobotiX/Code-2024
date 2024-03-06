@@ -140,9 +140,9 @@ public class RobotStateController extends SubsystemBase {
   }
 
   public double getShotChance() {
-    // if (swerveDrive.underStage()) {
-    //   return 0.0;
-    // }
+    if (swerveDrive.underStage()) {
+      return 0.0;
+    }
     if (!hasNote() && !RobotBase.isSimulation()) {
       return 0.0;
     }

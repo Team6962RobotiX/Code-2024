@@ -53,7 +53,7 @@ public final class Field {
   );
 
   public static final Translation2d[] BLUE_STAGE_CORNERS = {
-    new Translation2d(3.0, 4.0),
+    new Translation2d(3.2, 4.0),
     new Translation2d(BLUE_WING_X, 5.8),
     new Translation2d(BLUE_WING_X, 2.4)
   };
