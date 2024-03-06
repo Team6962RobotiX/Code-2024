@@ -35,7 +35,7 @@ public final class AutonChooser {
         row = i - 3;
         column = 2;
       }
-      notes.add(tab.add("Note " + i, false).withWidget(BuiltInWidgets.kToggleSwitch).withSize(1, 1).withPosition(column, row));
+      notes.add(tab.add("Note " + i, false).withWidget(BuiltInWidgets.kToggleButton).withSize(1, 1).withPosition(column, row));
     }
   }
 }

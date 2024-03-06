@@ -25,7 +25,7 @@ public class LEDs extends SubsystemBase {
     HAS_NOTE,
     SPIN_UP,
     AIMING,
-    NO_NOTE,
+    BAD,
     SHOOTING,
     HANG,
     GREEN
@@ -71,7 +71,7 @@ public class LEDs extends SubsystemBase {
       case GREEN:
         setColor(0, length, GREEN);
         break;
-      case NO_NOTE:
+      case BAD:
         setColor(0, length, new int[] {255, 0, 0});
         break;
       case SHOOTING:

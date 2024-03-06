@@ -174,4 +174,8 @@ public class Shooter extends SubsystemBase {
   public ShooterPivot getPivot() {
     return shooterPivot;
   }
+
+  public boolean inRange() {
+    return ShooterMath.inRange(Field.SPEAKER.get(), swerveDrive.getPose(), shooterWheels.getVelocity());
+  }
 }

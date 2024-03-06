@@ -111,9 +111,9 @@ public class RobotStateController extends SubsystemBase {
           .alongWith(Commands.runOnce(() -> isAiming = true))
           .alongWith(Controls.rumbleBoth(() -> canShoot()))
           .alongWith(new ConditionalCommand(
-            LEDs.setStateCommand(LEDs.State.NO_NOTE),
+            LEDs.setStateCommand(LEDs.State.BAD),
             Commands.runOnce(() -> {}),
-            () -> !hasNote() && !RobotBase.isSimulation()
+            () -> (!hasNote() && !RobotBase.isSimulation()) || !inRange()
           )).finallyDo(() -> isAiming = false);
       case SHOOT_SPEAKER:
         return Commands.parallel(
@@ -151,6 +151,10 @@ public class RobotStateController extends SubsystemBase {
 
   public boolean canShoot() {
     return shotDebouncer.calculate(getShotChance() == 1.0);
+  }
+
+  public boolean inRange() {
+    return shooter.inRange() && !swerveDrive.underStage();
   }
 
   @Override
