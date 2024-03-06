@@ -53,7 +53,7 @@ public class LEDs extends SubsystemBase {
 
   @Override
   public void periodic() {
-    state = State.HANG;
+    //state = State.HANG;
     switch (state) {
       case OFF:
         setColor(0, length, new int[] {0, 0, 0});
