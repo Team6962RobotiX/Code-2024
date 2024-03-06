@@ -348,15 +348,17 @@ public class Autonomous extends Command {
     Translation2d futurePosition = swerveDrive.getPose().getTranslation();
     futurePosition = futurePosition.plus(swerveDrive.getFieldVelocity().times(swerveDrive.getFieldVelocity().getNorm()).div(2.0 * Constants.SWERVE_DRIVE.PHYSICS.MAX_LINEAR_ACCELERATION));
     SwerveDrive.getField().getObject("futurePosition").setPoses(List.of(new Pose2d(futurePosition, swerveDrive.getPose().getRotation())));
-
+    
     if (!command.isScheduled()) {
-      if (state != State.SHOOT || (state == null && controller.hasNote())) {
+      if (state == State.PICKUP || (state == null && controller.hasNote())) {
+        System.out.println("SHOOT");
         command = moveAndShoot();
         command.schedule();
         state = State.SHOOT;
         return;
       }
-      if ((state != State.PICKUP || (state == null && !controller.hasNote())) && !notesToGet.isEmpty()) {
+      if ((state == State.SHOOT || (state == null && !controller.hasNote())) && !notesToGet.isEmpty()) {
+        System.out.println("PICKUP");
         state = State.PICKUP;
         command = pickupNote(Field.NOTE_POSITIONS.get(getNextClosestNote()).get());
         command.schedule();
