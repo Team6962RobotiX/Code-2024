@@ -161,7 +161,7 @@ public class Autonomous extends Command {
     middleSpline = middleSpline.plus(notePosition);
 
     Translation2d endSpline = Field.SPEAKER.get().toTranslation2d().minus(notePosition);
-    endSpline = endSpline.div(endSpline.getNorm()).times(Constants.SWERVE_DRIVE.BUMPER_LENGTH / 2.0 - Field.NOTE_LENGTH / 2.0);
+    endSpline = endSpline.div(endSpline.getNorm()).times(Constants.SWERVE_DRIVE.BUMPER_LENGTH / 2.0);
     endSpline = endSpline.plus(notePosition);
     
     Command pathplannerCommand = Commands.runOnce(() -> {});
@@ -341,7 +341,7 @@ public class Autonomous extends Command {
     futurePosition = futurePosition.plus(swerveDrive.getFieldVelocity().times(swerveDrive.getFieldVelocity().getNorm()).div(2.0 * Constants.SWERVE_DRIVE.PHYSICS.MAX_LINEAR_ACCELERATION));
     SwerveDrive.getField().getObject("futurePosition").setPoses(List.of(new Pose2d(futurePosition, swerveDrive.getPose().getRotation())));
 
-    if (notesToGet.isEmpty()) {
+    if (notesToGet.isEmpty() && command != null) {
       command.cancel();
       return;
     }

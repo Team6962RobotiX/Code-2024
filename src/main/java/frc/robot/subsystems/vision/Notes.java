@@ -9,7 +9,6 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Timer;
-import frc.robot.Constants.Constants;
 import frc.robot.Constants.Field;
 import frc.robot.subsystems.drive.SwerveDrive;
 import frc.robot.util.software.LimelightHelpers;
@@ -24,7 +23,7 @@ public class Notes {
     List<Translation2d> notePositions = new ArrayList<>();
     for (LimelightTarget_Detector target : targets) {
       double x = target.tx;
-      double y = target.ty - Math.sqrt(Constants.LIMELIGHT.FOV_HEIGHT.getDegrees() * Constants.LIMELIGHT.FOV_HEIGHT.getDegrees() * target.ta)/2;
+      double y = target.ty;// - Math.sqrt(Constants.LIMELIGHT.FOV_HEIGHT.getDegrees() * Constants.LIMELIGHT.FOV_HEIGHT.getDegrees() * target.ta)/2;
       
       if (target.confidence < 0.65) continue;
       if (Units.degreesToRadians(y) + pitch.getRadians() > 0) continue;
