@@ -82,9 +82,9 @@ public class XBoxSwerve extends Command {
       velocity = velocity.plus(povVelocity);
     }
 
-    if (stateController.isAiming() && velocity.getNorm() > 0) {
-      velocity = velocity.div(velocity.getNorm()).times(Preferences.SWERVE_DRIVE.TELEOPERATED_SHOOTER_SPEED);
-    }
+    // if (stateController.isAiming() && velocity.getNorm() > 0) {
+    //   velocity = velocity.div(velocity.getNorm()).times(Preferences.SWERVE_DRIVE.TELEOPERATED_SHOOTER_SPEED);
+    // }
     // Zero heading when Y is pressed
     if (controller.getYButton()) {
       Rotation2d newHeading = new Rotation2d();
