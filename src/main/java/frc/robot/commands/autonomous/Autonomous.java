@@ -114,13 +114,13 @@ public class Autonomous extends Command {
     if (notesToGet.isEmpty()) {
       return swerveDrive.getPose().getTranslation().nearest(shotPositions);
     }
+    
 
     Translation2d closestPoint = Field.SHOT_POSITIONS.get(0).get();
     double bestWeight = Double.MAX_VALUE;
     for (Translation2d position : shotPositions) {
       double weight = swerveDrive.getPose().getTranslation().getDistance(position) + 
-        position.getDistance(Field.NOTE_POSITIONS.get(getNextClosestNote()).get()) + 
-        position.getDistance(Field.SPEAKER.get().toTranslation2d()) * 1.2;
+        position.getDistance(Field.NOTE_POSITIONS.get(getNextClosestNote()).get());
       if (weight < bestWeight) {
         bestWeight = weight;
         closestPoint = position;
@@ -343,8 +343,7 @@ public class Autonomous extends Command {
     futurePosition = futurePosition.plus(swerveDrive.getFieldVelocity().times(swerveDrive.getFieldVelocity().getNorm()).div(2.0 * Constants.SWERVE_DRIVE.PHYSICS.MAX_LINEAR_ACCELERATION));
     SwerveDrive.getField().getObject("futurePosition").setPoses(List.of(new Pose2d(futurePosition, swerveDrive.getPose().getRotation())));
 
-
-    if (state == State.PICKUP) {
+    if (state != State.SHOOT) {
       if (command == null || !command.isScheduled()) {
         command = moveAndShoot();
         command.schedule();
@@ -367,7 +366,7 @@ public class Autonomous extends Command {
     // System.out.println(command.isScheduled());
     // System.out.println(command.isFinished());
 
-    if (state == State.SHOOT) {
+    if (state != State.PICKUP && !notesToGet.isEmpty()) {
       if (command == null || !command.isScheduled()) {
         state = State.PICKUP;
         if (notesToGet.isEmpty()) return;
