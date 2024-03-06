@@ -12,6 +12,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.Constants.Constants.LIMELIGHT;
+import frc.robot.Constants.Field;
 import frc.robot.subsystems.RobotStateController;
 import frc.robot.subsystems.drive.SwerveDrive;
 import frc.robot.subsystems.vision.Notes;
@@ -22,7 +23,7 @@ public class MoveToNote extends Command {
   private final RobotStateController stateController;
   private final String cameraName;
   private Command goToCommand = Commands.runOnce(() -> {});
-  private double timer = 0.0;
+  private Translation2d targetingNote;
 
   public MoveToNote(String cameraName, SwerveDrive swerveDrive, RobotStateController stateController) {
     
@@ -47,18 +48,17 @@ public class MoveToNote extends Command {
   
     // If the camera can see the note, it updates the position. 
     // As soon at the camera can't see the note, the robot continues driving to the last known note position.
-    timer++;
     List<Translation2d> notePositions = Notes.getNotePositions(cameraName, LIMELIGHT.NOTE_CAMERA_PITCH, swerveDrive, swerveDrive.getFieldVelocity(), LIMELIGHT.NOTE_CAMERA_POSITION);
     if (notePositions.size() > 0) {
       Translation2d targetPoint = swerveDrive.getPose().getTranslation().nearest(notePositions);
 
-      Pose2d targetPose = new Pose2d(targetPoint, targetPoint.minus(swerveDrive.getPose().getTranslation()).getAngle());
-      
-      if (timer > 75 || goToCommand.isFinished()) {
+      if (targetingNote == null || targetPoint.getDistance(targetingNote) > Field.NOTE_LENGTH) {
+        targetingNote = targetPoint;
         goToCommand.cancel();
-        goToCommand = swerveDrive.goToSimple(targetPose).until(() -> stateController.hasNote());
+        goToCommand = Commands.runOnce(() -> swerveDrive.setRotationTargetOverrideFromPoint(targetPoint))
+          .andThen(swerveDrive.goToSimple(new Pose2d(targetingNote, swerveDrive.getHeading())).until(() -> stateController.hasNote()))
+          .finallyDo(() -> swerveDrive.setRotationTargetOverrideFromPoint(null));
         goToCommand.schedule();
-        timer = 0.0;
       }
     }
 

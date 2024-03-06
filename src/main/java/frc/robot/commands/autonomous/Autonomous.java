@@ -131,7 +131,7 @@ public class Autonomous extends Command {
     // measuredNotePositions = new ArrayList<>();
     // for (Integer note : List.of(0, 1, 2, 3, 4, 5, 6, 7)) {
     //   if (shouldSeeNote(note)) {
-    //     measuredNotePositions.add(Field.NOTE_POSITIONS.get(note).get().plus(new Translation2d(0.0, 0.5)));
+    //     measuredNotePositions.add(Field.NOTE_POSITIONS.get(note).get().plus(new Translation2d(0.0, 0.0)));
     //   }
     // }
 
@@ -140,6 +140,11 @@ public class Autonomous extends Command {
     List<Translation2d> theoreticalNotePositions = Field.NOTE_POSITIONS.stream().map(Supplier::get).collect(Collectors.toList());
 
     for (Translation2d measuredNotePosition : measuredNotePositions) {
+      // if ((measuredNotePosition.getX() > Field.LENGTH / 2.0 && Constants.IS_BLUE_TEAM.get()) || (measuredNotePosition.getX() < Field.LENGTH / 2.0 && !Constants.IS_BLUE_TEAM.get())) {
+      //   Translation2d relativeNotePosition = measuredNotePosition.minus(swerveDrive.getPose().getTranslation());
+      //   relativeNotePosition = relativeNotePosition.div(Math.abs(measuredNotePosition.getX() - Field.LENGTH / 2.0));
+      //   measuredNotePosition = relativeNotePosition.plus(swerveDrive.getPose().getTranslation());
+      // }
       Translation2d theoreticalNoteCounterpart = measuredNotePosition.nearest(theoreticalNotePositions);
       if (theoreticalNoteCounterpart.getDistance(theoreticalPosition) < 0.05 && swerveDrive.getPose().getTranslation().getDistance(measuredNotePosition) < 2.0) {
         return measuredNotePosition;
@@ -340,7 +345,7 @@ public class Autonomous extends Command {
     List<Pose2d> poses = new ArrayList<>();
     for (Integer note : List.of(0, 1, 2, 3, 4, 5, 6, 7)) {
       if (shouldSeeNote(note)) {
-        poses.add(new Pose2d(Field.NOTE_POSITIONS.get(note).get().plus(new Translation2d(0.0, 0.5)), new Rotation2d()));
+        poses.add(new Pose2d(Field.NOTE_POSITIONS.get(note).get().plus(new Translation2d(0.0, 0.0)), new Rotation2d()));
       }
     }
     visibleNotes.setPoses(poses);
