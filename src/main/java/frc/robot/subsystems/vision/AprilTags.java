@@ -24,9 +24,11 @@ public class AprilTags extends SubsystemBase {
     for (PoseEstimate poseEstimate : poseEstimates) {
       tagCount += poseEstimate.tagCount;
     }
-    if (tagCount <= 1) return;
+    
+    // if (tagCount <= 1) return;
 
     for (PoseEstimate poseEstimate : poseEstimates) {
+      if (poseEstimate.tagCount == 0) continue;
       if (poseEstimate.pose.getX() < 0.0 || poseEstimate.pose.getY() < 0.0 || poseEstimate.pose.getX() > Field.LENGTH || poseEstimate.pose.getY() > Field.WIDTH) continue;
       double poseDistance = poseEstimate.pose.getTranslation().getDistance(swerveDrive.getPose().getTranslation());
       

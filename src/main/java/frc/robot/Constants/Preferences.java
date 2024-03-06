@@ -37,7 +37,7 @@ public final class Preferences {
   }
 
   public static final class SHOOTER_PIVOT {
-    public static final Rotation2d MAX_ANGLE = Rotation2d.fromDegrees(50.0); // 63.0
+    public static final Rotation2d MAX_ANGLE = Rotation2d.fromDegrees(60.0); // 63.0
     public static final Rotation2d MIN_ANGLE = Rotation2d.fromDegrees(27.5); // 21.148 (really 21.6626)
     public static final Rotation2d IDLE_ANGLE = Rotation2d.fromDegrees(30.0);
     public static final Rotation2d MAX_ANGLE_UNDER_STAGE = Rotation2d.fromDegrees(50.0);
@@ -57,7 +57,7 @@ public final class Preferences {
 
   public static final class TRANSFER {
     public static final double IN_POWER = 0.5 * ((Constants.SWERVE_DRIVE.PHYSICS.MAX_LINEAR_VELOCITY / Constants.TRANSFER.INTAKE_RADIUS) / (Constants.NEO.STATS.freeSpeedRadPerSec / Constants.TRANSFER.INTAKE_GEARING));
-    public static final double OUT_POWER = 0.3;
+    public static final double OUT_POWER = 0.15;
     public static final double OUT_POWER_TOP = 1.0;
   }
 

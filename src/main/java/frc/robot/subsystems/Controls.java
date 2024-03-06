@@ -130,7 +130,7 @@ public class Controls {
     () -> {
       controller.getHID().setRumble(RumbleType.kBothRumble, 0.0);
     }
-    ).withTimeout(0.5);
+    );
   }
 
   public static Command rumbleDriver() {
