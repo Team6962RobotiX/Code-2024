@@ -81,6 +81,8 @@ public class Autonomous extends Command {
   }
 
   public Integer getNextClosestNote() {
+    if (notesToGet.isEmpty()) return 0;
+
     List<Integer> closeNotes = notesToGet.stream().filter(n -> n <= 2).collect(Collectors.toList());
     List<Integer> wingNotes = notesToGet.stream().filter(n -> n > 2).collect(Collectors.toList());
     
@@ -341,10 +343,6 @@ public class Autonomous extends Command {
     futurePosition = futurePosition.plus(swerveDrive.getFieldVelocity().times(swerveDrive.getFieldVelocity().getNorm()).div(2.0 * Constants.SWERVE_DRIVE.PHYSICS.MAX_LINEAR_ACCELERATION));
     SwerveDrive.getField().getObject("futurePosition").setPoses(List.of(new Pose2d(futurePosition, swerveDrive.getPose().getRotation())));
 
-    if (notesToGet.isEmpty() && command != null) {
-      command.cancel();
-      return;
-    }
 
     if (state == State.PICKUP) {
       if (command == null || !command.isScheduled()) {
@@ -371,11 +369,17 @@ public class Autonomous extends Command {
 
     if (state == State.SHOOT) {
       if (command == null || !command.isScheduled()) {
+        state = State.PICKUP;
+        if (notesToGet.isEmpty()) return;
         command = pickupNote(Field.NOTE_POSITIONS.get(getNextClosestNote()).get());
         command.schedule();
-        state = State.PICKUP;
         return;
       }
+    }
+
+    if (notesToGet.isEmpty() && command != null && state != State.SHOOT && !command.isScheduled()) {
+      command.cancel();
+      return;
     }
 
     // System.out.println(state.name());

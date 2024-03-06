@@ -5,9 +5,6 @@
         "columns": 100,
         "order": 1,
         "serpentine": true
-      },
-      "window": {
-        "visible": true
       }
     },
     "RoboRIO": {
