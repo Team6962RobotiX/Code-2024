@@ -234,7 +234,7 @@ public class Autonomous extends Command {
       .raceWith(
         Commands.waitUntil(() -> controller.hasNote())
       ),
-      Commands.runOnce(() -> controller.setState(RobotStateController.State.CENTER_NOTE))
+      controller.setState(RobotStateController.State.CENTER_NOTE)
     );
 
     Integer closestNote = getNextClosestNote();
