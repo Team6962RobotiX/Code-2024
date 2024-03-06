@@ -37,7 +37,7 @@ public class Autonomous extends Command {
   private double robotDiagonal = Math.sqrt(Math.pow(Constants.SWERVE_DRIVE.BUMPER_LENGTH, 2.0) + Math.pow(Constants.SWERVE_DRIVE.BUMPER_WIDTH, 2.0));
   private double noteAvoidRadius = (Field.NOTE_LENGTH / 2.0 + Math.max(Constants.SWERVE_DRIVE.BUMPER_LENGTH, Constants.SWERVE_DRIVE.BUMPER_WIDTH) / 2.0);
 
-  private Command command;
+  private Command command = Commands.runOnce(() -> {});
   private Translation2d visionNotePosition;
 
   private enum State {
@@ -58,11 +58,6 @@ public class Autonomous extends Command {
   @Override
   public void initialize() {
     controller.setState(RobotStateController.State.LEAVE_AMP).schedule();
-    if (controller.hasNote()) {
-      state = State.SHOOT;
-    } else {
-      state = State.PICKUP;
-    }
   }
 
   public void addDynamicObstacles() {
@@ -180,21 +175,30 @@ public class Autonomous extends Command {
     // pathfind = false;
 
     if (pathfind) {
-      pathplannerCommand = Commands.sequence(
-        Commands.runOnce(() -> swerveDrive.setRotationTargetOverrideFromPointBackwards(Field.SPEAKER.get().toTranslation2d())),
-        swerveDrive.pathfindThenFollowPath(new Pose2d(middleSpline, swerveDrive.getHeading()), new Pose2d(endSpline, swerveDrive.getHeading()))
-      ).finallyDo(() -> swerveDrive.setRotationTargetOverrideFromPoint(null));
+      List<Translation2d> bezierPoints = PathPlannerPath.bezierFromPoses(
+        new Pose2d(middleSpline, speakerNoteAngle.plus(Rotation2d.fromDegrees(180.0))),
+        new Pose2d(endSpline, speakerNoteAngle.plus(Rotation2d.fromDegrees(180.0)))
+      );
+
+      PathPlannerPath path = new PathPlannerPath(
+        bezierPoints,
+        SWERVE_DRIVE.AUTONOMOUS.DEFAULT_PATH_CONSTRAINTS,
+        new GoalEndState(
+          0.0,
+          swerveDrive.getHeading(),
+          true
+        )
+      );
+      
+      pathplannerCommand = AutoBuilder.pathfindThenFollowPath(
+        path,
+        SWERVE_DRIVE.AUTONOMOUS.DEFAULT_PATH_CONSTRAINTS,
+        0.0 // Rotation delay distance in meters. This is how far the robot should travel before attempting to rotate.
+      );
     } else {
       List<Translation2d> bezierPoints = PathPlannerPath.bezierFromPoses(
         new Pose2d(swerveDrive.getPose().getTranslation(), Field.SPEAKER.get().toTranslation2d().minus(swerveDrive.getPose().getTranslation()).getAngle()),
-        new Pose2d(middleSpline, notePosition.minus(Field.SPEAKER.get().toTranslation2d()).getAngle()),
-        // new Pose2d(
-        //   new Translation2d(
-        //     Math.signum(notePosition.minus(Field.SPEAKER.toTranslation2d()).getX()) * -0.6 + notePosition.getX(),
-        //     notePosition.minus(swerveDrive.getPose().getTranslation()).div(2.0).plus(swerveDrive.getPose().getTranslation()).getY()
-        //   ),
-        //   notePosition.minus(swerveDrive.getPose().getTranslation()).getAngle()
-        // ),
+        new Pose2d(middleSpline, speakerNoteAngle.plus(Rotation2d.fromDegrees(180.0))),
         new Pose2d(endSpline, speakerNoteAngle.plus(Rotation2d.fromDegrees(180.0)))
       );
 
@@ -235,7 +239,7 @@ public class Autonomous extends Command {
       .raceWith(
         Commands.waitUntil(() -> controller.hasNote())
       ),
-      controller.setState(RobotStateController.State.CENTER_NOTE)
+      controller.setState(RobotStateController.State.CENTER_NOTE).onlyIf(() -> RobotBase.isReal())
     );
 
     Integer closestNote = getNextClosestNote();
@@ -252,10 +256,11 @@ public class Autonomous extends Command {
         notesThatExist.remove(closestNote);
         notesToGet.remove(closestNote);
         visionNotePosition = null;
-        swerveDrive.setRotationTargetOverrideFromPoint(null);
         addDynamicObstacles();
         // System.out.println("STOP");
       })
+    ).finallyDo(
+      () -> swerveDrive.setRotationTargetOverrideFromPoint(null)
     );
     
     // return Commands.sequence(
@@ -344,14 +349,22 @@ public class Autonomous extends Command {
     futurePosition = futurePosition.plus(swerveDrive.getFieldVelocity().times(swerveDrive.getFieldVelocity().getNorm()).div(2.0 * Constants.SWERVE_DRIVE.PHYSICS.MAX_LINEAR_ACCELERATION));
     SwerveDrive.getField().getObject("futurePosition").setPoses(List.of(new Pose2d(futurePosition, swerveDrive.getPose().getRotation())));
 
-    if (state != State.SHOOT) {
-      if (command == null || !command.isScheduled()) {
+    if (!command.isScheduled()) {
+      if (state != State.SHOOT || (state == null && controller.hasNote())) {
         command = moveAndShoot();
         command.schedule();
         state = State.SHOOT;
         return;
       }
+      if ((state != State.PICKUP || (state == null && !controller.hasNote())) && !notesToGet.isEmpty()) {
+        state = State.PICKUP;
+        command = pickupNote(Field.NOTE_POSITIONS.get(getNextClosestNote()).get());
+        command.schedule();
+        return;
+      }
+    }
 
+    if (state == State.PICKUP) {
       Translation2d measuredVisionNotePosition = getRealNotePosition(Field.NOTE_POSITIONS.get(getNextClosestNote()).get());
       if (measuredVisionNotePosition != null) {
         if (visionNotePosition == null || measuredVisionNotePosition.getDistance(visionNotePosition) > Field.NOTE_LENGTH / 2.0) {
@@ -364,25 +377,11 @@ public class Autonomous extends Command {
       }
     }
 
-    // System.out.println(command.isScheduled());
-    // System.out.println(command.isFinished());
-
-    if (state != State.PICKUP && !notesToGet.isEmpty()) {
-      if (command == null || !command.isScheduled()) {
-        state = State.PICKUP;
-        if (notesToGet.isEmpty()) return;
-        command = pickupNote(Field.NOTE_POSITIONS.get(getNextClosestNote()).get());
-        command.schedule();
-        return;
-      }
-    }
-
-    if (notesToGet.isEmpty() && command != null && state != State.SHOOT && !command.isScheduled()) {
+    if (notesToGet.isEmpty() && state == State.SHOOT && !command.isScheduled()) {
       command.cancel();
+      this.cancel();
       return;
     }
-
-    // System.out.println(state.name());
   }
 
   // Called once the command ends or is interrupted.
