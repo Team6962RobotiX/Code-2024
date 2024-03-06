@@ -3,7 +3,6 @@ package frc.robot.subsystems;
 import java.util.Map;
 import java.util.function.BooleanSupplier;
 
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.shuffleboard.BuiltInWidgets;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
@@ -13,6 +12,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.Constants.Constants;
 import frc.robot.Constants.Constants.DEVICES;
+import frc.robot.Constants.Preferences;
 import frc.robot.commands.drive.XBoxSwerve;
 import frc.robot.commands.vision.MoveToNote;
 import frc.robot.subsystems.amp.Amp;
@@ -73,7 +73,7 @@ public class Controls {
     driver.button(1).whileTrue(stateController.setState(RobotStateController.State.AIM_SPEAKER));
     
 
-    operator.a().onTrue(shooterPivot.setTargetAngleCommand(() -> Rotation2d.fromDegrees(30)));
+    operator.a().onTrue(shooterPivot.setTargetAngleCommand(() -> Preferences.SHOOTER_PIVOT.MAX_ANGLE));
     operator.b().whileTrue(hang.setState(Hang.State.RETRACT));
     operator.x().whileTrue(hang.setState(Hang.State.EXTEND));
     operator.y();

@@ -57,6 +57,7 @@ public class Autonomous extends Command {
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
+    controller.setState(RobotStateController.State.LEAVE_AMP).schedule();
     if (controller.hasNote()) {
       state = State.SHOOT;
     } else {

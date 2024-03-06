@@ -42,7 +42,7 @@ public class RobotStateController extends SubsystemBase {
     INTAKE_SOURCE,
     PREPARE_TRAP,
     SHOOT_TRAP,
-    CENTER_NOTE
+    CENTER_NOTE,
   }
 
   public RobotStateController(Amp amp, SwerveDrive swerveDrive, Shooter shooter, Transfer transfer) {
@@ -78,7 +78,7 @@ public class RobotStateController extends SubsystemBase {
             transfer.setState(Transfer.State.FROM_AMP)
           ).until(() -> hasNote()),
           transfer.setState(Transfer.State.FROM_AMP).until(() -> !hasNote()),
-          transfer.setState(Transfer.State.IN).until(() -> hasNote())
+          transfer.setState(Transfer.State.SLOW_IN).until(() -> hasNote())
         );
       case INTAKE_OUT:
         return transfer.setState(Transfer.State.OUT);

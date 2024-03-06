@@ -17,6 +17,7 @@ public class Transfer extends SubsystemBase {
     AMP,
     SHOOTER,
     FROM_AMP,
+    SLOW_IN
   }
 
   public Transfer() {
@@ -39,6 +40,11 @@ public class Transfer extends SubsystemBase {
           transferIn.setState(TransferInWheels.State.IN),
           transferOut.setState(TransferOutWheels.State.OFF)
         );
+      case SLOW_IN:
+        return Commands.parallel( 
+          transferIn.setState(TransferInWheels.State.SLOW_IN),
+          transferOut.setState(TransferOutWheels.State.OFF)
+        );
       case OUT:
         return Commands.parallel( 
           transferIn.setState(TransferInWheels.State.OUT),
@@ -46,18 +52,18 @@ public class Transfer extends SubsystemBase {
         );
       case AMP:
         return Commands.parallel( 
-          transferIn.setState(TransferInWheels.State.THROUGH),
-          transferOut.setState(TransferOutWheels.State.AMP)
+          transferIn.setState(TransferInWheels.State.IN),
+          transferOut.setState(TransferOutWheels.State.TO_AMP)
         );
       case SHOOTER:
         return Commands.parallel( 
-          transferIn.setState(TransferInWheels.State.THROUGH),
-          transferOut.setState(TransferOutWheels.State.SHOOTER)
+          transferIn.setState(TransferInWheels.State.IN),
+          transferOut.setState(TransferOutWheels.State.TO_SHOOTER)
         );
       case FROM_AMP:
         return Commands.parallel(
           transferIn.setState(TransferInWheels.State.OUT),
-          transferOut.setState(TransferOutWheels.State.AMP_OUT)
+          transferOut.setState(TransferOutWheels.State.FROM_AMP)
         );
     }
     return null;

@@ -213,10 +213,10 @@ public final class Constants {
     public record MODULE_CONFIG (int ID, int CAN_DRIVE, int CAN_STEER, int CAN_ENCODER, double ENCODER_OFFSET) {}
 
     public static final MODULE_CONFIG[] MODULES = new MODULE_CONFIG[] {
-      new MODULE_CONFIG(0, 31, 32, 33, 0.6936363333),
-      new MODULE_CONFIG(1, 34, 35, 36, -0.5054961111),
-      new MODULE_CONFIG(2, 37, 38, 39, 0.9096846667),
-      new MODULE_CONFIG(3, 40, 41, 42, 0.531494),
+      new MODULE_CONFIG(0, 31, 32, 33, -0.061523),
+      new MODULE_CONFIG(1, 34, 35, 36, 0.246582),
+      new MODULE_CONFIG(2, 37, 38, 39, -0.348633),
+      new MODULE_CONFIG(3, 40, 41, 42, -0.21875),
       new MODULE_CONFIG(4, 43, 44, 45, -0.5917972222),
       new MODULE_CONFIG(5, 46, 47, 48, -0.1811527778),
       new MODULE_CONFIG(6, 49, 50, 51, 0.1533194444),
@@ -351,7 +351,7 @@ public final class Constants {
     public static final double ABSOLUTE_POSITION_OFFSET = -0.814;
 
     public static final class PROFILE {
-      public static final double kP = 2.0;
+      public static final double kP = 1.5;
       public static final double kS = 0.0;
       public static final double MAX_ACCELERATION = 40.0; // rad/s^2
     }

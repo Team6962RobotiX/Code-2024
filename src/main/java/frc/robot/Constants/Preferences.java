@@ -56,10 +56,12 @@ public final class Preferences {
   }
 
   public static final class TRANSFER {
-    public static final double IN_POWER = 0.5 * ((Constants.SWERVE_DRIVE.PHYSICS.MAX_LINEAR_VELOCITY / Constants.TRANSFER.INTAKE_RADIUS) / (Constants.NEO.STATS.freeSpeedRadPerSec / Constants.TRANSFER.INTAKE_GEARING));
-    public static final double OUT_POWER = 1.0;
+    public static final double IN_POWER = 0.5;
+    public static final double SLOW_IN_POWER = 0;
+    public static final double OUT_POWER_BOTTOM = 0.5;
     public static final double OUT_POWER_TOP = 1.0;
     public static final double THROUGH_POWER = 0.1;
+    public static final double TO_AMP_POWER = 0.4;
   }
 
   public static final class HANG {

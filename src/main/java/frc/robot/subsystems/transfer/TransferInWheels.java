@@ -19,7 +19,7 @@ public class TransferInWheels extends SubsystemBase {
   private State state = State.OFF;
   public static enum State {
     IN,
-    THROUGH,
+    SLOW_IN,
     OUT,
     OFF,
   }
@@ -51,11 +51,11 @@ public class TransferInWheels extends SubsystemBase {
       case IN:
         motor.set(Preferences.TRANSFER.IN_POWER);
         break;
-      case THROUGH:
-        motor.set(Preferences.TRANSFER.IN_POWER);
+      case SLOW_IN:
+        motor.set(Preferences.TRANSFER.SLOW_IN_POWER);
         break;
       case OUT:
-        motor.set(-Preferences.TRANSFER.OUT_POWER);
+        motor.set(-Preferences.TRANSFER.OUT_POWER_BOTTOM);
         break;
       case OFF:
         motor.set(0);

@@ -17,10 +17,9 @@ public class TransferOutWheels extends SubsystemBase {
   private CANSparkMax motor;
   private State state = State.OFF;
   public static enum State {
-    AMP,
-    SHOOTER,
-    AMP_OUT,
-    SHOOTER_OUT,
+    TO_AMP,
+    TO_SHOOTER,
+    FROM_AMP,
     OFF,
   }
 
@@ -46,14 +45,13 @@ public class TransferOutWheels extends SubsystemBase {
       state = State.OFF;
     }
     switch(state) {
-      case AMP:
-      case SHOOTER_OUT:
-        motor.set(-Preferences.TRANSFER.THROUGH_POWER);
+      case TO_AMP:
+        motor.set(-Preferences.TRANSFER.TO_AMP_POWER);
         break;
-      case SHOOTER:
+      case TO_SHOOTER:
         motor.set(Preferences.TRANSFER.THROUGH_POWER);
         break;
-      case AMP_OUT:
+      case FROM_AMP:
         motor.set(Preferences.TRANSFER.OUT_POWER_TOP);
         break;
       case OFF:
