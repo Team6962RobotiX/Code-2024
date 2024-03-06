@@ -73,7 +73,7 @@ public class Controls {
     driver.button(1).whileTrue(stateController.setState(RobotStateController.State.AIM_SPEAKER));
     
 
-    operator.a().onTrue(shooterPivot.setTargetAngleCommand(() -> Rotation2d.fromDegrees(10).plus(frc.robot.Constants.Preferences.SHOOTER_PIVOT.MAX_ANGLE)));
+    operator.a().onTrue(shooterPivot.setTargetAngleCommand(() -> Rotation2d.fromDegrees(30)));
     operator.b().whileTrue(hang.setState(Hang.State.RETRACT));
     operator.x().whileTrue(hang.setState(Hang.State.EXTEND));
     operator.y();

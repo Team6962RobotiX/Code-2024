@@ -52,7 +52,7 @@ public class TransferInWheels extends SubsystemBase {
         motor.set(Preferences.TRANSFER.IN_POWER);
         break;
       case THROUGH:
-        motor.set(Preferences.TRANSFER.OUT_POWER);
+        motor.set(Preferences.TRANSFER.IN_POWER);
         break;
       case OUT:
         motor.set(-Preferences.TRANSFER.OUT_POWER);
