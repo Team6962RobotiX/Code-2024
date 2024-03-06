@@ -67,7 +67,7 @@ public class RobotStateController extends SubsystemBase {
         return Commands.parallel(
           transfer.setState(Transfer.State.IN),
           amp.setState(Amp.State.DOWN)
-        ).until(() -> hasNote()).andThen(Commands.runOnce(() -> Controls.rumbleDriver().schedule()));
+        ).until(() -> hasNote()).andThen(Commands.runOnce(() -> Controls.rumbleBoth().schedule()));
       case CENTER_NOTE:
         return Commands.sequence(
           amp.setState(Amp.State.DOWN),

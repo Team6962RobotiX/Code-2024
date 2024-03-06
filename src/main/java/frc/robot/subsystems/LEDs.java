@@ -31,9 +31,15 @@ public class LEDs extends SubsystemBase {
     GREEN
   }
 
-  public static int[] ANTARES_BLUE = { 36, 46, 68 };
-  public static int[] ANTARES_YELLOW = { 255, 100, 0 };
-  public static int[] GREEN = { 0, 255, 0 };
+  public static enum Direction {
+    LEFT,
+    RIGHT
+  }
+
+  public static final int[] ANTARES_BLUE = { 36, 46, 68 };
+  public static final int[] ANTARES_YELLOW = { 255, 100, 0 };
+  public static final int[] GREEN = { 0, 255, 0 };
+  public static final int[] RSL_ORANGE = { 255, 100, 0 };
   
   public LEDs(RobotStateController stateController) {
     this.stateController = stateController;
@@ -47,7 +53,7 @@ public class LEDs extends SubsystemBase {
 
   @Override
   public void periodic() {
-    // state = State.DRIVING_TELEOP;
+    //state = State.HANG;
     switch (state) {
       case OFF:
         setColor(0, length, new int[] {0, 0, 0});
@@ -63,10 +69,10 @@ public class LEDs extends SubsystemBase {
         setColor(0, length, ANTARES_YELLOW);
         break;
       case AIMING:
-        setColorWave(0, length, ANTARES_YELLOW, 2.5); 
+        setColorWave(0, length, ANTARES_YELLOW, 2.5, Direction.LEFT); 
         break;
       case SPIN_UP:
-        setColorWave(0, length, ANTARES_YELLOW, this.stateController.getShooterVelocity() / 250);
+        setColorWave(0, length, ANTARES_YELLOW, this.stateController.getShooterVelocity() / 250, Direction.LEFT);
         break;
       case GREEN:
         setColor(0, length, GREEN);
@@ -81,10 +87,10 @@ public class LEDs extends SubsystemBase {
         setColor(0, length, new int[] {128, 0, 255});
         break;
       case HANG:
-        setTopStripColor(new int[] {255, 100, 0});
+        setTopStripColor(RSL_ORANGE);
 
-        setColorWave(0, Constants.LED.SIDE_STRIP_HEIGHT, ANTARES_BLUE, 1);
-        setColorWave(length - Constants.LED.SIDE_STRIP_HEIGHT, length, ANTARES_BLUE, 1);
+        setColorWave(0, Constants.LED.SIDE_STRIP_HEIGHT, RSL_ORANGE, 1, Direction.RIGHT);
+        setColorWave(length - Constants.LED.SIDE_STRIP_HEIGHT, length, RSL_ORANGE, 1, Direction.LEFT);
         break;
     }
     strip.setData(buffer);
@@ -139,27 +145,48 @@ public class LEDs extends SubsystemBase {
     }
     
   }
-
-  private static void setColorWave(int start, int stop, int[] RGB, double speed) {
+// setColorWave(length - Constants.LED.SIDE_STRIP_HEIGHT, length, RSL_ORANGE, 1, Direction.RIGHT);
+  private static void setColorWave(int start, int stop, int[] RGB, double speed, Direction dir) {
     double time = Timer.getFPGATimestamp();
-    for (int pixel = start; pixel < stop; pixel++) {
+    
+    for (int pixel = 0; pixel < stop - start; pixel++) {
       double val = (pixel / 200.0 + time * speed) % 1.0;
+      int p = pixel + start;
       if (val < 0.5) {
-        setColor(pixel, RGB);
+        if (dir == Direction.LEFT) {
+          setColor(p, RGB);
+        } else if (dir == Direction.RIGHT) {
+          setColor(stop - pixel - 1, RGB);
+        }
       } else {
-        setColor(pixel, new int[] {0, 0, 0});
+        if (dir == Direction.LEFT) {
+          setColor(p, new int[] {0, 0, 0});
+        } else if (dir == Direction.RIGHT) {
+          setColor(stop - pixel - 1, new int[] {0, 0, 0});
+        }
+
       }
     }
   }
 
-  private static void setColorWave(int start, int stop, int[] firstRGB, int[] secondRGB, double speed) {
+  private static void setColorWave(int start, int stop, int[] firstRGB, int[] secondRGB, double speed, Direction dir) {
     double time = Timer.getFPGATimestamp();
     for (int pixel = start; pixel < stop; pixel++) {
       double val = (pixel / 200.0 + time * speed) % 1.0;
+      int p = start + pixel;
       if (val < 0.5) {
-        setColor(pixel, firstRGB);
+        if (dir == Direction.LEFT) {
+          setColor(p, firstRGB);
+        } else if (dir == Direction.RIGHT) {
+          setColor(stop - pixel - 1, firstRGB);
+        }
       } else {
-        setColor(pixel, secondRGB);
+        if (dir == Direction.LEFT) {
+          setColor(p, secondRGB);
+        } else if (dir == Direction.RIGHT) {
+          setColor(stop - pixel - 1, secondRGB);
+        }
+
       }
     }
   }
@@ -200,9 +227,9 @@ public class LEDs extends SubsystemBase {
 
   private static void setBumperColorWave(int start, int stop) {
     if (Constants.IS_BLUE_TEAM.get()) {
-      setColorWave(start, stop, new int[] {23, 127, 255}, new int[] {209, 23, 255}, 2.5);
+      setColorWave(start, stop, new int[] {23, 127, 255}, new int[] {209, 23, 255}, 2.5, Direction.LEFT);
     } else {
-      setColorWave(start, stop, new int[] {255, 0, 0},  getBumperColor(), 2.5);
+      setColorWave(start, stop, new int[] {255, 0, 0},  getBumperColor(), 2.5, Direction.LEFT);
     } 
   }
 
