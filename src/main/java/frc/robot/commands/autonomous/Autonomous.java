@@ -129,7 +129,7 @@ public class Autonomous extends Command {
     // measuredNotePositions = new ArrayList<>();
     // for (Integer note : List.of(0, 1, 2, 3, 4, 5, 6, 7)) {
     //   if (shouldSeeNote(note)) {
-    //     measuredNotePositions.add(Field.NOTE_POSITIONS.get(note).get().plus(new Translation2d(0.5, 0.5)));
+    //     measuredNotePositions.add(Field.NOTE_POSITIONS.get(note).get().plus(new Translation2d(1.0, 0.5)));
     //   }
     // }
 
@@ -361,6 +361,7 @@ public class Autonomous extends Command {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
+    // getRealNotePosition(Field.SPEAKER.get().toTranslation2d());
     // System.out.println(controller.canShoot());
     // FieldObject2d visibleNotes = SwerveDrive.getField().getObject("visibleNotes");
     // List<Pose2d> poses = new ArrayList<>();

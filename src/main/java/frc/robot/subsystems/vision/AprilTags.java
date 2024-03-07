@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.RobotState;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.Field;
 import frc.robot.subsystems.LEDs;
@@ -39,7 +40,10 @@ public class AprilTags extends SubsystemBase {
         rotationAccuracy = Units.degreesToRadians(30.0);
       }
       
-      
+      if (RobotState.isDisabled()) {
+        translationError = 0.5;
+      }
+
       swerveDrive.setVisionMeasurementStdDevs(VecBuilder.fill(translationError, translationError, rotationAccuracy));
       swerveDrive.addVisionMeasurement(poseEstimate.pose, poseEstimate.timestampSeconds);
       LEDs.setState(LEDs.State.HAS_VISION_TARGET);
