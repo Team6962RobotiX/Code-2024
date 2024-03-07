@@ -139,6 +139,10 @@ public class RobotStateController extends SubsystemBase {
     return isAiming;
   }
 
+  public boolean underStage() {
+    return swerveDrive.underStage();
+  }
+
   public double getShotChance() {
     if (swerveDrive.underStage()) {
       return 0.0;
