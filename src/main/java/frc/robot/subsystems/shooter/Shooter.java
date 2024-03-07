@@ -72,13 +72,7 @@ public class Shooter extends SubsystemBase {
     if (RobotState.isAutonomous()) {
       shooterPivot.setTargetAngle(
         ShooterMath.calcPivotAngle(
-          ShooterMath.calcVelocityCompensatedPoint(
-            Field.SPEAKER.get(),
-            swerveDrive.getPose(),
-            swerveDrive.getFieldVelocity(),
-            Preferences.SHOOTER_WHEELS.TARGET_SPEED,
-            shooterPivot.getPosition()
-          ),
+          Field.SPEAKER.get(),
           swerveDrive.getPose(),
           Preferences.SHOOTER_WHEELS.TARGET_SPEED
         )
