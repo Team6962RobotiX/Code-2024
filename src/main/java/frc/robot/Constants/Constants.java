@@ -368,7 +368,7 @@ public final class Constants {
 
   public static final class HANG {
     public static final double SPOOL_RADIUS = Units.inchesToMeters((0.75 + 0.0511811024) / 2.0);
-    public static final double GEARING = 48.0;
+    public static final double GEARING = 16.0;
     public static final double EXTEND_HEIGHT = Units.inchesToMeters(39 - 20.5 + 11.0);
     public static final double RETRACT_HEIGHT = Units.inchesToMeters(2.25);
   }
