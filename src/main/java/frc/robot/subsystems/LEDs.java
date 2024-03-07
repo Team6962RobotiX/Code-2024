@@ -27,6 +27,7 @@ public class LEDs extends SubsystemBase {
     AIMING,
     BAD,
     SHOOTING,
+    AMP,
     HANG,
     GREEN
   }
@@ -53,7 +54,7 @@ public class LEDs extends SubsystemBase {
 
   @Override
   public void periodic() {
-    //state = State.HANG;
+   // state = State.HANG;
     switch (state) {
       case OFF:
         setColor(0, length, new int[] {0, 0, 0});
@@ -86,11 +87,18 @@ public class LEDs extends SubsystemBase {
       case HAS_VISION_TARGET:
         setColor(0, length, new int[] {128, 0, 255});
         break;
+      case AMP:
+        setColor(0, length, new int[] {255, 255, 255});
+        setTopStripColor(new int[] {209, 23, 255});
+        //  setColorWave(int start, int stop, int[] firstRGB, int[] secondRGB, double speed, Direction dir)
+        setColorWave(0, Constants.LED.SIDE_STRIP_HEIGHT, new int[] {209, 23, 255}, new int[] {255, 255, 255}, 1, Direction.RIGHT);
+        setColorWave(length - Constants.LED.SIDE_STRIP_HEIGHT, length, new int[] {209, 23, 255}, new int[] {255, 255, 255}, 1, Direction.LEFT);
+        break;
       case HANG:
         setTopStripColor(RSL_ORANGE);
 
-        setColorWave(0, Constants.LED.SIDE_STRIP_HEIGHT, RSL_ORANGE, 1, Direction.RIGHT);
-        setColorWave(length - Constants.LED.SIDE_STRIP_HEIGHT, length, RSL_ORANGE, 1, Direction.LEFT);
+        setColorWave(0, Constants.LED.SIDE_STRIP_HEIGHT, new int[] {255, 0, 0}, 1, Direction.RIGHT);
+        setColorWave(length - Constants.LED.SIDE_STRIP_HEIGHT, length, new int[] {255, 0, 0}, 1, Direction.LEFT);
         break;
     }
     strip.setData(buffer);
@@ -171,9 +179,9 @@ public class LEDs extends SubsystemBase {
 
   private static void setColorWave(int start, int stop, int[] firstRGB, int[] secondRGB, double speed, Direction dir) {
     double time = Timer.getFPGATimestamp();
-    for (int pixel = start; pixel < stop; pixel++) {
+    for (int pixel = 0; pixel < stop - start; pixel++) {
       double val = (pixel / 200.0 + time * speed) % 1.0;
-      int p = start + pixel;
+      int p = pixel + start;
       if (val < 0.5) {
         if (dir == Direction.LEFT) {
           setColor(p, firstRGB);
