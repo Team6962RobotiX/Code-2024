@@ -179,6 +179,6 @@ public class Shooter extends SubsystemBase {
   }
 
   public boolean inRange() {
-    return ShooterMath.inRange(Field.SPEAKER.get(), swerveDrive.getPose(), shooterWheels.getVelocity());
+    return ShooterMath.inRange(Field.SPEAKER.get(), swerveDrive.getPose(), Preferences.SHOOTER_WHEELS.TARGET_SPEED);
   }
 }
