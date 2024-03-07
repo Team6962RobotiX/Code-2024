@@ -307,7 +307,7 @@ public class Autonomous extends Command {
       Commands.runOnce(() -> {
         swerveDrive.setRotationTargetOverrideFromPointBackwards(Field.SPEAKER.get().toTranslation2d());
       }),
-      moveToCommand.until(() -> !controller.underStage() && swerveDrive.getPose().getTranslation().getDistance(Field.SPEAKER.get().toTranslation2d()) < 3.5)
+      moveToCommand.until(() -> !controller.underStage() && swerveDrive.getFuturePose().getTranslation().getDistance(Field.SPEAKER.get().toTranslation2d()) < 3.5)
         .alongWith(controller.setState(RobotStateController.State.SPIN_UP))
         .alongWith(controller.setState(RobotStateController.State.AIM_SPEAKER))
         .until(() -> (swerveDrive.getFieldVelocity().getNorm() < 0.1 && controller.canShoot())),

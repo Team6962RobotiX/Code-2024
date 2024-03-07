@@ -26,7 +26,7 @@ public class RobotStateController extends SubsystemBase {
   private DigitalInput beamBreakSensor;
   private Debouncer beamBreakDebouncer = new Debouncer(0.05);
   private boolean isAiming;
-  private Debouncer shotDebouncer = new Debouncer(0.25);
+  private Debouncer shotDebouncer = new Debouncer(0.1);
 
   public enum State {
     INTAKE,
