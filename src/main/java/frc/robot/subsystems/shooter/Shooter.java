@@ -80,7 +80,7 @@ public class Shooter extends SubsystemBase {
             shooterPivot.getPosition()
           ),
           swerveDrive.getPose(),
-          shooterWheels.getVelocity()
+          Preferences.SHOOTER_WHEELS.TARGET_SPEED
         )
       );
     }

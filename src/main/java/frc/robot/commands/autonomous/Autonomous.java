@@ -17,7 +17,6 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.RobotBase;
-import edu.wpi.first.wpilibj.RobotState;
 import edu.wpi.first.wpilibj.smartdashboard.FieldObject2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -140,11 +139,12 @@ public class Autonomous extends Command {
     List<Translation2d> theoreticalNotePositions = Field.NOTE_POSITIONS.stream().map(Supplier::get).collect(Collectors.toList());
 
     for (Translation2d measuredNotePosition : measuredNotePositions) {
-      // if ((measuredNotePosition.getX() > Field.LENGTH / 2.0 && Constants.IS_BLUE_TEAM.get()) || (measuredNotePosition.getX() < Field.LENGTH / 2.0 && !Constants.IS_BLUE_TEAM.get())) {
-      //   Translation2d relativeNotePosition = measuredNotePosition.minus(swerveDrive.getPose().getTranslation());
-      //   relativeNotePosition = relativeNotePosition.div(Math.abs(measuredNotePosition.getX() - Field.LENGTH / 2.0));
-      //   measuredNotePosition = relativeNotePosition.plus(swerveDrive.getPose().getTranslation());
-      // }
+      if ((measuredNotePosition.getX() > Field.LENGTH / 2.0 && Constants.IS_BLUE_TEAM.get()) || (measuredNotePosition.getX() < Field.LENGTH / 2.0 && !Constants.IS_BLUE_TEAM.get())) {
+        Translation2d relativeNotePosition = measuredNotePosition.minus(swerveDrive.getPose().getTranslation());
+        relativeNotePosition = relativeNotePosition.div(relativeNotePosition.getX());
+        relativeNotePosition = relativeNotePosition.times(Math.abs(swerveDrive.getPose().getTranslation().getX() - Field.LENGTH/2));
+        measuredNotePosition = relativeNotePosition.plus(swerveDrive.getPose().getTranslation());
+      }
       Translation2d theoreticalNoteCounterpart = measuredNotePosition.nearest(theoreticalNotePositions);
       if (theoreticalNoteCounterpart.getDistance(theoreticalPosition) < 0.05 && swerveDrive.getPose().getTranslation().getDistance(measuredNotePosition) < 2.0) {
         return measuredNotePosition;
@@ -235,7 +235,7 @@ public class Autonomous extends Command {
 
     Command pickupNoteCommand = Commands.sequence(
       // Commands.runOnce(() -> System.out.println("START 221")),
-      pathplannerCommand.alongWith(
+      pathplannerCommand.raceWith(
         Commands.sequence(
           Commands.waitUntil(() -> swerveDrive.getPose().getTranslation().getDistance(notePosition) < robotDiagonal / 2.0 + Field.NOTE_LENGTH),
           controller.setState(RobotStateController.State.INTAKE).onlyIf(() -> RobotBase.isReal())
@@ -281,7 +281,7 @@ public class Autonomous extends Command {
   }
 
   public Command moveAndShoot() {
-    if (!controller.hasNote() && !RobotState.isAutonomous()) {
+    if (!controller.hasNote()) {
       return Commands.runOnce(() -> {});
     }
 
@@ -298,7 +298,7 @@ public class Autonomous extends Command {
       moveToCommand.until(() -> controller.inRange())
         .alongWith(controller.setState(RobotStateController.State.SPIN_UP))
         .alongWith(controller.setState(RobotStateController.State.AIM_SPEAKER))
-        .until(() -> (swerveDrive.getFieldVelocity().getNorm() < 0.1 && !firstNote) || (firstNote && controller.canShoot())),
+        .until(() -> (swerveDrive.getFieldVelocity().getNorm() < 0.1 && controller.canShoot())),
       controller.setState(RobotStateController.State.SHOOT_SPEAKER)
         .until(() -> !controller.hasNote()),
       controller.setState(RobotStateController.State.SHOOT_SPEAKER)
