@@ -4,6 +4,8 @@
 
 package frc.robot.subsystems.shooter;
 
+import java.util.function.Supplier;
+
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.wpilibj.RobotState;
@@ -91,7 +93,7 @@ public class Shooter extends SubsystemBase {
         );
       case AIM:
         return Commands.parallel(
-          aim(Field.SPEAKER.get())
+          aim(Field.SPEAKER)
         );
       case SPIN_UP:
         return Commands.parallel(
@@ -114,12 +116,12 @@ public class Shooter extends SubsystemBase {
     return shooterPivot;
   }
 
-  public Command aim(Translation3d point) {
+  public Command aim(Supplier<Translation3d> point) {
     // Calculate point to aim towards, accounting for current velocity
     return shooterPivot.setTargetAngleCommand(() -> 
       ShooterMath.calcPivotAngle(
         ShooterMath.calcVelocityCompensatedPoint(
-          point,
+          point.get(),
           swerveDrive.getPose(),
           swerveDrive.getFieldVelocity(),
           shooterWheels.getVelocity(),
@@ -131,7 +133,7 @@ public class Shooter extends SubsystemBase {
     ).alongWith(
       swerveDrive.facePointBackwards(() -> 
         ShooterMath.calcVelocityCompensatedPoint(
-          point,
+          point.get(),
           swerveDrive.getPose(),
           swerveDrive.getFieldVelocity(),
           shooterWheels.getVelocity(),
