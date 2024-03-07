@@ -73,6 +73,16 @@ public class RobotContainer {
     StatusChecks.addCheck(new SubsystemBase() {}, "5V Enabled", () -> RobotController.getEnabled5V());
     StatusChecks.addCheck(new SubsystemBase() {}, "6V Enabled", () -> RobotController.getEnabled6V());
     StatusChecks.addCheck(new SubsystemBase() {}, "Sys Time Valid", () -> RobotController.isSystemTimeValid());
+    StatusChecks.addCheck(new SubsystemBase() {}, "Amp Enabled", () -> Constants.ENABLED_SYSTEMS.ENABLE_AMP);
+    StatusChecks.addCheck(new SubsystemBase() {}, "Dashboard Enabled", () -> Constants.ENABLED_SYSTEMS.ENABLE_DASHBOARD);
+    StatusChecks.addCheck(new SubsystemBase() {}, "Drive Enabled", () -> Constants.ENABLED_SYSTEMS.ENABLE_DRIVE);
+    StatusChecks.addCheck(new SubsystemBase() {}, "Hang Enabled", () -> Constants.ENABLED_SYSTEMS.ENABLE_HANG);
+    StatusChecks.addCheck(new SubsystemBase() {}, "Intake Enabled", () -> Constants.ENABLED_SYSTEMS.ENABLE_INTAKE);
+    StatusChecks.addCheck(new SubsystemBase() {}, "Shooter Enabled", () -> Constants.ENABLED_SYSTEMS.ENABLE_SHOOTER);
+    StatusChecks.addCheck(new SubsystemBase() {}, "Transfer Enabled", () -> Constants.ENABLED_SYSTEMS.ENABLE_TRANSFER);
+
+
+
 
     swerveDrive = new SwerveDrive();
     shooter = new Shooter(swerveDrive);

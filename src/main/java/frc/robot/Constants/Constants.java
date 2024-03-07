@@ -39,7 +39,7 @@ public final class Constants {
     public static final boolean ENABLE_SHOOTER   = true;
     public static final boolean ENABLE_INTAKE   = true;
     public static final boolean ENABLE_TRANSFER = true;
-    public static final boolean ENABLE_HANG = false;
+    public static final boolean ENABLE_HANG = true;
     public static final boolean ENABLE_AMP = true;
   }
 
@@ -72,7 +72,7 @@ public final class Constants {
 
     public static final Rotation2d NOTE_CAMERA_PITCH = Rotation2d.fromDegrees(-24);
     // x is forward, y is left, z is up
-    public static final Translation3d NOTE_CAMERA_POSITION = new Translation3d(Units.inchesToMeters(12.58), Units.inchesToMeters(0.75), Units.inchesToMeters(23.25));
+    public static final Translation3d NOTE_CAMERA_POSITION = new Translation3d(Units.inchesToMeters(12.58), Units.inchesToMeters(0.0), Units.inchesToMeters(23.25));
 
     public static final Rotation2d FOV_HEIGHT = Rotation2d.fromDegrees(48.9); // Degrees
     public static final Rotation2d FOV_WIDTH = Rotation2d.fromDegrees(62.5); // Degrees
@@ -370,7 +370,7 @@ public final class Constants {
     public static final double SPOOL_RADIUS = Units.inchesToMeters((0.75 + 0.0511811024) / 2.0);
     public static final double GEARING = 16.0;
     public static final double EXTEND_HEIGHT = Units.inchesToMeters(39 - 20.5 + 11.0);
-    public static final double RETRACT_HEIGHT = Units.inchesToMeters(2.25);
+    public static final double RETRACT_HEIGHT = Units.inchesToMeters(1.0);
   }
 
   // LED

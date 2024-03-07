@@ -25,7 +25,7 @@ public class StatusChecks {
     suppliers.put(name, supplier);
     entries.put(name, tab.add(name.replace("/", " "), supplier.getAsBoolean()).withWidget(BuiltInWidgets.kBooleanBox).withSize(1, 1).withPosition(column, row).getEntry());
     column++;
-    if (column > 10) {
+    if (column > 12) {
       column = 0;
       row++;
     }
