@@ -17,7 +17,6 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.RobotBase;
-import edu.wpi.first.wpilibj.smartdashboard.FieldObject2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.Constants.Constants;
@@ -130,26 +129,32 @@ public class Autonomous extends Command {
     // measuredNotePositions = new ArrayList<>();
     // for (Integer note : List.of(0, 1, 2, 3, 4, 5, 6, 7)) {
     //   if (shouldSeeNote(note)) {
-    //     measuredNotePositions.add(Field.NOTE_POSITIONS.get(note).get().plus(new Translation2d(0.0, 0.0)));
+    //     measuredNotePositions.add(Field.NOTE_POSITIONS.get(note).get().plus(new Translation2d(0.5, 0.5)));
     //   }
     // }
+
+    // FieldObject2d visibleNotes = SwerveDrive.getField().getObject("visibleNotes");
+    // List<Pose2d> poses = new ArrayList<>();
 
     if (measuredNotePositions.size() == 0) return null;
 
     List<Translation2d> theoreticalNotePositions = Field.NOTE_POSITIONS.stream().map(Supplier::get).collect(Collectors.toList());
-
+    
     for (Translation2d measuredNotePosition : measuredNotePositions) {
       if ((measuredNotePosition.getX() > Field.LENGTH / 2.0 && Constants.IS_BLUE_TEAM.get()) || (measuredNotePosition.getX() < Field.LENGTH / 2.0 && !Constants.IS_BLUE_TEAM.get())) {
         Translation2d relativeNotePosition = measuredNotePosition.minus(swerveDrive.getPose().getTranslation());
-        relativeNotePosition = relativeNotePosition.div(relativeNotePosition.getX());
-        relativeNotePosition = relativeNotePosition.times(Math.abs(swerveDrive.getPose().getTranslation().getX() - Field.LENGTH/2));
+        relativeNotePosition = relativeNotePosition.div(-relativeNotePosition.getX());
+        relativeNotePosition = relativeNotePosition.times(swerveDrive.getPose().getTranslation().getX() - Field.LENGTH / 2);
         measuredNotePosition = relativeNotePosition.plus(swerveDrive.getPose().getTranslation());
       }
+      // poses.add(new Pose2d(measuredNotePosition, new Rotation2d()));
       Translation2d theoreticalNoteCounterpart = measuredNotePosition.nearest(theoreticalNotePositions);
       if (theoreticalNoteCounterpart.getDistance(theoreticalPosition) < 0.05 && swerveDrive.getPose().getTranslation().getDistance(measuredNotePosition) < 2.0) {
         return measuredNotePosition;
       }
     }
+
+    // visibleNotes.setPoses(poses);
 
     return null;
   }
@@ -200,6 +205,10 @@ public class Autonomous extends Command {
         SWERVE_DRIVE.AUTONOMOUS.DEFAULT_PATH_CONSTRAINTS,
         0.0 // Rotation delay distance in meters. This is how far the robot should travel before attempting to rotate.
       );
+
+      if (middleSpline.getDistance(swerveDrive.getPose().getTranslation()) < 1.0) {
+        pathplannerCommand = AutoBuilder.followPath(path);
+      }
     } else {
       List<Translation2d> bezierPoints = PathPlannerPath.bezierFromPoses(
         new Pose2d(swerveDrive.getPose().getTranslation(), Field.SPEAKER.get().toTranslation2d().minus(swerveDrive.getPose().getTranslation()).getAngle()),
@@ -329,11 +338,11 @@ public class Autonomous extends Command {
     Rotation2d verticalAngle = Rotation2d.fromRadians(Math.atan((Constants.LIMELIGHT.NOTE_CAMERA_POSITION.getZ() - Field.NOTE_THICKNESS / 2.0) / relativePosition.getX()));
     verticalAngle = verticalAngle.plus(Constants.LIMELIGHT.NOTE_CAMERA_PITCH);
 
-    if (verticalAngle.getDegrees() < -(Constants.LIMELIGHT.FOV_HEIGHT.getDegrees() / 2.0) || verticalAngle.getDegrees() > (Constants.LIMELIGHT.FOV_HEIGHT.getDegrees() / 2.0)) {
+    if (verticalAngle.getDegrees() < -(Constants.LIMELIGHT.FOV_HEIGHT.getDegrees() / 1.0) || verticalAngle.getDegrees() > (Constants.LIMELIGHT.FOV_HEIGHT.getDegrees() / 1.0)) {
       return false;
     }
 
-    if (lateralAngleMin.getDegrees() < -(Constants.LIMELIGHT.FOV_WIDTH.getDegrees() / 2.0) || lateralAngleMax.getDegrees() > (Constants.LIMELIGHT.FOV_WIDTH.getDegrees() / 2.0)) {
+    if (lateralAngleMin.getDegrees() < -(Constants.LIMELIGHT.FOV_WIDTH.getDegrees() / 1.0) || lateralAngleMax.getDegrees() > (Constants.LIMELIGHT.FOV_WIDTH.getDegrees() / 1.0)) {
       return false;
     }
 
@@ -343,14 +352,14 @@ public class Autonomous extends Command {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    FieldObject2d visibleNotes = SwerveDrive.getField().getObject("visibleNotes");
-    List<Pose2d> poses = new ArrayList<>();
-    for (Integer note : List.of(0, 1, 2, 3, 4, 5, 6, 7)) {
-      if (shouldSeeNote(note)) {
-        poses.add(new Pose2d(Field.NOTE_POSITIONS.get(note).get().plus(new Translation2d(0.0, 0.0)), new Rotation2d()));
-      }
-    }
-    visibleNotes.setPoses(poses);
+    // FieldObject2d visibleNotes = SwerveDrive.getField().getObject("visibleNotes");
+    // List<Pose2d> poses = new ArrayList<>();
+    // for (Integer note : List.of(0, 1, 2, 3, 4, 5, 6, 7)) {
+    //   if (shouldSeeNote(note)) {
+    //     poses.add(new Pose2d(Field.NOTE_POSITIONS.get(note).get().plus(new Translation2d(0.0, 0.0)), new Rotation2d()));
+    //   }
+    // }
+    // visibleNotes.setPoses(poses);
 
     Translation2d futurePosition = swerveDrive.getPose().getTranslation();
     futurePosition = futurePosition.plus(swerveDrive.getFieldVelocity().times(swerveDrive.getFieldVelocity().getNorm()).div(2.0 * Constants.SWERVE_DRIVE.PHYSICS.MAX_LINEAR_ACCELERATION));
