@@ -40,9 +40,11 @@ public class LEDs extends SubsystemBase {
   public static final int[] WHITE = {255, 255, 255};
   public static final int[] ANTARES_BLUE = { 36, 46, 68 };
   public static final int[] ANTARES_YELLOW = { 255, 100, 0 };
-  public static final int[] GREEN = { 0, 255, 0 };
+  public static final int[] RED = { 255, 0, 0 };
   public static final int[] RSL_ORANGE = { 255, 100, 0 };
-  public static final int[] PURPLE = {209, 23, 255};
+  public static final int[] GREEN = { 0, 255, 0 };
+  public static final int[] BLUE = { 23, 127, 255 };
+  public static final int[] PURPLE = { 209, 23, 255 };
   
   public LEDs(RobotStateController stateController) {
     this.stateController = stateController;
@@ -56,7 +58,7 @@ public class LEDs extends SubsystemBase {
 
   @Override
   public void periodic() {
-    //state = State.HANG;
+    //state = State.SHOOTING;
     switch (state) {
       case OFF:
         setColor(0, length, new int[] {0, 0, 0});
@@ -84,10 +86,10 @@ public class LEDs extends SubsystemBase {
         setColor(0, length, GREEN);
         break;
       case BAD:
-        setColor(0, length, new int[] {255, 0, 0});
+        setColor(0, length, RED);
         break;
       case SHOOTING:
-        setColorFlash(0, length, getBumperColor(), 5);
+        setColorFlash(0, length, getBumperLEDColor(), 5);
         break;
       
       case AMP:
@@ -99,10 +101,10 @@ public class LEDs extends SubsystemBase {
         break;
       case HANG:
         setColor(0, length, WHITE);
-
-        setColorWave(0, length / 2, new int[] {255, 0, 0}, WHITE, 1, Direction.RIGHT);
-        setColorWave(length / 2, length, new int[] {255, 0, 0}, WHITE, 1, Direction.LEFT);
-        
+        setTopStripColor(RED);
+        setColorWave(0, Constants.LED.SIDE_STRIP_HEIGHT, RED, WHITE, 1, Direction.RIGHT);
+        setColorWave(length - Constants.LED.SIDE_STRIP_HEIGHT, length, RED, WHITE, 1, Direction.LEFT);
+        //setColor(150, PURPLE);
         break;
     }
     strip.setData(buffer);
@@ -233,15 +235,23 @@ public class LEDs extends SubsystemBase {
     if (Constants.IS_BLUE_TEAM.get()) {
       return ANTARES_BLUE;  
     } else {
-      return new int[] {255, 0, 0};
+      return RED;
+    }
+  }
+
+  private static int[] getBumperLEDColor () {
+    if (Constants.IS_BLUE_TEAM.get()) {
+      return BLUE;  
+    } else {
+      return RED;
     }
   }
 
   private static void setBumperColorWave(int start, int stop) {
     if (Constants.IS_BLUE_TEAM.get()) {
-      setColorWave(start, stop, new int[] {23, 127, 255}, PURPLE, 2.5, Direction.LEFT);
+      setColorWave(start, stop, getBumperLEDColor(), PURPLE, 2.5, Direction.LEFT);
     } else {
-      setColorWave(start, stop, new int[] {255, 0, 0},  getBumperColor(), 2.5, Direction.LEFT);
+      setColorWave(start, stop, getBumperLEDColor(),  ANTARES_YELLOW, 2.5, Direction.LEFT);
     } 
   }
 
@@ -249,7 +259,7 @@ public class LEDs extends SubsystemBase {
   //   if (Constants.IS_BLUE_TEAM) {
   //     setGradientWave(start, stop, getBumperColor(), new int[] {179, 0, 255}, 2.5);
   //   } else {
-  //     setGradientWave(start, stop, new int[] {255, 0, 0},  getBumperColor(), 2.5);
+  //     setGradientWave(start, stop, RED,  getBumperColor(), 2.5);
   //   }
     
   // }
