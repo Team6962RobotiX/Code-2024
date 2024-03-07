@@ -25,7 +25,7 @@ public class Notes {
       double x = target.tx;
       double y = target.ty;// - Math.sqrt(Constants.LIMELIGHT.FOV_HEIGHT.getDegrees() * Constants.LIMELIGHT.FOV_HEIGHT.getDegrees() * target.ta)/2;
       
-      if (target.confidence < 0.65) continue;
+      if (target.confidence < 0.5) continue;
       if (Units.degreesToRadians(y) + pitch.getRadians() > 0) continue;
       
       double latency = (results.targetingResults.latency_capture + results.targetingResults.latency_jsonParse + results.targetingResults.latency_pipeline) / 1000.0;

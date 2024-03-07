@@ -13,6 +13,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.Constants.Constants;
 import frc.robot.Constants.Constants.DEVICES;
+import frc.robot.Constants.Preferences;
 import frc.robot.commands.drive.XBoxSwerve;
 import frc.robot.commands.vision.MoveToNote;
 import frc.robot.subsystems.amp.Amp;
@@ -74,9 +75,9 @@ public class Controls {
     
 
     operator.a().onTrue(shooterPivot.setTargetAngleCommand(() -> Rotation2d.fromDegrees(30.0)));
-    operator.b().whileTrue(hang.setState(Hang.State.RETRACT));
-    operator.x().whileTrue(hang.setState(Hang.State.EXTEND));
-    operator.y();
+    operator.b();
+    operator.x();
+    operator.y().onTrue(shooterPivot.setTargetAngleCommand(() -> Preferences.SHOOTER_PIVOT.MAX_ANGLE));
     operator.start().whileTrue(stateController.setState(RobotStateController.State.LEAVE_AMP));
     operator.back().onTrue(stateController.setState(RobotStateController.State.CENTER_NOTE).andThen(Controls.rumbleBoth()));
     operator.leftBumper();
@@ -84,8 +85,8 @@ public class Controls {
     operator.leftStick().whileTrue(stateController.setState(RobotStateController.State.PREPARE_AMP));
     operator.rightStick().whileTrue(stateController.setState(RobotStateController.State.PLACE_AMP));
     operator.povCenter();
-    operator.povUp();
-    operator.povDown();
+    operator.povUp().whileTrue(hang.setState(Hang.State.EXTEND));
+    operator.povDown().whileTrue(hang.setState(Hang.State.RETRACT));
     operator.povLeft();
     operator.povRight();
     operator.leftTrigger().toggleOnTrue(stateController.setState(RobotStateController.State.SPIN_UP));

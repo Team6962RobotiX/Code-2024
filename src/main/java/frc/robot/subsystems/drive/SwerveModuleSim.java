@@ -12,7 +12,6 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.system.plant.LinearSystemId;
 import edu.wpi.first.wpilibj.simulation.FlywheelSim;
-import frc.robot.Robot;
 import frc.robot.Constants.Constants.NEO;
 import frc.robot.Constants.Constants.SWERVE_DRIVE;
 import frc.robot.Constants.Constants.SWERVE_DRIVE.DRIVE_MOTOR_PROFILE;
@@ -54,8 +53,6 @@ public class SwerveModuleSim extends SwerveModule {
   private double steerVoltRamp = 0.0;
   private double drivePosition = 0.0;
   private double steerRadians = (Math.random() * 2.0 * Math.PI) - Math.PI;
-
-  private SwerveModuleState lastDrivenState = new SwerveModuleState();
   
   public SwerveModuleSim(MODULE_CONFIG config, int corner, String name) {
     super(config, corner, name);
@@ -81,8 +78,6 @@ public class SwerveModuleSim extends SwerveModule {
       speedMetersPerSecond *= Math.cos(SwerveMath.angleDistance(getMeasuredState().angle.getRadians(), getMeasuredState().angle.getRadians()));
     }
 
-    double wheelAcceleration = (speedMetersPerSecond - lastDrivenState.speedMetersPerSecond) / Robot.getLoopTime();
-
     for (int i = 0; i < 20; i++) {
       double driveVolts = driveFF.calculate(speedMetersPerSecond, 0.0) + 12.0 * drivePID.calculate(getMeasuredState().speedMetersPerSecond, speedMetersPerSecond);
       double steerVolts = 12.0 * steerPID.calculate(getMeasuredState().angle.getRadians(), radians);
@@ -103,8 +98,6 @@ public class SwerveModuleSim extends SwerveModule {
       steerRadians += steerMotor.getAngularVelocityRadPerSec() * (1.0 / 1000.0);
       steerRadians = MathUtil.angleModulus(steerRadians);
     }
-
-    lastDrivenState = new SwerveModuleState(speedMetersPerSecond, Rotation2d.fromRadians(radians));
   }
 
   @Override

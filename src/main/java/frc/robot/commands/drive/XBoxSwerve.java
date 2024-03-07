@@ -70,8 +70,8 @@ public class XBoxSwerve extends Command {
 
 
     // Deadbands
-    leftStick = InputMath.addCircularDeadband(leftStick, 0.05);
-    rightStick = InputMath.addCircularDeadband(rightStick, 0.05);
+    leftStick = InputMath.addCircularDeadband(leftStick, 0.1);
+    rightStick = InputMath.addCircularDeadband(rightStick, 0.1);
 
     angularVelocity += -rightStick.getX() * MathUtils.map(rightTrigger, 0, 1, NOMINAL_ANGULAR_VELOCITY, MAX_ANGULAR_VELOCITY);
     

@@ -21,6 +21,7 @@ import frc.robot.Constants.Constants;
 import frc.robot.Constants.Constants.ENABLED_SYSTEMS;
 import frc.robot.Constants.Constants.SHOOTER_PIVOT;
 import frc.robot.Constants.Field;
+import frc.robot.Constants.Preferences;
 import frc.robot.subsystems.drive.SwerveDrive;
 import frc.robot.util.software.Logging.Logger;
 
@@ -75,7 +76,7 @@ public class Shooter extends SubsystemBase {
             Field.SPEAKER.get(),
             swerveDrive.getPose(),
             swerveDrive.getFieldVelocity(),
-            shooterWheels.getVelocity(),
+            Preferences.SHOOTER_WHEELS.TARGET_SPEED,
             shooterPivot.getPosition()
           ),
           swerveDrive.getPose(),

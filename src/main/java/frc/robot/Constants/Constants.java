@@ -335,7 +335,7 @@ public final class Constants {
     
     public static final class PROFILE {
       public static final double kP = 20.0;
-      public static final double kS = 0.3;
+      public static final double kS = 0.5;
       public static final double MAX_ACCELERATION = 30.0; // rad/s^2
     }
   }

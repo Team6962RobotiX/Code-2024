@@ -29,15 +29,18 @@ public class AprilTags extends SubsystemBase {
 
     for (PoseEstimate poseEstimate : poseEstimates) {
       if (poseEstimate.tagCount == 0) continue;
+      if (poseEstimate.avgTagDist > 5) continue;
       if (poseEstimate.pose.getX() < 0.0 || poseEstimate.pose.getY() < 0.0 || poseEstimate.pose.getX() > Field.LENGTH || poseEstimate.pose.getY() > Field.WIDTH) continue;
       double poseDistance = poseEstimate.pose.getTranslation().getDistance(swerveDrive.getPose().getTranslation());
       
       double rotationAccuracy = Units.degreesToRadians(999999);
-      double translationAccuracy = (poseDistance + Math.sqrt(poseEstimate.avgTagDist)) / Math.pow(poseEstimate.tagCount, 2.0);
+      double translationError = (poseDistance + poseEstimate.avgTagDist) / Math.pow(poseEstimate.tagCount, 2.0);
       if (swerveDrive.canZeroHeading() && poseEstimate.tagCount >= 2) {
         rotationAccuracy = Units.degreesToRadians(30.0);
       }
-      swerveDrive.setVisionMeasurementStdDevs(VecBuilder.fill(translationAccuracy, translationAccuracy, rotationAccuracy));
+      
+      
+      swerveDrive.setVisionMeasurementStdDevs(VecBuilder.fill(translationError, translationError, rotationAccuracy));
       swerveDrive.addVisionMeasurement(poseEstimate.pose, poseEstimate.timestampSeconds);
       LEDs.setState(LEDs.State.HAS_VISION_TARGET);
     }

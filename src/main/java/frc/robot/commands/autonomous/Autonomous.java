@@ -36,7 +36,7 @@ public class Autonomous extends Command {
   private List<Integer> notesThatExist = List.of();
   private double robotDiagonal = Math.sqrt(Math.pow(Constants.SWERVE_DRIVE.BUMPER_LENGTH, 2.0) + Math.pow(Constants.SWERVE_DRIVE.BUMPER_WIDTH, 2.0));
   private double noteAvoidRadius = (Field.NOTE_LENGTH / 2.0 + Math.max(Constants.SWERVE_DRIVE.BUMPER_LENGTH, Constants.SWERVE_DRIVE.BUMPER_WIDTH) / 2.0);
-
+  private boolean firstNote = true;
   private Command command = Commands.runOnce(() -> {});
   private Translation2d visionNotePosition;
 
@@ -164,7 +164,7 @@ public class Autonomous extends Command {
     middleSpline = middleSpline.plus(notePosition);
 
     Translation2d endSpline = Field.SPEAKER.get().toTranslation2d().minus(notePosition);
-    endSpline = endSpline.div(endSpline.getNorm()).times(Constants.SWERVE_DRIVE.BUMPER_LENGTH / 2.0);
+    endSpline = endSpline.div(endSpline.getNorm()).times(Constants.SWERVE_DRIVE.BUMPER_LENGTH / 2.0 - Field.NOTE_LENGTH);
     endSpline = endSpline.plus(notePosition);
     
     Command pathplannerCommand = Commands.runOnce(() -> {});
@@ -243,8 +243,8 @@ public class Autonomous extends Command {
       )
       .raceWith(
         Commands.waitUntil(() -> controller.hasNote())
-      ),
-      controller.setState(RobotStateController.State.CENTER_NOTE).onlyIf(() -> RobotBase.isReal())
+      )
+      // controller.setState(RobotStateController.State.CENTER_NOTE).onlyIf(() -> RobotBase.isReal())
     );
 
     Integer closestNote = getNextClosestNote();
@@ -298,9 +298,11 @@ public class Autonomous extends Command {
       moveToCommand.until(() -> controller.inRange())
         .alongWith(controller.setState(RobotStateController.State.SPIN_UP))
         .alongWith(controller.setState(RobotStateController.State.AIM_SPEAKER))
-        .until(() -> controller.canShoot() && swerveDrive.getFieldVelocity().getNorm() < 0.1),
+        .until(() -> (swerveDrive.getFieldVelocity().getNorm() < 0.1 && !firstNote) || (firstNote && controller.canShoot())),
       controller.setState(RobotStateController.State.SHOOT_SPEAKER)
         .until(() -> !controller.hasNote()),
+      controller.setState(RobotStateController.State.SHOOT_SPEAKER)
+        .withTimeout(0.25),
       Commands.runOnce(() -> swerveDrive.setRotationTargetOverrideFromPointBackwards(null))
     );
   }
@@ -367,6 +369,7 @@ public class Autonomous extends Command {
         state = State.PICKUP;
         command = pickupNote(Field.NOTE_POSITIONS.get(getNextClosestNote()).get());
         command.schedule();
+        firstNote = false;
         return;
       }
     }

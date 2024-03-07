@@ -52,7 +52,6 @@ public class SwerveModule extends SubsystemBase {
   private CANcoder absoluteSteerEncoder;
   private SparkPIDController drivePID, steerPID;
   private SwerveModuleState targetState = new SwerveModuleState();
-  private MODULE_CONFIG config;
   private String name;
   private int corner;
 
@@ -65,7 +64,6 @@ public class SwerveModule extends SubsystemBase {
   );
 
   public SwerveModule(MODULE_CONFIG config, int corner, String name) {
-    this.config = config;
     this.corner = corner;
     this.name = name;
 
