@@ -27,7 +27,7 @@ public class Notes {
       
       if (target.confidence < 0.65) continue;
       if (Units.degreesToRadians(y) + pitch.getRadians() > 0) continue;
-
+      
       double latency = (results.targetingResults.latency_capture + results.targetingResults.latency_jsonParse + results.targetingResults.latency_pipeline) / 1000.0;
       double distance = (cameraToRobot.getZ() - Field.NOTE_THICKNESS/2) / -Math.tan(Units.degreesToRadians(y) + pitch.getRadians());
       Logger.log("note-distance", distance);
