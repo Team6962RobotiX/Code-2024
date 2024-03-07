@@ -267,7 +267,7 @@ public class Autonomous extends Command {
       }),
       pickupNoteCommand,
       Commands.runOnce(() -> {        
-        if (swerveDrive.getPose().getTranslation().getDistance(notePosition) < Field.NOTE_LENGTH) {
+        if (swerveDrive.getPose().getTranslation().getDistance(notePosition) < Field.NOTE_LENGTH + Constants.SWERVE_DRIVE.BUMPER_LENGTH / 2.0) {
           simHasNote = true;
         }
         notesThatExist.remove(closestNote);
