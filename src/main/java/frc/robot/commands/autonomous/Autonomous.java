@@ -321,7 +321,7 @@ public class Autonomous extends Command {
         ).until(() -> controller.canShoot() && swerveDrive.getFieldVelocity().getNorm() < 0.1)//,
         // controller.setState(RobotStateController.State.CENTER_NOTE).onlyIf(() -> RobotBase.isReal() && swerveDrive.getPose().getTranslation().getDistance(Field.SPEAKER.get().toTranslation2d()) > 4.5 && hasNote())
       ),
-      Commands.waitSeconds(0.5).onlyIf(() -> firstNote),
+      Commands.waitSeconds(1.0).onlyIf(() -> firstNote),
       controller.setState(RobotStateController.State.SHOOT_SPEAKER)
         .alongWith(Commands.runOnce(() -> {simHasNote = false; System.out.println("SHOOTING IN SPEAKER");}))
         .until(() -> !hasNote()),

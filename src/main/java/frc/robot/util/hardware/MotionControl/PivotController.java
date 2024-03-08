@@ -67,7 +67,7 @@ public class PivotController {
     encoderOffset = absolutePositionOffset;
 
     SparkMaxUtil.configureEncoder(motor, 2.0 * Math.PI / gearing);
-    SparkMaxUtil.configurePID(subsystem, motor, kP, 0.0, 0.0, 0.0, true);
+    SparkMaxUtil.configurePID(subsystem, motor, kP, 0.0, 0.0, 0.0, false);
     
     Logger.autoLog(subsystem, "targetPosition",                   () -> getTargetAngle().getRadians());
     Logger.autoLog(subsystem, "position",                         () -> getPosition().getRadians());
