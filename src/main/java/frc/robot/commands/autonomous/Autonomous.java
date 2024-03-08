@@ -37,6 +37,7 @@ public class Autonomous extends Command {
   private Command command = Commands.runOnce(() -> {});
   private Translation2d visionNotePosition;
   private boolean simHasNote = true;
+  private boolean firstNote = true;
 
   private enum State {
     SHOOT,
@@ -330,13 +331,15 @@ public class Autonomous extends Command {
         ).until(() -> controller.canShoot() && swerveDrive.getFieldVelocity().getNorm() < 0.1)//,
         // controller.setState(RobotStateController.State.CENTER_NOTE).onlyIf(() -> RobotBase.isReal() && swerveDrive.getPose().getTranslation().getDistance(Field.SPEAKER.get().toTranslation2d()) > 4.5 && hasNote())
       ),
-      Commands.runOnce(() -> {System.out.println("DONE MOVING");}),
+      Commands.waitSeconds(0.5).onlyIf(() -> firstNote),
       controller.setState(RobotStateController.State.SHOOT_SPEAKER)
         .alongWith(Commands.runOnce(() -> {simHasNote = false; System.out.println("SHOOTING IN SPEAKER");}))
         .until(() -> !hasNote()),
-      Commands.runOnce(() -> controller.setState(RobotStateController.State.SHOOT_SPEAKER)
-        .withTimeout(0.25)),
-      Commands.runOnce(() -> swerveDrive.setRotationTargetOverrideFromPointBackwards(null))
+      Commands.runOnce(() -> {
+        controller.setState(RobotStateController.State.SHOOT_SPEAKER).withTimeout(0.25).schedule();
+        swerveDrive.setRotationTargetOverrideFromPointBackwards(null);
+        firstNote = false;
+      })
     );
   }
 
