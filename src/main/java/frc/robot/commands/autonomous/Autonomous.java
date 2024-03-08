@@ -129,7 +129,7 @@ public class Autonomous extends Command {
     // measuredNotePositions = new ArrayList<>();
     // for (Integer note : List.of(0, 1, 2, 3, 4, 5, 6, 7)) {
     //   if (shouldSeeNote(note)) {
-    //     measuredNotePositions.add(Field.NOTE_POSITIONS.get(note).get().plus(new Translation2d(1.0, 0.5)));
+    //     measuredNotePositions.add(Field.NOTE_POSITIONS.get(note).get().plus(new Translation2d(0.0, 0.0)));
     //   }
     // }
 
@@ -238,7 +238,22 @@ public class Autonomous extends Command {
     }
 
     if (getRealNotePosition(Field.NOTE_POSITIONS.get(getNextClosestNote()).get()) != null) {
-      pathplannerCommand = swerveDrive.goToSimple(new Pose2d(endSpline, new Rotation2d()));
+      List<Translation2d> bezierPoints = PathPlannerPath.bezierFromPoses(
+        new Pose2d(swerveDrive.getPose().getTranslation(), swerveDrive.getFieldVelocity().getAngle()),
+        new Pose2d(endSpline, speakerNoteAngle.plus(Rotation2d.fromDegrees(180.0)))
+      );
+
+      PathPlannerPath path = new PathPlannerPath(
+        bezierPoints,
+        SWERVE_DRIVE.AUTONOMOUS.DEFAULT_PATH_CONSTRAINTS,
+        new GoalEndState(
+          0.0,
+          speakerNoteAngle,
+          true
+        )
+      );
+
+      pathplannerCommand = AutoBuilder.followPath(path);
     }
 
 
