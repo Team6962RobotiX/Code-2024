@@ -34,7 +34,6 @@ public class RobotStateController extends SubsystemBase {
     PREPARE_AMP,
     PLACE_AMP,
     LEAVE_AMP,
-    PREPARE_SPEAKER,
     AIM_SPEAKER,
     SHOOT_SPEAKER,
     SPIN_UP,
@@ -102,10 +101,6 @@ public class RobotStateController extends SubsystemBase {
         return Commands.sequence(
           amp.setState(Amp.State.DOWN)
         );
-      case PREPARE_SPEAKER:
-        return Commands.parallel(
-          transfer.setState(Transfer.State.SHOOTER)
-        ).until(() -> hasNote()).andThen(Controls.rumbleBoth());
       case AIM_SPEAKER:
         return shooter.setState(Shooter.State.AIM)
           .alongWith(Commands.runOnce(() -> isAiming = true))
@@ -116,8 +111,9 @@ public class RobotStateController extends SubsystemBase {
             () -> (!hasNote() && !RobotBase.isSimulation()) || !inRange()
           )).finallyDo(() -> isAiming = false);
       case SHOOT_SPEAKER:
-        return Commands.parallel(
-          transfer.setState(Transfer.State.SHOOTER)
+        return Commands.sequence(
+          transfer.setState(Transfer.State.SHOOTER_FAST).until(() -> beamBreakSensor.get()),
+          transfer.setState(Transfer.State.SHOOTER_SLOW)
           .alongWith(LEDs.setStateCommand(LEDs.State.SHOOTING))
         );
       case SPIN_UP:

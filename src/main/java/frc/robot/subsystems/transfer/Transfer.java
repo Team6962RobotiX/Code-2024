@@ -15,7 +15,8 @@ public class Transfer extends SubsystemBase {
     IN,
     OUT,
     AMP,
-    SHOOTER,
+    SHOOTER_FAST,
+    SHOOTER_SLOW,
     FROM_AMP,
     SLOW_IN
   }
@@ -55,10 +56,15 @@ public class Transfer extends SubsystemBase {
           transferIn.setState(TransferInWheels.State.IN),
           transferOut.setState(TransferOutWheels.State.TO_AMP)
         );
-      case SHOOTER:
+      case SHOOTER_FAST:
         return Commands.parallel( 
           transferIn.setState(TransferInWheels.State.IN),
-          transferOut.setState(TransferOutWheels.State.TO_SHOOTER)
+          transferOut.setState(TransferOutWheels.State.TO_SHOOTER_FAST)
+        );
+      case SHOOTER_SLOW:
+        return Commands.parallel( 
+          transferIn.setState(TransferInWheels.State.IN),
+          transferOut.setState(TransferOutWheels.State.TO_SHOOTER_SLOW)
         );
       case FROM_AMP:
         return Commands.parallel(

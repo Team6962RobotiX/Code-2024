@@ -18,7 +18,8 @@ public class TransferOutWheels extends SubsystemBase {
   private State state = State.OFF;
   public static enum State {
     TO_AMP,
-    TO_SHOOTER,
+    TO_SHOOTER_SLOW,
+    TO_SHOOTER_FAST,
     FROM_AMP,
     OFF,
   }
@@ -48,8 +49,11 @@ public class TransferOutWheels extends SubsystemBase {
       case TO_AMP:
         motor.set(-Preferences.TRANSFER.TO_AMP_POWER);
         break;
-      case TO_SHOOTER:
-        motor.set(Preferences.TRANSFER.THROUGH_POWER);
+      case TO_SHOOTER_FAST:
+        motor.set(Preferences.TRANSFER.TO_SHOOTER_FAST_POWER);
+        break;
+      case TO_SHOOTER_SLOW:
+        motor.set(Preferences.TRANSFER.TO_SHOOTER_SLOW_POWER);
         break;
       case FROM_AMP:
         motor.set(Preferences.TRANSFER.OUT_POWER_TOP);
