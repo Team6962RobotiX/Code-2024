@@ -114,7 +114,7 @@ public class Controls {
     () -> {
       controller.getHID().setRumble(RumbleType.kBothRumble, 0.0);
     }
-    ).withTimeout(0.5);
+    ).withTimeout(0.25);
   }
 
   private static Command rumble(CommandXboxController controller, BooleanSupplier booleanSupplier) {
