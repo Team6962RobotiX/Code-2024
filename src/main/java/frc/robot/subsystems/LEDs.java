@@ -164,7 +164,7 @@ public class LEDs extends SubsystemBase {
     double time = Timer.getFPGATimestamp();
     
     for (int pixel = 0; pixel < stop - start; pixel++) {
-      double val = (pixel / 200.0 + time * speed) % 1.0;
+      double val = (pixel / 50.0 + time * speed) % 1.0;
       int p = pixel + start;
       if (val < 0.5) {
         if (dir == Direction.LEFT) {
@@ -186,7 +186,7 @@ public class LEDs extends SubsystemBase {
   private static void setColorWave(int start, int stop, int[] firstRGB, int[] secondRGB, double speed, Direction dir) {
     double time = Timer.getFPGATimestamp();
     for (int pixel = 0; pixel < stop - start; pixel++) {
-      double val = (pixel / 200.0 + time * speed) % 1.0;
+      double val = (pixel / 50.0 + time * speed) % 1.0;
       int p = pixel + start;
       if (val < 0.5) {
         if (dir == Direction.LEFT) {
