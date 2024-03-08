@@ -75,6 +75,10 @@ public class Autonomous extends Command {
     Pathfinding.setDynamicObstacles(dynamicObstacles, swerveDrive.getPose().getTranslation());
   }
 
+  public void clearDynamicObstacles() {
+    Pathfinding.setDynamicObstacles(List.of(), swerveDrive.getPose().getTranslation());
+  }
+
   public Integer getNextClosestNote() {
     if (notesToGet.isEmpty()) return 0;
 
@@ -262,7 +266,7 @@ public class Autonomous extends Command {
     return Commands.sequence(
       Commands.runOnce(() -> {
         // System.out.println("START");
-        // addDynamicObstacles();
+        addDynamicObstacles();
         swerveDrive.setRotationTargetOverrideFromPointBackwards(Field.SPEAKER.get().toTranslation2d());
         // System.out.println("START 229");
       }),
@@ -311,6 +315,7 @@ public class Autonomous extends Command {
     }
     return Commands.sequence(
       Commands.runOnce(() -> {
+        clearDynamicObstacles();
         swerveDrive.setRotationTargetOverrideFromPointBackwards(Field.SPEAKER.get().toTranslation2d());
       }),
       Commands.parallel(
