@@ -90,7 +90,8 @@ public class RobotStateController extends SubsystemBase {
           transfer.setState(Transfer.State.AMP).withTimeout(0.05),
           amp.setState(Amp.State.UP).raceWith(
             amp.setState(Amp.State.IN)
-          )
+          ),
+          amp.setState(Amp.State.IN).withTimeout(0.25)
         );
       case PLACE_AMP:
         return Commands.sequence(
