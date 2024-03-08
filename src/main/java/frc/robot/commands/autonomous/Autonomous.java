@@ -334,8 +334,8 @@ public class Autonomous extends Command {
       controller.setState(RobotStateController.State.SHOOT_SPEAKER)
         .alongWith(Commands.runOnce(() -> {simHasNote = false; System.out.println("SHOOTING IN SPEAKER");}))
         .until(() -> !hasNote()),
-      controller.setState(RobotStateController.State.SHOOT_SPEAKER)
-        .withTimeout(0.25),
+      Commands.runOnce(() -> controller.setState(RobotStateController.State.SHOOT_SPEAKER)
+        .withTimeout(0.25)),
       Commands.runOnce(() -> swerveDrive.setRotationTargetOverrideFromPointBackwards(null))
     );
   }
