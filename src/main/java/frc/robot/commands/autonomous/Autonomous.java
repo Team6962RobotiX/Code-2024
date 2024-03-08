@@ -262,7 +262,7 @@ public class Autonomous extends Command {
     return Commands.sequence(
       Commands.runOnce(() -> {
         // System.out.println("START");
-        addDynamicObstacles();
+        // addDynamicObstacles();
         swerveDrive.setRotationTargetOverrideFromPointBackwards(Field.SPEAKER.get().toTranslation2d());
         // System.out.println("START 229");
       }),
@@ -279,7 +279,7 @@ public class Autonomous extends Command {
         notesThatExist.remove(closestNote);
         notesToGet.remove(closestNote);
         visionNotePosition = null;
-        addDynamicObstacles();
+        // addDynamicObstacles();
         // System.out.println("STOP");
       })
     ).finallyDo(
