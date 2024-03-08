@@ -106,11 +106,6 @@ public class Controls {
       .withPosition(0, 2)
       .withSize(3, 1);
 
-    driverTab.addBoolean("Has Note", stateController::hasNote)
-      .withWidget(BuiltInWidgets.kBooleanBox)
-      .withPosition(0, 2)
-      .withSize(3, 1);
-
     driverTab.addDouble("Battery Capacity", () -> RobotContainer.getVoltage() < Constants.SWERVE_DRIVE.BATTERY_VOLTAGE ?
     RobotContainer.getTotalCurrent() / ((Constants.SWERVE_DRIVE.BATTERY_VOLTAGE - RobotContainer.getVoltage()) / Constants.SWERVE_DRIVE.BATTERY_RESISTANCE) :
     1.0 - (RobotContainer.getTotalCurrent() / ((Constants.SWERVE_DRIVE.BATTERY_VOLTAGE - RobotContainer.getVoltage()) / Constants.SWERVE_DRIVE.BATTERY_RESISTANCE)))
