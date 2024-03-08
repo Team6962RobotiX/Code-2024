@@ -56,7 +56,7 @@ public final class Preferences {
   }
 
   public static final class TRANSFER {
-    public static final double IN_POWER = 0.8;
+    public static final double IN_POWER = 0.5;
     public static final double SLOW_IN_POWER = 0.25;
     public static final double OUT_POWER_BOTTOM = 0.5;
     public static final double OUT_POWER_TOP = 1.0;

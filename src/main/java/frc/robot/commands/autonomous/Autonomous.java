@@ -273,7 +273,7 @@ public class Autonomous extends Command {
       pathplannerCommand
         .alongWith(Commands.sequence(
           Commands.waitUntil(() -> swerveDrive.getPose().getTranslation().getDistance(notePosition) < robotDiagonal + Field.NOTE_LENGTH),
-          controller.setState(RobotStateController.State.INTAKE)
+          controller.setState(RobotStateController.State.INTAKE).onlyIf(() -> !RobotBase.isSimulation())
         ))
         .raceWith(Commands.waitUntil(() -> hasNote())),
       Commands.runOnce(() -> {        
