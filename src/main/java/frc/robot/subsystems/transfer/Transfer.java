@@ -63,7 +63,7 @@ public class Transfer extends SubsystemBase {
         );
       case SHOOTER_SLOW:
         return Commands.parallel( 
-          transferIn.setState(TransferInWheels.State.IN),
+          transferIn.setState(TransferInWheels.State.SLOW_IN),
           transferOut.setState(TransferOutWheels.State.TO_SHOOTER_SLOW)
         );
       case FROM_AMP:

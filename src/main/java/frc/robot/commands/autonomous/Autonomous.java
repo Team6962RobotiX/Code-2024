@@ -271,7 +271,7 @@ public class Autonomous extends Command {
         // System.out.println("START 229");
       }),
       pathplannerCommand
-        .raceWith(Commands.sequence(
+        .alongWith(Commands.sequence(
           Commands.waitUntil(() -> swerveDrive.getPose().getTranslation().getDistance(notePosition) < robotDiagonal + Field.NOTE_LENGTH),
           controller.setState(RobotStateController.State.INTAKE)
         ))
