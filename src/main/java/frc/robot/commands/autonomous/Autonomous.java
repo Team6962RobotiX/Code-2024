@@ -257,21 +257,6 @@ public class Autonomous extends Command {
       pathplannerCommand = AutoBuilder.followPath(path);
     }
 
-
-    Command pickupNoteCommand = Commands.sequence(
-      // Commands.runOnce(() -> System.out.println("START 221")),
-      pathplannerCommand.raceWith(
-        Commands.sequence(
-          Commands.waitUntil(() -> swerveDrive.getPose().getTranslation().getDistance(notePosition) < robotDiagonal + Field.NOTE_LENGTH),
-          controller.setState(RobotStateController.State.INTAKE)
-        )
-      )
-      .raceWith(
-        Commands.waitUntil(() -> hasNote())
-      )
-      // controller.setState(RobotStateController.State.CENTER_NOTE).onlyIf(() -> RobotBase.isReal())
-    );
-
     Integer closestNote = getNextClosestNote();
 
     return Commands.sequence(
@@ -281,7 +266,12 @@ public class Autonomous extends Command {
         swerveDrive.setRotationTargetOverrideFromPointBackwards(Field.SPEAKER.get().toTranslation2d());
         // System.out.println("START 229");
       }),
-      pickupNoteCommand,
+      pathplannerCommand
+        .raceWith(Commands.sequence(
+          Commands.waitUntil(() -> swerveDrive.getPose().getTranslation().getDistance(notePosition) < robotDiagonal + Field.NOTE_LENGTH),
+          controller.setState(RobotStateController.State.INTAKE)
+        ))
+        .raceWith(Commands.waitUntil(() -> hasNote())),
       Commands.runOnce(() -> {        
         if (swerveDrive.getPose().getTranslation().getDistance(notePosition) < Field.NOTE_LENGTH + Constants.SWERVE_DRIVE.BUMPER_LENGTH / 2.0) {
           simHasNote = true;
