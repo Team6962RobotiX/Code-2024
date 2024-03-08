@@ -72,6 +72,10 @@ public class ShooterWheels extends SubsystemBase {
     return encoder.getVelocity();
   }
 
+  public State getState() {
+    return state;
+  }
+
   @Override
   public void periodic() {
     if (!ENABLED_SYSTEMS.ENABLE_SHOOTER) return;

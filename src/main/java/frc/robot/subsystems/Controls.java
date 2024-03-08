@@ -113,6 +113,11 @@ public class Controls {
       .withPosition(3, 2)
       .withSize(2, 2)
       .withProperties(Map.of("min", 0, "max", 100));
+
+    driverTab.addBoolean("Flywheel Status", () -> shooterWheels.getState() == ShooterWheels.State.SPIN_UP)
+      .withWidget(BuiltInWidgets.kBooleanBox)
+      .withPosition(0, 3)
+      .withSize(3, 1);
   }
 
   private static Command rumble(CommandXboxController controller) {
