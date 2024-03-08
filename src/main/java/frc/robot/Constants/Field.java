@@ -56,15 +56,15 @@ public final class Field {
   );
 
   public static final Translation2d[] BLUE_STAGE_CORNERS = {
-    new Translation2d(3.2, 4.0),
-    new Translation2d(BLUE_WING_X, 5.8),
-    new Translation2d(BLUE_WING_X, 2.4)
+    new Translation2d(3.4, 4.1),
+    new Translation2d(5.6, 5.4),
+    new Translation2d(5.6, 2.8)
   };
 
   public static final Translation2d[] RED_STAGE_CORNERS = {
-    new Translation2d(LENGTH - 3.0, 4.0),
-    new Translation2d(LENGTH - BLUE_WING_X, 5.8),
-    new Translation2d(LENGTH - BLUE_WING_X, 2.4)
+    new Translation2d(LENGTH - 3.4, 4.1),
+    new Translation2d(LENGTH - 5.6, 5.4),
+    new Translation2d(LENGTH - 5.6, 2.8)
   };
 
 

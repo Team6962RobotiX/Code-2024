@@ -4,6 +4,9 @@
 
 package frc.robot.commands.drive;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
@@ -11,6 +14,7 @@ import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants.Constants;
+import frc.robot.Constants.Field;
 import frc.robot.Constants.Preferences;
 import frc.robot.subsystems.LEDs;
 import frc.robot.subsystems.RobotStateController;
@@ -96,6 +100,35 @@ public class XBoxSwerve extends Command {
 
     if (controller.getAButton()) {
       // swerveDrive.goToNearestPose(List.of(Field.AUTO_MOVE_POSITIONS.values().toArray(new Pose2d[] {})), controller).schedule();
+    }
+
+    if (!controller.getBackButton()) {
+      if (!Constants.IS_BLUE_TEAM.get()) {
+        velocity = velocity.rotateBy(Rotation2d.fromDegrees(180.0));
+      }
+
+      double mag = velocity.getNorm();
+      List<Translation2d> stagePillars = new ArrayList<>();
+      for (Translation2d pillar : Field.BLUE_STAGE_CORNERS) stagePillars.add(pillar);
+      for (Translation2d pillar : Field.RED_STAGE_CORNERS) stagePillars.add(pillar);
+      for (Translation2d pillar : stagePillars) {
+        double bubbleRadius = 
+          Units.inchesToMeters(6.0) + 
+          Math.hypot(Constants.SWERVE_DRIVE.BUMPER_WIDTH, Constants.SWERVE_DRIVE.BUMPER_LENGTH) / 2.0 +
+          (swerveDrive.getPose().getTranslation().getDistance(pillar) - swerveDrive.getFuturePose().getTranslation().getDistance(pillar)) * 2.0;
+        if (bubbleRadius < 0) continue;
+        if (swerveDrive.getPose().getTranslation().getDistance(pillar) > bubbleRadius) continue;
+        Translation2d force = swerveDrive.getPose().getTranslation().minus(pillar);
+        force = force.div(force.getNorm()).times(mag);
+        velocity = velocity.plus(force);
+      }
+      if (mag != 0.0) {
+        velocity = velocity.div(velocity.getNorm()).times(mag);
+      }
+
+      if (!Constants.IS_BLUE_TEAM.get()) {
+        velocity = velocity.rotateBy(Rotation2d.fromDegrees(-180.0));
+      }
     }
     
     swerveDrive.driveFieldRelative(velocity.getX(), velocity.getY(), angularVelocity);
