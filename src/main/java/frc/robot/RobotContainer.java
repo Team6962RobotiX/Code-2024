@@ -81,9 +81,6 @@ public class RobotContainer {
     StatusChecks.addCheck(new SubsystemBase() {}, "Intake Enabled", () -> Constants.ENABLED_SYSTEMS.ENABLE_INTAKE);
     StatusChecks.addCheck(new SubsystemBase() {}, "Shooter Enabled", () -> Constants.ENABLED_SYSTEMS.ENABLE_SHOOTER);
     StatusChecks.addCheck(new SubsystemBase() {}, "Transfer Enabled", () -> Constants.ENABLED_SYSTEMS.ENABLE_TRANSFER);
-    Logger.autoLog("Battery Capacity", () -> (PDH.getTotalCurrent()/((Constants.SWERVE_DRIVE.BATTERY_VOLTAGE-PDH.getVoltage())/Constants.SWERVE_DRIVE.BATTERY_RESISTANCE)));
-
-
 
     swerveDrive = new SwerveDrive();
     shooter = new Shooter(swerveDrive);
@@ -106,6 +103,10 @@ public class RobotContainer {
 
   public static double getVoltage() {
     return PDH.getVoltage();
+  }
+
+  public static double getTotalCurrent() {
+    return PDH.getTotalCurrent();
   }
 
   public void disabledPeriodic() {

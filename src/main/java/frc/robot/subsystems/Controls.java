@@ -11,6 +11,7 @@ import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import frc.robot.RobotContainer;
 import frc.robot.Constants.Constants;
 import frc.robot.Constants.Constants.DEVICES;
 import frc.robot.Constants.Preferences;
@@ -104,6 +105,19 @@ public class Controls {
       .withWidget(BuiltInWidgets.kBooleanBox)
       .withPosition(0, 2)
       .withSize(3, 1);
+
+    driverTab.addBoolean("Has Note", stateController::hasNote)
+      .withWidget(BuiltInWidgets.kBooleanBox)
+      .withPosition(0, 2)
+      .withSize(3, 1);
+
+    driverTab.addDouble("Battery Capacity", () -> RobotContainer.getVoltage() < Constants.SWERVE_DRIVE.BATTERY_VOLTAGE ?
+    RobotContainer.getTotalCurrent() / ((Constants.SWERVE_DRIVE.BATTERY_VOLTAGE - RobotContainer.getVoltage()) / Constants.SWERVE_DRIVE.BATTERY_RESISTANCE) :
+    1.0 - (RobotContainer.getTotalCurrent() / ((Constants.SWERVE_DRIVE.BATTERY_VOLTAGE - RobotContainer.getVoltage()) / Constants.SWERVE_DRIVE.BATTERY_RESISTANCE)))
+      .withWidget(BuiltInWidgets.kDial)
+      .withPosition(3, 2)
+      .withSize(2, 2)
+      .withProperties(Map.of("min", 0, "max", 100));
   }
 
   private static Command rumble(CommandXboxController controller) {
