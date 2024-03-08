@@ -7,9 +7,19 @@
         "serpentine": true
       }
     },
+    "Other Devices": {
+      "window": {
+        "visible": false
+      }
+    },
     "RoboRIO": {
       "RoboRIO Input": {
         "open": true
+      }
+    },
+    "Timing": {
+      "window": {
+        "visible": false
       }
     }
   },
@@ -182,11 +192,6 @@
         "window": {
           "visible": true
         }
-      },
-      "/SmartDashboard/ShooterMechanism": {
-        "window": {
-          "visible": true
-        }
       }
     }
   },
@@ -215,7 +220,9 @@
         "open": true
       },
       "open": true
-    },
-    "visible": true
+    }
+  },
+  "NetworkTables View": {
+    "visible": false
   }
 }
