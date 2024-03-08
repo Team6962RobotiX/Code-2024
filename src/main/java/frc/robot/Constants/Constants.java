@@ -97,7 +97,7 @@ public final class Constants {
     public static final double   STEER_MOTOR_GEARING                = 150.0 / 7.0;
     public static final double   GEARBOX_EFFICIENCY                 = 0.99;
     public static final double   BATTERY_RESISTANCE                 = 0.02; // ohms
-    public static final double   BATTERY_VOLTAGE                    = 12.6; // volts
+    public static final double   BATTERY_VOLTAGE                    = 12.0; // volts
     public static final double   BROWNOUT_VOLTAGE                   = 6.8; // volts
 
     // public static final double   VELOCITY_DEADBAND                  = 0.05; // Velocity we stop moving at

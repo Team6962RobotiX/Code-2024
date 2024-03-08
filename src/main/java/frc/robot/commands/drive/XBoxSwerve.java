@@ -95,7 +95,7 @@ public class XBoxSwerve extends Command {
       if (!Constants.IS_BLUE_TEAM.get()) {
         newHeading = Rotation2d.fromDegrees(180.0);
       }
-      swerveDrive.resetGyroHeading(newHeading);
+      swerveDrive.resetGyroHeading(newHeading); 
     }
 
     if (controller.getAButton()) {
