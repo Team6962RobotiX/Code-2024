@@ -244,7 +244,7 @@ public final class Constants {
     public static final MODULE_CONFIG[] EQUIPPED_MODULES_COMPETITION = {
       MODULES[0], // front-left
       MODULES[1], // front-right
-      MODULES[2], // back-left
+      MODULES[8], // back-left
       MODULES[3]  // back-right
     };
   }
