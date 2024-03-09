@@ -21,14 +21,14 @@ public class LEDs extends SubsystemBase {
     OFF,
     DISABLED,
     DRIVING_TELEOP,
-    HAS_VISION_TARGET,
     HAS_NOTE,
+    HAS_VISION_TARGET,
     SPIN_UP,
     AIMING,
-    BAD,
     SHOOTING,
     AMP,
     HANG,
+    BAD,
     GREEN
   }
 
@@ -68,7 +68,7 @@ public class LEDs extends SubsystemBase {
         setBumperColorWave(0, length);
         break;
       case HAS_VISION_TARGET:
-        setColor(0, length, new int[] {128, 0, 255});
+        setColorFlash(0, length, new int[] {128, 0, 255}, 5);
         break;
       case DRIVING_TELEOP:
         setBumperColorWave(0, length);
@@ -77,10 +77,10 @@ public class LEDs extends SubsystemBase {
         setColor(0, length, ANTARES_YELLOW);
         break;
       case AIMING:
-        setColorWave(0, length, ANTARES_YELLOW, 2.5, Direction.LEFT); 
+        setColorWave(0, length, ANTARES_YELLOW, 1.0, Direction.LEFT);
         break;
       case SPIN_UP:
-        setColorWave(0, length, ANTARES_YELLOW, this.stateController.getShooterVelocity() / 400, Direction.LEFT);
+        setColorWave(0, length, ANTARES_YELLOW, this.stateController.getShooterVelocity() / 2000, Direction.LEFT);
         break;
       case GREEN:
         setColor(0, length, GREEN);
@@ -89,7 +89,7 @@ public class LEDs extends SubsystemBase {
         setColor(0, length, RED);
         break;
       case SHOOTING:
-        setColorFlash(0, length, getBumperLEDColor(), 5);
+        setColorFlash(0, length, GREEN, 5);
         break;
       
       case AMP:
@@ -249,9 +249,9 @@ public class LEDs extends SubsystemBase {
 
   private static void setBumperColorWave(int start, int stop) {
     if (Constants.IS_BLUE_TEAM.get()) {
-      setColorWave(start, stop, getBumperLEDColor(), PURPLE, 2.5, Direction.LEFT);
+      setColorWave(start, stop, getBumperLEDColor(), new int[] {0, 0, 0}, 0.5, Direction.LEFT);
     } else {
-      setColorWave(start, stop, getBumperLEDColor(),  ANTARES_YELLOW, 2.5, Direction.LEFT);
+      setColorWave(start, stop, getBumperLEDColor(),  new int[] {0, 0, 0}, 0.5, Direction.LEFT);
     } 
   }
 
