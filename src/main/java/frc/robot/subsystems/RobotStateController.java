@@ -113,6 +113,7 @@ public class RobotStateController extends SubsystemBase {
           )).finallyDo(() -> isAiming = false);
       case SHOOT_SPEAKER:
         return Commands.sequence(
+          Commands.waitUntil(() -> inRange() && swerveDrive.getFieldVelocity().getNorm() < 0.25),
           transfer.setState(Transfer.State.SHOOTER_FAST).until(() -> beamBreakSensor.get()),
           transfer.setState(Transfer.State.SHOOTER_SLOW)
           .alongWith(LEDs.setStateCommand(LEDs.State.SHOOTING))
@@ -155,7 +156,7 @@ public class RobotStateController extends SubsystemBase {
   }
 
   public boolean inRange() {
-    return shooter.inRange() && !swerveDrive.underStage();
+    return shooter.inRange();
   }
 
   @Override
