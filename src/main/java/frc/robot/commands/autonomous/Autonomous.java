@@ -268,7 +268,7 @@ public class Autonomous extends Command {
         // System.out.println("START");
         notesThatExist.remove(closestNote);
         notesToGet.remove(closestNote);
-        addDynamicObstacles();
+        // addDynamicObstacles();
         swerveDrive.setRotationTargetOverrideFromPointBackwards(Field.SPEAKER.get().toTranslation2d());
         // System.out.println("START 229");
       }),
@@ -401,7 +401,7 @@ public class Autonomous extends Command {
     // SwerveDrive.getField().getObject("futurePosition").setPoses(List.of(new Pose2d(futurePosition, swerveDrive.getPose().getRotation())));
     
     if (!command.isScheduled()) {
-      if ((state == State.PICKUP || (state == null && hasNote())) {
+      if (state == State.PICKUP || (state == null && hasNote())) {
         System.out.println("SHOOT");
         command.cancel();
         command = moveAndShoot();
