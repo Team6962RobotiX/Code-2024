@@ -15,7 +15,6 @@ import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -280,7 +279,7 @@ public class Autonomous extends Command {
         .raceWith(Commands.waitUntil(() -> hasNote())),
       Commands.runOnce(() -> {        
         if (swerveDrive.getPose().getTranslation().getDistance(notePosition) < Field.NOTE_LENGTH + Constants.SWERVE_DRIVE.BUMPER_LENGTH / 2.0) {
-          simHasNote = true;
+          // simHasNote = true;
         }
         notesThatExist.remove(closestNote);
         notesToGet.remove(closestNote);
@@ -312,7 +311,7 @@ public class Autonomous extends Command {
     Translation2d shotPosition = getClosestShootingPoint();
     Rotation2d heading = Field.SPEAKER.get().toTranslation2d().minus(shotPosition).getAngle().plus(Rotation2d.fromDegrees(180.0));
     Command moveToCommand = swerveDrive.goTo(new Pose2d(shotPosition, heading));
-    if (shotPosition.getDistance(swerveDrive.getPose().getTranslation()) < Units.inchesToMeters(6.0)) {
+    if (shotPosition.getDistance(swerveDrive.getPose().getTranslation()) < 3.0) {
       moveToCommand = Commands.runOnce(() -> {});
     }
     return Commands.sequence(
@@ -321,11 +320,13 @@ public class Autonomous extends Command {
         swerveDrive.setRotationTargetOverrideFromPointBackwards(Field.SPEAKER.get().toTranslation2d());
       }),
       Commands.parallel(
-        moveToCommand.until(() -> !controller.underStage() && swerveDrive.getFuturePose().getTranslation().getDistance(Field.SPEAKER.get().toTranslation2d()) < 4),
+        moveToCommand
+          .until(() -> !controller.underStage() && swerveDrive.getFuturePose().getTranslation().getDistance(Field.SPEAKER.get().toTranslation2d()) < 4)
+          .onlyIf(() -> !firstNote),
         Commands.parallel(
           controller.setState(RobotStateController.State.SPIN_UP),
           controller.setState(RobotStateController.State.AIM_SPEAKER)
-        ).until(() -> controller.canShoot() && swerveDrive.getFieldVelocity().getNorm() < 0.1)//,
+        ).until(() -> controller.canShoot() && swerveDrive.getFieldVelocity().getNorm() < 0.5)//,
         // controller.setState(RobotStateController.State.CENTER_NOTE).onlyIf(() -> RobotBase.isReal() && swerveDrive.getPose().getTranslation().getDistance(Field.SPEAKER.get().toTranslation2d()) > 4.5 && hasNote())
       ),
       Commands.waitSeconds(0.5).onlyIf(() -> firstNote),
@@ -333,7 +334,6 @@ public class Autonomous extends Command {
         .alongWith(Commands.runOnce(() -> {simHasNote = false; System.out.println("SHOOTING IN SPEAKER");}))
         .until(() -> !hasNote()),
       Commands.runOnce(() -> {
-        controller.setState(RobotStateController.State.SHOOT_SPEAKER).withTimeout(0.25).schedule();
         swerveDrive.setRotationTargetOverrideFromPointBackwards(null);
         firstNote = false;
       })
