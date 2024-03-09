@@ -182,10 +182,10 @@ public class Autonomous extends Command {
 
     boolean pathfind = false;
     if (Math.abs(swerveDrive.getPose().getX() - notePosition.getX()) > Field.NOTE_LENGTH * 2.0) {
-      if (swerveDrive.getPose().getTranslation().getDistance(notePosition) <= noteAvoidRadius + 0.3) {
-        pathfind = false;
-      }
       pathfind = true;
+      if (swerveDrive.getPose().getTranslation().getDistance(notePosition) <= noteAvoidRadius + 0.3) {
+        pathfind = false; 
+      }
     }
 
     // pathfind = false;
