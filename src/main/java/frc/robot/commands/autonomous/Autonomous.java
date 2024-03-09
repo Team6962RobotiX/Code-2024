@@ -55,7 +55,7 @@ public class Autonomous extends Command {
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
-    controller.setState(RobotStateController.State.LEAVE_AMP).schedule();
+    controller.setState(RobotStateController.State.LEAVE_AMP).withTimeout(1.0).schedule();
   }
 
   public void addDynamicObstacles() {
@@ -130,7 +130,7 @@ public class Autonomous extends Command {
   public Translation2d getRealNotePosition(Translation2d theoreticalPosition) {
     List<Translation2d> measuredNotePositions = Notes.getNotePositions(LIMELIGHT.NOTE_CAMERA_NAME, LIMELIGHT.NOTE_CAMERA_PITCH, swerveDrive, swerveDrive.getFieldVelocity(), LIMELIGHT.NOTE_CAMERA_POSITION);
 
-    if (RobotBase.isSimulation()) {
+    if (true) {
       measuredNotePositions = new ArrayList<>();
       for (Integer note : List.of(0, 1, 2, 3, 4, 5, 6, 7)) {
         if (shouldSeeNote(note)) {
@@ -175,7 +175,7 @@ public class Autonomous extends Command {
     middleSpline = middleSpline.plus(notePosition);
 
     Translation2d endSpline = Field.SPEAKER.get().toTranslation2d().minus(notePosition);
-    endSpline = endSpline.div(endSpline.getNorm()).times(Constants.SWERVE_DRIVE.BUMPER_LENGTH / 2.0 - Field.NOTE_LENGTH / 2.0);
+    endSpline = endSpline.div(endSpline.getNorm()).times(Constants.SWERVE_DRIVE.BUMPER_LENGTH / 2.0 - Field.NOTE_LENGTH);
     endSpline = endSpline.plus(notePosition);
     
     Command pathplannerCommand = Commands.runOnce(() -> {});
@@ -308,6 +308,19 @@ public class Autonomous extends Command {
       return Commands.runOnce(() -> {});
     }
 
+    if (firstNote) {
+      return Commands.sequence(
+        Commands.runOnce(() -> swerveDrive.setRotationTargetOverrideFromPointBackwards(Field.SPEAKER.get().toTranslation2d())),
+        Commands.waitSeconds(0.25),
+        controller.setState(RobotStateController.State.SHOOT_SPEAKER)
+          .alongWith(
+            Commands.runOnce(() -> simHasNote = false)
+          )
+          .until(() -> !hasNote()),
+        Commands.runOnce(() -> swerveDrive.setRotationTargetOverrideFromPointBackwards(null))
+      );
+    }
+
     Translation2d shotPosition = getClosestShootingPoint();
     Rotation2d heading = Field.SPEAKER.get().toTranslation2d().minus(shotPosition).getAngle().plus(Rotation2d.fromDegrees(180.0));
     Command moveToCommand = swerveDrive.goTo(new Pose2d(shotPosition, heading));
@@ -321,15 +334,13 @@ public class Autonomous extends Command {
       }),
       Commands.parallel(
         moveToCommand
-          .until(() -> !controller.underStage() && swerveDrive.getFuturePose().getTranslation().getDistance(Field.SPEAKER.get().toTranslation2d()) < 4)
-          .onlyIf(() -> !firstNote),
+          .until(() -> !controller.underStage() && swerveDrive.getFuturePose().getTranslation().getDistance(Field.SPEAKER.get().toTranslation2d()) < 4),
         Commands.parallel(
           controller.setState(RobotStateController.State.SPIN_UP),
           controller.setState(RobotStateController.State.AIM_SPEAKER)
         ).until(() -> controller.canShoot() && swerveDrive.getFieldVelocity().getNorm() < 0.5)//,
         // controller.setState(RobotStateController.State.CENTER_NOTE).onlyIf(() -> RobotBase.isReal() && swerveDrive.getPose().getTranslation().getDistance(Field.SPEAKER.get().toTranslation2d()) > 4.5 && hasNote())
       ),
-      Commands.waitSeconds(0.5).onlyIf(() -> firstNote),
       controller.setState(RobotStateController.State.SHOOT_SPEAKER)
         .alongWith(Commands.runOnce(() -> {simHasNote = false; System.out.println("SHOOTING IN SPEAKER");}))
         .until(() -> !hasNote()),
@@ -376,6 +387,7 @@ public class Autonomous extends Command {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
+    System.out.println(simHasNote);
     // getRealNotePosition(Field.SPEAKER.get().toTranslation2d());
     // System.out.println(controller.canShoot());
     // FieldObject2d visibleNotes = SwerveDrive.getField().getObject("visibleNotes");
@@ -401,6 +413,7 @@ public class Autonomous extends Command {
       }
       if ((state == State.SHOOT || (state == null && !hasNote())) && !notesToGet.isEmpty()) {
         System.out.println("PICKUP");
+        firstNote = false;
         state = State.PICKUP;
         command = pickupNote(Field.NOTE_POSITIONS.get(getNextClosestNote()).get());
         command.schedule();
@@ -442,10 +455,10 @@ public class Autonomous extends Command {
 
   public boolean hasNote() {
     // return false;
-    if (RobotBase.isReal()) {
-      return controller.hasNote();
-    } else {
+    if (RobotBase.isSimulation()) {
       return simHasNote;
+    } else {
+      return controller.hasNote();
     }
   }
 }
