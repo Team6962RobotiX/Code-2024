@@ -130,7 +130,7 @@ public class Autonomous extends Command {
   public Translation2d getRealNotePosition(Translation2d theoreticalPosition) {
     List<Translation2d> measuredNotePositions = Notes.getNotePositions(LIMELIGHT.NOTE_CAMERA_NAME, LIMELIGHT.NOTE_CAMERA_PITCH, swerveDrive, swerveDrive.getFieldVelocity(), LIMELIGHT.NOTE_CAMERA_POSITION);
 
-    if (RobotBase.isSimulation()) {
+    if (true) { // use for sim?
       measuredNotePositions = new ArrayList<>();
       for (Integer note : List.of(0, 1, 2, 3, 4, 5, 6, 7)) {
         if (shouldSeeNote(note)) {

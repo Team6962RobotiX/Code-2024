@@ -28,6 +28,7 @@ public class RobotStateController extends SubsystemBase {
   private Debouncer beamBreakDebouncer = new Debouncer(0.05);
   private boolean isAiming;
   private Debouncer shotDebouncer = new Debouncer(0.02);
+  private State currentState;
 
   public enum State {
     INTAKE,
@@ -62,6 +63,7 @@ public class RobotStateController extends SubsystemBase {
    */
 
   public Command setState(State state) {
+    currentState = state;
     switch(state) {
       case INTAKE:
         return Commands.parallel(
@@ -125,6 +127,10 @@ public class RobotStateController extends SubsystemBase {
       default:
         return Commands.run(() -> {});
     }
+  }
+
+  public State getState() {
+    return currentState;
   }
 
   public boolean hasNote() {
