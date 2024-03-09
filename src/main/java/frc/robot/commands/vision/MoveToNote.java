@@ -11,6 +11,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import frc.robot.Constants.Constants;
 import frc.robot.Constants.Constants.LIMELIGHT;
 import frc.robot.Constants.Field;
 import frc.robot.subsystems.RobotStateController;
@@ -53,10 +54,16 @@ public class MoveToNote extends Command {
       Translation2d targetPoint = swerveDrive.getPose().getTranslation().nearest(notePositions);
 
       if (targetingNote == null || targetPoint.getDistance(targetingNote) > Field.NOTE_LENGTH) {
+        Translation2d endSpline = swerveDrive.getPose().getTranslation().minus(targetPoint);
+        endSpline = endSpline.div(endSpline.getNorm()).times(Constants.SWERVE_DRIVE.BUMPER_LENGTH / 2.0);
+        endSpline = endSpline.plus(targetPoint);
+
+        final Translation2d endSplineFinal = endSpline;
+
         targetingNote = targetPoint;
         goToCommand.cancel();
-        goToCommand = Commands.runOnce(() -> swerveDrive.setRotationTargetOverrideFromPoint(targetPoint))
-          .andThen(swerveDrive.goToSimple(new Pose2d(targetingNote, swerveDrive.getHeading())).until(() -> stateController.hasNote()))
+        goToCommand = Commands.runOnce(() -> swerveDrive.setRotationTargetOverrideFromPoint(endSplineFinal))
+          .andThen(swerveDrive.goToSimple(new Pose2d(endSpline, swerveDrive.getHeading())).until(() -> stateController.hasNote()))
           .finallyDo(() -> swerveDrive.setRotationTargetOverrideFromPoint(null));
         goToCommand.schedule();
       }
