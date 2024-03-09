@@ -267,6 +267,8 @@ public class Autonomous extends Command {
     return Commands.sequence(
       Commands.runOnce(() -> {
         // System.out.println("START");
+        notesThatExist.remove(closestNote);
+        notesToGet.remove(closestNote);
         addDynamicObstacles();
         swerveDrive.setRotationTargetOverrideFromPointBackwards(Field.SPEAKER.get().toTranslation2d());
         // System.out.println("START 229");
@@ -281,8 +283,6 @@ public class Autonomous extends Command {
         if (swerveDrive.getPose().getTranslation().getDistance(notePosition) < Field.NOTE_LENGTH + Constants.SWERVE_DRIVE.BUMPER_LENGTH / 2.0) {
           simHasNote = true;
         }
-        notesThatExist.remove(closestNote);
-        notesToGet.remove(closestNote);
         visionNotePosition = null;
         // addDynamicObstacles();
         // System.out.println("STOP");
