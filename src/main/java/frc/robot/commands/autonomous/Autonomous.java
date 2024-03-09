@@ -17,7 +17,6 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.RobotBase;
-import edu.wpi.first.wpilibj.smartdashboard.FieldObject2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.Constants.Constants;
@@ -329,7 +328,7 @@ public class Autonomous extends Command {
         ).until(() -> controller.canShoot() && swerveDrive.getFieldVelocity().getNorm() < 0.1)//,
         // controller.setState(RobotStateController.State.CENTER_NOTE).onlyIf(() -> RobotBase.isReal() && swerveDrive.getPose().getTranslation().getDistance(Field.SPEAKER.get().toTranslation2d()) > 4.5 && hasNote())
       ),
-      Commands.waitSeconds(0.25).onlyIf(() -> firstNote),
+      Commands.waitSeconds(0.5).onlyIf(() -> firstNote),
       controller.setState(RobotStateController.State.SHOOT_SPEAKER)
         .alongWith(Commands.runOnce(() -> {simHasNote = false; System.out.println("SHOOTING IN SPEAKER");}))
         .until(() -> !hasNote()),
@@ -379,14 +378,14 @@ public class Autonomous extends Command {
   public void execute() {
     // getRealNotePosition(Field.SPEAKER.get().toTranslation2d());
     // System.out.println(controller.canShoot());
-    FieldObject2d visibleNotes = SwerveDrive.getField().getObject("visibleNotes");
-    List<Pose2d> poses = new ArrayList<>();
-    for (Integer note : List.of(0, 1, 2, 3, 4, 5, 6, 7)) {
-      if (shouldSeeNote(note)) {
-        poses.add(new Pose2d(Field.NOTE_POSITIONS.get(note).get().plus(new Translation2d(0.0, 0.0)), new Rotation2d()));
-      }
-    }
-    visibleNotes.setPoses(poses);
+    // FieldObject2d visibleNotes = SwerveDrive.getField().getObject("visibleNotes");
+    // List<Pose2d> poses = new ArrayList<>();
+    // for (Integer note : List.of(0, 1, 2, 3, 4, 5, 6, 7)) {
+    //   if (shouldSeeNote(note)) {
+    //     poses.add(new Pose2d(Field.NOTE_POSITIONS.get(note).get().plus(new Translation2d(0.0, 0.0)), new Rotation2d()));
+    //   }
+    // }
+    // visibleNotes.setPoses(poses);
 
     // Translation2d futurePosition = swerveDrive.getPose().getTranslation();
     // futurePosition = futurePosition.plus(swerveDrive.getFieldVelocity().times(swerveDrive.getFieldVelocity().getNorm()).div(2.0 * Constants.SWERVE_DRIVE.PHYSICS.MAX_LINEAR_ACCELERATION));
