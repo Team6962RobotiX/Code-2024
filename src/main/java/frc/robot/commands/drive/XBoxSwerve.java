@@ -110,44 +110,7 @@ public class XBoxSwerve extends Command {
     }
 
     if (!controller.getBackButton()) {
-      if (!Constants.IS_BLUE_TEAM.get()) {
-        velocity = velocity.rotateBy(Rotation2d.fromDegrees(180.0));
-      }
-
-      double mag = velocity.getNorm();
-      List<Translation2d> stagePillars = new ArrayList<>();
-      for (Translation2d pillar : Field.BLUE_STAGE_CORNERS) stagePillars.add(pillar);
-      for (Translation2d pillar : Field.RED_STAGE_CORNERS) stagePillars.add(pillar);
-      for (Translation2d pillar : stagePillars) {
-        double bubbleRadius = 
-          Units.inchesToMeters(6.0) + 
-          Math.hypot(Constants.SWERVE_DRIVE.BUMPER_WIDTH, Constants.SWERVE_DRIVE.BUMPER_LENGTH) / 2.0 +
-          (swerveDrive.getPose().getTranslation().getDistance(pillar) - swerveDrive.getFuturePose().getTranslation().getDistance(pillar)) * 2.0;
-        if (bubbleRadius < 0) continue;
-        if (swerveDrive.getPose().getTranslation().getDistance(pillar) > bubbleRadius) continue;
-        Translation2d force = swerveDrive.getPose().getTranslation().minus(pillar);
-        force = force.div(force.getNorm()).times(mag);
-        velocity = velocity.plus(force);
-      }
-      if (mag != 0.0) {
-        velocity = velocity.div(velocity.getNorm()).times(mag);
-      }
-
-      if (!Constants.IS_BLUE_TEAM.get()) {
-        velocity = velocity.rotateBy(Rotation2d.fromDegrees(-180.0));
-      }
-
-      if (
-        (swerveDrive.getFuturePose().getX() > Field.LENGTH - Constants.SWERVE_DRIVE.BUMPER_DIAGONAL / 2.0 && swerveDrive.getFieldVelocity().getX() > 0.05) || 
-        (swerveDrive.getFuturePose().getY() > Field.WIDTH - Constants.SWERVE_DRIVE.BUMPER_DIAGONAL / 2.0 && swerveDrive.getFieldVelocity().getY() > 0.05) || 
-        (swerveDrive.getFuturePose().getX() < Constants.SWERVE_DRIVE.BUMPER_DIAGONAL / 2.0 && swerveDrive.getFieldVelocity().getX() < -0.05) || 
-        (swerveDrive.getFuturePose().getY() < Constants.SWERVE_DRIVE.BUMPER_DIAGONAL / 2.0 && swerveDrive.getFieldVelocity().getY() < -0.05) ||
-        (MathUtils.isInsideTriangle(Field.RED_SOURCE_AVOID_CORNERS[0], Field.RED_SOURCE_AVOID_CORNERS[1], Field.RED_SOURCE_AVOID_CORNERS[2], swerveDrive.getFuturePose().getTranslation()) && (swerveDrive.getFieldVelocity().getX() < -0.05 || swerveDrive.getFieldVelocity().getY() < -0.05)) ||
-        (MathUtils.isInsideTriangle(Field.BLUE_SOURCE_AVOID_CORNERS[0], Field.BLUE_SOURCE_AVOID_CORNERS[1], Field.BLUE_SOURCE_AVOID_CORNERS[2], swerveDrive.getFuturePose().getTranslation()) && (swerveDrive.getFieldVelocity().getX() > 0.05 || swerveDrive.getFieldVelocity().getY() < -0.05))
-      ) {
-        velocity = velocity.div(5.0);
-        // velocity = new Translation2d();
-      }
+      velocity = avoidObstacles(velocity, swerveDrive);
     }
     
     swerveDrive.driveFieldRelative(velocity.getX(), velocity.getY(), angularVelocity);
@@ -169,5 +132,47 @@ public class XBoxSwerve extends Command {
   @Override
   public boolean isFinished() {
     return false;
+  }
+
+  public static Translation2d avoidObstacles(Translation2d velocity, SwerveDrive swerveDrive) {
+    if (!Constants.IS_BLUE_TEAM.get()) {
+      velocity = velocity.rotateBy(Rotation2d.fromDegrees(180.0));
+    }
+
+    double mag = velocity.getNorm();
+    List<Translation2d> stagePillars = new ArrayList<>();
+    for (Translation2d pillar : Field.BLUE_STAGE_CORNERS) stagePillars.add(pillar);
+    for (Translation2d pillar : Field.RED_STAGE_CORNERS) stagePillars.add(pillar);
+    for (Translation2d pillar : stagePillars) {
+      double bubbleRadius = 
+        Units.inchesToMeters(6.0) + 
+        Constants.SWERVE_DRIVE.BUMPER_DIAGONAL / 2.0 +
+        (swerveDrive.getPose().getTranslation().getDistance(pillar) - swerveDrive.getFuturePose().getTranslation().getDistance(pillar)) * 2.0;
+      if (bubbleRadius < 0) continue;
+      if (swerveDrive.getPose().getTranslation().getDistance(pillar) > bubbleRadius) continue;
+      Translation2d force = swerveDrive.getPose().getTranslation().minus(pillar);
+      force = force.div(force.getNorm()).times(mag);
+      velocity = velocity.plus(force);
+    }
+    if (mag != 0.0) {
+      velocity = velocity.div(velocity.getNorm()).times(mag);
+    }
+
+    if (!Constants.IS_BLUE_TEAM.get()) {
+      velocity = velocity.rotateBy(Rotation2d.fromDegrees(-180.0));
+    }
+
+    if (
+      (swerveDrive.getFuturePose().getX() > Field.LENGTH - Constants.SWERVE_DRIVE.BUMPER_DIAGONAL / 2.0 && swerveDrive.getFieldVelocity().getX() > 0.05) || 
+      (swerveDrive.getFuturePose().getY() > Field.WIDTH - Constants.SWERVE_DRIVE.BUMPER_DIAGONAL / 2.0 && swerveDrive.getFieldVelocity().getY() > 0.05) || 
+      (swerveDrive.getFuturePose().getX() < Constants.SWERVE_DRIVE.BUMPER_DIAGONAL / 2.0 && swerveDrive.getFieldVelocity().getX() < -0.05) || 
+      (swerveDrive.getFuturePose().getY() < Constants.SWERVE_DRIVE.BUMPER_DIAGONAL / 2.0 && swerveDrive.getFieldVelocity().getY() < -0.05) ||
+      (MathUtils.isInsideTriangle(Field.RED_SOURCE_AVOID_CORNERS[0], Field.RED_SOURCE_AVOID_CORNERS[1], Field.RED_SOURCE_AVOID_CORNERS[2], swerveDrive.getFuturePose().getTranslation()) && (swerveDrive.getFieldVelocity().getX() < -0.05 || swerveDrive.getFieldVelocity().getY() < -0.05)) ||
+      (MathUtils.isInsideTriangle(Field.BLUE_SOURCE_AVOID_CORNERS[0], Field.BLUE_SOURCE_AVOID_CORNERS[1], Field.BLUE_SOURCE_AVOID_CORNERS[2], swerveDrive.getFuturePose().getTranslation()) && (swerveDrive.getFieldVelocity().getX() > 0.05 || swerveDrive.getFieldVelocity().getY() < -0.05))
+    ) {
+      velocity = velocity.div(5.0);
+      // velocity = new Translation2d();
+    }
+    return velocity;
   }
 }

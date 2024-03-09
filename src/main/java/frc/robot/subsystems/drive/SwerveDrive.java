@@ -51,6 +51,7 @@ import frc.robot.Constants.Constants.ENABLED_SYSTEMS;
 import frc.robot.Constants.Constants.LIMELIGHT;
 import frc.robot.Constants.Constants.SWERVE_DRIVE;
 import frc.robot.Constants.Field;
+import frc.robot.commands.drive.XBoxSwerve;
 import frc.robot.subsystems.vision.AprilTags;
 import frc.robot.subsystems.vision.Notes;
 import frc.robot.util.software.CustomSwerveDrivePoseEstimator;
@@ -297,6 +298,14 @@ public class SwerveDrive extends SubsystemBase {
   }
 
   private void driveAttainableSpeeds(ChassisSpeeds fieldRelativeSpeeds) {
+    if (RobotState.isAutonomous()) {
+      Translation2d velocity = XBoxSwerve.avoidObstacles(new Translation2d(
+        fieldRelativeSpeeds.vxMetersPerSecond,
+        fieldRelativeSpeeds.vyMetersPerSecond
+      ), this);
+      fieldRelativeSpeeds = new ChassisSpeeds(velocity.getX(), velocity.getY(), fieldRelativeSpeeds.omegaRadiansPerSecond);
+    }
+
     isDriven = true;
 
     if (RobotState.isAutonomous() && rotationOverridePoint != null) {
