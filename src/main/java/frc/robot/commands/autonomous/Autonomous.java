@@ -273,7 +273,7 @@ public class Autonomous extends Command {
       pathplannerCommand
         .raceWith(Commands.sequence(
           Commands.waitUntil(() -> swerveDrive.getPose().getTranslation().getDistance(notePosition) < robotDiagonal + Field.NOTE_LENGTH),
-          controller.setState(RobotStateController.State.INTAKE).onlyIf(() -> !RobotBase.isSimulation())
+          controller.setState(RobotStateController.State.INTAKE)
         ))
         .raceWith(Commands.waitUntil(() -> hasNote())),
       Commands.runOnce(() -> {        
@@ -326,7 +326,7 @@ public class Autonomous extends Command {
         ).until(() -> controller.canShoot() && swerveDrive.getFieldVelocity().getNorm() < 0.1)//,
         // controller.setState(RobotStateController.State.CENTER_NOTE).onlyIf(() -> RobotBase.isReal() && swerveDrive.getPose().getTranslation().getDistance(Field.SPEAKER.get().toTranslation2d()) > 4.5 && hasNote())
       ),
-      Commands.waitSeconds(0.5).onlyIf(() -> firstNote),
+      Commands.waitSeconds(0.25).onlyIf(() -> firstNote),
       controller.setState(RobotStateController.State.SHOOT_SPEAKER)
         .alongWith(Commands.runOnce(() -> {simHasNote = false; System.out.println("SHOOTING IN SPEAKER");}))
         .until(() -> !hasNote()),
@@ -439,6 +439,7 @@ public class Autonomous extends Command {
   }
 
   public boolean hasNote() {
+    // return false;
     if (RobotBase.isReal()) {
       return controller.hasNote();
     } else {
