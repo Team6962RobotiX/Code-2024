@@ -102,6 +102,14 @@ public class XBoxSwerve extends Command {
       // swerveDrive.goToNearestPose(List.of(Field.AUTO_MOVE_POSITIONS.values().toArray(new Pose2d[] {})), controller).schedule();
     }
 
+    if (RobotBase.isSimulation()) {
+      if (Constants.IS_BLUE_TEAM.get()) {
+        velocity = velocity.rotateBy(Rotation2d.fromDegrees(90.0));
+      } else {
+        velocity = velocity.rotateBy(Rotation2d.fromDegrees(-90.0));
+      }
+    }
+
     if (!controller.getBackButton()) {
       if (!Constants.IS_BLUE_TEAM.get()) {
         velocity = velocity.rotateBy(Rotation2d.fromDegrees(180.0));
@@ -129,13 +137,25 @@ public class XBoxSwerve extends Command {
       if (!Constants.IS_BLUE_TEAM.get()) {
         velocity = velocity.rotateBy(Rotation2d.fromDegrees(-180.0));
       }
+
+      if (
+        (swerveDrive.getFuturePose().getX() > Field.LENGTH - Constants.SWERVE_DRIVE.BUMPER_DIAGONAL / 2.0 && swerveDrive.getFieldVelocity().getX() > 0.05) || 
+        (swerveDrive.getFuturePose().getY() > Field.WIDTH - Constants.SWERVE_DRIVE.BUMPER_DIAGONAL / 2.0 && swerveDrive.getFieldVelocity().getY() > 0.05) || 
+        (swerveDrive.getFuturePose().getX() < Constants.SWERVE_DRIVE.BUMPER_DIAGONAL / 2.0 && swerveDrive.getFieldVelocity().getX() < -0.05) || 
+        (swerveDrive.getFuturePose().getY() < Constants.SWERVE_DRIVE.BUMPER_DIAGONAL / 2.0 && swerveDrive.getFieldVelocity().getY() < -0.05) ||
+        (MathUtils.isInsideTriangle(Field.RED_SOURCE_AVOID_CORNERS[0], Field.RED_SOURCE_AVOID_CORNERS[1], Field.RED_SOURCE_AVOID_CORNERS[2], swerveDrive.getFuturePose().getTranslation()) && (swerveDrive.getFieldVelocity().getX() < -0.05 || swerveDrive.getFieldVelocity().getY() < -0.05)) ||
+        (MathUtils.isInsideTriangle(Field.BLUE_SOURCE_AVOID_CORNERS[0], Field.BLUE_SOURCE_AVOID_CORNERS[1], Field.BLUE_SOURCE_AVOID_CORNERS[2], swerveDrive.getFuturePose().getTranslation()) && (swerveDrive.getFieldVelocity().getX() > 0.05 || swerveDrive.getFieldVelocity().getY() < -0.05))
+      ) {
+        velocity = velocity.div(5.0);
+        // velocity = new Translation2d();
+      }
     }
     
     swerveDrive.driveFieldRelative(velocity.getX(), velocity.getY(), angularVelocity);
     // if (leftStick.getNorm() > 0.05 && (controller.getLeftBumper() || controller.getRightBumper())) {
     //   swerveDrive.setTargetHeading(leftStick.getAngle());
     // }
-
+    
     angularVelocity = 0.0;
     velocity = new Translation2d();
 

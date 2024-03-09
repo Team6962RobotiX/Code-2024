@@ -67,6 +67,18 @@ public final class Field {
     new Translation2d(LENGTH - 5.6, 2.8)
   };
 
+  public static final Translation2d[] BLUE_SOURCE_AVOID_CORNERS = {
+    new Translation2d(LENGTH - 0, 0),
+    new Translation2d(LENGTH - 0, 1 + Constants.SWERVE_DRIVE.BUMPER_DIAGONAL),
+    new Translation2d(LENGTH - (1.8 +  Constants.SWERVE_DRIVE.BUMPER_DIAGONAL), 0)
+  };
+
+  public static final Translation2d[] RED_SOURCE_AVOID_CORNERS = {
+    new Translation2d(0, 0),
+    new Translation2d(0, 1 + Constants.SWERVE_DRIVE.BUMPER_DIAGONAL),
+    new Translation2d(1.8 + Constants.SWERVE_DRIVE.BUMPER_DIAGONAL, 0)
+  };
+
 
   public static final Supplier<Translation3d> SPEAKER = point3d(0.23, WIDTH / 2.0 + Units.inchesToMeters(57) * 1.0, 2.055);
 
