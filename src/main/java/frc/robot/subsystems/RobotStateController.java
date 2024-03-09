@@ -29,6 +29,10 @@ public class RobotStateController extends SubsystemBase {
   private boolean isAiming;
   private Debouncer shotDebouncer = new Debouncer(0.02);
   private State currentState;
+  // private static ShuffleboardTab tab = Shuffleboard.getTab("Auto");
+  // private static SimpleWidget hasNote = tab.add("has Note", true).withWidget(BuiltInWidgets.kToggleButton).withSize(1, 1).withPosition(0, 0);
+
+
 
   public enum State {
     INTAKE,
@@ -121,14 +125,12 @@ public class RobotStateController extends SubsystemBase {
           Commands.waitUntil(() -> canShoot() && swerveDrive.getFieldVelocity().getNorm() < 0.25),
           transfer.setState(Transfer.State.SHOOTER_FAST).until(() -> beamBreakSensor.get()),
           transfer.setState(Transfer.State.SHOOTER_SLOW)
-          .raceWith(LEDs.setStateCommand(LEDs.State.RUNNING_COMMAND))
-        );
+        ).raceWith(LEDs.setStateCommand(LEDs.State.RUNNING_COMMAND));
       case SHOOT_SPEAKER_OVERRIDE:
         return Commands.sequence(
           transfer.setState(Transfer.State.SHOOTER_FAST).until(() -> beamBreakSensor.get()),
           transfer.setState(Transfer.State.SHOOTER_SLOW)
-          .raceWith(LEDs.setStateCommand(LEDs.State.RUNNING_COMMAND))
-        );
+        ).raceWith(LEDs.setStateCommand(LEDs.State.RUNNING_COMMAND));
       case SPIN_UP:
         return shooter.setState(Shooter.State.SPIN_UP);
       default:
@@ -141,6 +143,9 @@ public class RobotStateController extends SubsystemBase {
   }
 
   public boolean hasNote() {
+    // if (RobotBase.isSimulation()) {
+    //   return hasNote.getEntry().getBoolean(false);
+    // }
     return beamBreakDebouncer.calculate(!beamBreakSensor.get());
   }
 
