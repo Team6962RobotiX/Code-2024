@@ -118,6 +118,8 @@ public class Controls {
       .withWidget(BuiltInWidgets.kBooleanBox)
       .withPosition(0, 3)
       .withSize(3, 1);
+
+    driverTab.addString("Current State", () -> stateController.getState().name());
   }
 
   private static Command rumble(CommandXboxController controller) {
