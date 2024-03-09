@@ -38,6 +38,7 @@ public class RobotStateController extends SubsystemBase {
     LEAVE_AMP,
     AIM_SPEAKER,
     SHOOT_SPEAKER,
+    SHOOT_SPEAKER_OVERRIDE,
     SPIN_UP,
     PREPARE_SOURCE,
     INTAKE_SOURCE,
@@ -122,6 +123,12 @@ public class RobotStateController extends SubsystemBase {
           transfer.setState(Transfer.State.SHOOTER_SLOW)
           .raceWith(LEDs.setStateCommand(LEDs.State.RUNNING_COMMAND))
         );
+      case SHOOT_SPEAKER_OVERRIDE:
+        return Commands.sequence(
+          transfer.setState(Transfer.State.SHOOTER_FAST).until(() -> beamBreakSensor.get()),
+          transfer.setState(Transfer.State.SHOOTER_SLOW)
+          .raceWith(LEDs.setStateCommand(LEDs.State.RUNNING_COMMAND))
+        );
       case SPIN_UP:
         return shooter.setState(Shooter.State.SPIN_UP);
       default:
@@ -157,9 +164,9 @@ public class RobotStateController extends SubsystemBase {
     // if (swerveDrive.underStage()) {
     //   return 0.0;
     // }
-    if (!hasNote() && !RobotBase.isSimulation()) {
-      return 0.0;
-    }
+    // if (!hasNote() && !RobotBase.isSimulation()) {
+    //   return 0.0;
+    // }
     return shooter.getShotChance();
   }
 

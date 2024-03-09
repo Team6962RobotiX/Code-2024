@@ -35,8 +35,8 @@ public class Autonomous extends Command {
   private double noteAvoidRadius = (Field.NOTE_LENGTH / 2.0 + Math.max(Constants.SWERVE_DRIVE.BUMPER_LENGTH, Constants.SWERVE_DRIVE.BUMPER_WIDTH) / 2.0);
   private Command command = Commands.runOnce(() -> {});
   private Translation2d visionNotePosition;
-  private boolean simHasNote = true;
-  private boolean firstNote = true;
+  private boolean simHasNote = false;
+  private boolean firstNote = false;
 
   private enum State {
     SHOOT,
@@ -112,7 +112,6 @@ public class Autonomous extends Command {
     if (notesToGet.isEmpty()) {
       return swerveDrive.getPose().getTranslation().nearest(shotPositions);
     }
-    
 
     Translation2d closestPoint = Field.SHOT_POSITIONS.get(0).get();
     double bestWeight = Double.MAX_VALUE;
@@ -130,7 +129,7 @@ public class Autonomous extends Command {
   public Translation2d getRealNotePosition(Translation2d theoreticalPosition) {
     List<Translation2d> measuredNotePositions = Notes.getNotePositions(LIMELIGHT.NOTE_CAMERA_NAME, LIMELIGHT.NOTE_CAMERA_PITCH, swerveDrive, swerveDrive.getFieldVelocity(), LIMELIGHT.NOTE_CAMERA_POSITION);
 
-    if (true) {
+    if (RobotBase.isSimulation()) {
       measuredNotePositions = new ArrayList<>();
       for (Integer note : List.of(0, 1, 2, 3, 4, 5, 6, 7)) {
         if (shouldSeeNote(note)) {
@@ -311,11 +310,9 @@ public class Autonomous extends Command {
     if (firstNote) {
       return Commands.sequence(
         Commands.runOnce(() -> swerveDrive.setRotationTargetOverrideFromPointBackwards(Field.SPEAKER.get().toTranslation2d())),
-        Commands.waitSeconds(0.25),
-        controller.setState(RobotStateController.State.SHOOT_SPEAKER)
-          .alongWith(
-            Commands.runOnce(() -> simHasNote = false)
-          )
+        Commands.waitSeconds(1.0),
+        controller.setState(RobotStateController.State.SHOOT_SPEAKER_OVERRIDE)
+          .alongWith(Commands.runOnce(() -> simHasNote = false))
           .until(() -> !hasNote()),
         Commands.runOnce(() -> swerveDrive.setRotationTargetOverrideFromPointBackwards(null))
       );
@@ -341,7 +338,7 @@ public class Autonomous extends Command {
         ).until(() -> controller.canShoot() && swerveDrive.getFieldVelocity().getNorm() < 0.5)//,
         // controller.setState(RobotStateController.State.CENTER_NOTE).onlyIf(() -> RobotBase.isReal() && swerveDrive.getPose().getTranslation().getDistance(Field.SPEAKER.get().toTranslation2d()) > 4.5 && hasNote())
       ),
-      controller.setState(RobotStateController.State.SHOOT_SPEAKER)
+      controller.setState(RobotStateController.State.SHOOT_SPEAKER_OVERRIDE)
         .alongWith(Commands.runOnce(() -> {simHasNote = false; System.out.println("SHOOTING IN SPEAKER");}))
         .until(() -> !hasNote()),
       Commands.runOnce(() -> {
@@ -387,7 +384,7 @@ public class Autonomous extends Command {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    System.out.println(simHasNote);
+    // System.out.println(simHasNote);
     // getRealNotePosition(Field.SPEAKER.get().toTranslation2d());
     // System.out.println(controller.canShoot());
     // FieldObject2d visibleNotes = SwerveDrive.getField().getObject("visibleNotes");
@@ -404,8 +401,9 @@ public class Autonomous extends Command {
     // SwerveDrive.getField().getObject("futurePosition").setPoses(List.of(new Pose2d(futurePosition, swerveDrive.getPose().getRotation())));
     
     if (!command.isScheduled()) {
-      if (state == State.PICKUP || (state == null && hasNote())) {
+      if ((state == State.PICKUP || (state == null && hasNote())) {
         System.out.println("SHOOT");
+        command.cancel();
         command = moveAndShoot();
         command.schedule();
         state = State.SHOOT;
@@ -415,6 +413,7 @@ public class Autonomous extends Command {
         System.out.println("PICKUP");
         firstNote = false;
         state = State.PICKUP;
+        command.cancel();
         command = pickupNote(Field.NOTE_POSITIONS.get(getNextClosestNote()).get());
         command.schedule();
         return;
