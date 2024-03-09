@@ -216,7 +216,7 @@ public final class Constants {
       new MODULE_CONFIG(0, 31, 32, 33, -0.061523),
       new MODULE_CONFIG(1, 34, 35, 36, 0.246582),
       new MODULE_CONFIG(2, 37, 38, 39, -0.348633),
-      new MODULE_CONFIG(3, 40, 41, 42, -0.21875),
+      new MODULE_CONFIG(3, 40, 41, 42, -0.224854),
       new MODULE_CONFIG(4, 43, 44, 45, -0.5917972222),
       new MODULE_CONFIG(5, 46, 47, 48, -0.1811527778),
       new MODULE_CONFIG(6, 49, 50, 51, 0.1533194444),
