@@ -21,7 +21,7 @@ public class AprilTags extends SubsystemBase {
   public static void injectVisionData(Map<String, Pose3d> cameraPoses, SwerveDrive swerveDrive) {
     List<LimelightHelpers.PoseEstimate> poseEstimates = cameraPoses.keySet().stream().map(LimelightHelpers::getBotPoseEstimate_wpiBlue).collect(Collectors.toList());
 
-    if (swerveDrive.getRotationalVelocity() > 0.5) return;
+    if (swerveDrive.getRotationalVelocity() > 1.0) return;
 
     int tagCount = 0;
     for (PoseEstimate poseEstimate : poseEstimates) {
