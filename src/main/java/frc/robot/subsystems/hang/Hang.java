@@ -9,7 +9,6 @@ import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
 
-import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.RobotState;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -92,14 +91,8 @@ public class Hang extends SubsystemBase {
         leftMotorPower = Preferences.HANG.LEFT_MOTOR_EXTEND_POWER;
         break;
       case RETRACT:
-        gyroRotation = gyro.getRoll();
-        if (gyroRotation > 0) {
-          leftMotorPower = -Math.abs(Math.cos(Units.degreesToRadians(gyroRotation)));
-          rightMotorPower = -1.0;
-        } else {
-          rightMotorPower = -Math.abs(Math.cos(Units.degreesToRadians(gyroRotation)));
-          leftMotorPower = -1.0;
-        }
+        rightMotorPower = -1.0;
+        leftMotorPower = -1.0;
 
         // // if it's tilting to the left and it can still retract
         // if (gyroRotation > Preferences.HANG.MAX_ROLL_ANGLE) {
