@@ -123,7 +123,7 @@ public class Controls {
   private static Command rumble(CommandXboxController controller) {
     return Commands.runEnd(() -> {
       controller.getHID().setRumble(RumbleType.kBothRumble, 1.0);
-      LEDs.setState(LEDs.State.GREEN);
+      LEDs.setState(LEDs.State.GOOD);
     },
     () -> {
       controller.getHID().setRumble(RumbleType.kBothRumble, 0.0);
@@ -135,7 +135,7 @@ public class Controls {
     return Commands.runEnd(() -> {
       if (booleanSupplier.getAsBoolean()) {
         controller.getHID().setRumble(RumbleType.kBothRumble, 1.0);
-        LEDs.setState(LEDs.State.GREEN);
+        LEDs.setState(LEDs.State.GOOD);
       } else {
         controller.getHID().setRumble(RumbleType.kBothRumble, 0.0);
       }

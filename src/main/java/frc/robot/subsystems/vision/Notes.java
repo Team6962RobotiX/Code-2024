@@ -10,6 +10,7 @@ import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Timer;
 import frc.robot.Constants.Field;
+import frc.robot.subsystems.LEDs;
 import frc.robot.subsystems.drive.SwerveDrive;
 import frc.robot.util.software.LimelightHelpers;
 import frc.robot.util.software.LimelightHelpers.LimelightTarget_Detector;
@@ -39,8 +40,10 @@ public class Notes {
       Pose2d robotPosition = swerveDrive.getPose(Timer.getFPGATimestamp() - latency);
       Translation2d notePosition = robotPosition.getTranslation().plus(relativePosition.rotateBy(robotPosition.getRotation()));
       notePositions.add(notePosition);
+      
+      LEDs.setState(LEDs.State.CAN_SEE_NOTE);
     }
-    
+
     return notePositions;
   }
 }

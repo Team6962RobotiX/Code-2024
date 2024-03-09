@@ -16,7 +16,6 @@ import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants.Constants;
 import frc.robot.Constants.Field;
 import frc.robot.Constants.Preferences;
-import frc.robot.subsystems.LEDs;
 import frc.robot.subsystems.RobotStateController;
 import frc.robot.subsystems.drive.SwerveDrive;
 import frc.robot.subsystems.drive.SwerveModule;
@@ -158,10 +157,6 @@ public class XBoxSwerve extends Command {
     
     angularVelocity = 0.0;
     velocity = new Translation2d();
-
-    if (swerveDrive.getFieldVelocity().getNorm() > 0) {
-      LEDs.setState(LEDs.State.DRIVING_TELEOP);
-    }
   }
 
   // Called once the command ends or is interrupted.

@@ -1,6 +1,7 @@
 package frc.robot.subsystems;
 
 import edu.wpi.first.math.filter.Debouncer;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.RobotState;
@@ -66,7 +67,7 @@ public class RobotStateController extends SubsystemBase {
         return Commands.parallel(
           transfer.setState(Transfer.State.IN),
           amp.setState(Amp.State.DOWN)
-        ).until(() -> hasNote()).andThen(Commands.runOnce(() -> Controls.rumbleBoth().schedule()));
+        ).until(() -> hasNote()).raceWith(LEDs.setStateCommand(LEDs.State.RUNNING_COMMAND)).andThen(Commands.runOnce(() -> Controls.rumbleBoth().schedule()));
       case CENTER_NOTE:
         return Commands.sequence(
           amp.setState(Amp.State.DOWN),
@@ -78,7 +79,7 @@ public class RobotStateController extends SubsystemBase {
           ).until(() -> hasNote()),
           transfer.setState(Transfer.State.FROM_AMP).until(() -> !hasNote()),
           transfer.setState(Transfer.State.SLOW_IN).until(() -> hasNote())
-        );
+        ).raceWith(LEDs.setStateCommand(LEDs.State.RUNNING_COMMAND)).andThen(Controls.rumbleBoth());
       case INTAKE_OUT:
         return transfer.setState(Transfer.State.OUT);
       case PREPARE_AMP:
@@ -92,12 +93,12 @@ public class RobotStateController extends SubsystemBase {
               amp.setState(Amp.State.IN).withTimeout(0.25)
             )
           )
-        );
+        ).raceWith(LEDs.setStateCommand(LEDs.State.RUNNING_COMMAND)).andThen(Controls.rumbleBoth());
       case PLACE_AMP:
         return Commands.sequence(
           amp.setState(Amp.State.UP),
           amp.setState(Amp.State.OUT).withTimeout(2.0)
-        ).andThen(Controls.rumbleBoth());
+        ).raceWith(LEDs.setStateCommand(LEDs.State.RUNNING_COMMAND)).andThen(Controls.rumbleBoth());
       case LEAVE_AMP:
         return Commands.sequence(
           amp.setState(Amp.State.DOWN)
@@ -106,20 +107,21 @@ public class RobotStateController extends SubsystemBase {
         return shooter.setState(Shooter.State.AIM)
           .alongWith(Commands.runOnce(() -> isAiming = true))
           .alongWith(Controls.rumbleBoth(() -> canShoot()))
+          .raceWith(LEDs.setStateCommand(LEDs.State.RUNNING_COMMAND))
           .alongWith(new ConditionalCommand(
             LEDs.setStateCommand(LEDs.State.BAD),
             Commands.runOnce(() -> {}),
-            () -> (!hasNote() && !RobotBase.isSimulation()) || !inRange()
+            () -> !hasNote() && !RobotBase.isSimulation()
           )).finallyDo(() -> isAiming = false);
       case SHOOT_SPEAKER:
         return Commands.sequence(
           Commands.waitUntil(() -> canShoot() && swerveDrive.getFieldVelocity().getNorm() < 0.25),
           transfer.setState(Transfer.State.SHOOTER_FAST).until(() -> beamBreakSensor.get()),
           transfer.setState(Transfer.State.SHOOTER_SLOW)
-          .alongWith(LEDs.setStateCommand(LEDs.State.SHOOTING))
+          .raceWith(LEDs.setStateCommand(LEDs.State.RUNNING_COMMAND))
         );
       case SPIN_UP:
-        return shooter.setState(Shooter.State.SPIN_UP).alongWith(LEDs.setStateCommand(LEDs.State.SPIN_UP));
+        return shooter.setState(Shooter.State.SPIN_UP);
       default:
         return Commands.run(() -> {});
     }
@@ -139,6 +141,10 @@ public class RobotStateController extends SubsystemBase {
 
   public boolean underStage() {
     return swerveDrive.underStage();
+  }
+
+  public Translation2d getFieldVelocity() {
+    return swerveDrive.getFieldVelocity();
   }
 
   public double getShotChance() {
@@ -166,10 +172,8 @@ public class RobotStateController extends SubsystemBase {
 
     if (RobotState.isDisabled()) {
       LEDs.setState(LEDs.State.DISABLED);
-    }
-    
-    if (hasNote()) {
-      LEDs.setState(LEDs.State.HAS_NOTE);
+    } else {
+      LEDs.setState(LEDs.State.ENABLED);
     }
     
     if (swerveDrive.underStage()) {

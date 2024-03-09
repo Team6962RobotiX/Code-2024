@@ -20,7 +20,6 @@ import frc.robot.Constants.Constants.ENABLED_SYSTEMS;
 import frc.robot.Constants.Constants.HANG;
 import frc.robot.Constants.Preferences;
 import frc.robot.Constants.Preferences.VOLTAGE_LADDER;
-import frc.robot.subsystems.LEDs;
 import frc.robot.subsystems.drive.SwerveDrive;
 import frc.robot.util.hardware.SparkMaxUtil;
 
@@ -78,10 +77,6 @@ public class Hang extends SubsystemBase {
 
     if (RobotState.isDisabled()) {
       state = State.OFF;
-    }
-
-    if (state != State.OFF) {
-      LEDs.setState(LEDs.State.HANG);
     }
 
     double leftMotorPower = 0.0;
