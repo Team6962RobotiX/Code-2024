@@ -279,7 +279,7 @@ public class Autonomous extends Command {
         .raceWith(Commands.waitUntil(() -> hasNote())),
       Commands.runOnce(() -> {        
         if (swerveDrive.getPose().getTranslation().getDistance(notePosition) < Field.NOTE_LENGTH + Constants.SWERVE_DRIVE.BUMPER_LENGTH / 2.0) {
-          // simHasNote = true;
+          simHasNote = true;
         }
         notesThatExist.remove(closestNote);
         notesToGet.remove(closestNote);
