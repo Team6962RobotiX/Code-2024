@@ -39,7 +39,7 @@ public final class Constants {
     public static final boolean ENABLE_SHOOTER   = true;
     public static final boolean ENABLE_INTAKE   = true;
     public static final boolean ENABLE_TRANSFER = true;
-    public static final boolean ENABLE_HANG = false;
+    public static final boolean ENABLE_HANG = true;
     public static final boolean ENABLE_AMP = true;
   }
 
