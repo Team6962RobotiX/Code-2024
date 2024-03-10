@@ -47,6 +47,9 @@ public class Autonomous extends Command {
   private boolean simulatedNote = true;
   private boolean isFirstNote = true;
   public static boolean avoidPillars = true;
+
+  // private static ShuffleboardTab tab = Shuffleboard.getTab("Autonomous Sim");
+  // private static SimpleWidget hasNote = tab.add("has Note", true).withWidget(BuiltInWidgets.kToggleButton).withSize(1, 1).withPosition(0, 0);
   
   private enum State {
     SHOOT,
@@ -360,6 +363,7 @@ public class Autonomous extends Command {
   public boolean hasNote() {
     if (RobotBase.isSimulation()) {
       return simulatedNote;
+      // return hasNote.getEntry().getBoolean(false);
     } else {
       return controller.hasNote();
     }
