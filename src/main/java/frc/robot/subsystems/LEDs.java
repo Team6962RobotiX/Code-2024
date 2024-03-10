@@ -64,7 +64,7 @@ public class LEDs extends SubsystemBase {
         setColor(0, length, getBumperLEDColor());
         break;
       case HAS_VISION_TARGET:
-        setColorFlash(0, length, new int[] {128, 0, 255}, 5);
+        setColorWave(0, length, new int[] {128, 0, 255}, 1.0, Direction.LEFT);
         break;
       case CAN_SEE_NOTE:
         setColorFlash(0, length, ANTARES_YELLOW, 5);
