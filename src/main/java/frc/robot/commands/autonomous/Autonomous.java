@@ -175,7 +175,7 @@ public class Autonomous extends Command {
     // SwerveDrive.getField().getObject("bezier").setPoses(List.of(new Pose2d(alignmentPoint, heading), new Pose2d(pickupPoint, heading)));
     
     boolean adjacent = Math.abs(swerveDrive.getPose().getX() - notePosition.getX()) < adjacentNoteBand;
-    boolean pathfind = !adjacent && !tooClose(notePosition);
+    boolean pathfind = !adjacent && !tooClose(notePosition) && swerveDrive.getPose().getTranslation().getDistance(alignmentPoint) > 0.6;
     
     if (pathfind) {
       System.out.println("PATHFIND");
