@@ -76,7 +76,11 @@ public class LEDs extends SubsystemBase {
         setRainbow(0, length);
         break;
       case CAN_SEE_NOTE:
-        setColorFlash(0, length, ANTARES_YELLOW, 5);
+        if (RobotState.isDisabled()) {
+          setColor(0, length, new int[] {255, 25, 0});
+        } else {
+          setColorWave(0, length, new int[] {255, 25, 0}, 1.0, Direction.LEFT);
+        }
         break;
       case ENABLED:
         setBumperColorWave(0, length, 1.0);
