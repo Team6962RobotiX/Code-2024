@@ -275,20 +275,16 @@ public class Autonomous extends Command {
           Commands.waitUntil(() -> swerveDrive.getPose().getTranslation().getDistance(notePosition) < robotDiagonal + Field.NOTE_LENGTH),
           controller.setState(RobotStateController.State.INTAKE)
         ))
-        .raceWith(Commands.waitUntil(() -> hasNote())),
-      Commands.runOnce(() -> {
+        .raceWith(Commands.waitUntil(() -> hasNote()))
+      ).finallyDo(() -> {
         if (swerveDrive.getPose().getTranslation().getDistance(notePosition) < Field.NOTE_LENGTH + Constants.SWERVE_DRIVE.BUMPER_LENGTH / 2.0) {
           simHasNote = true;
         }
         visionNotePosition = null;
-        // addDynamicObstacles();
-        // System.out.println("STOP");
         notesThatExist.remove(closestNote);
         notesToGet.remove(closestNote);
-      })
-    ).finallyDo(
-      () -> swerveDrive.setRotationTargetOverrideFromPoint(null)
-    );
+        swerveDrive.setRotationTargetOverrideFromPoint(null);
+      });
     
     // return Commands.sequence(
     //   Commands.runOnce(() -> swerveDrive.setRotationTargetOverrideFromPoint(notePosition)),
@@ -320,9 +316,11 @@ public class Autonomous extends Command {
 
     Translation2d shotPosition = getClosestShootingPoint();
     Rotation2d heading = Field.SPEAKER.get().toTranslation2d().minus(shotPosition).getAngle().plus(Rotation2d.fromDegrees(180.0));
-    Command moveToCommand = swerveDrive.goTo(new Pose2d(shotPosition, heading));
+    Command moveToCommand = Commands.runOnce(() -> {});
     if (shotPosition.getDistance(swerveDrive.getPose().getTranslation()) < 3.0) {
       moveToCommand = Commands.runOnce(() -> {});
+    } else {
+      swerveDrive.goTo(new Pose2d(shotPosition, heading));
     }
     return Commands.sequence(
       Commands.runOnce(() -> {
@@ -341,12 +339,11 @@ public class Autonomous extends Command {
       Commands.waitSeconds(0.5).onlyIf(() -> firstNote),
       controller.setState(RobotStateController.State.SHOOT_SPEAKER_OVERRIDE)
         .alongWith(Commands.runOnce(() -> {simHasNote = false; System.out.println("SHOOTING IN SPEAKER");}))
-        .until(() -> !hasNote()),
-      Commands.runOnce(() -> {
+        .until(() -> !hasNote())
+      ).finallyDo(() -> {
         swerveDrive.setRotationTargetOverrideFromPointBackwards(null);
         firstNote = false;
-      })
-    );
+      });
   }
 
   // public boolean hasPickedUpNote(Translation2d notePosition) {
