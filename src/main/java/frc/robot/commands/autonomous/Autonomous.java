@@ -149,7 +149,7 @@ public class Autonomous extends Command {
     Rotation2d heading = notePosition.minus(swerveDrive.getPose().getTranslation()).getAngle();
     Translation2d middleSpline = Field.SPEAKER.get().toTranslation2d().minus(notePosition);
     Rotation2d speakerNoteAngle = middleSpline.getAngle();
-    middleSpline = middleSpline.div(middleSpline.getNorm()).times(Constants.SWERVE_DRIVE.BUMPER_LENGTH / 2.0 + Field.NOTE_LENGTH * 1.0);
+    middleSpline = middleSpline.div(middleSpline.getNorm()).times(Constants.SWERVE_DRIVE.BUMPER_LENGTH / 2.0 + Field.NOTE_LENGTH * 2.0);
     middleSpline = middleSpline.plus(notePosition);
 
     Translation2d endSpline = Field.SPEAKER.get().toTranslation2d().minus(notePosition);
@@ -184,7 +184,7 @@ public class Autonomous extends Command {
         )
       );
       
-      if (middleSpline.getDistance(swerveDrive.getPose().getTranslation()) < 1.0) {
+      if (middleSpline.getDistance(swerveDrive.getPose().getTranslation()) < 3.0) {
         pathplannerCommand = AutoBuilder.followPath(path);
       } else {
         pathplannerCommand = AutoBuilder.pathfindThenFollowPath(
