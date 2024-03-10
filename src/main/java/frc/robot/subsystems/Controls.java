@@ -103,9 +103,7 @@ public class Controls {
       .withPosition(0, 2)
       .withSize(3, 1);
 
-    driverTab.addDouble("Battery Capacity", () -> (RobotContainer.getVoltage() < Constants.SWERVE_DRIVE.BATTERY_VOLTAGE ?
-    RobotContainer.getTotalCurrent() / ((Constants.SWERVE_DRIVE.BATTERY_VOLTAGE - RobotContainer.getVoltage()) / Constants.SWERVE_DRIVE.BATTERY_RESISTANCE) :
-    1.0 - (RobotContainer.getTotalCurrent() / ((Constants.SWERVE_DRIVE.BATTERY_VOLTAGE - RobotContainer.getVoltage()) / Constants.SWERVE_DRIVE.BATTERY_RESISTANCE))) * 100.0)
+    driverTab.addDouble("Battery Capacity", () -> (RobotContainer.getTotalCurrent() / ((Constants.SWERVE_DRIVE.BATTERY_VOLTAGE - RobotContainer.getVoltage()) / Constants.SWERVE_DRIVE.BATTERY_RESISTANCE)) * 100.0)
       .withWidget(BuiltInWidgets.kDial)
       .withPosition(3, 2)
       .withSize(2, 2)
