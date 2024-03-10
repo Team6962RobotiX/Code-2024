@@ -57,26 +57,6 @@ public class Autonomous extends Command {
     controller.setState(RobotStateController.State.LEAVE_AMP).withTimeout(1.0).schedule();
   }
 
-  public void addDynamicObstacles() {
-    // List<Pair<Translation2d, Translation2d>> dynamicObstacles = new ArrayList<>();    
-    // for (Integer note : notesThatExist) {      
-    //   // Define bounding box for each note
-    //   dynamicObstacles.add(
-    //     Pair.of(
-    //       Field.NOTE_POSITIONS.get(note).get().minus(new Translation2d(noteAvoidRadius, noteAvoidRadius)), // example bounding box corner
-    //       Field.NOTE_POSITIONS.get(note).get().plus(new Translation2d(noteAvoidRadius, noteAvoidRadius)) // example bounding box corner
-    //     )
-    //   );
-    // }
-    
-    // Set dynamic obstacles
-    // Pathfinding.setDynamicObstacles(dynamicObstacles, swerveDrive.getPose().getTranslation());
-  }
-
-  public void clearDynamicObstacles() {
-    // Pathfinding.setDynamicObstacles(List.of(), swerveDrive.getPose().getTranslation());
-  }
-
   public Integer getNextClosestNote() {
     if (notesToGet.isEmpty()) return 0;
 
@@ -212,6 +192,7 @@ public class Autonomous extends Command {
           SWERVE_DRIVE.AUTONOMOUS.DEFAULT_PATH_CONSTRAINTS,
           0.0 // Rotation delay distance in meters. This is how far the robot should travel before attempting to rotate.
         );
+        System.out.println("BAD");
       }
 
     } else {
@@ -226,7 +207,7 @@ public class Autonomous extends Command {
         SWERVE_DRIVE.AUTONOMOUS.DEFAULT_PATH_CONSTRAINTS,
         new GoalEndState(
           0.0,
-          speakerNoteAngle,
+          swerveDrive.getHeading(),
           true
         )
       );
@@ -285,17 +266,6 @@ public class Autonomous extends Command {
         notesToGet.remove(closestNote);
         swerveDrive.setRotationTargetOverrideFromPoint(null);
       });
-    
-    // return Commands.sequence(
-    //   Commands.runOnce(() -> swerveDrive.setRotationTargetOverrideFromPoint(notePosition)),
-    //   swerveDrive.goTo(new Pose2d(pathfindPosition, swerveDrive.getHeading())),
-    //   Commands.runOnce(() -> addDynamicObstacles()),
-    //   controller.setState(RobotStateController.State.INTAKE).onlyIf(() -> RobotBase.isReal())
-    //     .alongWith(swerveDrive.goTo(new Pose2d(notePosition, swerveDrive.getHeading())))
-    //     .until(() -> hasNote()),
-    //   Commands.runOnce(() -> controller.setState(RobotStateController.State.CENTER_NOTE)),
-    //   Commands.runOnce(() -> swerveDrive.setRotationTargetOverrideFromPoint(null))
-    // );
   }
 
   public Command moveAndShoot() {
@@ -303,23 +273,13 @@ public class Autonomous extends Command {
       return Commands.runOnce(() -> {});
     }
 
-    // if (firstNote) {
-    //   return Commands.sequence(
-    //     Commands.runOnce(() -> swerveDrive.setRotationTargetOverrideFromPointBackwards(Field.SPEAKER.get().toTranslation2d())),
-    //     Commands.waitSeconds(1.0),
-    //     controller.setState(RobotStateController.State.SHOOT_SPEAKER_OVERRIDE)
-    //       .alongWith(Commands.runOnce(() -> simHasNote = false))
-    //       .until(() -> !hasNote()),
-    //     Commands.runOnce(() -> swerveDrive.setRotationTargetOverrideFromPointBackwards(null))
-    //   );
-    // }
-
     Translation2d shotPosition = getClosestShootingPoint();
     Rotation2d heading = Field.SPEAKER.get().toTranslation2d().minus(shotPosition).getAngle().plus(Rotation2d.fromDegrees(180.0));
     Command moveToCommand = Commands.runOnce(() -> {});
     if (shotPosition.getDistance(swerveDrive.getPose().getTranslation()) < 3.0) {
       moveToCommand = Commands.runOnce(() -> {});
     } else {
+      System.out.println("BAD");
       swerveDrive.goTo(new Pose2d(shotPosition, heading));
     }
     return Commands.sequence(
@@ -345,13 +305,6 @@ public class Autonomous extends Command {
         firstNote = false;
       });
   }
-
-  // public boolean hasPickedUpNote(Translation2d notePosition) {
-  //   Translation2d futurePosition = swerveDrive.getPose().getTranslation();
-  //   futurePosition = futurePosition.plus(swerveDrive.getFieldVelocity().times(swerveDrive.getFieldVelocity().getNorm()).div(2.0 * Constants.SWERVE_DRIVE.PHYSICS.MAX_LINEAR_ACCELERATION));
-  //   SwerveDrive.getField().getObject("futurePosition").setPoses(List.of(new Pose2d(futurePosition, new Rotation2d())));
-  //   return notePosition.getDistance(futurePosition) < Constants.SWERVE_DRIVE.BUMPER_LENGTH / 2.0;
-  // }
 
   public boolean shouldSeeNote(int note) {
     Translation2d position = Field.NOTE_POSITIONS.get(note).get();
@@ -382,22 +335,6 @@ public class Autonomous extends Command {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    // System.out.println(simHasNote);
-    // getRealNotePosition(Field.SPEAKER.get().toTranslation2d());
-    // System.out.println(controller.canShoot());
-    // FieldObject2d visibleNotes = SwerveDrive.getField().getObject("visibleNotes");
-    // List<Pose2d> poses = new ArrayList<>();
-    // for (Integer note : List.of(0, 1, 2, 3, 4, 5, 6, 7)) {
-    //   if (shouldSeeNote(note)) {
-    //     poses.add(new Pose2d(Field.NOTE_POSITIONS.get(note).get().plus(new Translation2d(0.0, 0.0)), new Rotation2d()));
-    //   }
-    // }
-    // visibleNotes.setPoses(poses);
-
-    // Translation2d futurePosition = swerveDrive.getPose().getTranslation();
-    // futurePosition = futurePosition.plus(swerveDrive.getFieldVelocity().times(swerveDrive.getFieldVelocity().getNorm()).div(2.0 * Constants.SWERVE_DRIVE.PHYSICS.MAX_LINEAR_ACCELERATION));
-    // SwerveDrive.getField().getObject("futurePosition").setPoses(List.of(new Pose2d(futurePosition, swerveDrive.getPose().getRotation())));
-  
     if ((state == State.PICKUP && hasNote()) || (state == State.PICKUP && command.isFinished()) || (state == null && hasNote())) {
       System.out.println("SHOOT");
       command.cancel();
