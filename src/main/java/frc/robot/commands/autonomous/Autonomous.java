@@ -120,7 +120,7 @@ public class Autonomous extends Command {
       measuredNotePositions = new ArrayList<>();
       for (Integer note : List.of(0, 1, 2, 3, 4, 5, 6, 7)) {
         if (shouldSeeNote(note)) {
-          measuredNotePositions.add(Field.NOTE_POSITIONS.get(note).get().plus(new Translation2d(0.25, 0.25)));
+          measuredNotePositions.add(Field.NOTE_POSITIONS.get(note).get().plus(new Translation2d(0.0, 0.0)));
         }
       }
     }
