@@ -27,7 +27,7 @@ public class RobotStateController extends SubsystemBase {
   private DigitalInput beamBreakSensor;
   private Debouncer beamBreakDebouncer = new Debouncer(0.05);
   private boolean isAiming;
-  private Debouncer shotDebouncer = new Debouncer(0.02);
+  private Debouncer shotDebouncer = new Debouncer(0.1);
   private State currentState;
   // private static ShuffleboardTab tab = Shuffleboard.getTab("Auto");
   // private static SimpleWidget hasNote = tab.add("has Note", true).withWidget(BuiltInWidgets.kToggleButton).withSize(1, 1).withPosition(0, 0);
@@ -42,7 +42,6 @@ public class RobotStateController extends SubsystemBase {
     LEAVE_AMP,
     AIM_SPEAKER,
     SHOOT_SPEAKER,
-    SHOOT_SPEAKER_OVERRIDE,
     SPIN_UP,
     PREPARE_SOURCE,
     INTAKE_SOURCE,
@@ -122,12 +121,7 @@ public class RobotStateController extends SubsystemBase {
           )).finallyDo(() -> isAiming = false);
       case SHOOT_SPEAKER:
         return Commands.sequence(
-          Commands.waitUntil(() -> canShoot() && swerveDrive.getFieldVelocity().getNorm() < 0.25),
-          transfer.setState(Transfer.State.SHOOTER_FAST).until(() -> beamBreakSensor.get()),
-          transfer.setState(Transfer.State.SHOOTER_SLOW)
-        ).raceWith(LEDs.setStateCommand(LEDs.State.RUNNING_COMMAND));
-      case SHOOT_SPEAKER_OVERRIDE:
-        return Commands.sequence(
+          Commands.waitUntil(() -> canShoot()),
           transfer.setState(Transfer.State.SHOOTER_FAST).until(() -> beamBreakSensor.get()),
           transfer.setState(Transfer.State.SHOOTER_SLOW)
         ).raceWith(LEDs.setStateCommand(LEDs.State.RUNNING_COMMAND));
@@ -176,7 +170,7 @@ public class RobotStateController extends SubsystemBase {
   }
 
   public boolean canShoot() {
-    return shotDebouncer.calculate(getShotChance() == 1.0);
+    return shotDebouncer.calculate(getShotChance() == 1.0) && swerveDrive.getFieldVelocity().getNorm() < 0.5;
   }
 
   public boolean inRange() {

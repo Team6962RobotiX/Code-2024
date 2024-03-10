@@ -21,7 +21,7 @@ public class AprilTags extends SubsystemBase {
   public static void injectVisionData(Map<String, Pose3d> cameraPoses, SwerveDrive swerveDrive) {
     List<LimelightHelpers.PoseEstimate> poseEstimates = cameraPoses.keySet().stream().map(LimelightHelpers::getBotPoseEstimate_wpiBlue).collect(Collectors.toList());
 
-    if (swerveDrive.getRotationalVelocity() > 1.0) return;
+    if (swerveDrive.getRotationalVelocity() > 2.0) return;
 
     int tagCount = 0;
     for (PoseEstimate poseEstimate : poseEstimates) {
@@ -38,12 +38,13 @@ public class AprilTags extends SubsystemBase {
       
       double rotationAccuracy = Units.degreesToRadians(999999);
       double translationError = (poseDistance + poseEstimate.avgTagDist) / Math.pow(poseEstimate.tagCount, 2.0);
-      if (swerveDrive.canZeroHeading() && poseEstimate.tagCount >= 1 && RobotState.isDisabled()) {
-        rotationAccuracy = Units.degreesToRadians(30.0);
+      if (swerveDrive.canZeroHeading() && poseEstimate.tagCount >= 2) {
+        rotationAccuracy = Units.degreesToRadians(90.0);
+        LEDs.setState(LEDs.State.HAS_VISION_TARGET_SPEAKER);
       }
       
       if (RobotState.isDisabled()) {
-        translationError = 0.5;
+        translationError = 1.0;
       }
 
       swerveDrive.setVisionMeasurementStdDevs(VecBuilder.fill(translationError, translationError, rotationAccuracy));

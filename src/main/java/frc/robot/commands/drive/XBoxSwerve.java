@@ -71,7 +71,6 @@ public class XBoxSwerve extends Command {
       rightTrigger = (controller.getRawAxis(4) + 1.0) / 2.0;
     }
 
-
     // Deadbands
     leftStick = InputMath.addCircularDeadband(leftStick, 0.1);
     rightStick = InputMath.addCircularDeadband(rightStick, 0.1);

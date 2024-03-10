@@ -4,6 +4,7 @@ import com.github.tommyettinger.colorful.oklab.ColorTools;
 
 import edu.wpi.first.wpilibj.AddressableLED;
 import edu.wpi.first.wpilibj.AddressableLEDBuffer;
+import edu.wpi.first.wpilibj.RobotState;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -24,6 +25,7 @@ public class LEDs extends SubsystemBase {
     DISABLED,
     ENABLED,
     HAS_VISION_TARGET,
+    HAS_VISION_TARGET_SPEAKER,
     CAN_SEE_NOTE,
     RUNNING_COMMAND,
     BAD,
@@ -64,7 +66,14 @@ public class LEDs extends SubsystemBase {
         setColor(0, length, getBumperLEDColor());
         break;
       case HAS_VISION_TARGET:
-        setColorWave(0, length, new int[] {128, 0, 255}, 1.0, Direction.LEFT);
+        if (RobotState.isDisabled()) {
+          setColor(0, length, new int[] {128, 0, 255});
+        } else {
+          setColorWave(0, length, new int[] {128, 0, 255}, 1.0, Direction.LEFT);
+        }
+        break;
+      case HAS_VISION_TARGET_SPEAKER:
+        setRainbow(0, length);
         break;
       case CAN_SEE_NOTE:
         setColorFlash(0, length, ANTARES_YELLOW, 5);
