@@ -271,7 +271,7 @@ public class Autonomous extends Command {
           Commands.waitSeconds(0.5).onlyIf(() -> isFirstNote),
           Commands.run(() -> {
             if (controller.canShoot()) simulatedNote = false;
-          }),
+          }).until(() -> simulatedNote == false).onlyIf(() -> RobotBase.isSimulation()),
           controller.setState(RobotStateController.State.SHOOT_SPEAKER).until(() -> !hasNote())
         )
       )
