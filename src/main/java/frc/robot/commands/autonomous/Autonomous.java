@@ -34,7 +34,7 @@ public class Autonomous extends Command {
   private List<Integer> queuedNotes = List.of();
   private List<Integer> remainingNotes = List.of();
 
-  private double noteAvoidRadius = (Field.NOTE_LENGTH / 2.0 + Constants.SWERVE_DRIVE.BUMPER_DIAGONAL / 2.0);
+  private double noteAvoidRadius = (Field.NOTE_LENGTH / 2.0 + Constants.SWERVE_DRIVE.BUMPER_DIAGONAL);
   private double notePickupDistance = Constants.SWERVE_DRIVE.BUMPER_LENGTH / 2.0 - Field.NOTE_LENGTH;
   private double noteAlignDistance = Constants.SWERVE_DRIVE.BUMPER_LENGTH / 2.0 + Field.NOTE_LENGTH * 2.0;
   private double speakerShotDistance = 3.5;
@@ -331,6 +331,7 @@ public class Autonomous extends Command {
   @Override
   public void end(boolean interrupted) {
     if (runningCommand != null) runningCommand.cancel();
+    clearNoteObstacles();
   }
 
   // Returns true when the command should end.
