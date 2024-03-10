@@ -45,6 +45,7 @@ public class Autonomous extends Command {
 
   private boolean simulatedNote = true;
   private boolean isFirstNote = true;
+  public static boolean avoidPillars = true;
   
   private enum State {
     SHOOT,
@@ -154,16 +155,16 @@ public class Autonomous extends Command {
     if (hasNote()) return Commands.runOnce(() -> {});
 
     List<Translation2d> fieldNotePositions = Field.NOTE_POSITIONS.stream().map(Supplier::get).collect(Collectors.toList());
-    Integer noteIndex = fieldNotePositions.indexOf(notePosition.nearest(fieldNotePositions));    
+    Integer noteIndex = fieldNotePositions.indexOf(notePosition.nearest(fieldNotePositions));
 
+    avoidPillars = noteIndex != 2;
 
     Rotation2d heading = notePosition.minus(Field.SPEAKER.get().toTranslation2d()).getAngle();
 
     Translation2d alignmentPoint = new Translation2d(-noteAlignDistance, 0).rotateBy(heading).plus(notePosition);
     Translation2d pickupPoint = new Translation2d(-notePickupDistance, 0).rotateBy(heading).plus(notePosition);
-
+    
     // SwerveDrive.getField().getObject("bezier").setPoses(List.of(new Pose2d(alignmentPoint, heading), new Pose2d(pickupPoint, heading)));
-
     
     boolean adjacent = Math.abs(swerveDrive.getPose().getX() - notePosition.getX()) < adjacentNoteBand;
     boolean pathfind = !adjacent && !tooClose(notePosition);
@@ -250,7 +251,7 @@ public class Autonomous extends Command {
     Translation2d shootingPosition = getClosestShootingPosition();
     
     Command moveCommand = Commands.runOnce(() -> {});
-    if (shootingPosition.getDistance(swerveDrive.getFuturePose().getTranslation()) > speakerShotDistance) {
+    if (Field.SPEAKER.get().toTranslation2d().getDistance(swerveDrive.getFuturePose().getTranslation()) > speakerShotDistance || controller.underStage()) {
       moveCommand = AutoBuilder.pathfindToPose(
         new Pose2d(shootingPosition, swerveDrive.getHeading()),
         SWERVE_DRIVE.AUTONOMOUS.DEFAULT_PATH_CONSTRAINTS
@@ -264,7 +265,8 @@ public class Autonomous extends Command {
         moveCommand.until(() -> !controller.underStage() && swerveDrive.getFuturePose().getTranslation().getDistance(Field.SPEAKER.get().toTranslation2d()) < speakerShotDistance),
         controller.setState(RobotStateController.State.SPIN_UP),
         controller.setState(RobotStateController.State.AIM_SPEAKER)
-      ).raceWith(
+      )
+      .raceWith(
         Commands.sequence(
           Commands.waitSeconds(0.5).onlyIf(() -> isFirstNote),
           controller.setState(RobotStateController.State.SHOOT_SPEAKER).until(() -> !hasNote())
@@ -347,6 +349,5 @@ public class Autonomous extends Command {
 
   public boolean tooClose(Translation2d notePosition) {
     return swerveDrive.getFuturePose().getTranslation().getDistance(new Translation2d(-notePickupDistance, 0).rotateBy(notePosition.minus(Field.SPEAKER.get().toTranslation2d()).getAngle()).plus(notePosition)) < minPathfindingDistance;
-
   }
 }
