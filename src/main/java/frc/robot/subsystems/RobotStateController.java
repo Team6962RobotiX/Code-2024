@@ -94,11 +94,11 @@ public class RobotStateController extends SubsystemBase {
           amp.setState(Amp.State.IN).alongWith(
             transfer.setState(Transfer.State.AMP)
           ).until(() -> !hasNote()),
-          transfer.setState(Transfer.State.AMP).withTimeout(0.25).alongWith(
-            amp.setState(Amp.State.UP).alongWith(
-              amp.setState(Amp.State.IN).withTimeout(0.25)
-            )
-          )
+          Commands.parallel(
+            transfer.setState(Transfer.State.AMP),
+            amp.setState(Amp.State.IN)
+          ).withTimeout(0.25),
+          amp.setState(Amp.State.UP)
         ).raceWith(LEDs.setStateCommand(LEDs.State.RUNNING_COMMAND)).andThen(Controls.rumbleBoth());
       case PLACE_AMP:
         return Commands.sequence(
@@ -152,6 +152,7 @@ public class RobotStateController extends SubsystemBase {
   }
 
   public boolean underStage() {
+    // return true;
     return swerveDrive.underStage();
   }
 

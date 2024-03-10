@@ -35,7 +35,7 @@ public class Autonomous extends Command {
   private List<Integer> queuedNotes = List.of();
   private List<Integer> remainingNotes = List.of();
 
-  private double noteAvoidRadius = (Field.NOTE_LENGTH / 2.0 + Constants.SWERVE_DRIVE.BUMPER_DIAGONAL);
+  private double noteAvoidRadius = (Field.NOTE_LENGTH / 2.0 + Constants.SWERVE_DRIVE.BUMPER_DIAGONAL / 2.0);
   private double notePickupDistance = Constants.SWERVE_DRIVE.BUMPER_LENGTH / 2.0 - Field.NOTE_LENGTH;
   private double noteAlignDistance = Constants.SWERVE_DRIVE.BUMPER_LENGTH / 2.0 + Field.NOTE_LENGTH * 2.0;
   private double speakerShotDistance = 3.5;
@@ -187,7 +187,7 @@ public class Autonomous extends Command {
         )
         .until(() -> tooClose(notePosition))
         .finallyDo(() -> pickup(notePosition).schedule())
-      );
+      ).until(() -> hasNote());
     }
 
     List<Translation2d> bezierPoints;
@@ -251,9 +251,9 @@ public class Autonomous extends Command {
         clearNoteObstacles();
         swerveDrive.setRotationTargetOverrideFromPointBackwards(null);
       })
-    ).until(() -> {
+    ).until(() -> hasNote()).until(() -> {
       Translation2d visionNotePosition = getVisionNotePosition(notePosition.nearest(fieldNotePositions));
-      if (visionNotePosition != null && visionNotePosition.getDistance(notePosition) > Field.NOTE_LENGTH / 2.0) {
+      if (visionNotePosition != null && visionNotePosition.getDistance(notePosition) > Field.NOTE_LENGTH / 2.0 && !hasNote()) {
         System.out.println("VISION");
         pickup(visionNotePosition).schedule();
         return true;
@@ -272,7 +272,7 @@ public class Autonomous extends Command {
       moveCommand = AutoBuilder.pathfindToPose(
         new Pose2d(shootingPosition, swerveDrive.getHeading()),
         SWERVE_DRIVE.AUTONOMOUS.DEFAULT_PATH_CONSTRAINTS
-      );
+      ).until(() -> !hasNote());
     }
     return Commands.sequence(
       Commands.runOnce(() -> {
@@ -292,7 +292,7 @@ public class Autonomous extends Command {
           controller.setState(RobotStateController.State.SHOOT_SPEAKER).until(() -> !hasNote())
         )
       )
-    ).finallyDo(() -> {
+    ).until(() -> !hasNote()).finallyDo(() -> {
       isFirstNote = false;
       swerveDrive.setRotationTargetOverrideFromPointBackwards(null);
     });
