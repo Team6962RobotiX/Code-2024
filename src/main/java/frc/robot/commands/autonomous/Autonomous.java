@@ -269,11 +269,11 @@ public class Autonomous extends Command {
       .raceWith(
         Commands.sequence(
           Commands.waitSeconds(0.5).onlyIf(() -> isFirstNote),
+          Commands.run(() -> {
+            if (controller.canShoot()) simulatedNote = false;
+          }),
           controller.setState(RobotStateController.State.SHOOT_SPEAKER).until(() -> !hasNote())
-        ),
-        Commands.run(() -> {
-          if (controller.canShoot()) simulatedNote = false;
-        })
+        )
       )
     ).finallyDo(() -> {
       isFirstNote = false;
