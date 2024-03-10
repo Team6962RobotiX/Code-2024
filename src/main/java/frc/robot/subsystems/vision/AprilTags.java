@@ -28,7 +28,7 @@ public class AprilTags extends SubsystemBase {
       tagCount += poseEstimate.tagCount;
     }
     
-    // if (tagCount <= 1) return;
+    if (tagCount <= 1) return;
 
     for (PoseEstimate poseEstimate : poseEstimates) {
       if (poseEstimate.tagCount == 0) continue;
