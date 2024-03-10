@@ -38,9 +38,9 @@ public class AprilTags extends SubsystemBase {
       
       double rotationAccuracy = Units.degreesToRadians(999999);
       double translationError = (poseDistance + poseEstimate.avgTagDist) / Math.pow(poseEstimate.tagCount, 2.0);
-      if (swerveDrive.canZeroHeading() && poseEstimate.tagCount >= 2) {
+      if (swerveDrive.canZeroHeading() && (poseEstimate.tagCount >= 2 || RobotState.isDisabled())) {
         rotationAccuracy = Units.degreesToRadians(90.0);
-        LEDs.setState(LEDs.State.HAS_VISION_TARGET_SPEAKER);
+        if (poseEstimate.tagCount >= 2) LEDs.setState(LEDs.State.HAS_VISION_TARGET_SPEAKER);
       }
       
       if (RobotState.isDisabled()) {
