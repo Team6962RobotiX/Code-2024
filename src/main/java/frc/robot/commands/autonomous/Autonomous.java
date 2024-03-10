@@ -3,6 +3,7 @@ package frc.robot.commands.autonomous;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -117,11 +118,15 @@ public class Autonomous extends Command {
   public Translation2d getVisionNotePosition(Translation2d queuedNotePosition) {
     List<Translation2d> measuredNotePositions = Notes.getNotePositions(LIMELIGHT.NOTE_CAMERA_NAME, LIMELIGHT.NOTE_CAMERA_PITCH, swerveDrive, swerveDrive.getFieldVelocity(), LIMELIGHT.NOTE_CAMERA_POSITION);
 
+    Random random = new Random();
+
     if (RobotBase.isSimulation()) {
       measuredNotePositions = new ArrayList<>();
       for (Integer note : List.of(0, 1, 2, 3, 4, 5, 6, 7)) {
         if (shouldSeeNote(note)) {
-          measuredNotePositions.add(Field.NOTE_POSITIONS.get(note).get().plus(new Translation2d(0.0, 0.0)));
+          if (random.nextDouble() > 0.9) {
+            measuredNotePositions.add(Field.NOTE_POSITIONS.get(note).get().plus(new Translation2d(random.nextDouble() / 3.0, random.nextDouble() / 3.0)));
+          }
         }
       }
     }
@@ -184,12 +189,21 @@ public class Autonomous extends Command {
         .finallyDo(() -> pickup(notePosition).schedule())
       );
     }
-    
-    List<Translation2d> bezierPoints = PathPlannerPath.bezierFromPoses(
-      new Pose2d(swerveDrive.getPose().getTranslation(), swerveDrive.getFieldVelocity().getAngle()),
-      new Pose2d(alignmentPoint, heading),
-      new Pose2d(pickupPoint, heading)
-    );
+
+    List<Translation2d> bezierPoints;
+
+    if (swerveDrive.getPose().getTranslation().getDistance(notePosition) > noteAlignDistance) {
+      bezierPoints = PathPlannerPath.bezierFromPoses(
+        new Pose2d(swerveDrive.getPose().getTranslation(), swerveDrive.getFieldVelocity().getAngle()),
+        new Pose2d(alignmentPoint, heading),
+        new Pose2d(pickupPoint, heading)
+      );
+    } else {
+      bezierPoints = PathPlannerPath.bezierFromPoses(
+        new Pose2d(swerveDrive.getPose().getTranslation(), swerveDrive.getFieldVelocity().getAngle()),
+        new Pose2d(pickupPoint, heading)
+      );
+    }
 
     if (adjacent && swerveDrive.getFieldVelocity().getNorm() < 1.0) {
       System.out.println("ADJACENT");
