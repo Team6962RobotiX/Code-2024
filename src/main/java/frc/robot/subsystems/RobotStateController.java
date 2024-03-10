@@ -1,6 +1,7 @@
 package frc.robot.subsystems;
 
 import edu.wpi.first.math.filter.Debouncer;
+import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.RobotBase;
@@ -25,7 +26,7 @@ public class RobotStateController extends SubsystemBase {
   private Shooter shooter;
   private Transfer transfer;
   private DigitalInput beamBreakSensor;
-  private Debouncer beamBreakDebouncer = new Debouncer(0.05);
+  private Debouncer beamBreakDebouncer = new Debouncer(0.25, DebounceType.kFalling);
   private boolean isAiming;
   private Debouncer shotDebouncer = new Debouncer(0.1);
   private State currentState;
@@ -171,7 +172,7 @@ public class RobotStateController extends SubsystemBase {
   }
 
   public boolean canShoot() {
-    return shotDebouncer.calculate(getShotChance() == 1.0) && swerveDrive.getFieldVelocity().getNorm() < 0.5;
+    return shotDebouncer.calculate(getShotChance() == 1.0) && swerveDrive.getFieldVelocity().getNorm() < 0.25;
   }
 
   public boolean inRange() {
