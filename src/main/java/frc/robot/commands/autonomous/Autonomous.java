@@ -9,13 +9,10 @@ import java.util.stream.Collectors;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.path.GoalEndState;
 import com.pathplanner.lib.path.PathPlannerPath;
-import com.pathplanner.lib.pathfinding.Pathfinding;
 
-import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -56,27 +53,8 @@ public class Autonomous extends Command {
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
-    controller.setState(RobotStateController.State.LEAVE_AMP).schedule();
-  }
-
-  public void addDynamicObstacles() {
-    List<Pair<Translation2d, Translation2d>> dynamicObstacles = new ArrayList<>();    
-    for (Integer note : notesThatExist) {      
-      // Define bounding box for each note
-      dynamicObstacles.add(
-        Pair.of(
-          Field.NOTE_POSITIONS.get(note).get().minus(new Translation2d(noteAvoidRadius, noteAvoidRadius)), // example bounding box corner
-          Field.NOTE_POSITIONS.get(note).get().plus(new Translation2d(noteAvoidRadius, noteAvoidRadius)) // example bounding box corner
-        )
-      );
-    }
-    
-    // Set dynamic obstacles
-    Pathfinding.setDynamicObstacles(dynamicObstacles, swerveDrive.getPose().getTranslation());
-  }
-
-  public void clearDynamicObstacles() {
-    Pathfinding.setDynamicObstacles(List.of(), swerveDrive.getPose().getTranslation());
+    state = null;
+    controller.setState(RobotStateController.State.LEAVE_AMP).withTimeout(1.0).schedule();
   }
 
   public Integer getNextClosestNote() {
@@ -113,7 +91,6 @@ public class Autonomous extends Command {
     if (notesToGet.isEmpty()) {
       return swerveDrive.getPose().getTranslation().nearest(shotPositions);
     }
-    
 
     Translation2d closestPoint = Field.SHOT_POSITIONS.get(0).get();
     double bestWeight = Double.MAX_VALUE;
@@ -131,12 +108,14 @@ public class Autonomous extends Command {
   public Translation2d getRealNotePosition(Translation2d theoreticalPosition) {
     List<Translation2d> measuredNotePositions = Notes.getNotePositions(LIMELIGHT.NOTE_CAMERA_NAME, LIMELIGHT.NOTE_CAMERA_PITCH, swerveDrive, swerveDrive.getFieldVelocity(), LIMELIGHT.NOTE_CAMERA_POSITION);
 
-    // measuredNotePositions = new ArrayList<>();
-    // for (Integer note : List.of(0, 1, 2, 3, 4, 5, 6, 7)) {
-    //   if (shouldSeeNote(note)) {
-    //     measuredNotePositions.add(Field.NOTE_POSITIONS.get(note).get().plus(new Translation2d(0.0, 0.0)));
-    //   }
-    // }
+    if (RobotBase.isSimulation()) {
+      measuredNotePositions = new ArrayList<>();
+      for (Integer note : List.of(0, 1, 2, 3, 4, 5, 6, 7)) {
+        if (shouldSeeNote(note)) {
+          measuredNotePositions.add(Field.NOTE_POSITIONS.get(note).get().plus(new Translation2d(0.0, 0.0)));
+        }
+      }
+    }
 
     // FieldObject2d visibleNotes = SwerveDrive.getField().getObject("visibleNotes");
     // List<Pose2d> poses = new ArrayList<>();
@@ -174,17 +153,17 @@ public class Autonomous extends Command {
     middleSpline = middleSpline.plus(notePosition);
 
     Translation2d endSpline = Field.SPEAKER.get().toTranslation2d().minus(notePosition);
-    endSpline = endSpline.div(endSpline.getNorm()).times(Constants.SWERVE_DRIVE.BUMPER_LENGTH / 2.0 - Field.NOTE_LENGTH / 2.0);
+    endSpline = endSpline.div(endSpline.getNorm()).times(Constants.SWERVE_DRIVE.BUMPER_LENGTH / 2.0 - Field.NOTE_LENGTH);
     endSpline = endSpline.plus(notePosition);
     
     Command pathplannerCommand = Commands.runOnce(() -> {});
 
     boolean pathfind = false;
     if (Math.abs(swerveDrive.getPose().getX() - notePosition.getX()) > Field.NOTE_LENGTH * 2.0) {
-      if (swerveDrive.getPose().getTranslation().getDistance(notePosition) <= noteAvoidRadius + 0.3) {
-        pathfind = false;
-      }
       pathfind = true;
+      // if (swerveDrive.getPose().getTranslation().getDistance(notePosition) <= noteAvoidRadius + 0.3) {
+      //   pathfind = false; 
+      // }
     }
 
     // pathfind = false;
@@ -205,15 +184,17 @@ public class Autonomous extends Command {
         )
       );
       
-      pathplannerCommand = AutoBuilder.pathfindThenFollowPath(
-        path,
-        SWERVE_DRIVE.AUTONOMOUS.DEFAULT_PATH_CONSTRAINTS,
-        0.0 // Rotation delay distance in meters. This is how far the robot should travel before attempting to rotate.
-      );
-
-      if (middleSpline.getDistance(swerveDrive.getPose().getTranslation()) < 1.0) {
+      if (middleSpline.getDistance(swerveDrive.getPose().getTranslation()) < 3.0) {
         pathplannerCommand = AutoBuilder.followPath(path);
+      } else {
+        pathplannerCommand = AutoBuilder.pathfindThenFollowPath(
+          path,
+          SWERVE_DRIVE.AUTONOMOUS.DEFAULT_PATH_CONSTRAINTS,
+          0.0 // Rotation delay distance in meters. This is how far the robot should travel before attempting to rotate.
+        );
+        System.out.println("BAD");
       }
+
     } else {
       List<Translation2d> bezierPoints = PathPlannerPath.bezierFromPoses(
         new Pose2d(swerveDrive.getPose().getTranslation(), Field.SPEAKER.get().toTranslation2d().minus(swerveDrive.getPose().getTranslation()).getAngle()),
@@ -226,7 +207,7 @@ public class Autonomous extends Command {
         SWERVE_DRIVE.AUTONOMOUS.DEFAULT_PATH_CONSTRAINTS,
         new GoalEndState(
           0.0,
-          speakerNoteAngle,
+          swerveDrive.getHeading(),
           true
         )
       );
@@ -266,7 +247,7 @@ public class Autonomous extends Command {
     return Commands.sequence(
       Commands.runOnce(() -> {
         // System.out.println("START");
-        addDynamicObstacles();
+        // addDynamicObstacles();
         swerveDrive.setRotationTargetOverrideFromPointBackwards(Field.SPEAKER.get().toTranslation2d());
         // System.out.println("START 229");
       }),
@@ -275,31 +256,16 @@ public class Autonomous extends Command {
           Commands.waitUntil(() -> swerveDrive.getPose().getTranslation().getDistance(notePosition) < robotDiagonal + Field.NOTE_LENGTH),
           controller.setState(RobotStateController.State.INTAKE)
         ))
-        .raceWith(Commands.waitUntil(() -> hasNote())),
-      Commands.runOnce(() -> {        
+        .raceWith(Commands.waitUntil(() -> hasNote()))
+      ).finallyDo(() -> {
         if (swerveDrive.getPose().getTranslation().getDistance(notePosition) < Field.NOTE_LENGTH + Constants.SWERVE_DRIVE.BUMPER_LENGTH / 2.0) {
           simHasNote = true;
         }
+        visionNotePosition = null;
         notesThatExist.remove(closestNote);
         notesToGet.remove(closestNote);
-        visionNotePosition = null;
-        // addDynamicObstacles();
-        // System.out.println("STOP");
-      })
-    ).finallyDo(
-      () -> swerveDrive.setRotationTargetOverrideFromPoint(null)
-    );
-    
-    // return Commands.sequence(
-    //   Commands.runOnce(() -> swerveDrive.setRotationTargetOverrideFromPoint(notePosition)),
-    //   swerveDrive.goTo(new Pose2d(pathfindPosition, swerveDrive.getHeading())),
-    //   Commands.runOnce(() -> addDynamicObstacles()),
-    //   controller.setState(RobotStateController.State.INTAKE).onlyIf(() -> RobotBase.isReal())
-    //     .alongWith(swerveDrive.goTo(new Pose2d(notePosition, swerveDrive.getHeading())))
-    //     .until(() -> hasNote()),
-    //   Commands.runOnce(() -> controller.setState(RobotStateController.State.CENTER_NOTE)),
-    //   Commands.runOnce(() -> swerveDrive.setRotationTargetOverrideFromPoint(null))
-    // );
+        swerveDrive.setRotationTargetOverrideFromPoint(null);
+      });
   }
 
   public Command moveAndShoot() {
@@ -309,40 +275,35 @@ public class Autonomous extends Command {
 
     Translation2d shotPosition = getClosestShootingPoint();
     Rotation2d heading = Field.SPEAKER.get().toTranslation2d().minus(shotPosition).getAngle().plus(Rotation2d.fromDegrees(180.0));
-    Command moveToCommand = swerveDrive.goTo(new Pose2d(shotPosition, heading));
-    if (shotPosition.getDistance(swerveDrive.getPose().getTranslation()) < Units.inchesToMeters(6.0)) {
+    Command moveToCommand = Commands.runOnce(() -> {});
+    if (shotPosition.getDistance(swerveDrive.getPose().getTranslation()) < 3.0) {
       moveToCommand = Commands.runOnce(() -> {});
+    } else {
+      System.out.println("BAD");
+      swerveDrive.goTo(new Pose2d(shotPosition, heading));
     }
     return Commands.sequence(
       Commands.runOnce(() -> {
-        clearDynamicObstacles();
+        // clearDynamicObstacles();
         swerveDrive.setRotationTargetOverrideFromPointBackwards(Field.SPEAKER.get().toTranslation2d());
       }),
       Commands.parallel(
-        moveToCommand.until(() -> !controller.underStage() && swerveDrive.getFuturePose().getTranslation().getDistance(Field.SPEAKER.get().toTranslation2d()) < 4),
+        moveToCommand
+          .until(() -> !controller.underStage() && swerveDrive.getFuturePose().getTranslation().getDistance(Field.SPEAKER.get().toTranslation2d()) < 4),
         Commands.parallel(
           controller.setState(RobotStateController.State.SPIN_UP),
           controller.setState(RobotStateController.State.AIM_SPEAKER)
-        ).until(() -> controller.canShoot() && swerveDrive.getFieldVelocity().getNorm() < 0.1)//,
+        ).until(() -> controller.canShoot() && swerveDrive.getFieldVelocity().getNorm() < 0.5)//,
         // controller.setState(RobotStateController.State.CENTER_NOTE).onlyIf(() -> RobotBase.isReal() && swerveDrive.getPose().getTranslation().getDistance(Field.SPEAKER.get().toTranslation2d()) > 4.5 && hasNote())
       ),
       Commands.waitSeconds(0.5).onlyIf(() -> firstNote),
-      controller.setState(RobotStateController.State.SHOOT_SPEAKER)
+      controller.setState(RobotStateController.State.SHOOT_SPEAKER_OVERRIDE)
         .alongWith(Commands.runOnce(() -> {simHasNote = false; System.out.println("SHOOTING IN SPEAKER");}))
-        .until(() -> !hasNote()),
-      Commands.runOnce(() -> {
-        controller.setState(RobotStateController.State.SHOOT_SPEAKER).withTimeout(0.25).schedule();
+        .until(() -> !hasNote())
+      ).finallyDo(() -> {
         swerveDrive.setRotationTargetOverrideFromPointBackwards(null);
         firstNote = false;
-      })
-    );
-  }
-
-  public boolean hasPickedUpNote(Translation2d notePosition) {
-    Translation2d futurePosition = swerveDrive.getPose().getTranslation();
-    futurePosition = futurePosition.plus(swerveDrive.getFieldVelocity().times(swerveDrive.getFieldVelocity().getNorm()).div(2.0 * Constants.SWERVE_DRIVE.PHYSICS.MAX_LINEAR_ACCELERATION));
-    SwerveDrive.getField().getObject("futurePosition").setPoses(List.of(new Pose2d(futurePosition, new Rotation2d())));
-    return notePosition.getDistance(futurePosition) < Constants.SWERVE_DRIVE.BUMPER_LENGTH / 2.0;
+      });
   }
 
   public boolean shouldSeeNote(int note) {
@@ -374,36 +335,22 @@ public class Autonomous extends Command {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    // getRealNotePosition(Field.SPEAKER.get().toTranslation2d());
-    // System.out.println(controller.canShoot());
-    // FieldObject2d visibleNotes = SwerveDrive.getField().getObject("visibleNotes");
-    // List<Pose2d> poses = new ArrayList<>();
-    // for (Integer note : List.of(0, 1, 2, 3, 4, 5, 6, 7)) {
-    //   if (shouldSeeNote(note)) {
-    //     poses.add(new Pose2d(Field.NOTE_POSITIONS.get(note).get().plus(new Translation2d(0.0, 0.0)), new Rotation2d()));
-    //   }
-    // }
-    // visibleNotes.setPoses(poses);
-
-    Translation2d futurePosition = swerveDrive.getPose().getTranslation();
-    futurePosition = futurePosition.plus(swerveDrive.getFieldVelocity().times(swerveDrive.getFieldVelocity().getNorm()).div(2.0 * Constants.SWERVE_DRIVE.PHYSICS.MAX_LINEAR_ACCELERATION));
-    SwerveDrive.getField().getObject("futurePosition").setPoses(List.of(new Pose2d(futurePosition, swerveDrive.getPose().getRotation())));
-    
-    if (!command.isScheduled()) {
-      if (state == State.PICKUP || (state == null && hasNote())) {
-        System.out.println("SHOOT");
-        command = moveAndShoot();
-        command.schedule();
-        state = State.SHOOT;
-        return;
-      }
-      if ((state == State.SHOOT || (state == null && !hasNote())) && !notesToGet.isEmpty()) {
-        System.out.println("PICKUP");
-        state = State.PICKUP;
-        command = pickupNote(Field.NOTE_POSITIONS.get(getNextClosestNote()).get());
-        command.schedule();
-        return;
-      }
+    if ((state == State.PICKUP && hasNote()) || (state == State.PICKUP && command.isFinished()) || (state == null && hasNote())) {
+      System.out.println("SHOOT");
+      command.cancel();
+      command = moveAndShoot();
+      command.schedule();
+      state = State.SHOOT;
+      return;
+    }
+    if (((state == State.SHOOT && !hasNote()) || (state == null && !hasNote())) && !notesToGet.isEmpty()) {
+      System.out.println("PICKUP");
+      firstNote = false;
+      state = State.PICKUP;
+      command.cancel();
+      command = pickupNote(Field.NOTE_POSITIONS.get(getNextClosestNote()).get());
+      command.schedule();
+      return;
     }
 
     if (state == State.PICKUP) {
@@ -439,10 +386,12 @@ public class Autonomous extends Command {
   }
 
   public boolean hasNote() {
-    if (RobotBase.isReal()) {
-      return controller.hasNote();
-    } else {
+    // return controller.hasNote();
+    // return false;
+    if (RobotBase.isSimulation()) {
       return simHasNote;
+    } else {
+      return controller.hasNote();
     }
   }
 }
