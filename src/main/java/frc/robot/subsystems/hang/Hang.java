@@ -46,13 +46,13 @@ public class Hang extends SubsystemBase {
 
     leftMotor = new CANSparkMax(CAN.HANG_LEFT, MotorType.kBrushless);
     // todo: figure out which motor is inverted and confugire it as so
-    SparkMaxUtil.configureAndLog(this, leftMotor, false, CANSparkMax.IdleMode.kBrake);
+    SparkMaxUtil.configureAndLog(this, leftMotor, true, CANSparkMax.IdleMode.kBrake);
     SparkMaxUtil.configureCANStatusFrames(leftMotor, false, true);
     SparkMaxUtil.save(leftMotor);
 
     rightMotor = new CANSparkMax(CAN.HANG_RIGHT, MotorType.kBrushless);
     
-    SparkMaxUtil.configureAndLog(this, rightMotor, true, CANSparkMax.IdleMode.kBrake);
+    SparkMaxUtil.configureAndLog(this, rightMotor, false, CANSparkMax.IdleMode.kBrake);
     SparkMaxUtil.configureCANStatusFrames(rightMotor, false, true);
     SparkMaxUtil.save(rightMotor);   
 
