@@ -54,6 +54,7 @@ import frc.robot.Constants.Field;
 import frc.robot.commands.autonomous.Autonomous;
 import frc.robot.commands.drive.XBoxSwerve;
 import frc.robot.subsystems.vision.AprilTags;
+import frc.robot.subsystems.vision.Notes;
 import frc.robot.util.software.CustomSwerveDrivePoseEstimator;
 import frc.robot.util.software.MathUtils;
 import frc.robot.util.software.Logging.Logger;
@@ -183,6 +184,10 @@ public class SwerveDrive extends SubsystemBase {
     if (RobotState.isDisabled()) {
       isAligning = false;
     }
+
+    List<Translation2d> notePositions = Notes.getNotePositions(LIMELIGHT.NOTE_CAMERA_NAME, LIMELIGHT.NOTE_CAMERA_PITCH, this, getFieldVelocity(), LIMELIGHT.NOTE_CAMERA_POSITION);
+    SwerveDrive.getField().getObject("notes").setPoses(notePositions.stream().map(p -> new Pose2d(p, new Rotation2d())).toList());
+
     
     // List<Translation2d> notePositions = Notes.getNotePositions(LIMELIGHT.NOTE_CAMERA_NAME, LIMELIGHT.NOTE_CAMERA_PITCH, this, getFieldVelocity(), LIMELIGHT.NOTE_CAMERA_POSITION);
     // SwerveDrive.getField().getObject("notes").setPoses(notePositions.stream().map(p -> new Pose2d(p, new Rotation2d())).toList());
