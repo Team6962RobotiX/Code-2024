@@ -268,7 +268,7 @@ public class Autonomous extends Command {
       )
       .raceWith(
         Commands.sequence(
-          Commands.waitSeconds(0.5).onlyIf(() -> isFirstNote),
+          Commands.waitSeconds(1.0).onlyIf(() -> isFirstNote),
           Commands.run(() -> {
             if (controller.canShoot()) simulatedNote = false;
           }).until(() -> simulatedNote == false).onlyIf(() -> RobotBase.isSimulation()),
