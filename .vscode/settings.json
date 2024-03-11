@@ -1,6 +1,9 @@
 {
   "java.configuration.updateBuildConfiguration": "automatic",
   "java.server.launchMode": "Standard",
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": "explicit"
+  },
   "files.exclude": {
     "**/.git": true,
     "**/.svn": true,

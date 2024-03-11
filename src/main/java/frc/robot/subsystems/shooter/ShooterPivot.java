@@ -4,28 +4,23 @@
 
 package frc.robot.subsystems.shooter;
 
-import static edu.wpi.first.units.Units.Radians;
-import static edu.wpi.first.units.Units.RadiansPerSecond;
-import static edu.wpi.first.units.Units.Volts;
+import java.util.function.Supplier;
 
-import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
 
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.units.Measure;
-import edu.wpi.first.units.Voltage;
 import edu.wpi.first.wpilibj.RobotState;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
-import frc.robot.Robot;
+import frc.robot.RobotContainer;
 import frc.robot.Constants.Constants.CAN;
 import frc.robot.Constants.Constants.DIO;
 import frc.robot.Constants.Constants.ENABLED_SYSTEMS;
 import frc.robot.Constants.Constants.SHOOTER_PIVOT;
 import frc.robot.Constants.Preferences;
+import frc.robot.Constants.Preferences.VOLTAGE_LADDER;
+import frc.robot.util.TunableNumber;
 import frc.robot.util.hardware.SparkMaxUtil;
 import frc.robot.util.hardware.MotionControl.PivotController;
 
@@ -37,7 +32,8 @@ public class ShooterPivot extends SubsystemBase {
   public ShooterPivot() {    
     motor = new CANSparkMax(CAN.SHOOTER_PIVOT, MotorType.kBrushless);
 
-    SparkMaxUtil.configureAndLog(this, motor, false, IdleMode.kBrake);
+    SparkMaxUtil.configureAndLog(this, motor, false, CANSparkMax.IdleMode.kBrake); // TODO CHANGE TO BRAKE
+    SparkMaxUtil.configureCANStatusFrames(motor, false, false);
     SparkMaxUtil.save(motor);
 
     controller = new PivotController(
@@ -46,14 +42,17 @@ public class ShooterPivot extends SubsystemBase {
       DIO.SHOOTER_PIVOT,
       SHOOTER_PIVOT.ABSOLUTE_POSITION_OFFSET,
       SHOOTER_PIVOT.PROFILE.kP,
+      SHOOTER_PIVOT.PROFILE.kS,
       SHOOTER_PIVOT.GEARING,
-      SHOOTER_PIVOT.PROFILE.MAX_ACCELERATION,
       Preferences.SHOOTER_PIVOT.MIN_ANGLE,
       Preferences.SHOOTER_PIVOT.MAX_ANGLE,
+      Rotation2d.fromDegrees(0.5),
       true
     );
 
     SparkMaxUtil.save(motor);
+
+    new TunableNumber(this, "Shooter Pivot Power", (x) -> controller.setTargetAngle(Rotation2d.fromDegrees(x)), 0);
   }
 
   @Override
@@ -61,61 +60,81 @@ public class ShooterPivot extends SubsystemBase {
     if (!ENABLED_SYSTEMS.ENABLE_SHOOTER) return;
     if (isCalibrating) return;
     if (RobotState.isDisabled()) {
-      controller.setTargetAngle(getPosition());
+      controller.setTargetAngle(controller.getPosition());
     }
+
     controller.run();
+    
+    if (motor.getAppliedOutput() > 0.0 && getPosition().getRadians() > Preferences.SHOOTER_PIVOT.MAX_ANGLE.getRadians()) {
+      motor.stopMotor();
+    }
+
+    if (motor.getAppliedOutput() < 0.0 && getPosition().getRadians() < Preferences.SHOOTER_PIVOT.MIN_ANGLE.getRadians()) {
+      motor.stopMotor();
+    }
+
+    if (RobotContainer.getVoltage() < VOLTAGE_LADDER.SHOOTER) motor.stopMotor();
   }
 
-  public Command setTargetAngleCommand(Rotation2d angle) {
-    return runOnce(() -> setTargetAngle(angle));
+  public Command setTargetAngleCommand(Supplier<Rotation2d> angleSupplier) {
+    return runEnd(
+      () -> setTargetAngle(angleSupplier.get()),
+      () -> setTargetAngle(Preferences.SHOOTER_PIVOT.IDLE_ANGLE)
+    );
   }
 
   public void setTargetAngle(Rotation2d angle) {
     controller.setTargetAngle(angle);
   }
 
+  public Rotation2d getTargetAngle() {
+    return controller.getTargetAngle();
+  }
+
   public Rotation2d getPosition() {
-    if (Robot.isSimulation() && controller.getTargetAngle() != null) return controller.getTargetAngle();
     return controller.getPosition();
   }
 
   public boolean doneMoving() {
-    if (controller.getTargetAngle() == null) return true;
-    return Math.abs(getPosition().minus(controller.getTargetAngle()).getRadians()) < SHOOTER_PIVOT.ANGLE_TOLERANCE.getRadians();
+    return controller.doneMoving();
   }
 
-  public Command calibrate() {
-    SysIdRoutine calibrationRoutine = new SysIdRoutine(
-      new SysIdRoutine.Config(),
-      new SysIdRoutine.Mechanism(
-        (Measure<Voltage> volts) -> {
-          motor.setVoltage(volts.in(Volts));
-        },
-        log -> {
-          log.motor("shooter-pivot")
-            .voltage(Volts.of(motor.getAppliedOutput() * motor.getBusVoltage()))
-            .angularPosition(Radians.of(controller.getPosition().getRadians()))
-            .angularVelocity(RadiansPerSecond.of(controller.getVelocity().getRadians()));
-        },
-        this
-      )
-    );
-
-    return Commands.sequence(
-      Commands.runOnce(() -> isCalibrating = true),
-      calibrationRoutine.quasistatic(SysIdRoutine.Direction.kForward).until(controller::isPastLimit),
-      Commands.runOnce(() -> motor.stopMotor()),
-      Commands.waitSeconds(1.0),
-      calibrationRoutine.quasistatic(SysIdRoutine.Direction.kReverse).until(controller::isPastLimit),
-      Commands.runOnce(() -> motor.stopMotor()),
-      Commands.waitSeconds(1.0),
-      calibrationRoutine.dynamic(SysIdRoutine.Direction.kForward).until(controller::isPastLimit),
-      Commands.runOnce(() -> motor.stopMotor()),
-      Commands.waitSeconds(1.0),
-      calibrationRoutine.dynamic(SysIdRoutine.Direction.kReverse).until(controller::isPastLimit),
-      Commands.runOnce(() -> motor.stopMotor()),
-      Commands.waitSeconds(1.0),
-      Commands.runOnce(() -> isCalibrating = false)
-    );
+  public void setMaxAngle(Rotation2d angle) {
+    controller.setMaxAngle(angle);
   }
+
+  // public Command calibrate() {
+  //   SysIdRoutine calibrationRoutine = new SysIdRoutine(
+  //     new SysIdRoutine.Config(),
+  //     new SysIdRoutine.Mechanism(
+  //       (Measure<Voltage> volts) -> {
+  //         motor.setVoltage(volts.in(Volts));
+  //       },
+  //       log -> {
+  //         log.motor("shooter-pivot")
+  //           .voltage(Volts.of(motor.getAppliedOutput() * motor.getBusVoltage()))
+  //           .angularPosition(Radians.of(controller.getPosition().getRadians()))
+  //           .angularVelocity(RadiansPerSecond.of(controller.getVelocity().getRadians()));
+  //       },
+  //       this
+  //     )
+  //   );
+
+  //   return Commands.sequence(
+  //     Commands.runOnce(() -> isCalibrating = true),
+  //     calibrationRoutine.quasistatic(SysIdRoutine.Direction.kForward).until(controller::isPastLimit),
+  //     Commands.runOnce(() -> motor.stopMotor()),
+  //     Commands.waitSeconds(1.0),
+  //     calibrationRoutine.quasistatic(SysIdRoutine.Direction.kReverse).until(controller::isPastLimit),
+  //     Commands.runOnce(() -> motor.stopMotor()),
+  //     Commands.waitSeconds(1.0),
+  //     calibrationRoutine.dynamic(SysIdRoutine.Direction.kForward).until(controller::isPastLimit),
+  //     Commands.runOnce(() -> motor.stopMotor()),
+  //     Commands.waitSeconds(1.0),
+  //     calibrationRoutine.dynamic(SysIdRoutine.Direction.kReverse).until(controller::isPastLimit),
+  //     Commands.runOnce(() -> motor.stopMotor()),
+  //     Commands.waitSeconds(1.0),
+  //     Commands.runOnce(() -> isCalibrating = false)
+  //   );
+  // }
 }

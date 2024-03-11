@@ -1,21 +1,53 @@
 package frc.robot.subsystems;
 
-import edu.wpi.first.wpilibj.AddressableLED;
-import edu.wpi.first.wpilibj.AddressableLEDBuffer;
-import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
-
-import java.awt.Color;
-
 import com.github.tommyettinger.colorful.oklab.ColorTools;
 
+import edu.wpi.first.wpilibj.AddressableLED;
+import edu.wpi.first.wpilibj.AddressableLEDBuffer;
+import edu.wpi.first.wpilibj.RobotState;
+import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Robot;
+import frc.robot.Constants.Constants;
+
 public class LEDs extends SubsystemBase {
-  static AddressableLED strip;
-  static AddressableLEDBuffer buffer;
-  static int length = 200;
+  private static AddressableLED strip;
+  private static AddressableLEDBuffer buffer;
+  private RobotStateController stateController;
+  private static int length = 155;
+  private static State state = State.OFF;
+  private static double time = 0;
   
-  public LEDs() {
+  public static enum State {
+    OFF,
+    DISABLED,
+    ENABLED,
+    HAS_VISION_TARGET,
+    CAN_SEE_NOTE,
+    HAS_VISION_TARGET_SPEAKER,
+    RUNNING_COMMAND,
+    BAD,
+    GOOD,
+  }
+
+  public static enum Direction {
+    LEFT,
+    RIGHT,
+  }
+
+  public static final int[] WHITE = {255, 255, 255};
+  public static final int[] ANTARES_BLUE = { 36, 46, 68 };
+  public static final int[] ANTARES_YELLOW = { 255, 100, 0 };
+  public static final int[] RED = { 255, 0, 0 };
+  public static final int[] RSL_ORANGE = { 255, 100, 0 };
+  public static final int[] GREEN = { 0, 255, 0 };
+  public static final int[] BLUE = { 23, 127, 255 };
+  public static final int[] PURPLE = { 209, 23, 255 };
+  
+  public LEDs(RobotStateController stateController) {
+    this.stateController = stateController;
     strip = new AddressableLED(1);
     buffer = new AddressableLEDBuffer(length);
     strip.setLength(buffer.getLength());
@@ -26,52 +58,205 @@ public class LEDs extends SubsystemBase {
 
   @Override
   public void periodic() {
-    // setColorWave(0, length, new int[] {255, 20, 0});
-    setRainbow(0, length);
+    switch (state) {
+      case OFF:
+        setColor(0, length, new int[] {0, 0, 0});
+        break;
+      case DISABLED:
+        setColor(0, length, getBumperLEDColor());
+        break;
+      case HAS_VISION_TARGET:
+        if (RobotState.isDisabled()) {
+          setColor(0, length, new int[] {128, 0, 255});
+        } else {
+          setColorWave(0, length, new int[] {128, 0, 255}, 1.0, Direction.LEFT);
+        }
+        break;
+      case HAS_VISION_TARGET_SPEAKER:
+        setRainbow(0, length);
+        break;
+      case CAN_SEE_NOTE:
+        if (RobotState.isDisabled()) {
+          setColor(0, length, new int[] {255, 25, 0});
+        } else {
+          setColorWave(0, length, new int[] {255, 25, 0}, 1.0, Direction.LEFT);
+        }
+        break;
+      case ENABLED:
+        setBumperColorWave(0, length, 1.0);
+        break;
+      case RUNNING_COMMAND:
+        setColorWave(0, length, ANTARES_YELLOW, 1.0, Direction.LEFT);
+        break;
+      case GOOD:
+        setColor(0, length, GREEN);
+        break;
+      case BAD:
+        setColorFlash(0, length, RED, 5);
+        break;
+    }
     strip.setData(buffer);
     clear();
+
+    state = State.OFF;
+
+    time += Robot.getLoopTime() * (1.0 + stateController.getFieldVelocity().getNorm());
   }
 
   @Override
   public void simulationPeriodic() {
-
+    //setState(State.DISABLED);
   }
 
-  public static void setColor(int pixel, int[] RGB) {
+  public static Command setStateCommand(State state) {
+    return Commands.run(() -> setState(state));
+  }
+
+  public static void setState(State state) {
+    if (state.ordinal() > LEDs.state.ordinal()) LEDs.state = state;
+  }
+
+  private static void setColor(int pixel, int[] RGB) {
     buffer.setRGB(pixel, RGB[0], RGB[1], RGB[2]);
   }
 
-  public static void setColor(int start, int stop, int[] RGB) {
+  private static void setColor(int start, int stop, int[] RGB) {
     for (int pixel = start; pixel < stop; pixel++) {
       setColor(pixel, RGB);
     }
   }
 
-  public static void setRainbow(int start, int stop) {
-    double time = Timer.getFPGATimestamp();
+  private static void setTopStripColor(int[] RGB) {
+    setColor(Constants.LED.SIDE_STRIP_HEIGHT, length - Constants.LED.SIDE_STRIP_HEIGHT, RGB);
+  }
+
+  private static void setRainbow(int start, int stop) {
     for (int pixel = start; pixel < stop; pixel++) {
-      setColor(pixel, HCLtoRGB(new double[] {(pixel / 100.0 + time * 1.0) % 1.0, 1.0, 0.5}));
+      int[] rgb = HCLtoRGB(new double[] {(pixel / 100.0 + time * 1.0) % 1.0, 0.2, 0.6});
+      setColor(pixel, rgb);
     }
   }
 
-  public static void setColorWave(int start, int stop, int[] RGB) {
+  private static void setColorFlash(int start, int stop, int[] RGB, double speed) {
     double time = Timer.getFPGATimestamp();
-    for (int pixel = start; pixel < stop; pixel++) {
-      double val = (pixel / 200.0 + time * 2.5) % 1.0;
+
+    double val = (time * speed) % 1.0;
+    if (val < 0.5) {
+      setColor(0, length, RGB);
+    } else {
+      setColor(0, length, new int[] {0, 0, 0});
+    }
+    
+  }
+// setColorWave(length - Constants.LED.SIDE_STRIP_HEIGHT, length, RSL_ORANGE, 1, Direction.RIGHT);
+  private static void setColorWave(int start, int stop, int[] RGB, double speed, Direction dir) {    
+    for (int pixel = 0; pixel < stop - start; pixel++) {
+      double val = (pixel / 50.0 + time * speed) % 1.0;
+      int p = pixel + start;
       if (val < 0.5) {
-        setColor(pixel, RGB);
+        if (dir == Direction.LEFT) {
+          setColor(p, RGB);
+        } else if (dir == Direction.RIGHT) {
+          setColor(stop - pixel - 1, RGB);
+        }
       } else {
-        setColor(pixel, new int[] {0, 0, 0});
+        if (dir == Direction.LEFT) {
+          setColor(p, new int[] {0, 0, 0});
+        } else if (dir == Direction.RIGHT) {
+          setColor(stop - pixel - 1, new int[] {0, 0, 0});
+        }
+
       }
     }
   }
 
+  private static void setColorWave(int start, int stop, int[] firstRGB, int[] secondRGB, double speed, Direction dir) {
+    for (int pixel = 0; pixel < stop - start; pixel++) {
+      double val = (pixel / 50.0 + time * speed) % 1.0;
+      int p = pixel + start;
+      if (val < 0.5) {
+        if (dir == Direction.LEFT) {
+          setColor(p, firstRGB);
+        } else if (dir == Direction.RIGHT) {
+          setColor(stop - pixel - 1, firstRGB);
+        }
+      } else {
+        if (dir == Direction.LEFT) {
+          setColor(p, secondRGB);
+        } else if (dir == Direction.RIGHT) {
+          setColor(stop - pixel - 1, secondRGB);
+        }
 
-  public static void clear() {
+      }
+    }
+  }
+
+  // private static void setGradientWave(int start, int stop, int[] firstRGB, int[] secondRGB, double speed) {
+  //   double time = Timer.getFPGATimestamp();
+  //   int numLEDs = stop - start;
+  //   double maxPoint = (40 + time * 100) % numLEDs; // Pixel index with second rgb
+
+  //   double rDiff = (secondRGB[0] - firstRGB[0]);
+  //   double gDiff = (secondRGB[1] - firstRGB[1]);
+  //   double bDiff = (secondRGB[2] - firstRGB[2]);
+
+  //   GradientTools.makeGradient(start, stop, numLEDs);
+
+  //   for (int pixel = start; pixel < stop; pixel ++) {
+  //     // int r = (int)(firstRGB[0] + rStep * (pixel - start));
+  //     // int g = (int)(firstRGB[1] + gStep * (pixel - start));
+  //     // int b = (int)(firstRGB[2] + bStep * (pixel - start));
+  //     int[] newColor = firstRGB;
+  //     newColor[0] = (int) (((newColor[0] + time * 50) * rDiff / 500 + pixel * 10) % 255);
+  //     newColor[1] = (int) (((newColor[1] + time * 50) * gDiff / 500 + pixel * 10) % 255);
+  //     newColor[2] = (int) (((newColor[2] + time * 50) * bDiff / 500 + pixel * 10) % 255);
+
+  //     setColor(pixel, newColor);
+  //   }
+
+
+  // }
+
+  private static int[] getBumperColor() {
+    if (Constants.IS_BLUE_TEAM.get()) {
+      return ANTARES_BLUE;  
+    } else {
+      return RED;
+    }
+  }
+
+  private static int[] getBumperLEDColor () {
+    if (Constants.IS_BLUE_TEAM.get()) {
+      return BLUE;  
+    } else {
+      return RED;
+    }
+  }
+
+  private static void setBumperColorWave(int start, int stop, double speed) {
+    if (Constants.IS_BLUE_TEAM.get()) {
+      setColorWave(start, stop, getBumperLEDColor(), new int[] {0, 0, 0}, speed, Direction.LEFT);
+    } else {
+      setColorWave(start, stop, getBumperLEDColor(),  new int[] {0, 0, 0}, speed, Direction.LEFT);
+    } 
+  }
+
+  // private static void setBumperGradientWave(int start, int stop) {
+  //   if (Constants.IS_BLUE_TEAM) {
+  //     setGradientWave(start, stop, getBumperColor(), new int[] {179, 0, 255}, 2.5);
+  //   } else {
+  //     setGradientWave(start, stop, RED,  getBumperColor(), 2.5);
+  //   }
+    
+  // }
+
+  //private static void setAcceleratingColorWav
+
+  private static void clear() {
     setColor(0, length, new int[] {0, 0, 0});
   }
 
-  public static int[] HCLtoRGB(double[] HCL) {
+  private static int[] HCLtoRGB(double[] HCL) {
     float OKLAB = ColorTools.oklabByHCL((float) HCL[0], (float) HCL[1], (float) HCL[2], (float) 1.0);
     return new int[] {ColorTools.redInt(OKLAB), ColorTools.greenInt(OKLAB), ColorTools.blueInt(OKLAB)};
   }

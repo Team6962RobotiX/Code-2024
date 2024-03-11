@@ -20,6 +20,7 @@ public final class Preferences {
     public static final double   TELEOPERATED_DRIVE_POWER           = 0.5; // Percent driving power
     public static final double   TELEOPERATED_BOOST_POWER           = 1.0; // Percent power when using the triggers
     public static final double   TELEOPERATED_ROTATE_POWER          = 0.5; // Percent rotating power
+    public static final double   TELEOPERATED_SHOOTER_SPEED         = 0.75; // m/s
   }
 
   public final class NOTE_DETECTION {
@@ -27,33 +28,56 @@ public final class Preferences {
   }
 
   public static final class SHOOTER_FEED {
-    public static final double POWER = 0.15;
+    public static final double POWER_SHOOT = 1.0;
+    public static final double POWER_IN = 0.5;
   }
   
   public static final class SHOOTER_WHEELS {
-    public static final double TARGET_SPEED = Units.rotationsPerMinuteToRadiansPerSecond(8000);
+    public static final double TARGET_SPEED = Units.rotationsPerMinuteToRadiansPerSecond(10000);
   }
 
   public static final class SHOOTER_PIVOT {
-    public static final Rotation2d MAX_ANGLE = Rotation2d.fromDegrees(70.0);
-    public static final Rotation2d MIN_ANGLE = Rotation2d.fromDegrees(23); // 21.148
-    public static final Rotation2d INTAKE_ANGLE = Rotation2d.fromDegrees(20);
+    public static final Rotation2d MAX_ANGLE = Rotation2d.fromDegrees(60.0); // 63.0
+    public static final Rotation2d MIN_ANGLE = Rotation2d.fromDegrees(27.5); // 21.148 (really 21.6626)
+    public static final Rotation2d IDLE_ANGLE = Rotation2d.fromDegrees(30.0);
+    public static final Rotation2d MAX_ANGLE_UNDER_STAGE = Rotation2d.fromDegrees(50.0);
   }
 
   public static final class AMP_WHEELS {
-    public static final double POWER = 0.45;
-    public static final double LOAD_TIME = 1.0;
+    public static final double POWER = 1.0;
   }
 
   public static final class AMP_PIVOT {
-    public static final Rotation2d MAX_ANGLE = Rotation2d.fromDegrees(50.0);
-    public static final Rotation2d MIN_ANGLE = Rotation2d.fromDegrees(-67.0);
-    public static final Rotation2d OUTPUT_ANGLE = Rotation2d.fromDegrees(50.0);
-    public static final Rotation2d INTAKE_ANGLE = Rotation2d.fromDegrees(-45.0);
+    public static final Rotation2d MAX_ANGLE = Rotation2d.fromDegrees(90.0);
+    public static final Rotation2d MIN_ANGLE = Rotation2d.fromDegrees(-60.0);
+    public static final Rotation2d OUTPUT_ANGLE = Rotation2d.fromDegrees(68.0);
+    public static final Rotation2d INTAKE_ANGLE = Rotation2d.fromDegrees(-50.0);
+    public static final Rotation2d MAX_ANGLE_UNDER_STAGE = Rotation2d.fromDegrees(-20.0);
   }
 
   public static final class TRANSFER {
-    public static final double IN_POWER = 0.1;
-    public static final double OUT_POWER = 0.1;
+    public static final double IN_POWER = 0.5;
+    public static final double SLOW_IN_POWER = 0.4;
+    public static final double OUT_POWER_BOTTOM = 0.5;
+    public static final double OUT_POWER_TOP = 1.0;
+    public static final double TO_SHOOTER_FAST_POWER = 0.2;
+    public static final double TO_SHOOTER_SLOW_POWER = 0.1;
+    public static final double TO_AMP_POWER = 0.4;
+  }
+
+  public static final class HANG {
+    public static final double LEFT_MOTOR_EXTEND_POWER = 1.0; 
+    public static final double RIGHT_MOTOR_EXTEND_POWER = 1.0; 
+
+    public static final double LEFT_MOTOR_RETRACT_POWER = -1.0;
+    public static final double RIGHT_MOTOR_RETRACT_POWER = -1.0;    
+  }
+
+  public static final class VOLTAGE_LADDER {
+    public static final double SWERVE_DRIVE = 7.0;
+    public static final double SHOOTER = 8.0;
+    public static final double HANG = 9.0;
+    public static final double TRANSFER = 9.0;
+    public static final double AMP = 10.0;
   }
 }

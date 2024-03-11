@@ -15,12 +15,23 @@ public class Transfer extends SubsystemBase {
     IN,
     OUT,
     AMP,
-    SHOOTER,
+    SHOOTER_FAST,
+    SHOOTER_SLOW,
+    FROM_AMP,
+    SLOW_IN
   }
 
-  public Transfer() {    
+  public Transfer() {
     transferIn = new TransferInWheels();
     transferOut = new TransferOutWheels();
+  }
+
+  public TransferInWheels getInWheels() {
+    return transferIn;
+  }
+
+  public TransferOutWheels getOutWheels() {
+    return transferOut;
   }
 
   public Command setState(State state) {
@@ -28,6 +39,11 @@ public class Transfer extends SubsystemBase {
       case IN:
         return Commands.parallel( 
           transferIn.setState(TransferInWheels.State.IN),
+          transferOut.setState(TransferOutWheels.State.OFF)
+        );
+      case SLOW_IN:
+        return Commands.parallel( 
+          transferIn.setState(TransferInWheels.State.SLOW_IN),
           transferOut.setState(TransferOutWheels.State.OFF)
         );
       case OUT:
@@ -38,12 +54,22 @@ public class Transfer extends SubsystemBase {
       case AMP:
         return Commands.parallel( 
           transferIn.setState(TransferInWheels.State.IN),
-          transferOut.setState(TransferOutWheels.State.AMP)
+          transferOut.setState(TransferOutWheels.State.TO_AMP)
         );
-      case SHOOTER:
+      case SHOOTER_FAST:
         return Commands.parallel( 
           transferIn.setState(TransferInWheels.State.IN),
-          transferOut.setState(TransferOutWheels.State.SHOOTER)
+          transferOut.setState(TransferOutWheels.State.TO_SHOOTER_FAST)
+        );
+      case SHOOTER_SLOW:
+        return Commands.parallel( 
+          transferIn.setState(TransferInWheels.State.SLOW_IN),
+          transferOut.setState(TransferOutWheels.State.TO_SHOOTER_SLOW)
+        );
+      case FROM_AMP:
+        return Commands.parallel(
+          transferIn.setState(TransferInWheels.State.OUT),
+          transferOut.setState(TransferOutWheels.State.FROM_AMP)
         );
     }
     return null;
@@ -52,10 +78,6 @@ public class Transfer extends SubsystemBase {
   @Override
   public void periodic() {
     if (!ENABLED_SYSTEMS.ENABLE_TRANSFER) return;
-  }
-
-  public boolean hasNote() {
-    return transferIn.hasNote();
   }
 
   @Override

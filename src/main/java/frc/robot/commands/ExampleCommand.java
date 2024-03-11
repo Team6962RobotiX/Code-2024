@@ -4,12 +4,8 @@
 
 package frc.robot.commands;
 
-import frc.robot.subsystems.*;
-import frc.robot.Robot;
-import frc.robot.RobotContainer;
-import frc.robot.Constants.Constants;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.subsystems.ExampleSubsystem;
 
 /** An example command that uses an example subsystem. */
 public class ExampleCommand extends Command {

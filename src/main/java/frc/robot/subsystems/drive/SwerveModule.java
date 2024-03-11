@@ -14,15 +14,11 @@ import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.configs.MagnetSensorConfigs;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.signals.AbsoluteSensorRangeValue;
-import com.revrobotics.CANSparkBase.ControlType;
-import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkPIDController;
-import com.revrobotics.SparkPIDController.ArbFFUnits;
 
-import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -36,13 +32,15 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import frc.robot.RobotContainer;
 import frc.robot.Constants.Constants;
 import frc.robot.Constants.Constants.ENABLED_SYSTEMS;
-import frc.robot.Constants.Constants.NEO;
 import frc.robot.Constants.Constants.SWERVE_DRIVE;
 import frc.robot.Constants.Constants.SWERVE_DRIVE.DRIVE_MOTOR_PROFILE;
 import frc.robot.Constants.Constants.SWERVE_DRIVE.MODULE_CONFIG;
+import frc.robot.Constants.Constants.SWERVE_DRIVE.PHYSICS;
 import frc.robot.Constants.Constants.SWERVE_DRIVE.STEER_MOTOR_PROFILE;
+import frc.robot.Constants.Preferences.VOLTAGE_LADDER;
 import frc.robot.util.hardware.SparkMaxUtil;
 import frc.robot.util.software.MathUtils.SwerveMath;
 import frc.robot.util.software.Logging.Logger;
@@ -54,8 +52,6 @@ public class SwerveModule extends SubsystemBase {
   private CANcoder absoluteSteerEncoder;
   private SparkPIDController drivePID, steerPID;
   private SwerveModuleState targetState = new SwerveModuleState();
-  private SwerveModuleState lastDrivenState = new SwerveModuleState();
-  private MODULE_CONFIG config;
   private String name;
   private int corner;
 
@@ -68,7 +64,6 @@ public class SwerveModule extends SubsystemBase {
   );
 
   public SwerveModule(MODULE_CONFIG config, int corner, String name) {
-    this.config = config;
     this.corner = corner;
     this.name = name;
 
@@ -106,12 +101,15 @@ public class SwerveModule extends SubsystemBase {
     BaseStatusSignal.setUpdateFrequencyForAll(50, absoluteSteerEncoder.getAbsolutePosition(), absoluteSteerEncoder.getFaultField(), absoluteSteerEncoder.getVersion());
     absoluteSteerEncoder.optimizeBusUtilization();
 
-    SparkMaxUtil.configureAndLog(this, driveMotor, false, IdleMode.kBrake);
-    SparkMaxUtil.configureAndLog(this, steerMotor, true, IdleMode.kCoast);
+    SparkMaxUtil.configureAndLog(this, driveMotor, false, CANSparkMax.IdleMode.kBrake, PHYSICS.SLIPLESS_CURRENT_LIMIT, PHYSICS.SLIPLESS_CURRENT_LIMIT);
+    SparkMaxUtil.configureAndLog(this, steerMotor, true, CANSparkMax.IdleMode.kCoast);
     SparkMaxUtil.configureEncoder(driveMotor, SWERVE_DRIVE.DRIVE_ENCODER_CONVERSION_FACTOR);
     SparkMaxUtil.configureEncoder(steerMotor, SWERVE_DRIVE.STEER_ENCODER_CONVERSION_FACTOR);
     SparkMaxUtil.configurePID(this, driveMotor, DRIVE_MOTOR_PROFILE.kP, DRIVE_MOTOR_PROFILE.kI, DRIVE_MOTOR_PROFILE.kD, 0.0, false);
     SparkMaxUtil.configurePID(this, steerMotor, STEER_MOTOR_PROFILE.kP, STEER_MOTOR_PROFILE.kI, STEER_MOTOR_PROFILE.kD, 0.0, true);
+    
+    SparkMaxUtil.configureCANStatusFrames(driveMotor, true, true);
+    SparkMaxUtil.configureCANStatusFrames(steerMotor, false, false);
     
     seedSteerEncoder();
 
@@ -137,6 +135,9 @@ public class SwerveModule extends SubsystemBase {
     }
     
     drive(targetState);
+
+    if (RobotContainer.getVoltage() < VOLTAGE_LADDER.SWERVE_DRIVE) stop();
+
   }
   
   public void drive(SwerveModuleState state) {
@@ -146,28 +147,24 @@ public class SwerveModule extends SubsystemBase {
     if (SWERVE_DRIVE.DO_ANGLE_ERROR_SPEED_REDUCTION) {
       speedMetersPerSecond *= Math.cos(SwerveMath.angleDistance(radians, getMeasuredState().angle.getRadians()));
     }
-        
+    
     drivePID.setReference(
       speedMetersPerSecond,
-      ControlType.kVelocity, 
+      CANSparkMax.ControlType.kVelocity,
       0,
-      driveFF.calculate(speedMetersPerSecond, 0.0),
-      ArbFFUnits.kVoltage
+      driveFF.calculate(speedMetersPerSecond)
     );
     
     steerPID.setReference(
       radians,
-      ControlType.kPosition,
-      0
+      CANSparkMax.ControlType.kPosition
     );
-
-    lastDrivenState = new SwerveModuleState(speedMetersPerSecond, Rotation2d.fromRadians(radians));
   }
     
   public void setTargetState(SwerveModuleState state) {
     targetState = SwerveModuleState.optimize(state, getMeasuredState().angle);
   }
-    
+  
   public void stop() {
     targetState = new SwerveModuleState(0.0, getMeasuredState().angle);
     // steerMotor.stopMotor();
@@ -192,7 +189,7 @@ public class SwerveModule extends SubsystemBase {
   }
   
   public SwerveModuleState getMeasuredState() {
-    return new SwerveModuleState(driveEncoder.getVelocity(), Rotation2d.fromRadians(MathUtil.angleModulus(steerEncoder.getPosition())));
+    return new SwerveModuleState(driveEncoder.getVelocity(), getTrueSteerDirection());
   }
 
   public SwerveModulePosition getModulePosition() {
@@ -312,14 +309,12 @@ public class SwerveModule extends SubsystemBase {
   }
 
   private void doCalibrationPrep() {
-    driveMotor.setSmartCurrentLimit(NEO.SAFE_STALL_CURRENT, NEO.SAFE_STALL_CURRENT);
-    steerMotor.setSmartCurrentLimit(NEO.SAFE_STALL_CURRENT, NEO.SAFE_STALL_CURRENT);
     isCalibrating = true;
+    SparkMaxUtil.configureCANStatusFrames(steerMotor, true, true);
   }
 
   private void undoCalibrationPrep() {
-    driveMotor.setSmartCurrentLimit(Math.min(DRIVE_MOTOR_PROFILE.CURRENT_LIMIT, NEO.SAFE_STALL_CURRENT), DRIVE_MOTOR_PROFILE.CURRENT_LIMIT);
-    steerMotor.setSmartCurrentLimit(Math.min(STEER_MOTOR_PROFILE.CURRENT_LIMIT, NEO.SAFE_STALL_CURRENT), STEER_MOTOR_PROFILE.CURRENT_LIMIT);
     isCalibrating = false;
+    SparkMaxUtil.configureCANStatusFrames(steerMotor, false, false);
   }
 }

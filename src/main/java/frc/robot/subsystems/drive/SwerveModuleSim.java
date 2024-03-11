@@ -53,8 +53,6 @@ public class SwerveModuleSim extends SwerveModule {
   private double steerVoltRamp = 0.0;
   private double drivePosition = 0.0;
   private double steerRadians = (Math.random() * 2.0 * Math.PI) - Math.PI;
-
-  private SwerveModuleState lastDrivenState = new SwerveModuleState();
   
   public SwerveModuleSim(MODULE_CONFIG config, int corner, String name) {
     super(config, corner, name);
@@ -80,15 +78,13 @@ public class SwerveModuleSim extends SwerveModule {
       speedMetersPerSecond *= Math.cos(SwerveMath.angleDistance(getMeasuredState().angle.getRadians(), getMeasuredState().angle.getRadians()));
     }
 
-    double wheelAcceleration = (speedMetersPerSecond - lastDrivenState.speedMetersPerSecond) / 0.02;
-
     for (int i = 0; i < 20; i++) {
       double driveVolts = driveFF.calculate(speedMetersPerSecond, 0.0) + 12.0 * drivePID.calculate(getMeasuredState().speedMetersPerSecond, speedMetersPerSecond);
       double steerVolts = 12.0 * steerPID.calculate(getMeasuredState().angle.getRadians(), radians);
       
       driveVoltRamp += (MathUtil.clamp(driveVolts - driveVoltRamp, -12.0 / NEO.SAFE_RAMP_RATE / 1000.0, 12.0 / NEO.SAFE_RAMP_RATE / 1000.0));
       driveVolts = driveVoltRamp;
-
+      
       steerVoltRamp += (MathUtil.clamp(steerVolts - steerVoltRamp, -12.0 / NEO.SAFE_RAMP_RATE / 1000.0, 12.0 / NEO.SAFE_RAMP_RATE / 1000.0));
       steerVolts = steerVoltRamp;
 
@@ -102,8 +98,6 @@ public class SwerveModuleSim extends SwerveModule {
       steerRadians += steerMotor.getAngularVelocityRadPerSec() * (1.0 / 1000.0);
       steerRadians = MathUtil.angleModulus(steerRadians);
     }
-
-    lastDrivenState = new SwerveModuleState(speedMetersPerSecond, Rotation2d.fromRadians(radians));
   }
 
   @Override
@@ -114,8 +108,8 @@ public class SwerveModuleSim extends SwerveModule {
   @Override
   public double getTotalCurrent() {
     return 
-      MathUtil.clamp(driveMotor.getCurrentDrawAmps(), -SWERVE_DRIVE.DRIVE_MOTOR_PROFILE.CURRENT_LIMIT, SWERVE_DRIVE.DRIVE_MOTOR_PROFILE.CURRENT_LIMIT) + 
-      MathUtil.clamp(steerMotor.getCurrentDrawAmps(), -SWERVE_DRIVE.STEER_MOTOR_PROFILE.CURRENT_LIMIT, SWERVE_DRIVE.STEER_MOTOR_PROFILE.CURRENT_LIMIT);
+      driveMotor.getCurrentDrawAmps() + 
+      steerMotor.getCurrentDrawAmps();
   }
   
   @Override

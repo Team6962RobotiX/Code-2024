@@ -5,33 +5,32 @@
 
 package frc.robot.commands.vision;
 
-import frc.robot.Constants.Constants.LIMELIGHT;
-import frc.robot.subsystems.drive.SwerveDrive;
-import frc.robot.subsystems.vision.Notes;
-import frc.robot.util.software.LimelightHelpers;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
-
 import java.util.List;
 
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
-
-import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
+import frc.robot.Constants.Constants;
+import frc.robot.Constants.Constants.LIMELIGHT;
+import frc.robot.Constants.Field;
+import frc.robot.subsystems.RobotStateController;
+import frc.robot.subsystems.drive.SwerveDrive;
+import frc.robot.subsystems.vision.Notes;
 
 
 public class MoveToNote extends Command {
   private final SwerveDrive swerveDrive;
-  private final CommandXboxController controller;
+  private final RobotStateController stateController;
   private final String cameraName;
-  private Command goToCommand;
+  private Command goToCommand = Commands.runOnce(() -> {});
+  private Translation2d targetingNote;
 
-  public MoveToNote(String cameraName, SwerveDrive swerveDrive, CommandXboxController controller) {
+  public MoveToNote(String cameraName, SwerveDrive swerveDrive, RobotStateController stateController) {
     
     this.swerveDrive = swerveDrive;
-    this.controller = controller;
     this.cameraName = cameraName;
+    this.stateController = stateController;
     // Use addRequirements() here to declare subsystem dependencies.
     // addRequirements(swerveDrive);
   }
@@ -39,31 +38,38 @@ public class MoveToNote extends Command {
   // Called when the command is initially scheduled.
   @Override
   public void initialize() {
-    //The robot won't move unless it sees a note
-    goToCommand = null;
+    // The robot won't move unless it sees a note
+    goToCommand = Commands.runOnce(() -> {});
+    goToCommand.schedule();
   }
 
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-
-    //If the camera can see the note, it updates the position. 
-    //As soon at the camera can't see the note, the robot continues driving to the last known note position.
-    List<Translation2d> notePositions = Notes.getNotePositions(cameraName, LIMELIGHT.NOTE_CAMERA_PITCH, swerveDrive.getPose(), swerveDrive.getFieldVelocity(), LIMELIGHT.NOTE_CAMERA_POSITION);
+  
+    // If the camera can see the note, it updates the position. 
+    // As soon at the camera can't see the note, the robot continues driving to the last known note position.
+    List<Translation2d> notePositions = Notes.getNotePositions(cameraName, LIMELIGHT.NOTE_CAMERA_PITCH, swerveDrive, swerveDrive.getFieldVelocity(), LIMELIGHT.NOTE_CAMERA_POSITION);
     if (notePositions.size() > 0) {
       Translation2d targetPoint = swerveDrive.getPose().getTranslation().nearest(notePositions);
 
-      Pose2d targetPose = new Pose2d(targetPoint, targetPoint.minus(swerveDrive.getPose().getTranslation()).getAngle());
-      
-      if (goToCommand == null || goToCommand.isFinished()) {
-        goToCommand = Commands.runOnce(() -> swerveDrive.setRotationTargetOverrideFromPoint(targetPoint))
-          .andThen(swerveDrive.goToSimple(targetPose))
-          .andThen(() -> swerveDrive.setRotationTargetOverrideFromPoint(null));
+      if (targetingNote == null || targetPoint.getDistance(targetingNote) > Field.NOTE_LENGTH) {
+        Translation2d endSpline = swerveDrive.getPose().getTranslation().minus(targetPoint);
+        endSpline = endSpline.div(endSpline.getNorm()).times(Constants.SWERVE_DRIVE.BUMPER_LENGTH / 2.0);
+        endSpline = endSpline.plus(targetPoint);
+
+        final Translation2d endSplineFinal = endSpline;
+
+        targetingNote = targetPoint;
+        goToCommand.cancel();
+        goToCommand = Commands.runOnce(() -> swerveDrive.setRotationTargetOverrideFromPoint(endSplineFinal))
+          .andThen(swerveDrive.goToSimple(new Pose2d(endSpline, swerveDrive.getHeading())).until(() -> stateController.hasNote()))
+          .finallyDo(() -> swerveDrive.setRotationTargetOverrideFromPoint(null));
         goToCommand.schedule();
       }
     }
 
-    //THIS DOES BOTH ROTATION AND TRANSLATION
+    // THIS DOES BOTH ROTATION AND TRANSLATION
     // swerveDrive.goTo(targetPose, controller);
 
   }
@@ -71,13 +77,13 @@ public class MoveToNote extends Command {
   // Called once the command ends or is interrupted.
   @Override
   public void end(boolean interrupted) {
-    if (goToCommand != null) goToCommand.cancel();
+    goToCommand.cancel();
   }
 
   // Returns true when the command should end.
   @Override
   public boolean isFinished() {
-    return false;
+    return stateController.hasNote();
   }
 }
 

@@ -4,40 +4,39 @@
 
 package frc.robot.subsystems.shooter;
 
-import com.revrobotics.CANSparkBase.IdleMode;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkMax;
 
 import edu.wpi.first.wpilibj.RobotState;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Robot;
-import frc.robot.Constants.Constants;
+import frc.robot.RobotContainer;
 import frc.robot.Constants.Constants.CAN;
 import frc.robot.Constants.Constants.ENABLED_SYSTEMS;
 import frc.robot.Constants.Preferences;
-import frc.robot.util.hardware.NoteDetector;
+import frc.robot.Constants.Preferences.VOLTAGE_LADDER;
 import frc.robot.util.hardware.SparkMaxUtil;
 
 public class FeedWheels extends SubsystemBase {
   private CANSparkMax motor;
-  private NoteDetector detector;
+  // private NoteDetector detector;
   private State state = State.OFF;
  
   public static enum State {
     IN,
     OUT,
-    OFF
+    OFF,
+    SHOOT
   }
 
   public FeedWheels() {
     motor = new CANSparkMax(CAN.SHOOTER_FEED, MotorType.kBrushless);
 
-    SparkMaxUtil.configureAndLog(this, motor, false, IdleMode.kBrake);
+    SparkMaxUtil.configureAndLog(this, motor, true, CANSparkMax.IdleMode.kCoast);
+    SparkMaxUtil.configureCANStatusFrames(motor, false, false);
     SparkMaxUtil.save(motor);
 
-    detector = new NoteDetector(motor, Constants.SHOOTER_FEED.GEARING, Constants.SHOOTER_FEED.FREE_TORQUE, false);
+    // detector = new NoteDetector(motor, Constants.SHOOTER_FEED.GEARING, Constants.SHOOTER_FEED.FREE_TORQUE, false);
 
   }
 
@@ -54,21 +53,26 @@ public class FeedWheels extends SubsystemBase {
     if (RobotState.isDisabled()) {
       state = State.OFF;
     }
+    if (RobotState.isAutonomous()) {
+      state = State.SHOOT;
+    }
     switch(state) {
       case OFF:
         motor.set(0);
         break;
       case IN:
-        motor.set(Preferences.SHOOTER_FEED.POWER);
+        motor.set(Preferences.SHOOTER_FEED.POWER_IN);
+        break;
+      case SHOOT:
+        motor.set(Preferences.SHOOTER_FEED.POWER_SHOOT);
         break;
       case OUT:
-        motor.set(-Preferences.SHOOTER_FEED.POWER);
+        motor.set(-Preferences.SHOOTER_FEED.POWER_IN);
         break;
     }
-  }
 
-  public boolean hasNote() {
-    return detector.hasNote();
+    if (RobotContainer.getVoltage() < VOLTAGE_LADDER.SHOOTER) motor.stopMotor();
+
   }
 
   @Override

@@ -1,22 +1,17 @@
 package frc.robot.subsystems.shooter;
 
-import static edu.wpi.first.units.Units.Rotation;
-
-import java.util.List;
-
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
-import frc.robot.subsystems.drive.SwerveDrive;
-import frc.robot.util.software.Logging.Logger;
-import frc.robot.Constants.Field;
-import frc.robot.Constants.Preferences;
+import edu.wpi.first.wpilibj.RobotState;
 import frc.robot.Constants.Constants;
 import frc.robot.Constants.Constants.SHOOTER_PIVOT;
 import frc.robot.Constants.Constants.SHOOTER_WHEELS;
+import frc.robot.Constants.Field;
+import frc.robot.Constants.Preferences;
 
 public class ShooterMath {
   
@@ -37,15 +32,14 @@ public class ShooterMath {
     double gravity = 9.80;
     double shootingDistance;
     
-    try{
+    try {
       shootingDistance = (
         ((Math.pow(projectileVelocity, 2.0) * Math.tan(pivotAngle.getDegrees())) / gravity) - 
         ((Math.sqrt(-2.0 * gravity * targetHeight * (Math.pow(projectileVelocity, 2.0)) * 
         Math.pow(Math.tan(pivotAngle.getDegrees()), 2.0)) + (Math.pow(projectileVelocity, 4.0) * 
         Math.pow(Math.tan(pivotAngle.getDegrees()), 2.0)) - (2.0 * gravity * targetHeight * 
         Math.pow(projectileVelocity, 2.0))) / 2.0)) / (Math.pow(Math.tan(pivotAngle.getDegrees()), 2.0) + 1.0);
-    }
-    catch(Exception e){
+    } catch (Exception e){
       return 0.0;
     }
 
@@ -68,19 +62,18 @@ public class ShooterMath {
     for (int i = 0; i < iterations; i++) {
       Translation3d shooterLocation = calcShooterLocationOnField(currentPose, pivotAngle);
 
-      Logger.log("shooterLocation", shooterLocation);
-
       double targetHeight = targetPoint.getZ() - shooterLocation.getZ();
       double floorDistance = shooterLocation.toTranslation2d().getDistance(targetPoint.toTranslation2d());
       double projectileVelocity = calcProjectileVelocity(shooterWheelVelocity);
       double gravity = 9.80;
+
       double exitRadians = Math.atan((Math.pow(projectileVelocity, 2.0) - Math.sqrt(Math.pow(projectileVelocity, 4.0) - gravity * (gravity * Math.pow(floorDistance, 2.0) + 2.0 * targetHeight * Math.pow(projectileVelocity, 2.0)))) / (gravity * floorDistance));
       double distanceAtApex = projectileVelocity * Math.cos(exitRadians) * (projectileVelocity * (Math.sin(exitRadians) / gravity));
       if (Double.isNaN(exitRadians) || distanceAtApex < floorDistance) {
         return Rotation2d.fromDegrees(0.0);
       }
       Rotation2d exitAngle = Rotation2d.fromRadians(exitRadians);
-      pivotAngle = exitAngle.plus(SHOOTER_PIVOT.NOTE_ROTATION_OFFSET);
+      pivotAngle = exitAngle.minus(SHOOTER_PIVOT.NOTE_ROTATION_OFFSET);
     }
 
     return pivotAngle;
@@ -93,8 +86,12 @@ public class ShooterMath {
    */
   public static double calcProjectileVelocity(double shooterWheelVelocity) {
     // Derived from https://www.reca.lc/shooterWheel
-    return 13.0;
-
+    // return 1000000.0;
+    if (RobotState.isAutonomous()) {
+      return 13.0;
+    }
+    return 13 * (shooterWheelVelocity / 1000);
+    
     // return (shooterWheelVelocity * (SHOOTER_WHEELS.WHEEL_RADIUS + (Field.NOTE_THICKNESS - SHOOTER_WHEELS.COMPRESSION) / 2.0)) / 4.0;
     // double shooterWheelSurfaceSpeed = shooterWheelVelocity * SHOOTER_WHEELS.WHEEL_RADIUS;
 
@@ -110,7 +107,7 @@ public class ShooterMath {
     
     Translation3d speakerOffset = new Translation3d();
 
-    if (Constants.IS_BLUE_TEAM) {
+    if (Constants.IS_BLUE_TEAM.get()) {
       speakerOffset = new Translation3d(
         Math.cos(Field.SPEAKER_ANGLE) * (Field.SPEAKER_HEIGHT - Field.NOTE_THICKNESS) / 2.0,
         0.0,
@@ -126,9 +123,6 @@ public class ShooterMath {
 
     Translation3d minAimingPoint = aimingPoint.minus(speakerOffset);
     Translation3d maxAimingPoint = aimingPoint.plus(speakerOffset);
-
-    Logger.log("minAimingPoint", minAimingPoint);
-    Logger.log("maxAimingPoint", maxAimingPoint);
 
     Rotation2d minPivotAngle = calcPivotAngle(minAimingPoint, currentPose, shooterWheelVelocity);
     Rotation2d maxPivotAngle = calcPivotAngle(maxAimingPoint, currentPose, shooterWheelVelocity);
@@ -167,7 +161,7 @@ public class ShooterMath {
   // Assuming we're already lined up with the target, what's the chance we'll hit it?
   public static double calcOptimalShotChance(Translation3d targetPoint, Pose2d currentPose) {
     double shooterWheelVelocity = Preferences.SHOOTER_WHEELS.TARGET_SPEED;
-    Translation3d aimingPoint = Field.SPEAKER;
+    Translation3d aimingPoint = Field.SPEAKER.get();
     
     currentPose = new Pose2d(
       currentPose.getTranslation(),
@@ -195,24 +189,26 @@ public class ShooterMath {
     double targetHeight = targetPoint.getZ() - calcShooterLocationOnField(currentPose, pivotAngle).getZ();
     double projectileVelocity = calcProjectileVelocity(shooterWheelVelocity);
     double gravity = 9.80;
-    Rotation2d exitAngle = pivotAngle.minus(SHOOTER_PIVOT.NOTE_ROTATION_OFFSET);
-    return (projectileVelocity * Math.sin(exitAngle.getRadians()) - Math.sqrt(Math.pow(projectileVelocity * Math.sin(exitAngle.getRadians()), 2.0) - 2.0 * gravity * targetHeight)) / gravity;
+    Rotation2d exitAngle = pivotAngle.plus(SHOOTER_PIVOT.NOTE_ROTATION_OFFSET);
+    return (projectileVelocity * Math.sin(exitAngle.getRadians()) - Math.sqrt(Math.pow(projectileVelocity * Math.sin(exitAngle.getRadians()), 2.0) - 2.0 * gravity * -targetHeight)) / gravity;
   }
 
-  public static Translation3d calcVelocityCompensatedPoint(Translation3d targetPoint, Pose2d currentPose, Translation2d currentVelocity, double shooterWheelVelocity, Rotation2d pivotAngle) {
-    if (shooterWheelVelocity == 0.0) return targetPoint;
+  public static Translation3d calcVelocityCompensatedPoint(Translation3d targetPoint, Pose2d currentPose, Translation2d currentVelocity, double shooterWheelVelocity, Rotation2d pivotAngle) {    
+    return targetPoint;
     
-    double flightTime = calculateFlightTime(targetPoint, currentPose, shooterWheelVelocity, pivotAngle);
-
-    if (Double.isNaN(flightTime)) return targetPoint;
-
-    Translation2d projectileOffset = currentVelocity.times(flightTime);
+    // if (shooterWheelVelocity == 0.0) return targetPoint;
     
-    return new Translation3d(
-      targetPoint.getX() - projectileOffset.getX(),
-      targetPoint.getY() - projectileOffset.getY(),
-      targetPoint.getZ()
-    );
+    // double flightTime = calculateFlightTime(targetPoint, currentPose, shooterWheelVelocity, pivotAngle);
+
+    // if (Double.isNaN(flightTime)) return targetPoint;
+    
+    // Translation2d projectileOffset = currentVelocity.times(flightTime);
+    
+    // return new Translation3d(
+    //   targetPoint.getX() - projectileOffset.getX(),
+    //   targetPoint.getY() - projectileOffset.getY(),
+    //   targetPoint.getZ()
+    // );
   }
 
 }

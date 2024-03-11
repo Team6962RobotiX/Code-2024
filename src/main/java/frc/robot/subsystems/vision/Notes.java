@@ -8,26 +8,40 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.Timer;
 import frc.robot.Constants.Field;
+import frc.robot.subsystems.LEDs;
+import frc.robot.subsystems.drive.SwerveDrive;
 import frc.robot.util.software.LimelightHelpers;
 import frc.robot.util.software.LimelightHelpers.LimelightTarget_Detector;
+import frc.robot.util.software.Logging.Logger;
 
 public class Notes {
-  public static List<Translation2d> getNotePositions(String name, Rotation2d pitch, Pose2d robotPose, Translation2d fieldVelocity, Translation3d cameraToRobot) {
+  public static List<Translation2d> getNotePositions(String name, Rotation2d pitch, SwerveDrive swerveDrive, Translation2d fieldVelocity, Translation3d cameraToRobot) {
     LimelightHelpers.LimelightResults results = LimelightHelpers.getLatestResults(name);
     LimelightTarget_Detector[] targets = results.targetingResults.targets_Detector;
 
     List<Translation2d> notePositions = new ArrayList<>();
-    
     for (LimelightTarget_Detector target : targets) {
-      if (target.confidence < 0.8) continue;
       double x = target.tx;
-      double y = target.ty;
+      double y = target.ty;// - Math.sqrt(Constants.LIMELIGHT.FOV_HEIGHT.getDegrees() * Constants.LIMELIGHT.FOV_HEIGHT.getDegrees() * target.ta)/2;
+      
+      if (target.confidence < 0.5) continue;
+      if (Units.degreesToRadians(y) + pitch.getRadians() > 0) continue;
+      
       double latency = (results.targetingResults.latency_capture + results.targetingResults.latency_jsonParse + results.targetingResults.latency_pipeline) / 1000.0;
-      double dist = ((cameraToRobot.getZ() - Field.NOTE_THICKNESS / 2.0) / (Math.tan(Math.abs(Units.degreesToRadians(y) + pitch.getRadians())) * Math.abs(Math.cos(Units.degreesToRadians(x)))));
-      Translation2d robotPosition = robotPose.getTranslation().minus(fieldVelocity.times(latency / 1000.0));
-      Translation2d notePosition = robotPosition.plus(cameraToRobot.toTranslation2d().plus(new Translation2d(dist, 0)).rotateBy(robotPose.getRotation()));
+      double distance = (cameraToRobot.getZ() - Field.NOTE_THICKNESS/2) / -Math.tan(Units.degreesToRadians(y) + pitch.getRadians());
+      Logger.log("note-distance", distance);
+      Translation2d relativePosition = new Translation2d(
+        distance * Math.cos(Units.degreesToRadians(x)),
+        -distance * Math.sin(Units.degreesToRadians(x))
+      );
+      
+      Pose2d robotPosition = swerveDrive.getPose(Timer.getFPGATimestamp() - latency);
+      Translation2d notePosition = robotPosition.getTranslation().plus(relativePosition.rotateBy(robotPosition.getRotation()));
       notePositions.add(notePosition);
+      
+      LEDs.setState(LEDs.State.CAN_SEE_NOTE);
     }
 
     return notePositions;
