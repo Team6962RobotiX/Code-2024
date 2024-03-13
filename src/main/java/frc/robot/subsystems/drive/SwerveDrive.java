@@ -5,14 +5,12 @@
 package frc.robot.subsystems.drive;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Supplier;
 
 import com.choreo.lib.Choreo;
 import com.choreo.lib.ChoreoTrajectory;
 import com.kauailabs.navx.frc.AHRS;
 import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import com.pathplanner.lib.path.GoalEndState;
 import com.pathplanner.lib.path.PathPlannerPath;
 import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
@@ -54,7 +52,6 @@ import frc.robot.Constants.Field;
 import frc.robot.commands.autonomous.Autonomous;
 import frc.robot.commands.drive.XBoxSwerve;
 import frc.robot.subsystems.vision.AprilTags;
-import frc.robot.subsystems.vision.Notes;
 import frc.robot.util.software.CustomSwerveDrivePoseEstimator;
 import frc.robot.util.software.MathUtils;
 import frc.robot.util.software.Logging.Logger;
@@ -81,13 +78,14 @@ public class SwerveDrive extends SubsystemBase {
     SWERVE_DRIVE.ABSOLUTE_ROTATION_GAINS.kI,
     SWERVE_DRIVE.ABSOLUTE_ROTATION_GAINS.kD
   );
+  private double addedAlignmentAngularVelocity = 0.0;
 
   private boolean isAligning = false;
   private boolean parked = false;
   private boolean isDriven = false;
 
-  private Translation2d rotationOverridePoint = null;
-  private boolean rotationOverrideBackwards = false;
+  private Supplier<Translation2d> rotationOverridePoint = null;
+  private Rotation2d rotationOverrideOffset = new Rotation2d();
 
   SWERVE_DRIVE.MODULE_CONFIG[] equippedModules;
 
@@ -185,8 +183,8 @@ public class SwerveDrive extends SubsystemBase {
       isAligning = false;
     }
 
-    List<Translation2d> notePositions = Notes.getNotePositions(LIMELIGHT.NOTE_CAMERA_NAME, LIMELIGHT.NOTE_CAMERA_PITCH, this, getFieldVelocity(), LIMELIGHT.NOTE_CAMERA_POSITION);
-    SwerveDrive.getField().getObject("notes").setPoses(notePositions.stream().map(p -> new Pose2d(p, new Rotation2d())).toList());
+    // List<Translation2d> notePositions = Notes.getNotePositions(LIMELIGHT.NOTE_CAMERA_NAME, LIMELIGHT.NOTE_CAMERA_PITCH, this, getFieldVelocity(), LIMELIGHT.NOTE_CAMERA_POSITION);
+    // SwerveDrive.getField().getObject("notes").setPoses(notePositions.stream().map(p -> new Pose2d(p, new Rotation2d())).toList());
 
     
     // List<Translation2d> notePositions = Notes.getNotePositions(LIMELIGHT.NOTE_CAMERA_NAME, LIMELIGHT.NOTE_CAMERA_PITCH, this, getFieldVelocity(), LIMELIGHT.NOTE_CAMERA_POSITION);
@@ -315,20 +313,13 @@ public class SwerveDrive extends SubsystemBase {
 
     if (RobotState.isAutonomous() && rotationOverridePoint != null) {
       fieldRelativeSpeeds.omegaRadiansPerSecond = 0.0;
-      if (rotationOverridePoint.getDistance(getPose().getTranslation()) > Math.min(SWERVE_DRIVE.BUMPER_LENGTH, SWERVE_DRIVE.BUMPER_WIDTH) / 2.0) {
-        if (rotationOverrideBackwards) {
-          setTargetHeading(rotationOverridePoint.minus(getPose().getTranslation()).getAngle().plus(Rotation2d.fromDegrees(180.0)));
-        } else {
-          setTargetHeading(rotationOverridePoint.minus(getPose().getTranslation()).getAngle());
-        }
-      }
+      facePoint(rotationOverridePoint, rotationOverrideOffset);
     }
 
     
     double targetAngularSpeed = Math.abs(toLinear(fieldRelativeSpeeds.omegaRadiansPerSecond));
-    double alignmentAngularVelocity = alignmentController.calculate(getHeading().getRadians());
-    
-    if (isAligning && !alignmentController.atSetpoint()) fieldRelativeSpeeds.omegaRadiansPerSecond += alignmentAngularVelocity;
+    double alignmentAngularVelocity = alignmentController.calculate(getHeading().getRadians()) + addedAlignmentAngularVelocity;
+    if (isAligning && alignmentAngularVelocity != 0.0) fieldRelativeSpeeds.omegaRadiansPerSecond += alignmentAngularVelocity;
     
     SwerveModuleState[] moduleStates = kinematics.toSwerveModuleStates(ChassisSpeeds.fromFieldRelativeSpeeds(fieldRelativeSpeeds, getAllianceAwareHeading()));
     SwerveDriveKinematics.desaturateWheelSpeeds(moduleStates, SWERVE_DRIVE.PHYSICS.MAX_LINEAR_VELOCITY);
@@ -369,6 +360,7 @@ public class SwerveDrive extends SubsystemBase {
     // if (!parked) {
     //   for (SwerveModuleState moduleState : getMeasuredModuleStates()) if (Math.abs(moduleState.speedMetersPerSecond) > 0.05) moving = true;
     // }
+    alignmentAngularVelocity = 0.0;
     parked = false;
     if (!moving && !isAligning) {
       parkModules();
@@ -402,29 +394,34 @@ public class SwerveDrive extends SubsystemBase {
   }
 
   /**
-   * Faces a point on the field
-   * @param point The point on the field we want to face
+   * Sets the target heading for the robot
+   * @param heading The target heading for the robot
    */
-  public Command facePoint(Supplier<Translation2d> point) {
-    return Commands.run(
-      () -> {
-        Translation2d currentPosition = getPose().getTranslation();
-        setTargetHeading(point.get().minus(currentPosition).getAngle());
-      }
-    );
+  public void setTargetHeadingAndVelocity(Rotation2d heading, double velocity) {
+    setTargetHeading(heading);
+    addedAlignmentAngularVelocity = velocity;
   }
 
   /**
    * Faces a point on the field
    * @param point The point on the field we want to face
    */
-  public Command facePointBackwards(Supplier<Translation2d> point) {
+  public Command facePointCommand(Supplier<Translation2d> point, Rotation2d rotationOffset) {
     return Commands.run(
-      () -> {
-        Translation2d currentPosition = getPose().getTranslation();
-        setTargetHeading(point.get().minus(currentPosition).getAngle().plus(Rotation2d.fromDegrees(180.0)));
-      }
+      () -> facePoint(point, rotationOffset)
     );
+  }
+
+  public void facePoint(Supplier<Translation2d> point, Rotation2d rotationOffset) {
+    double time = Robot.getLoopTime();
+
+    Translation2d currentPosition = getPose().getTranslation();
+    Translation2d futurePosition = getPose().getTranslation().plus(getFieldVelocity().times(time));
+    
+    Rotation2d currentTargetHeading = point.get().minus(currentPosition).getAngle().plus(rotationOffset);
+    Rotation2d futureTargetHeading = point.get().minus(futurePosition).getAngle().plus(rotationOffset);
+    
+    setTargetHeadingAndVelocity(currentTargetHeading, futureTargetHeading.minus(currentTargetHeading).getRadians() / time);
   }
 
 
@@ -436,28 +433,9 @@ public class SwerveDrive extends SubsystemBase {
     return Rotation2d.fromRadians(alignmentController.getSetpoint());
   }
 
-  public void setRotationTargetOverrideFromPointBackwards(Translation2d point) {
+  public void setRotationTargetOverrideFromPoint(Supplier<Translation2d> point, Rotation2d rotationOffset) {
     rotationOverridePoint = point;
-    rotationOverrideBackwards = true;
-    if (point != null) {
-      setRotationTargetOverride(() -> Optional.of(point.minus(getPose().getTranslation()).getAngle().plus(Rotation2d.fromDegrees(180.0))));
-    } else {
-      setRotationTargetOverride(() -> Optional.empty());
-    }
-  }
-
-  public void setRotationTargetOverrideFromPoint(Translation2d point) {
-    rotationOverridePoint = point;
-    rotationOverrideBackwards = false;
-    if (point != null) {
-      setRotationTargetOverride(() -> Optional.of(point.minus(getPose().getTranslation()).getAngle()));
-    } else {
-      setRotationTargetOverride(() -> Optional.empty());
-    }
-  }
-
-  public void setRotationTargetOverride(Supplier<Optional<Rotation2d>> heading) {
-    PPHolonomicDriveController.setRotationTargetOverride(heading);
+    rotationOverrideOffset = rotationOffset;
   }
 
 

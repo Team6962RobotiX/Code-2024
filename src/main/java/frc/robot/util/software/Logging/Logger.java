@@ -22,6 +22,7 @@ import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.PowerDistribution;
+import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.shuffleboard.BuiltInWidgets;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
@@ -34,7 +35,7 @@ public final class Logger {
   private static Map<String, Supplier<Object>> suppliers = new HashMap<String, Supplier<Object>>();
   private static Map<String, Object> values = new HashMap<String, Object>();
   private static ShuffleboardTab tab = Shuffleboard.getTab("Logging");
-  private static GenericEntry loggingButton = tab.add("Enable Logging", false).withWidget(BuiltInWidgets.kToggleSwitch).withSize(1, 1).withPosition(0, 0).getEntry();
+  private static GenericEntry loggingButton = tab.add("Enable Logging", RobotBase.isSimulation()).withWidget(BuiltInWidgets.kToggleSwitch).withSize(1, 1).withPosition(0, 0).getEntry();
 
 
   private static Notifier notifier = new Notifier(

@@ -16,7 +16,6 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Robot;
 import frc.robot.Constants.Constants;
 import frc.robot.Constants.Constants.ENABLED_SYSTEMS;
 import frc.robot.Constants.Constants.SHOOTER_PIVOT;
@@ -60,7 +59,13 @@ public class Shooter extends SubsystemBase {
     Logger.autoLog(this, "Speaker Distance", () -> ShooterMath.calcShooterLocationOnField(swerveDrive.getPose(), shooterPivot.getPosition()).getDistance(Field.SPEAKER.get()));
     Logger.autoLog(this, "Speaker Height", () -> ShooterMath.calcShooterLocationOnField(swerveDrive.getPose(), shooterPivot.getPosition()).minus(Field.SPEAKER.get()).getZ());
     Logger.autoLog(this, "Speaker Floor Distance", () -> ShooterMath.calcShooterLocationOnField(swerveDrive.getPose(), shooterPivot.getPosition()).toTranslation2d().getDistance(Field.SPEAKER.get().toTranslation2d()));
-
+    Logger.autoLog(this, "Shot Heading", () -> ShooterMath.calcVelocityCompensatedPoint(
+          Field.SPEAKER.get(),
+          swerveDrive.getFuturePose(),
+          swerveDrive.getFieldVelocity(),
+          shooterWheels.getVelocity(),
+          shooterPivot.getPosition()
+        ).toTranslation2d().minus(swerveDrive.getPose().getTranslation()).getAngle().plus(Rotation2d.fromDegrees(180.0)).getDegrees());
     SmartDashboard.putData("ShooterMechanism", mechanism);
   }
   
@@ -117,23 +122,24 @@ public class Shooter extends SubsystemBase {
       ShooterMath.calcPivotAngle(
         ShooterMath.calcVelocityCompensatedPoint(
           point.get(),
-          swerveDrive.getPose(),
+          swerveDrive.getFuturePose(),
           swerveDrive.getFieldVelocity(),
           shooterWheels.getVelocity(),
           shooterPivot.getPosition()
         ),
-        swerveDrive.getPose(),
+        swerveDrive.getFuturePose(),
         shooterWheels.getVelocity()
       )
     ).alongWith(
-      swerveDrive.facePointBackwards(() -> 
+      swerveDrive.facePointCommand(() -> 
         ShooterMath.calcVelocityCompensatedPoint(
           point.get(),
-          swerveDrive.getPose(),
+          swerveDrive.getFuturePose(),
           swerveDrive.getFieldVelocity(),
           shooterWheels.getVelocity(),
           shooterPivot.getPosition()
-        ).toTranslation2d()
+        ).toTranslation2d(),
+        Rotation2d.fromDegrees(180.0)
       )
     );
   }
@@ -159,13 +165,6 @@ public class Shooter extends SubsystemBase {
   @Override
   public void simulationPeriodic() {
   // This method will be called once per scheduler run during simulation
-  }
-
-  public void orientToPointDelayCompensated(Translation3d pointToAimTo) {
-    Rotation2d newTargetHeading = pointToAimTo.toTranslation2d().minus(swerveDrive.getPose().getTranslation()).getAngle();
-    headingVelocity = newTargetHeading.minus(targetHeading).getRadians() / Robot.getLoopTime();
-    targetHeading = newTargetHeading;
-    swerveDrive.setTargetHeading(targetHeading.plus(Rotation2d.fromRadians(headingVelocity * SHOOTER_PIVOT.ROTATION_DELAY)).plus(Rotation2d.fromDegrees(180.0)));
   }
 
   public ShooterPivot getPivot() {

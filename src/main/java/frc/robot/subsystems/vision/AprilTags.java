@@ -20,7 +20,7 @@ import frc.robot.util.software.LimelightHelpers.PoseEstimate;
 public class AprilTags extends SubsystemBase {
   public static void injectVisionData(Map<String, Pose3d> cameraPoses, SwerveDrive swerveDrive) {
     List<LimelightHelpers.PoseEstimate> poseEstimates = cameraPoses.keySet().stream().map(LimelightHelpers::getBotPoseEstimate_wpiBlue).collect(Collectors.toList());
-
+    
     if (swerveDrive.getRotationalVelocity() > 2.0) return;
 
     int tagCount = 0;
@@ -34,13 +34,9 @@ public class AprilTags extends SubsystemBase {
       if (poseEstimate.tagCount == 0) continue;
       // if (poseEstimate.avgTagDist > 5) continue;
       if (poseEstimate.pose.getX() < 0.0 || poseEstimate.pose.getY() < 0.0 || poseEstimate.pose.getX() > Field.LENGTH || poseEstimate.pose.getY() > Field.WIDTH) continue;
-      double poseDistance = poseEstimate.pose.getTranslation().getDistance(swerveDrive.getPose().getTranslation());
       
       double rotationAccuracy = Units.degreesToRadians(999999);
-      double translationError = 0.5 * ((poseDistance + poseEstimate.avgTagDist) / Math.pow(poseEstimate.tagCount, 2.0));
-      if (poseEstimate.tagCount == 1) {
-        translationError = 0.25 * ((Math.pow(poseDistance, 2) + poseEstimate.avgTagDist) / Math.pow(poseEstimate.tagCount, 2.0));
-      }
+      double translationError = Math.pow(poseEstimate.avgTagDist, 2.0) / Math.pow(poseEstimate.tagCount, 3.0);
       if (swerveDrive.canZeroHeading() && (poseEstimate.tagCount >= 2 || RobotState.isDisabled())) {
         rotationAccuracy = Units.degreesToRadians(90.0 / Math.pow(poseEstimate.tagCount, 2.0));
         if (poseEstimate.tagCount >= 2) LEDs.setState(LEDs.State.HAS_VISION_TARGET_SPEAKER);

@@ -194,21 +194,21 @@ public class ShooterMath {
   }
 
   public static Translation3d calcVelocityCompensatedPoint(Translation3d targetPoint, Pose2d currentPose, Translation2d currentVelocity, double shooterWheelVelocity, Rotation2d pivotAngle) {    
-    return targetPoint;
+    // return targetPoint;
     
-    // if (shooterWheelVelocity == 0.0) return targetPoint;
+    if (shooterWheelVelocity == 0.0) return targetPoint;
     
-    // double flightTime = calculateFlightTime(targetPoint, currentPose, shooterWheelVelocity, pivotAngle);
+    double flightTime = calculateFlightTime(targetPoint, currentPose, shooterWheelVelocity, pivotAngle);
 
-    // if (Double.isNaN(flightTime)) return targetPoint;
+    if (Double.isNaN(flightTime)) return targetPoint;
     
-    // Translation2d projectileOffset = currentVelocity.times(flightTime);
+    Translation2d projectileOffset = currentVelocity.times(flightTime);
     
-    // return new Translation3d(
-    //   targetPoint.getX() - projectileOffset.getX(),
-    //   targetPoint.getY() - projectileOffset.getY(),
-    //   targetPoint.getZ()
-    // );
+    return new Translation3d(
+      targetPoint.getX() - projectileOffset.getX(),
+      targetPoint.getY() - projectileOffset.getY(),
+      targetPoint.getZ()
+    );
   }
 
 }

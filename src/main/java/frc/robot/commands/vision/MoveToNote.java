@@ -5,9 +5,8 @@
 
 package frc.robot.commands.vision;
 
-import java.util.List;
-
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -49,22 +48,21 @@ public class MoveToNote extends Command {
   
     // If the camera can see the note, it updates the position. 
     // As soon at the camera can't see the note, the robot continues driving to the last known note position.
-    List<Translation2d> notePositions = Notes.getNotePositions(cameraName, LIMELIGHT.NOTE_CAMERA_PITCH, swerveDrive, swerveDrive.getFieldVelocity(), LIMELIGHT.NOTE_CAMERA_POSITION);
-    if (notePositions.size() > 0) {
-      Translation2d targetPoint = swerveDrive.getPose().getTranslation().nearest(notePositions);
+    Translation2d notePosition = Notes.getNotePosition(cameraName, LIMELIGHT.NOTE_CAMERA_PITCH, swerveDrive, swerveDrive.getFieldVelocity(), LIMELIGHT.NOTE_CAMERA_POSITION);
+    if (notePosition != null) {
 
-      if (targetingNote == null || targetPoint.getDistance(targetingNote) > Field.NOTE_LENGTH) {
-        Translation2d endSpline = swerveDrive.getPose().getTranslation().minus(targetPoint);
+      if (targetingNote == null || notePosition.getDistance(targetingNote) > Field.NOTE_LENGTH) {
+        Translation2d endSpline = swerveDrive.getPose().getTranslation().minus(notePosition);
         endSpline = endSpline.div(endSpline.getNorm()).times(Constants.SWERVE_DRIVE.BUMPER_LENGTH / 2.0);
-        endSpline = endSpline.plus(targetPoint);
+        endSpline = endSpline.plus(notePosition);
 
         final Translation2d endSplineFinal = endSpline;
 
-        targetingNote = targetPoint;
+        targetingNote = notePosition;
         goToCommand.cancel();
-        goToCommand = Commands.runOnce(() -> swerveDrive.setRotationTargetOverrideFromPoint(endSplineFinal))
+        goToCommand = Commands.runOnce(() -> swerveDrive.setRotationTargetOverrideFromPoint(() -> endSplineFinal, new Rotation2d()))
           .andThen(swerveDrive.goToSimple(new Pose2d(endSpline, swerveDrive.getHeading())).until(() -> stateController.hasNote()))
-          .finallyDo(() -> swerveDrive.setRotationTargetOverrideFromPoint(null));
+          .finallyDo(() -> swerveDrive.setRotationTargetOverrideFromPoint(null, new Rotation2d()));
         goToCommand.schedule();
       }
     }

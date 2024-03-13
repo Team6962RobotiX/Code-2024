@@ -171,7 +171,7 @@ public class RobotStateController extends SubsystemBase {
   }
 
   public boolean canShoot() {
-    return shotDebouncer.calculate(getShotChance() == 1.0) && swerveDrive.getFieldVelocity().getNorm() < 0.25;
+    return shotDebouncer.calculate(getShotChance() == 1.0);
   }
 
   public boolean inRange() {
