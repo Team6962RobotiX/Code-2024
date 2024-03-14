@@ -110,7 +110,7 @@ public final class Constants {
     public static final double   MOTOR_POWER_HARD_CAP               = 1.0; // Only use for testing, otherwise set to 1.0
     
     // REDUCE DRIVE VELOCITY WHEN FAR FROM ANGLE
-    public static final boolean  DO_ANGLE_ERROR_SPEED_REDUCTION     = true;
+    public static final boolean  DO_ANGLE_ERROR_SPEED_REDUCTION     = false;
     
 
     ///////////////////////// CALCUALTED /////////////////////////
