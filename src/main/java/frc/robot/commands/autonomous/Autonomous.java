@@ -359,6 +359,11 @@ public class Autonomous extends Command {
   }
 
   // Called every time the scheduler runs while the command is scheduled.
+  /**
+   * Cancel execution if not during autonomous
+   * If state isn't shooting and robot has note, then shoot
+   * If state isn't pickup and doesn't have note, then pickup
+   */
   @Override
   public void execute() {
     if (!RobotState.isAutonomous()) {
@@ -409,7 +414,19 @@ public class Autonomous extends Command {
     }
   }
 
+  /**
+   * Checks if the the position where robot picks up the note is too close to use 
+   * pathfinding based on the future position of the robot and position of the note
+   * 
+   * @param notePosition Position of a note on the field
+   * @return True, if the note is too close to the robot to use pathfinding
+   */
   public boolean tooClose(Translation2d notePosition) {
-    return swerveDrive.getFuturePose().getTranslation().getDistance(new Translation2d(-notePickupDistance, 0).rotateBy(notePosition.minus(Field.SPEAKER.get().toTranslation2d()).getAngle()).plus(notePosition)) < minPathfindingDistance;
+    Translation2d PickupDistance = new Translation2d(-notePickupDistance, 0);
+    // angle between speaker and note 
+    Rotation2d speakerNoteAngle = notePosition.minus(Field.SPEAKER.get().toTranslation2d()).getAngle();
+    // the position in front of the note where we pickup from 
+    Translation2d PickupPosition = PickupDistance.rotateBy(speakerNoteAngle).plus(notePosition);
+    return swerveDrive.getFuturePose().getTranslation().getDistance(PickupPosition) < minPathfindingDistance;
   }
 }
