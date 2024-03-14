@@ -111,7 +111,6 @@ public final class Constants {
     
     // REDUCE DRIVE VELOCITY WHEN FAR FROM ANGLE
     public static final boolean  DO_ANGLE_ERROR_SPEED_REDUCTION     = true;
-    public static final double   DISCRETIZED_TIME_STEP              = 0.1; // Keeps movement in straight lines when rotating
     
 
     ///////////////////////// CALCUALTED /////////////////////////
