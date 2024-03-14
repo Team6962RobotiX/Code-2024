@@ -77,14 +77,23 @@ public class Autonomous extends Command {
     controller.setState(RobotStateController.State.LEAVE_AMP).withTimeout(1.0).schedule();
   }
 
+  /**
+   * 
+   * @return closest note
+   */
   public Integer getClosestNote() {
+    // filters notes into close and wing based on the distance
+    // integer value represents ____
     List<Integer> closeNotes = queuedNotes.stream().filter(n -> n <= 2).collect(Collectors.toList());
     List<Integer> wingNotes = queuedNotes.stream().filter(n -> n > 2).collect(Collectors.toList());
     
+    // ignores middle notes unless all close notes are gone 
     List<Integer> relevantNotes = closeNotes.isEmpty() ? wingNotes : closeNotes;
+    
     Integer lowestNote = Collections.max(relevantNotes);
     Integer highestNote = Collections.min(relevantNotes);
 
+    // gets the closest note to the robot 
     Translation2d closestPosition = swerveDrive.getPose().getTranslation().nearest(
       List.of(
         Field.NOTE_POSITIONS.get(lowestNote).get(),
@@ -92,6 +101,7 @@ public class Autonomous extends Command {
       )
     );
 
+    // returns the 
     if (closestPosition.equals(Field.NOTE_POSITIONS.get(lowestNote).get())) {
       return lowestNote;
     } else {
@@ -99,11 +109,19 @@ public class Autonomous extends Command {
     }
   }
 
+  /**
+   * 
+   * @return the nearest translation2d shot position 
+   */
   public Translation2d getClosestShootingPosition() {
     List<Translation2d> shotPositions = Field.SHOT_POSITIONS.stream().map(Supplier::get).collect(Collectors.toList());
     return swerveDrive.getPose().getTranslation().nearest(shotPositions);
   }
 
+  /**
+   * Makes all remaining notes into obstacles with a wide radius to avoid. 
+   * Addes all the obstacles to the Pathfinding class
+   */
   public void addNoteObstacles() {
     List<Pair<Translation2d, Translation2d>> dynamicObstacles = new ArrayList<>();
     for (Integer note : remainingNotes) {
@@ -117,17 +135,24 @@ public class Autonomous extends Command {
     Pathfinding.setDynamicObstacles(dynamicObstacles, swerveDrive.getPose().getTranslation());
   }
 
+  /**
+   * Clears all note obstacles in the pathfinding class 
+   */
   public void clearNoteObstacles() {
     Pathfinding.setDynamicObstacles(new ArrayList<>(), swerveDrive.getPose().getTranslation());
   }
 
-
+  /**
+   * @param queuedNotePosition The note that you queued to pickup next
+   * @return Translation2d of the note that is closest to the queuedNotePosition
+   */
   public Translation2d getVisionNotePosition(Translation2d queuedNotePosition) {
+    // all the notes that limelight sees 
     List<Translation2d> measuredNotePositions = Notes.getNotePositions(LIMELIGHT.NOTE_CAMERA_NAME, LIMELIGHT.NOTE_CAMERA_PITCH, swerveDrive, swerveDrive.getFieldVelocity(), LIMELIGHT.NOTE_CAMERA_POSITION);
 
-    Random random = new Random();
-
+    // if in a simulation, then add a bunch of random note positions instead, not based on any limelight data
     if (RobotBase.isSimulation()) {
+      Random random = new Random();
       measuredNotePositions = new ArrayList<>();
       for (Integer note : List.of(0, 1, 2, 3, 4, 5, 6, 7)) {
         if (shouldSeeNote(note)) {
@@ -142,19 +167,29 @@ public class Autonomous extends Command {
     List<Pose2d> poses = new ArrayList<>();
 
     if (measuredNotePositions.size() == 0) return null;
-
+    
+    // theoreticalNotePositions: where the notes should be at the start of the match 
     List<Translation2d> theoreticalNotePositions = Field.NOTE_POSITIONS.stream().map(Supplier::get).collect(Collectors.toList());
     
+
     for (Translation2d measuredNotePosition : measuredNotePositions) {
+      // if the note is on your side of the field 
       if ((measuredNotePosition.getX() > Field.LENGTH / 2.0 && Constants.IS_BLUE_TEAM.get()) || (measuredNotePosition.getX() < Field.LENGTH / 2.0 && !Constants.IS_BLUE_TEAM.get())) {
         Translation2d relativeNotePosition = measuredNotePosition.minus(swerveDrive.getPose().getTranslation());
         relativeNotePosition = relativeNotePosition.div(-relativeNotePosition.getX());
         relativeNotePosition = relativeNotePosition.times(swerveDrive.getPose().getTranslation().getX() - Field.LENGTH / 2);
         measuredNotePosition = relativeNotePosition.plus(swerveDrive.getPose().getTranslation());
       }
+      
       poses.add(new Pose2d(measuredNotePosition, new Rotation2d()));
       visibleNotes.setPoses(poses);
       Translation2d theoreticalNoteCounterpart = measuredNotePosition.nearest(theoreticalNotePositions);
+      // if the measured note is the one that was queued 
+      // (meaning that even if the note was bumped or misplaced, it checks if that note is the one 
+      // meant to be picked up. If you queue the middle top note, for example, you want to make sure you grab 
+      // that note and not a different note another robot is grabbing)
+      // and the distance between the robot and measured note is less than visionNoteDistances, 
+      // then return the note
       if (theoreticalNoteCounterpart.getDistance(queuedNotePosition) < 0.05 && swerveDrive.getPose().getTranslation().getDistance(measuredNotePosition) < visionNoteDistance) {
         return measuredNotePosition;
       }
@@ -364,6 +399,7 @@ public class Autonomous extends Command {
     return false;
   }
 
+  
   public boolean hasNote() {
     if (RobotBase.isSimulation()) {
       return hasNoteDebouncer.calculate(simulatedNote);
