@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import edu.wpi.first.math.VecBuilder;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.RobotState;
@@ -32,13 +33,16 @@ public class AprilTags extends SubsystemBase {
 
     for (PoseEstimate poseEstimate : poseEstimates) {
       if (poseEstimate.tagCount == 0) continue;
+      if (poseEstimate.pose.getTranslation().getNorm() == 0.0) continue;
+      if (poseEstimate.pose.getRotation().getRadians() == 0.0) continue;
+      
       // if (poseEstimate.avgTagDist > 5) continue;
       if (poseEstimate.pose.getX() < 0.0 || poseEstimate.pose.getY() < 0.0 || poseEstimate.pose.getX() > Field.LENGTH || poseEstimate.pose.getY() > Field.WIDTH) continue;
-      
-      double rotationAccuracy = Units.degreesToRadians(999999);
+      boolean canChangeHeading = false;
+      double rotationAccuracy = Units.degreesToRadians(90.0 / Math.pow(poseEstimate.tagCount, 2.0));
       double translationError = Math.pow(poseEstimate.avgTagDist, 2.0) / Math.pow(poseEstimate.tagCount, 3.0);
       if (swerveDrive.canZeroHeading() && (poseEstimate.tagCount >= 2 || RobotState.isDisabled())) {
-        rotationAccuracy = Units.degreesToRadians(90.0 / Math.pow(poseEstimate.tagCount, 2.0));
+        canChangeHeading = true;
         if (poseEstimate.tagCount >= 2) LEDs.setState(LEDs.State.HAS_VISION_TARGET_SPEAKER);
       }
 
@@ -47,7 +51,11 @@ public class AprilTags extends SubsystemBase {
       }
 
       swerveDrive.setVisionMeasurementStdDevs(VecBuilder.fill(translationError, translationError, rotationAccuracy));
-      swerveDrive.addVisionMeasurement(poseEstimate.pose, poseEstimate.timestampSeconds);
+      if (canChangeHeading) {
+        swerveDrive.addVisionMeasurement(poseEstimate.pose, poseEstimate.timestampSeconds);
+      } else {
+        swerveDrive.addVisionMeasurement(new Pose2d(poseEstimate.pose.getTranslation(), swerveDrive.getHeading()), poseEstimate.timestampSeconds);
+      }
       LEDs.setState(LEDs.State.HAS_VISION_TARGET);
     }
   }

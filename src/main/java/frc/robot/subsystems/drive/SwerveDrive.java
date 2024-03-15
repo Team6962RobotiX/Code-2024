@@ -5,6 +5,8 @@
 package frc.robot.subsystems.drive;
 
 import java.util.List;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
 
 import com.choreo.lib.Choreo;
@@ -32,6 +34,7 @@ import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.RobotState;
 import edu.wpi.first.wpilibj.SPI;
@@ -82,12 +85,16 @@ public class SwerveDrive extends SubsystemBase {
 
   private boolean isAligning = false;
   private boolean parked = false;
+  private boolean parkingDisabled = false;
   private boolean isDriven = false;
 
   private Supplier<Translation2d> rotationOverridePoint = null;
   private Rotation2d rotationOverrideOffset = new Rotation2d();
 
-  SWERVE_DRIVE.MODULE_CONFIG[] equippedModules;
+  private SWERVE_DRIVE.MODULE_CONFIG[] equippedModules;
+
+  private Notifier odometryThread;
+  private final Lock odometryLock = new ReentrantLock();
 
   public SwerveDrive() {
     // Create the serve module objects
@@ -135,6 +142,9 @@ public class SwerveDrive extends SubsystemBase {
         gyroOffset = gyroOffset.minus(gyro.getRotation2d());
       } catch (Exception e) {}
     }).start();
+
+    odometryThread = new Notifier(() -> updateOdometry());
+    odometryThread.startPeriodic(0.02);
     
     SmartDashboard.putData("Field", field);
     
@@ -182,7 +192,6 @@ public class SwerveDrive extends SubsystemBase {
     if (RobotState.isDisabled()) {
       isAligning = false;
     }
-
     // System.out.println(Constants.SWERVE_DRIVE.PHYSICS.SLIPLESS_CURRENT_LIMIT);
     // System.out.println(Constants.SWERVE_DRIVE.PHYSICS.MAX_LINEAR_ACCELERATION);
     // System.out.println(Constants.SWERVE_DRIVE.ROBOT_MASS);
@@ -236,7 +245,7 @@ public class SwerveDrive extends SubsystemBase {
     }
 
     // Update pose based on measured heading and swerve module positions
-    poseEstimator.update(gyroHeading.plus(gyroOffset), getModulePositions());
+    
     AprilTags.injectVisionData(LIMELIGHT.APRILTAG_CAMERA_POSES, this);
     
     // Update field
@@ -261,6 +270,17 @@ public class SwerveDrive extends SubsystemBase {
       driveFieldRelative(0.0, 0.0, 0.0);
     }
     isDriven = false;
+  }
+
+  public void updateOdometry() {
+    odometryLock.lock();
+    try {
+      poseEstimator.update(gyroHeading.plus(gyroOffset), getModulePositions());
+    } catch (Exception e) {
+      odometryLock.unlock();
+      throw e;
+    }
+    odometryLock.unlock();
   }
 
   @Override
@@ -307,31 +327,44 @@ public class SwerveDrive extends SubsystemBase {
   }
 
   private void driveAttainableSpeeds(ChassisSpeeds fieldRelativeSpeeds) {
-    if (RobotState.isAutonomous() && Autonomous.avoidPillars) {
-      Translation2d velocity = XBoxSwerve.avoidObstacles(new Translation2d(
-        fieldRelativeSpeeds.vxMetersPerSecond,
-        fieldRelativeSpeeds.vyMetersPerSecond
-      ), this);
-      fieldRelativeSpeeds = new ChassisSpeeds(velocity.getX(), velocity.getY(), fieldRelativeSpeeds.omegaRadiansPerSecond);
-    }
-
     isDriven = true;
 
-    if (RobotState.isAutonomous() && rotationOverridePoint != null) {
-      fieldRelativeSpeeds.omegaRadiansPerSecond = 0.0;
-      facePoint(rotationOverridePoint, rotationOverrideOffset);
+    if (RobotState.isAutonomous()) {
+      if (Autonomous.avoidPillars) {
+        Translation2d velocity = XBoxSwerve.avoidObstacles(new Translation2d(
+          fieldRelativeSpeeds.vxMetersPerSecond,
+          fieldRelativeSpeeds.vyMetersPerSecond
+        ), this);
+        fieldRelativeSpeeds = new ChassisSpeeds(velocity.getX(), velocity.getY(), fieldRelativeSpeeds.omegaRadiansPerSecond);
+      }
+      if (rotationOverridePoint != null) {
+        fieldRelativeSpeeds.omegaRadiansPerSecond = 0.0;
+        facePoint(rotationOverridePoint, rotationOverrideOffset);
+      }
     }
 
+    if (Math.abs(fieldRelativeSpeeds.omegaRadiansPerSecond) > 0.001) {
+      setTargetHeading(getHeading());
+      isAligning = false;
+    }
+    if (!isAligning && Math.abs(drivenChassisSpeeds.omegaRadiansPerSecond) < 0.001) {
+      setTargetHeading(getHeading());
+      isAligning = true;
+    }
     
-    double targetAngularSpeed = Math.abs(toLinear(fieldRelativeSpeeds.omegaRadiansPerSecond));
     double alignmentAngularVelocity = alignmentController.calculate(getHeading().getRadians()) + addedAlignmentAngularVelocity;
-    if (isAligning && alignmentAngularVelocity != 0.0) fieldRelativeSpeeds.omegaRadiansPerSecond += alignmentAngularVelocity;
+    addedAlignmentAngularVelocity = 0.0;
+    if (isAligning && !alignmentController.atSetpoint()) fieldRelativeSpeeds.omegaRadiansPerSecond += alignmentAngularVelocity;
     
     SwerveModuleState[] moduleStates = kinematics.toSwerveModuleStates(ChassisSpeeds.fromFieldRelativeSpeeds(fieldRelativeSpeeds, getAllianceAwareHeading()));
-    SwerveDriveKinematics.desaturateWheelSpeeds(moduleStates, SWERVE_DRIVE.PHYSICS.MAX_LINEAR_VELOCITY);
+    SwerveDriveKinematics.desaturateWheelSpeeds(
+      moduleStates,
+      fieldRelativeSpeeds,
+      SWERVE_DRIVE.PHYSICS.MAX_LINEAR_VELOCITY,
+      SWERVE_DRIVE.PHYSICS.MAX_LINEAR_VELOCITY,
+      SWERVE_DRIVE.PHYSICS.MAX_ANGULAR_VELOCITY
+    );
     fieldRelativeSpeeds = ChassisSpeeds.fromRobotRelativeSpeeds(kinematics.toChassisSpeeds(moduleStates), getAllianceAwareHeading());
-
-    fieldRelativeSpeeds = ChassisSpeeds.discretize(fieldRelativeSpeeds, Robot.getLoopTime());
 
     // Limit translational acceleration
     Translation2d targetLinearVelocity = new Translation2d(fieldRelativeSpeeds.vxMetersPerSecond, fieldRelativeSpeeds.vyMetersPerSecond);
@@ -357,6 +390,8 @@ public class SwerveDrive extends SubsystemBase {
     double attainableAngularVelocity = currentAngularVelocity + (angularAcceleration * Robot.getLoopTime());
 
     drivenChassisSpeeds = new ChassisSpeeds(attainableLinearVelocity.getX(), attainableLinearVelocity.getY(), attainableAngularVelocity);
+    
+    drivenChassisSpeeds = ChassisSpeeds.discretize(drivenChassisSpeeds, Robot.getLoopTime());
 
     SwerveModuleState[] drivenModuleStates = kinematics.toSwerveModuleStates(ChassisSpeeds.fromFieldRelativeSpeeds(drivenChassisSpeeds, getAllianceAwareHeading()));
     
@@ -366,15 +401,19 @@ public class SwerveDrive extends SubsystemBase {
     // if (!parked) {
     //   for (SwerveModuleState moduleState : getMeasuredModuleStates()) if (Math.abs(moduleState.speedMetersPerSecond) > 0.05) moving = true;
     // }
-    alignmentAngularVelocity = 0.0;
     parked = false;
-    if (!moving && !isAligning) {
-      parkModules();
-      isAligning = false;
-      return;
+
+    if (!moving) {
+      if (!parkingDisabled) {
+        parkModules();
+        return;
+      }
+      if (alignmentController.atSetpoint()) {
+        parkForAlignment();
+      }
     }
 
-    if (alignmentController.atSetpoint() || targetAngularSpeed > 0.0) isAligning = false;
+    parkingDisabled = false;
     
     driveModules(drivenModuleStates);
   }
@@ -396,7 +435,7 @@ public class SwerveDrive extends SubsystemBase {
    */
   public void setTargetHeading(Rotation2d heading) {
     alignmentController.setSetpoint(heading.getRadians());
-    isAligning = true;
+    parkingDisabled = true;
   }
 
   /**
@@ -456,12 +495,21 @@ public class SwerveDrive extends SubsystemBase {
     parked = true;
   }
 
+  private void parkForAlignment() {
+    modules[0].setTargetState(new SwerveModuleState(0.0, Rotation2d.fromDegrees(-45.0)));
+    modules[1].setTargetState(new SwerveModuleState(0.0, Rotation2d.fromDegrees(45.0)));
+    modules[2].setTargetState(new SwerveModuleState(0.0, Rotation2d.fromDegrees(45.0)));
+    modules[3].setTargetState(new SwerveModuleState(0.0, Rotation2d.fromDegrees(-45.0)));
+  }
+
   /**
    * Resets the odometer position to a given position
    * @param pose Position to reset the odometer to
    */
   private void resetPose(Pose2d pose) {
+    odometryLock.lock();
     poseEstimator.resetPosition(getHeading(), getModulePositions(), pose);
+    odometryLock.unlock();
   }
 
   public boolean canZeroHeading() {
@@ -473,11 +521,18 @@ public class SwerveDrive extends SubsystemBase {
    * @param visionMeasurement The robot position on the field from the apriltags
    */
   public void addVisionMeasurement(Pose2d visionMeasurement, double timestamp) {
+    odometryLock.lock();
+    Rotation2d oldHeading = getHeading();
     poseEstimator.addVisionMeasurement(visionMeasurement, timestamp);
+    Rotation2d newHeading = getHeading();
+    alignmentController.setSetpoint(Rotation2d.fromRadians(alignmentController.getSetpoint()).plus(newHeading).minus(oldHeading).getRadians());
+    odometryLock.unlock();
   }
 
   public void setVisionMeasurementStdDevs(Matrix<N3,N1> visionMeasurementStdDevs) {
+    odometryLock.lock();
     poseEstimator.setVisionMeasurementStdDevs(visionMeasurementStdDevs);
+    odometryLock.unlock();
   }
 
   /**
@@ -596,11 +651,17 @@ public class SwerveDrive extends SubsystemBase {
    * @return Pose on the field from odometer data as a Pose2d
    */
   public Pose2d getPose() {
-    return poseEstimator.getEstimatedPosition();
+    odometryLock.lock();
+    Pose2d estimatedPose = poseEstimator.getEstimatedPosition();
+    odometryLock.unlock();
+    return estimatedPose;
   }
 
   public Pose2d getPose(double timestampSeconds) {
-    return poseEstimator.getEstimatedPosition(timestampSeconds);
+    odometryLock.lock();
+    Pose2d estimatedPose = poseEstimator.getEstimatedPosition(timestampSeconds);
+    odometryLock.unlock();
+    return estimatedPose;
   }
 
   public Pose2d getFuturePose() {
