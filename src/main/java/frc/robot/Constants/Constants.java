@@ -84,7 +84,7 @@ public final class Constants {
     ///////////////////////// CONFIG /////////////////////////
     public static final double   INSPECTION_WEIGHT                  = Units.lbsToKilograms(122);
     public static final double   BATTERY_WEIGHT                     = Units.lbsToKilograms(12.89);
-    public static final double   BUMPER_WEIGHT                      = Units.lbsToKilograms(10.0);
+    public static final double   BUMPER_WEIGHT                      = Units.lbsToKilograms(11.0);
     public static final double   ROBOT_MASS                         = INSPECTION_WEIGHT + BATTERY_WEIGHT + BUMPER_WEIGHT; // kg
     public static final double   FRICTION_COEFFICIENT               = 1.0;
     public static final int      MODULE_COUNT                       = 4;
@@ -96,7 +96,7 @@ public final class Constants {
     public static final double   WHEEL_WIDTH                        = Units.inchesToMeters(2.0);
     public static final double   DRIVE_MOTOR_GEARING                = 6.75;
     public static final double   STEER_MOTOR_GEARING                = 150.0 / 7.0;
-    public static final double   GEARBOX_EFFICIENCY                 = 0.99;
+    public static final double   GEARBOX_EFFICIENCY                 = 1.0;
     public static final double   BATTERY_RESISTANCE                 = 0.02; // ohms
     public static final double   BATTERY_VOLTAGE                    = 12.0; // volts
     public static final double   BROWNOUT_VOLTAGE                   = 6.8; // volts
@@ -134,7 +134,7 @@ public final class Constants {
       public static final double SLIPLESS_ACCELERATION              = 9.80 * FRICTION_COEFFICIENT;
       public static final int    SLIPLESS_CURRENT_LIMIT             = (int) ((SLIPLESS_ACCELERATION * NEO.STATS.stallCurrentAmps * ROBOT_MASS * WHEEL_RADIUS) / (4.0 * DRIVE_MOTOR_GEARING * NEO.STATS.stallTorqueNewtonMeters));
       
-      public static final double MAX_MOTOR_SPEED                    = NEO.RPM * GEARBOX_EFFICIENCY;
+      public static final double MAX_MOTOR_SPEED                    = Units.radiansPerSecondToRotationsPerMinute(NEO.STATS.freeSpeedRadPerSec) * GEARBOX_EFFICIENCY;
       public static final double MAX_MOTOR_TORQUE                   = NEO.maxTorqueCurrentLimited(SLIPLESS_CURRENT_LIMIT);
       
       public static final double MAX_WHEEL_VELOCITY                 = (MAX_MOTOR_SPEED * (Math.PI * 2.0)) / 60.0 / DRIVE_MOTOR_GEARING;
@@ -272,8 +272,7 @@ public final class Constants {
   }
 
   public static final class NEO {
-    public static final double RPM = 5880;
-    public static final DCMotor STATS = new DCMotor(12.0, 3.28, 181, 1.3, Units.rotationsPerMinuteToRadiansPerSecond(RPM), 1);
+    public static final DCMotor STATS = DCMotor.getNEO(1);
     public static final double SAFE_TEMPERATURE = 60;
     public static final int SAFE_STALL_CURRENT = 40;
     public static final int SAFE_FREE_CURRENT = 80;
@@ -284,8 +283,7 @@ public final class Constants {
     }
   }
   public static final class NEO550 {
-    public static final double RPM = 11710;
-    public static final DCMotor STATS = new DCMotor(12.0, 1.08, 111, 1.1, Units.rotationsPerMinuteToRadiansPerSecond(RPM), 1);
+    public static final DCMotor STATS = DCMotor.getNeo550(1);
     public static final double SAFE_TEMPERATURE = 60;
     public static final int SAFE_STALL_CURRENT = 10;
     public static final double SAFE_RAMP_RATE = 0.1;

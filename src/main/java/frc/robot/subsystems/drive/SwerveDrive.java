@@ -183,6 +183,12 @@ public class SwerveDrive extends SubsystemBase {
       isAligning = false;
     }
 
+    // System.out.println(Constants.SWERVE_DRIVE.PHYSICS.SLIPLESS_CURRENT_LIMIT);
+    // System.out.println(Constants.SWERVE_DRIVE.PHYSICS.MAX_LINEAR_ACCELERATION);
+    // System.out.println(Constants.SWERVE_DRIVE.ROBOT_MASS);
+    // System.out.println(Constants.SWERVE_DRIVE.PHYSICS.MAX_LINEAR_VELOCITY);
+
+
     // List<Translation2d> notePositions = Notes.getNotePositions(LIMELIGHT.NOTE_CAMERA_NAME, LIMELIGHT.NOTE_CAMERA_PITCH, this, getFieldVelocity(), LIMELIGHT.NOTE_CAMERA_POSITION);
     // SwerveDrive.getField().getObject("notes").setPoses(notePositions.stream().map(p -> new Pose2d(p, new Rotation2d())).toList());
 
@@ -326,7 +332,7 @@ public class SwerveDrive extends SubsystemBase {
     fieldRelativeSpeeds = ChassisSpeeds.fromRobotRelativeSpeeds(kinematics.toChassisSpeeds(moduleStates), getAllianceAwareHeading());
 
     fieldRelativeSpeeds = ChassisSpeeds.discretize(fieldRelativeSpeeds, Robot.getLoopTime());
-    
+
     // Limit translational acceleration
     Translation2d targetLinearVelocity = new Translation2d(fieldRelativeSpeeds.vxMetersPerSecond, fieldRelativeSpeeds.vyMetersPerSecond);
     Translation2d currentLinearVelocity = new Translation2d(drivenChassisSpeeds.vxMetersPerSecond, drivenChassisSpeeds.vyMetersPerSecond);
