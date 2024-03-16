@@ -66,6 +66,7 @@ public class Autonomous extends Command {
   public Autonomous(RobotStateController controller, SwerveDrive swerveDrive, List<Integer> queuedNotes) {
     this.controller = controller;
     this.swerveDrive = swerveDrive;
+    // numbers represent each note on the field, 0-7, with 0 representing close notes
     this.queuedNotes = queuedNotes;
     this.remainingNotes = new ArrayList<>(List.of(0, 1, 2, 3, 4, 5, 6, 7));
   }
@@ -77,7 +78,10 @@ public class Autonomous extends Command {
     simulatedNote = true;
     controller.setState(RobotStateController.State.LEAVE_AMP).withTimeout(1.0).schedule();
   }
-
+ /**
+   * 
+   * @return 0-7, the closest note that is queued
+   */
   public Integer getClosestNote() {
     List<Integer> closeNotes = queuedNotes.stream().filter(n -> n <= 2).collect(Collectors.toList());
     List<Integer> wingNotes = queuedNotes.stream().filter(n -> n > 2).collect(Collectors.toList());
@@ -100,11 +104,19 @@ public class Autonomous extends Command {
     }
   }
 
+  /** 
+   * 
+   * @return the nearest translation2d shot position 
+   */
   public Translation2d getClosestShootingPosition() {
     List<Translation2d> shotPositions = Field.SHOT_POSITIONS.stream().map(Supplier::get).collect(Collectors.toList());
     return swerveDrive.getPose().getTranslation().nearest(shotPositions);
   }
 
+  /**
+   * Makes all remaining notes into obstacles with a wide radius to avoid. 
+   * Addes all the obstacles to the Pathfinding class
+   */
   public void addNoteObstacles() {
     List<Pair<Translation2d, Translation2d>> dynamicObstacles = new ArrayList<>();
     for (Integer note : remainingNotes) {
@@ -118,11 +130,17 @@ public class Autonomous extends Command {
     Pathfinding.setDynamicObstacles(dynamicObstacles, swerveDrive.getPose().getTranslation());
   }
 
+  /**
+   * Clears all note obstacles in the pathfinding class 
+   */
   public void clearNoteObstacles() {
     Pathfinding.setDynamicObstacles(new ArrayList<>(), swerveDrive.getPose().getTranslation());
   }
 
-
+  /**
+   * @param queuedNotePosition The note that you queued to pickup next
+   * @return Translation2d of the note that is closest to the queuedNotePosition
+   */
   public Translation2d getVisionNotePosition(Translation2d queuedNotePosition) {
     Translation2d measuredNotePosition = Notes.getNotePosition(LIMELIGHT.NOTE_CAMERA_NAME, LIMELIGHT.NOTE_CAMERA_PITCH, swerveDrive, swerveDrive.getFieldVelocity(), LIMELIGHT.NOTE_CAMERA_POSITION);
 
@@ -162,10 +180,12 @@ public class Autonomous extends Command {
     return null;
   }
 
+
   public Command pickup(Translation2d notePosition) {
     if (hasNote()) return Commands.runOnce(() -> {});
-
+    
     List<Translation2d> fieldNotePositions = Field.NOTE_POSITIONS.stream().map(Supplier::get).collect(Collectors.toList());
+    // note Index represents 
     Integer noteIndex = fieldNotePositions.indexOf(notePosition.nearest(fieldNotePositions));
 
     avoidPillars = noteIndex != 2;
@@ -373,6 +393,13 @@ public class Autonomous extends Command {
     }
   }
 
+  /**
+   * Checks if the the position where robot picks up the note is too close to use 
+   * pathfinding based on the future position of the robot and position of the note
+   * 
+   * @param notePosition Position of a note on the field
+   * @return True, if the note is too close to the robot to use pathfinding
+   */
   public boolean tooClose(Translation2d notePosition) {
     return swerveDrive.getFuturePose().getTranslation().getDistance(new Translation2d(-notePickupDistance, 0).rotateBy(notePosition.minus(Field.SPEAKER.get().toTranslation2d()).getAngle()).plus(notePosition)) < minPathfindingDistance;
   }

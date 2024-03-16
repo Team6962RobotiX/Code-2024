@@ -189,9 +189,9 @@ public final class Constants {
 
     public static final class STEER_MOTOR_PROFILE {
       // FROM WPILIB SYSTEM IDENTIFICATION
-      public static final double kP                 = 0.90000; // Proportion Gain
+      public static final double kP                 = 1.00000; // Proportion Gain
       public static final double kI                 = 0.00000; // Integral Gain
-      public static final double kD                 = 0.10000; // Derivative Gain
+      public static final double kD                 = 0.50000; // Derivative Gain
       public static final double kS                 = 0.00000; // volts
       public static final double kV                 = 12.0 / (NEO.STATS.freeSpeedRadPerSec / STEER_MOTOR_GEARING); // volts per rad/s
       public static final double kA                 = 0.02000; // volts per rad/s^2
@@ -222,10 +222,10 @@ public final class Constants {
       new MODULE_CONFIG(1, 34, 35, 36, 0.246582),
       new MODULE_CONFIG(2, 37, 38, 39, -0.348633),
       new MODULE_CONFIG(3, 40, 41, 42, -0.224854),
-      new MODULE_CONFIG(4, 43, 44, 45, -0.5917972222),
-      new MODULE_CONFIG(5, 46, 47, 48, -0.1811527778),
-      new MODULE_CONFIG(6, 49, 50, 51, 0.1533194444),
-      new MODULE_CONFIG(7, 52, 53, 54, -0.5322277778),
+      new MODULE_CONFIG(4, 43, 44, 45, -0.340576),
+      new MODULE_CONFIG(5, 46, 47, 48, -0.432373),
+      new MODULE_CONFIG(6, 49, 50, 51, -0.102783),
+      new MODULE_CONFIG(7, 52, 53, 54, -0.279785),
       new MODULE_CONFIG(8, 55, 56, 57, -0.002197),
       new MODULE_CONFIG(9, 58, 59, 60, -0.217041),
     };

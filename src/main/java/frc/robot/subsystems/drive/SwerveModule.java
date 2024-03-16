@@ -25,7 +25,6 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.Voltage;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -130,10 +129,6 @@ public class SwerveModule extends SubsystemBase {
     if (!ENABLED_SYSTEMS.ENABLE_DRIVE) return;
     if (isCalibrating) return;
 
-    if (Math.abs(getMeasuredState().speedMetersPerSecond) < 0.05 && SwerveMath.angleDistance(getMeasuredState().angle.getRadians(), getTargetState().angle.getRadians()) < Units.degreesToRadians(1.0)) {
-      seedSteerEncoder();
-    }
-    
     drive(targetState);
 
     if (RobotContainer.getVoltage() < VOLTAGE_LADDER.SWERVE_DRIVE) stop();
@@ -154,11 +149,15 @@ public class SwerveModule extends SubsystemBase {
       0,
       driveFF.calculate(speedMetersPerSecond)
     );
-    
+
     steerPID.setReference(
       radians,
       CANSparkMax.ControlType.kPosition
     );
+
+    if (Math.abs(steerMotor.getAppliedOutput()) < 0.1 && state.speedMetersPerSecond == 0) {
+      seedSteerEncoder();
+    }
   }
     
   public void setTargetState(SwerveModuleState state) {
