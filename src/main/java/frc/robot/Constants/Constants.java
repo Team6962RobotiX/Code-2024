@@ -83,9 +83,11 @@ public final class Constants {
   public static final class SWERVE_DRIVE {
 
     ///////////////////////// CONFIG /////////////////////////
-    public static final double   INSPECTION_WEIGHT                  = Units.lbsToKilograms(122);
+    public static final boolean  IS_PROTOTYPE_CHASSIS               = !new DigitalInput(0).get();
+
+    public static final double   INSPECTION_WEIGHT                  = IS_PROTOTYPE_CHASSIS ? Units.lbsToKilograms(42) : Units.lbsToKilograms(122);
     public static final double   BATTERY_WEIGHT                     = Units.lbsToKilograms(12.89);
-    public static final double   BUMPER_WEIGHT                      = Units.lbsToKilograms(11.0);
+    public static final double   BUMPER_WEIGHT                      = IS_PROTOTYPE_CHASSIS ? 0.0 : Units.lbsToKilograms(11.0);
     public static final double   ROBOT_MASS                         = INSPECTION_WEIGHT + BATTERY_WEIGHT + BUMPER_WEIGHT; // kg
     public static final double   FRICTION_COEFFICIENT               = 1.0;
     public static final int      MODULE_COUNT                       = 4;
@@ -123,7 +125,6 @@ public final class Constants {
     public static final double   BUMPER_LENGTH                      = SWERVE_DRIVE.CHASSIS_LENGTH + SWERVE_DRIVE.BUMPER_THICKNESS * 2.0;
     public static final double   BUMPER_DIAGONAL                    = Math.hypot(SWERVE_DRIVE.BUMPER_WIDTH, SWERVE_DRIVE.BUMPER_LENGTH);
     public static final double   MAX_CURRENT_DRAW                   = (BATTERY_VOLTAGE - BROWNOUT_VOLTAGE) / BATTERY_RESISTANCE;
-    public static final boolean  IS_PROTOTYPE_CHASSIS               = !new DigitalInput(0).get();
 
     
     // GEAR AND WHEEL RATIOS
