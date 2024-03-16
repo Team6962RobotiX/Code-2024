@@ -190,6 +190,10 @@ public class SwerveDrive extends SubsystemBase {
   public void periodic() {
     if (!ENABLED_SYSTEMS.ENABLE_DRIVE) return;
     if (RobotState.isDisabled()) {
+      for (SwerveModule module : modules) {
+        module.seedSteerEncoder();
+      }
+      setTargetHeading(getHeading());
       isAligning = false;
     }
     // System.out.println(Constants.SWERVE_DRIVE.PHYSICS.SLIPLESS_CURRENT_LIMIT);
@@ -352,7 +356,7 @@ public class SwerveDrive extends SubsystemBase {
     
     double alignmentAngularVelocity = alignmentController.calculate(getHeading().getRadians()) + addedAlignmentAngularVelocity;
     addedAlignmentAngularVelocity = 0.0;
-    if (isAligning && !alignmentController.atSetpoint()) fieldRelativeSpeeds.omegaRadiansPerSecond += alignmentAngularVelocity;
+    if (isAligning && !alignmentController.atSetpoint() && !parked) fieldRelativeSpeeds.omegaRadiansPerSecond += alignmentAngularVelocity;
     
     SwerveModuleState[] moduleStates = kinematics.toSwerveModuleStates(ChassisSpeeds.fromFieldRelativeSpeeds(fieldRelativeSpeeds, getAllianceAwareHeading()));
     SwerveDriveKinematics.desaturateWheelSpeeds(
