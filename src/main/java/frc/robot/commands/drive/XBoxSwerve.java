@@ -79,6 +79,8 @@ public class XBoxSwerve extends Command {
     
     velocity = velocity.plus(leftStick.times(MathUtils.map(rightTrigger, 0, 1, NOMINAL_DRIVE_VELOCITY, MAX_DRIVE_VELOCITY)));
 
+    velocity = velocity.times(leftTrigger);
+
     if (controller.getPOV() != -1) {
       Translation2d povVelocity = new Translation2d(Math.cos(Units.degreesToRadians(controller.getPOV())) * FINE_TUNE_DRIVE_VELOCITY, -Math.sin(Units.degreesToRadians(controller.getPOV())) * FINE_TUNE_DRIVE_VELOCITY);
       velocity = velocity.plus(povVelocity);
@@ -108,10 +110,6 @@ public class XBoxSwerve extends Command {
       }
     }
 
-    if (!controller.getBackButton()) {
-      velocity = avoidObstacles(velocity, swerveDrive);
-    }
-    
     swerveDrive.driveFieldRelative(velocity.getX(), velocity.getY(), angularVelocity);
     // if (leftStick.getNorm() > 0.05 && (controller.getLeftBumper() || controller.getRightBumper())) {
     //   swerveDrive.setTargetHeading(leftStick.getAngle());
@@ -144,10 +142,10 @@ public class XBoxSwerve extends Command {
     for (Translation2d pillar : Field.RED_STAGE_CORNERS) stagePillars.add(pillar);
     for (Translation2d pillar : stagePillars) {
       double bubbleRadius = 
-        Units.inchesToMeters(6.0) + 
+        Math.hypot(Units.inchesToMeters(6.0), Units.inchesToMeters(6.0)) + 
         Constants.SWERVE_DRIVE.BUMPER_DIAGONAL / 2.0 +
         (swerveDrive.getPose().getTranslation().getDistance(pillar) - swerveDrive.getFuturePose().getTranslation().getDistance(pillar)) * 2.0;
-      if (bubbleRadius < 0) continue;
+      if (bubbleRadius <= 0) continue;
       if (swerveDrive.getPose().getTranslation().getDistance(pillar) > bubbleRadius) continue;
       Translation2d force = swerveDrive.getPose().getTranslation().minus(pillar);
       force = force.div(force.getNorm()).times(mag);

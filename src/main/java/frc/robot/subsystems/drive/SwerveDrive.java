@@ -329,18 +329,16 @@ public class SwerveDrive extends SubsystemBase {
   private void driveAttainableSpeeds(ChassisSpeeds fieldRelativeSpeeds) {
     isDriven = true;
 
-    if (RobotState.isAutonomous()) {
-      if (Autonomous.avoidPillars) {
-        Translation2d velocity = XBoxSwerve.avoidObstacles(new Translation2d(
-          fieldRelativeSpeeds.vxMetersPerSecond,
-          fieldRelativeSpeeds.vyMetersPerSecond
-        ), this);
-        fieldRelativeSpeeds = new ChassisSpeeds(velocity.getX(), velocity.getY(), fieldRelativeSpeeds.omegaRadiansPerSecond);
-      }
-      if (rotationOverridePoint != null) {
-        fieldRelativeSpeeds.omegaRadiansPerSecond = 0.0;
-        facePoint(rotationOverridePoint, rotationOverrideOffset);
-      }
+    if (!(RobotState.isAutonomous() && Autonomous.avoidPillars)) {
+      Translation2d velocity = XBoxSwerve.avoidObstacles(new Translation2d(
+        fieldRelativeSpeeds.vxMetersPerSecond,
+        fieldRelativeSpeeds.vyMetersPerSecond
+      ), this);
+      fieldRelativeSpeeds = new ChassisSpeeds(velocity.getX(), velocity.getY(), fieldRelativeSpeeds.omegaRadiansPerSecond);
+    }
+    if (rotationOverridePoint != null) {
+      fieldRelativeSpeeds.omegaRadiansPerSecond = 0.0;
+      facePoint(rotationOverridePoint, rotationOverrideOffset);
     }
 
     if (Math.abs(fieldRelativeSpeeds.omegaRadiansPerSecond) > 0.001) {
