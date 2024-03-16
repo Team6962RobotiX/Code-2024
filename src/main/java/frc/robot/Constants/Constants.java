@@ -59,6 +59,8 @@ public final class Constants {
   }
 
   // LIMELIGHT
+  // Exposure: 750
+  // Sensor Gain: 10
   public static final class LIMELIGHT {
     // x is front-to-back
     // y is left-to-right
