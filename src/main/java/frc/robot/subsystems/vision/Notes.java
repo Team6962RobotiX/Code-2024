@@ -7,7 +7,7 @@ import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.wpilibj.Timer;
+import frc.robot.Constants.Constants.LIMELIGHT;
 import frc.robot.Constants.Field;
 import frc.robot.subsystems.LEDs;
 import frc.robot.subsystems.drive.SwerveDrive;
@@ -20,20 +20,24 @@ public class Notes {
     if (table.getEntry("tv").getDouble(0) == 0) return null;
 
     Translation2d notePosition = new Translation2d();
-    double x = table.getEntry("tx").getDouble(0);;
-    double y = table.getEntry("ty").getDouble(0);;// - Math.sqrt(Constants.LIMELIGHT.FOV_HEIGHT.getDegrees() * Constants.LIMELIGHT.FOV_HEIGHT.getDegrees() * target.ta)/2;
+    double x = table.getEntry("tx").getDouble(0);
+    double y = table.getEntry("ty").getDouble(0);// - Math.sqrt(Constants.LIMELIGHT.FOV_HEIGHT.getDegrees() * Constants.LIMELIGHT.FOV_HEIGHT.getDegrees() * target.ta)/2;
+
+    y -= table.getEntry("tvert").getDouble(0) / 2.0 / LIMELIGHT.NOTE_CAMERA_HEIGHT_PIXELS * LIMELIGHT.FOV_HEIGHT.getDegrees();
     
     if (Units.degreesToRadians(y) + pitch.getRadians() > 0) return null;
     
-    double latency = table.getEntry("tl").getDouble(0) + table.getEntry("cl").getDouble(0) / 1000.0;
-    double distance = (cameraToRobot.getZ() - Field.NOTE_THICKNESS/2) / -Math.tan(Units.degreesToRadians(y) + pitch.getRadians());
+    double latency = (table.getEntry("tl").getDouble(0) + table.getEntry("cl").getDouble(0));
+    double distance = (cameraToRobot.getZ() / - Math.tan(Units.degreesToRadians(y) + pitch.getRadians())) + Field.NOTE_LENGTH / 2.0;
     Logger.log("note-distance", distance);
     Translation2d relativePosition = new Translation2d(
       distance * Math.cos(Units.degreesToRadians(x)),
       -distance * Math.sin(Units.degreesToRadians(x))
     );
     
-    Pose2d robotPosition = swerveDrive.getPose(Timer.getFPGATimestamp() - latency);
+    double timestamp = (table.getEntry("hb").getLastChange() / 1000000.0) - (latency / 1000.0);
+
+    Pose2d robotPosition = swerveDrive.getPose(timestamp);
     notePosition = robotPosition.getTranslation().plus(relativePosition.rotateBy(robotPosition.getRotation()));
     
     LEDs.setState(LEDs.State.CAN_SEE_NOTE);

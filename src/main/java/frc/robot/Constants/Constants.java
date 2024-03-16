@@ -76,6 +76,7 @@ public final class Constants {
 
     public static final Rotation2d FOV_HEIGHT = Rotation2d.fromDegrees(48.9); // Degrees
     public static final Rotation2d FOV_WIDTH = Rotation2d.fromDegrees(62.5); // Degrees
+    public static final double NOTE_CAMERA_HEIGHT_PIXELS = 720;
   }
 
   // SWERVE DRIVE
