@@ -25,6 +25,7 @@ public final class SparkMaxUtil {
     configure(() -> motor.enableVoltageCompensation(12.0), motor);
     configure(() -> motor.setSmartCurrentLimit(stallCurrentLimit, freeCurrentLimit), motor);
     configure(() -> motor.setOpenLoopRampRate(NEO.SAFE_RAMP_RATE), motor);
+    configure(() -> motor.setOpenLoopRampRate(NEO.SAFE_RAMP_RATE), motor);
     motor.setInverted(inverted);
 
     RelativeEncoder encoder = motor.getEncoder();

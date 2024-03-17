@@ -48,7 +48,7 @@ public class LEDs extends SubsystemBase {
   
   public LEDs(RobotStateController stateController) {
     this.stateController = stateController;
-    strip = new AddressableLED(1);
+    strip = new AddressableLED(9);
     buffer = new AddressableLEDBuffer(length);
     strip.setLength(buffer.getLength());
 

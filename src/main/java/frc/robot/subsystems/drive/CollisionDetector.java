@@ -2,6 +2,8 @@ package frc.robot.subsystems.drive;
 
 import com.kauailabs.navx.frc.AHRS;
 
+import edu.wpi.first.math.filter.Debouncer;
+import edu.wpi.first.math.filter.Debouncer.DebounceType;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
@@ -11,26 +13,43 @@ import frc.robot.util.software.Logging.Logger;
 
 public class CollisionDetector extends SubsystemBase {
   public Translation2d lastAcceleration = new Translation2d();
-  public NetworkTableEntry collisionEntry = NetworkTableInstance.getDefault().getEntry("collisionCount");
+  public NetworkTableEntry collisionEntry;
   public Translation2d jerk = new Translation2d();
   public boolean collisionDetected = false;
-  public double collisionThreshold = 25.0;
+  public Debouncer collisionDebouncer = new Debouncer(0.5, DebounceType.kFalling);
+  public double collisionThreshold = 200.0;
 
   public CollisionDetector() {
-    collisionEntry.setPersistent();
+    new Thread(() -> {
+      try {
+        Thread.sleep(1000);
+        collisionEntry = NetworkTableInstance.getDefault().getEntry("collisionCount");
+        if (!collisionEntry.exists()) {
+          collisionEntry.setPersistent();
+        }
+      } catch (Exception e) {}
+    }).start();
+
     Logger.autoLog(this, "Jerk", () -> jerk.getNorm());
   }
 
   @Override
   public void periodic() {
+    if (collisionEntry == null) return;
+
+    Logger.log("Jerk", jerk.getNorm());
+    Logger.log("Collisions", collisionEntry.getInteger(0));
+
+
     AHRS gyro = SwerveDrive.getGyro();
     Translation2d acceleration = new Translation2d(gyro.getWorldLinearAccelX(), gyro.getWorldLinearAccelY());
-    lastAcceleration = new Translation2d(acceleration.getX(), acceleration.getY());
     jerk = acceleration.minus(lastAcceleration).div(Robot.getLoopTime());
-     if (!collisionDetected && jerk.getNorm() > collisionThreshold) {
+    lastAcceleration = new Translation2d(acceleration.getX(), acceleration.getY());
+    boolean newCollisionDetected = collisionDebouncer.calculate(jerk.getNorm() > collisionThreshold && jerk.getNorm() < 2000);
+     if (!collisionDetected && newCollisionDetected) {
       System.out.println("Collision detected");
       collisionEntry.setNumber(collisionEntry.getNumber(0).intValue() + 1);
      }
-    collisionDetected = jerk.getNorm() > collisionThreshold;
+    collisionDetected = newCollisionDetected;
   }
 }

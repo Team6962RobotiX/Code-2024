@@ -280,7 +280,7 @@ public final class Constants {
     public static final double SAFE_TEMPERATURE = 60;
     public static final int SAFE_STALL_CURRENT = 40;
     public static final int SAFE_FREE_CURRENT = 80;
-    public static final double SAFE_RAMP_RATE = 0.1;
+    public static final double SAFE_RAMP_RATE = 0.05;
 
     public static double maxTorqueCurrentLimited(int currentLimit) {
       return STATS.stallTorqueNewtonMeters / STATS.stallCurrentAmps * currentLimit;

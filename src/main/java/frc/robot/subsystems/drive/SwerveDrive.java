@@ -345,11 +345,11 @@ public class SwerveDrive extends SubsystemBase {
       facePoint(rotationOverridePoint, rotationOverrideOffset);
     }
 
-    if (Math.abs(fieldRelativeSpeeds.omegaRadiansPerSecond) > 0.001) {
+    if (Math.abs(fieldRelativeSpeeds.omegaRadiansPerSecond) > 0.01) {
       setTargetHeading(getHeading());
       isAligning = false;
     }
-    if (!isAligning && Math.abs(drivenChassisSpeeds.omegaRadiansPerSecond) < 0.001) {
+    if (!isAligning && Math.abs(getMeasuredChassisSpeeds().omegaRadiansPerSecond) < 0.1) {
       setTargetHeading(getHeading());
       isAligning = true;
     }
