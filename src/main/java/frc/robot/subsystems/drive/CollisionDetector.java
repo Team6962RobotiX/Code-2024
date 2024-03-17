@@ -13,6 +13,8 @@ public class CollisionDetector extends SubsystemBase {
   public Translation2d lastAcceleration = new Translation2d();
   public NetworkTableEntry collisionEntry = NetworkTableInstance.getDefault().getEntry("collisionCount");
   public Translation2d jerk = new Translation2d();
+  public boolean collisionDetected = false;
+  public double collisionThreshold = 25.0;
 
   public CollisionDetector() {
     collisionEntry.setPersistent();
@@ -25,9 +27,10 @@ public class CollisionDetector extends SubsystemBase {
     Translation2d acceleration = new Translation2d(gyro.getWorldLinearAccelX(), gyro.getWorldLinearAccelY());
     lastAcceleration = new Translation2d(acceleration.getX(), acceleration.getY());
     jerk = acceleration.minus(lastAcceleration).div(Robot.getLoopTime());
-    if (jerk.getNorm() > 25.0) {
+     if (!collisionDetected && jerk.getNorm() > collisionThreshold) {
       System.out.println("Collision detected");
       collisionEntry.setNumber(collisionEntry.getNumber(0).intValue() + 1);
-    }
+     }
+    collisionDetected = jerk.getNorm() > collisionThreshold;
   }
 }

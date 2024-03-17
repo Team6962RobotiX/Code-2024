@@ -19,6 +19,7 @@ import frc.robot.subsystems.Controls;
 import frc.robot.subsystems.LEDs;
 import frc.robot.subsystems.RobotStateController;
 import frc.robot.subsystems.amp.Amp;
+import frc.robot.subsystems.drive.CollisionDetector;
 import frc.robot.subsystems.drive.SwerveDrive;
 import frc.robot.subsystems.hang.Hang;
 import frc.robot.subsystems.shooter.Shooter;
@@ -47,6 +48,7 @@ public class RobotContainer {
   private final Hang hang;
   private final RobotStateController stateController;
   private final LEDs ledStrip;
+  private final CollisionDetector collisionDetector;
 
   private static PowerDistribution PDH = new PowerDistribution(CAN.PDH, ModuleType.kRev);
 
@@ -89,6 +91,7 @@ public class RobotContainer {
     stateController = new RobotStateController(amp, swerveDrive, shooter, transfer);
     hang = new Hang();
     ledStrip = new LEDs(stateController);
+    collisionDetector = new CollisionDetector();
     
     // Configure the trigger bindings
     Controls.configureBindings(stateController, swerveDrive, transfer, transfer.getInWheels(), transfer.getOutWheels(), shooter, shooter.getWheels(), shooter.getPivot(), shooter.getFeedWheels(), amp, amp.getPivot(), amp.getWheels(), hang);
