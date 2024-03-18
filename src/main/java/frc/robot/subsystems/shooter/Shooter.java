@@ -63,9 +63,18 @@ public class Shooter extends SubsystemBase {
           Field.SPEAKER.get(),
           swerveDrive.getFuturePose(),
           swerveDrive.getFieldVelocity(),
+          swerveDrive.getRotationalVelocity(),
           shooterWheels.getVelocity(),
           shooterPivot.getPosition()
         ).toTranslation2d().minus(swerveDrive.getPose().getTranslation()).getAngle().plus(Rotation2d.fromDegrees(180.0)).getDegrees());
+    Logger.autoLog(this, "Aiming Point", () -> ShooterMath.calcVelocityCompensatedPoint(
+      Field.SPEAKER.get(),
+      swerveDrive.getFuturePose(),
+      swerveDrive.getFieldVelocity(),
+      swerveDrive.getRotationalVelocity(),
+      shooterWheels.getVelocity(),
+      shooterPivot.getPosition()
+    ));
     SmartDashboard.putData("ShooterMechanism", mechanism);
   }
   
@@ -124,6 +133,7 @@ public class Shooter extends SubsystemBase {
           point.get(),
           swerveDrive.getFuturePose(),
           swerveDrive.getFieldVelocity(),
+          swerveDrive.getRotationalVelocity(),
           shooterWheels.getVelocity(),
           shooterPivot.getPosition()
         ),
@@ -136,6 +146,7 @@ public class Shooter extends SubsystemBase {
           point.get(),
           swerveDrive.getFuturePose(),
           swerveDrive.getFieldVelocity(),
+          swerveDrive.getRotationalVelocity(),
           shooterWheels.getVelocity(),
           shooterPivot.getPosition()
         ).toTranslation2d(),
@@ -157,6 +168,7 @@ public class Shooter extends SubsystemBase {
       Field.SPEAKER.get(),
       swerveDrive.getPose(),
       swerveDrive.getFieldVelocity(),
+      swerveDrive.getRotationalVelocity(),
       shooterPivot.getPosition(),
       shooterWheels.getVelocity()
     );

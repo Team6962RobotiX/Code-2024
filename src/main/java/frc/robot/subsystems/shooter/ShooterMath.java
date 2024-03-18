@@ -99,9 +99,9 @@ public class ShooterMath {
     // return shooterWheelSurfaceSpeed * speedTransferPercentage;
   }
 
-  public static double calcShotChance(Translation3d targetPoint, Pose2d currentPose, Translation2d currentVelocity, Rotation2d measuredPivotAngle, double shooterWheelVelocity) {
+  public static double calcShotChance(Translation3d targetPoint, Pose2d currentPose, Translation2d currentVelocity, double rotationalVelocity, Rotation2d measuredPivotAngle, double shooterWheelVelocity) {
     Translation3d shooterLocation = calcShooterLocationOnField(currentPose, measuredPivotAngle);
-    Translation3d aimingPoint = calcVelocityCompensatedPoint(targetPoint, currentPose, currentVelocity, shooterWheelVelocity, measuredPivotAngle);
+    Translation3d aimingPoint = calcVelocityCompensatedPoint(targetPoint, currentPose, currentVelocity, rotationalVelocity, shooterWheelVelocity, measuredPivotAngle);
 
     double totalDistance = targetPoint.getDistance(shooterLocation);
     
@@ -168,7 +168,7 @@ public class ShooterMath {
       aimingPoint.toTranslation2d().minus(currentPose.getTranslation()).getAngle().plus(Rotation2d.fromDegrees(180.0))
     );
 
-    return ShooterMath.calcShotChance(targetPoint, currentPose, new Translation2d(), ShooterMath.calcPivotAngle(aimingPoint, currentPose, shooterWheelVelocity), shooterWheelVelocity);
+    return ShooterMath.calcShotChance(targetPoint, currentPose, new Translation2d(), 0.0, ShooterMath.calcPivotAngle(aimingPoint, currentPose, shooterWheelVelocity), shooterWheelVelocity);
   }
   
   public static Translation3d calcShooterLocationOnField(Pose2d currentPose, Rotation2d pivotAngle) {
@@ -193,7 +193,7 @@ public class ShooterMath {
     return (projectileVelocity * Math.sin(exitAngle.getRadians()) - Math.sqrt(Math.pow(projectileVelocity * Math.sin(exitAngle.getRadians()), 2.0) - 2.0 * gravity * -targetHeight)) / gravity;
   }
 
-  public static Translation3d calcVelocityCompensatedPoint(Translation3d targetPoint, Pose2d currentPose, Translation2d currentVelocity, double shooterWheelVelocity, Rotation2d pivotAngle) {    
+  public static Translation3d calcVelocityCompensatedPoint(Translation3d targetPoint, Pose2d currentPose, Translation2d currentVelocity, double rotationalVelocity, double shooterWheelVelocity, Rotation2d pivotAngle) {    
     // return targetPoint;
     
     if (shooterWheelVelocity == 0.0) return targetPoint;
@@ -203,10 +203,16 @@ public class ShooterMath {
     if (Double.isNaN(flightTime)) return targetPoint;
     
     Translation2d projectileOffset = currentVelocity.times(flightTime);
+
+    Translation2d relativeShooterPosition = calcShooterLocationOnField(currentPose, pivotAngle).toTranslation2d().minus(currentPose.getTranslation());
+
+    Translation2d rotationAddedOffset = relativeShooterPosition.div(relativeShooterPosition.getNorm()).times(rotationalVelocity * relativeShooterPosition.getNorm() * flightTime).rotateBy(Rotation2d.fromDegrees(90.0));
     
+    projectileOffset = projectileOffset.plus(rotationAddedOffset);
+
     return new Translation3d(
-      targetPoint.getX() - projectileOffset.getX(),
-      targetPoint.getY() - projectileOffset.getY(),
+      targetPoint.getX() + projectileOffset.getX(),
+      targetPoint.getY() + projectileOffset.getY(),
       targetPoint.getZ()
     );
   }

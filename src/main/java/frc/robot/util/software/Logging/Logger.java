@@ -38,8 +38,16 @@ public final class Logger {
   private static GenericEntry loggingButton = tab.add("Enable Logging", RobotBase.isSimulation()).withWidget(BuiltInWidgets.kToggleSwitch).withSize(1, 1).withPosition(0, 0).getEntry();
 
 
-  private static Notifier notifier = new Notifier(() -> Logger.logAll());
-
+  private static Notifier notifier = new Notifier(
+    () -> {
+      try {
+        Logger.logAll();
+      } catch (Exception e) {
+        
+      }
+    }
+  );
+  
   public static void startLog() {
     notifier.startPeriodic(LOGGING.LOGGING_PERIOD_MS / 1000.0);
   }
