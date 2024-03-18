@@ -121,7 +121,7 @@ public class SwerveDrive extends SubsystemBase {
       SWERVE_DRIVE.STARTING_POSE.get().getRotation(),
       getModulePositions(),
       SWERVE_DRIVE.STARTING_POSE.get(),
-      VecBuilder.fill(0.05, 0.05, Units.degreesToRadians(2)),
+      VecBuilder.fill(0.001, 0.001, Units.degreesToRadians(2)),
       VecBuilder.fill(1.0, 1.0, Units.degreesToRadians(30))
     );
 

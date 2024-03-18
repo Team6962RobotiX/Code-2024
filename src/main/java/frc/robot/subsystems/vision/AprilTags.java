@@ -1,6 +1,7 @@
 
 package frc.robot.subsystems.vision;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -31,6 +32,8 @@ public class AprilTags extends SubsystemBase {
     
     // if (tagCount <= 1) return;
 
+    List<Pose2d> poses = new ArrayList<>();
+
     for (PoseEstimate poseEstimate : poseEstimates) {
       Pose2d pose2d = poseEstimate.pose.toPose2d();
 
@@ -42,25 +45,24 @@ public class AprilTags extends SubsystemBase {
       // if (poseEstimate.avgTagDist > 5) continue;
       if (pose2d.getX() < 0.0 || pose2d.getY() < 0.0 || pose2d.getX() > Field.LENGTH || pose2d.getY() > Field.WIDTH) continue;
       boolean canChangeHeading = false;
-      double rotationAccuracy = Units.degreesToRadians(90.0 / Math.pow(poseEstimate.tagCount, 2.0));
-      double translationError = Math.pow(poseEstimate.avgTagDist, 2.0) / Math.pow(poseEstimate.tagCount, 3.0);
       if (swerveDrive.canZeroHeading() && (poseEstimate.tagCount >= 2 || RobotState.isDisabled())) {
         canChangeHeading = true;
         if (poseEstimate.tagCount >= 2) LEDs.setState(LEDs.State.HAS_VISION_TARGET_SPEAKER);
       }
+      double rotationAccuracy = canChangeHeading ? Units.degreesToRadians(Math.pow(poseEstimate.avgTagDist, 2.0) / Math.pow(poseEstimate.tagCount, 2)) * 5 : Double.POSITIVE_INFINITY;
+      double translationError = Math.pow(poseEstimate.avgTagDist, 2.0) / Math.pow(poseEstimate.tagCount, 2) / 5;
 
       if (RobotState.isAutonomous() && poseEstimate.tagCount <= 1) {
         continue;
       }
 
+      poses.add(pose2d);
       swerveDrive.setVisionMeasurementStdDevs(VecBuilder.fill(translationError, translationError, rotationAccuracy));
-      if (canChangeHeading) {
-        swerveDrive.addVisionMeasurement(pose2d, poseEstimate.timestampSeconds);
-      } else {
-        swerveDrive.addVisionMeasurement(new Pose2d(pose2d.getTranslation(), swerveDrive.getHeading()), poseEstimate.timestampSeconds);
-      }
+      swerveDrive.addVisionMeasurement(pose2d, poseEstimate.timestampSeconds);
       LEDs.setState(LEDs.State.HAS_VISION_TARGET);
     }
+    
+    SwerveDrive.getField().getObject("visionPosese").setPoses(poses);
   }
 
   public static void printConfig(Map<String, Pose3d> cameraPoses) {
