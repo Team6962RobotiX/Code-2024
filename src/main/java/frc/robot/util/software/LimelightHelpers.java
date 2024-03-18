@@ -386,7 +386,7 @@ public class LimelightHelpers {
     }
 
     public static class PoseEstimate {
-        public Pose2d pose;
+        public Pose3d pose;
         public double timestampSeconds;
         public double latency;
         public int tagCount;
@@ -395,7 +395,7 @@ public class LimelightHelpers {
         public double avgTagArea;
 
 
-        public PoseEstimate(Pose2d pose, double timestampSeconds, double latency, int tagCount, double tagSpan, double avgTagDist, double avgTagArea) {
+        public PoseEstimate(Pose3d pose, double timestampSeconds, double latency, int tagCount, double tagSpan, double avgTagDist, double avgTagArea) {
             this.pose = pose;
             this.timestampSeconds = timestampSeconds;
             this.latency = latency;
@@ -454,7 +454,7 @@ public class LimelightHelpers {
     private static PoseEstimate getBotPoseEstimate(String limelightName, String entryName) {
         var poseEntry = LimelightHelpers.getLimelightNTTableEntry(limelightName, entryName);
         var poseArray = poseEntry.getDoubleArray(new double[0]);
-        var pose = toPose2D(poseArray);
+        var pose = toPose3D(poseArray);
         double latency = extractBotPoseEntry(poseArray,6);
         int tagCount = (int)extractBotPoseEntry(poseArray,7);
         double tagSpan = extractBotPoseEntry(poseArray,8);

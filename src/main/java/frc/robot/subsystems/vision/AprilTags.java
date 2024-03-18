@@ -32,12 +32,15 @@ public class AprilTags extends SubsystemBase {
     // if (tagCount <= 1) return;
 
     for (PoseEstimate poseEstimate : poseEstimates) {
+      Pose2d pose2d = poseEstimate.pose.toPose2d();
+
       if (poseEstimate.tagCount == 0) continue;
-      if (poseEstimate.pose.getTranslation().getNorm() == 0.0) continue;
-      if (poseEstimate.pose.getRotation().getRadians() == 0.0) continue;
+      if (pose2d.getTranslation().getNorm() == 0.0) continue;
+      if (pose2d.getRotation().getRadians() == 0.0) continue;
+      if (Math.abs(poseEstimate.pose.getZ()) > 0.5) continue;
       
       // if (poseEstimate.avgTagDist > 5) continue;
-      if (poseEstimate.pose.getX() < 0.0 || poseEstimate.pose.getY() < 0.0 || poseEstimate.pose.getX() > Field.LENGTH || poseEstimate.pose.getY() > Field.WIDTH) continue;
+      if (pose2d.getX() < 0.0 || pose2d.getY() < 0.0 || pose2d.getX() > Field.LENGTH || pose2d.getY() > Field.WIDTH) continue;
       boolean canChangeHeading = false;
       double rotationAccuracy = Units.degreesToRadians(90.0 / Math.pow(poseEstimate.tagCount, 2.0));
       double translationError = Math.pow(poseEstimate.avgTagDist, 2.0) / Math.pow(poseEstimate.tagCount, 3.0);
@@ -52,9 +55,9 @@ public class AprilTags extends SubsystemBase {
 
       swerveDrive.setVisionMeasurementStdDevs(VecBuilder.fill(translationError, translationError, rotationAccuracy));
       if (canChangeHeading) {
-        swerveDrive.addVisionMeasurement(poseEstimate.pose, poseEstimate.timestampSeconds);
+        swerveDrive.addVisionMeasurement(pose2d, poseEstimate.timestampSeconds);
       } else {
-        swerveDrive.addVisionMeasurement(new Pose2d(poseEstimate.pose.getTranslation(), swerveDrive.getHeading()), poseEstimate.timestampSeconds);
+        swerveDrive.addVisionMeasurement(new Pose2d(pose2d.getTranslation(), swerveDrive.getHeading()), poseEstimate.timestampSeconds);
       }
       LEDs.setState(LEDs.State.HAS_VISION_TARGET);
     }

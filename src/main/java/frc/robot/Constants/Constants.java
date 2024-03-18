@@ -166,7 +166,7 @@ public final class Constants {
         public static final double kD = 0.0;
       }
 
-      public static final double ACCELERATION_REDUCTION = 1.5; // * ((SWERVE_DRIVE.PHYSICS.MAX_LINEAR_ACCELERATION * SWERVE_DRIVE.ROBOT_MASS + ((SWERVE_DRIVE.PHYSICS.ROTATIONAL_INERTIA * SWERVE_DRIVE.PHYSICS.MAX_ANGULAR_ACCELERATION) / SWERVE_DRIVE.PHYSICS.DRIVE_RADIUS)) / (9.80 * SWERVE_DRIVE.ROBOT_MASS * SWERVE_DRIVE.FRICTION_COEFFICIENT));
+      public static final double ACCELERATION_REDUCTION = ((SWERVE_DRIVE.PHYSICS.MAX_LINEAR_ACCELERATION * SWERVE_DRIVE.ROBOT_MASS + ((SWERVE_DRIVE.PHYSICS.ROTATIONAL_INERTIA * SWERVE_DRIVE.PHYSICS.MAX_ANGULAR_ACCELERATION) / SWERVE_DRIVE.PHYSICS.DRIVE_RADIUS)) / (9.80 * SWERVE_DRIVE.ROBOT_MASS * SWERVE_DRIVE.FRICTION_COEFFICIENT));
 
       public static final PathConstraints DEFAULT_PATH_CONSTRAINTS =
         new PathConstraints(
@@ -194,7 +194,7 @@ public final class Constants {
       public static final double kD                 = 0.50000; // Derivative Gain
       public static final double kS                 = 0.00000; // volts
       public static final double kV                 = 12.0 / (NEO.STATS.freeSpeedRadPerSec / STEER_MOTOR_GEARING); // volts per rad/s
-      public static final double kA                 = 0.02000; // volts per rad/s^2
+      public static final double kA                 = 0.00010; // volts per rad/s^2
     }
 
     // TELEOPERATED

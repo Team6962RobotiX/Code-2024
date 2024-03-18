@@ -20,15 +20,8 @@ public class CollisionDetector extends SubsystemBase {
   public double collisionThreshold = 200.0;
 
   public CollisionDetector() {
-    new Thread(() -> {
-      try {
-        Thread.sleep(1000);
-        collisionEntry = NetworkTableInstance.getDefault().getEntry("collisionCount");
-        if (!collisionEntry.exists()) {
-          collisionEntry.setPersistent();
-        }
-      } catch (Exception e) {}
-    }).start();
+    collisionEntry = NetworkTableInstance.getDefault().getEntry("collisionCount");
+    collisionEntry.setPersistent();
 
     Logger.autoLog(this, "Jerk", () -> jerk.getNorm());
   }
