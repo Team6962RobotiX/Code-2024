@@ -250,8 +250,6 @@ public class SwerveDrive extends SubsystemBase {
 
     // Update pose based on measured heading and swerve module positions
     
-    AprilTags.injectVisionData(LIMELIGHT.APRILTAG_CAMERA_POSES, this);
-    
     // Update field
     FieldObject2d modulesObject = field.getObject("Swerve Modules");
 
@@ -280,6 +278,7 @@ public class SwerveDrive extends SubsystemBase {
     odometryLock.lock();
     try {
       poseEstimator.update(gyroHeading.plus(gyroOffset), getModulePositions());
+      AprilTags.injectVisionData(LIMELIGHT.APRILTAG_CAMERA_POSES, this);
     } catch (Exception e) {
       odometryLock.unlock();
       throw e;
