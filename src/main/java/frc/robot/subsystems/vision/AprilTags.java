@@ -61,8 +61,9 @@ public class AprilTags extends SubsystemBase {
       swerveDrive.addVisionMeasurement(pose2d, poseEstimate.timestampSeconds);
       LEDs.setState(LEDs.State.HAS_VISION_TARGET);
     }
-    
+
     SwerveDrive.getField().getObject("visionPosese").setPoses(poses);
+    
   }
 
   public static void printConfig(Map<String, Pose3d> cameraPoses) {
