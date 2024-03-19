@@ -65,6 +65,11 @@ public final class Preferences {
     public static final double TO_AMP_POWER = 0.4;
   }
 
+  public static final class INTAKE {
+    public static final double IN_POWER = 0.5;
+    public static final double OUT_POWER = 0.5;
+  }
+
   public static final class HANG {
     public static final double LEFT_MOTOR_EXTEND_POWER = 1.0; 
     public static final double RIGHT_MOTOR_EXTEND_POWER = 1.0; 
@@ -76,8 +81,9 @@ public final class Preferences {
   public static final class VOLTAGE_LADDER {
     public static final double SWERVE_DRIVE = 7.0;
     public static final double SHOOTER = 8.0;
-    public static final double HANG = 9.0;
+    public static final double INTAKE = 8.5;
     public static final double TRANSFER = 9.0;
+    public static final double HANG = 9.0;
     public static final double AMP = 10.0;
   }
 }

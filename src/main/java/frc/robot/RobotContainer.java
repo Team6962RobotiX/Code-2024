@@ -21,6 +21,7 @@ import frc.robot.subsystems.RobotStateController;
 import frc.robot.subsystems.amp.Amp;
 import frc.robot.subsystems.drive.SwerveDrive;
 import frc.robot.subsystems.hang.Hang;
+import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.transfer.Transfer;
 import frc.robot.subsystems.vision.AprilTags;
@@ -45,6 +46,7 @@ public class RobotContainer {
   private final Transfer transfer;
   private final Amp amp;
   private final Hang hang;
+  private final Intake intake;
   private final RobotStateController stateController;
   private final LEDs ledStrip;
   // private final CollisionDetector collisionDetector;
@@ -87,7 +89,8 @@ public class RobotContainer {
     shooter = new Shooter(swerveDrive);
     transfer = new Transfer();
     amp = new Amp();
-    stateController = new RobotStateController(amp, swerveDrive, shooter, transfer);
+    intake = new Intake();
+    stateController = new RobotStateController(amp, swerveDrive, shooter, transfer, intake);
     hang = new Hang();
     ledStrip = new LEDs(stateController);
     // collisionDetector = new CollisionDetector();

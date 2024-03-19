@@ -262,6 +262,7 @@ public final class Constants {
     public static final int SHOOTER_FEED = 20;
     public static final int TRANSFER_OUT = 24;
     public static final int TRANSFER_IN = 22;
+    public static final int INTAKE = 999; // Replace
     public static final int AMP_PIVOT = 17;
     public static final int AMP_WHEELS = 25;
     // left/right is from the robot's view of from intake

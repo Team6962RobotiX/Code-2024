@@ -13,6 +13,7 @@ import frc.robot.Constants.Constants;
 import frc.robot.Constants.Preferences;
 import frc.robot.subsystems.amp.Amp;
 import frc.robot.subsystems.drive.SwerveDrive;
+import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.transfer.Transfer;
 import frc.robot.util.software.Logging.StatusChecks;
@@ -24,6 +25,7 @@ public class RobotStateController extends SubsystemBase {
   private Amp amp;
   private Shooter shooter;
   private Transfer transfer;
+  private Intake intake;
   private DigitalInput beamBreakSensor;
   private Debouncer beamBreakDebouncer = new Debouncer(0.05);
   private boolean isAiming;
@@ -50,11 +52,12 @@ public class RobotStateController extends SubsystemBase {
     CENTER_NOTE,
   }
 
-  public RobotStateController(Amp amp, SwerveDrive swerveDrive, Shooter shooter, Transfer transfer) {
+  public RobotStateController(Amp amp, SwerveDrive swerveDrive, Shooter shooter, Transfer transfer, Intake intake) {
     this.swerveDrive = swerveDrive;
     this.amp = amp;
     this.shooter = shooter;
     this.transfer = transfer;
+    this.intake = intake;
     beamBreakSensor = new DigitalInput(Constants.DIO.BEAM_BREAK);
 
     StatusChecks.addCheck(new SubsystemBase() {}, "Beam Break Sensor", () -> beamBreakSensor.get());
@@ -71,7 +74,7 @@ public class RobotStateController extends SubsystemBase {
     switch(state) {
       case INTAKE:
         return Commands.parallel(
-          transfer.setState(Transfer.State.IN),
+          intake.setState(Intake.State.IN),
           amp.setState(Amp.State.DOWN)
         ).until(() -> hasNote()).raceWith(LEDs.setStateCommand(LEDs.State.RUNNING_COMMAND)).andThen(Commands.runOnce(() -> Controls.rumbleBoth().schedule()));
       case CENTER_NOTE:
