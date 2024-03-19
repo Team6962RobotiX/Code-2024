@@ -393,9 +393,10 @@ public class LimelightHelpers {
         public double tagSpan;
         public double avgTagDist;
         public double avgTagArea;
+        public int primaryTagID;
 
 
-        public PoseEstimate(Pose3d pose, double timestampSeconds, double latency, int tagCount, double tagSpan, double avgTagDist, double avgTagArea) {
+        public PoseEstimate(Pose3d pose, double timestampSeconds, double latency, int tagCount, double tagSpan, double avgTagDist, double avgTagArea, int primaryTagID) {
             this.pose = pose;
             this.timestampSeconds = timestampSeconds;
             this.latency = latency;
@@ -403,6 +404,7 @@ public class LimelightHelpers {
             this.tagSpan = tagSpan;
             this.avgTagDist = avgTagDist;
             this.avgTagArea = avgTagArea;
+            this.primaryTagID = primaryTagID;
         }
     }
 
@@ -460,9 +462,10 @@ public class LimelightHelpers {
         double tagSpan = extractBotPoseEntry(poseArray,8);
         double tagDist = extractBotPoseEntry(poseArray,9);
         double tagArea = extractBotPoseEntry(poseArray,10);
+        int primaryTagID = (int) LimelightHelpers.getLimelightNTTableEntry(limelightName, "tid").getInteger(0);
         //getlastchange() in microseconds, ll latency in milliseconds
         var timestamp = (poseEntry.getLastChange() / 1000000.0) - (latency/1000.0);
-        return new PoseEstimate(pose, timestamp,latency,tagCount,tagSpan,tagDist,tagArea);
+        return new PoseEstimate(pose, timestamp,latency,tagCount,tagSpan,tagDist,tagArea,primaryTagID);
     }
 
     public static NetworkTable getLimelightNTTable(String tableName) {

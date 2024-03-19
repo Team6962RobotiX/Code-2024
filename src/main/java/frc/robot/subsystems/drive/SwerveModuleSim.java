@@ -12,6 +12,7 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.system.plant.LinearSystemId;
 import edu.wpi.first.wpilibj.simulation.FlywheelSim;
+import frc.robot.Robot;
 import frc.robot.Constants.Constants.NEO;
 import frc.robot.Constants.Constants.SWERVE_DRIVE;
 import frc.robot.Constants.Constants.SWERVE_DRIVE.DRIVE_MOTOR_PROFILE;
@@ -78,11 +79,11 @@ public class SwerveModuleSim extends SwerveModule {
       speedMetersPerSecond *= Math.cos(SwerveMath.angleDistance(getMeasuredState().angle.getRadians(), getMeasuredState().angle.getRadians()));
     }
 
-    for (int i = 0; i < 20; i++) {
+    for (int i = 0; i < Robot.getLoopTime() / (1.0 / 1000.0); i++) {
       double driveVolts = driveFF.calculate(speedMetersPerSecond, 0.0) + 12.0 * drivePID.calculate(getMeasuredState().speedMetersPerSecond, speedMetersPerSecond);
       double steerVolts = 12.0 * steerPID.calculate(getMeasuredState().angle.getRadians(), radians);
       
-      driveVoltRamp += (MathUtil.clamp(driveVolts - driveVoltRamp, -12.0 / NEO.SAFE_RAMP_RATE / 1000.0, 12.0 / NEO.SAFE_RAMP_RATE / 1000.0));
+      driveVoltRamp += (MathUtil.clamp(driveVolts - driveVoltRamp, -12.0 / (SWERVE_DRIVE.PHYSICS.MAX_LINEAR_VELOCITY / SWERVE_DRIVE.PHYSICS.MAX_LINEAR_ACCELERATION) / 1000.0, 12.0 / (SWERVE_DRIVE.PHYSICS.MAX_LINEAR_VELOCITY / SWERVE_DRIVE.PHYSICS.MAX_LINEAR_ACCELERATION) / 1000.0));
       driveVolts = driveVoltRamp;
       
       steerVoltRamp += (MathUtil.clamp(steerVolts - steerVoltRamp, -12.0 / NEO.SAFE_RAMP_RATE / 1000.0, 12.0 / NEO.SAFE_RAMP_RATE / 1000.0));

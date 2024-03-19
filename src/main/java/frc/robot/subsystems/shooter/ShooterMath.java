@@ -186,11 +186,9 @@ public class ShooterMath {
 
   public static double calculateFlightTime(Translation3d targetPoint, Pose2d currentPose, double shooterWheelVelocity, Rotation2d pivotAngle) {
     // (v * sin(a) - sqrt(v^2 * sin(a)^2 - 2 * g * h)) / g
-    double targetHeight = targetPoint.getZ() - calcShooterLocationOnField(currentPose, pivotAngle).getZ();
     double projectileVelocity = calcProjectileVelocity(shooterWheelVelocity);
-    double gravity = 9.80;
     Rotation2d exitAngle = pivotAngle.plus(SHOOTER_PIVOT.NOTE_ROTATION_OFFSET);
-    return (projectileVelocity * Math.sin(exitAngle.getRadians()) - Math.sqrt(Math.pow(projectileVelocity * Math.sin(exitAngle.getRadians()), 2.0) - 2.0 * gravity * -targetHeight)) / gravity;
+    return targetPoint.toTranslation2d().getDistance(calcShooterLocationOnField(currentPose, pivotAngle).toTranslation2d()) / (projectileVelocity * Math.cos(exitAngle.getRadians()));
   }
 
   public static Translation3d calcVelocityCompensatedPoint(Translation3d targetPoint, Pose2d currentPose, Translation2d currentVelocity, double rotationalVelocity, double shooterWheelVelocity, Rotation2d pivotAngle) {    
@@ -200,6 +198,8 @@ public class ShooterMath {
     
     double flightTime = calculateFlightTime(targetPoint, currentPose, shooterWheelVelocity, pivotAngle);
 
+    System.out.println(flightTime);
+
     if (Double.isNaN(flightTime)) return targetPoint;
     
     Translation2d projectileOffset = currentVelocity.times(flightTime);
@@ -208,11 +208,11 @@ public class ShooterMath {
 
     Translation2d rotationAddedOffset = relativeShooterPosition.div(relativeShooterPosition.getNorm()).times(rotationalVelocity * relativeShooterPosition.getNorm() * flightTime).rotateBy(Rotation2d.fromDegrees(90.0));
     
-    projectileOffset = projectileOffset.plus(rotationAddedOffset);
+    projectileOffset = projectileOffset.minus(rotationAddedOffset);
 
     return new Translation3d(
-      targetPoint.getX() + projectileOffset.getX(),
-      targetPoint.getY() + projectileOffset.getY(),
+      targetPoint.getX() - projectileOffset.getX(),
+      targetPoint.getY() - projectileOffset.getY(),
       targetPoint.getZ()
     );
   }

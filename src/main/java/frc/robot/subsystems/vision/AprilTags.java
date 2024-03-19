@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -12,6 +13,7 @@ import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.RobotState;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants.Constants.LIMELIGHT;
 import frc.robot.Constants.Field;
 import frc.robot.subsystems.LEDs;
 import frc.robot.subsystems.drive.SwerveDrive;
@@ -36,7 +38,7 @@ public class AprilTags extends SubsystemBase {
 
     for (PoseEstimate poseEstimate : poseEstimates) {
       Pose2d pose2d = poseEstimate.pose.toPose2d();
-
+      if (IntStream.of(LIMELIGHT.BLACKLISTED_APRILTAGS).anyMatch(x -> x == poseEstimate.primaryTagID))
       if (poseEstimate.tagCount == 0) continue;
       if (pose2d.getTranslation().getNorm() == 0.0) continue;
       if (pose2d.getRotation().getRadians() == 0.0) continue;

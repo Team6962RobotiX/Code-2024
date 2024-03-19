@@ -71,6 +71,7 @@ public final class Constants {
     );
 
     public static final String NOTE_CAMERA_NAME = "limelight-fnote";
+    public static final int[] BLACKLISTED_APRILTAGS = {};
 
     public static final Rotation2d NOTE_CAMERA_PITCH = Rotation2d.fromDegrees(-24);
     // x is forward, y is left, z is up
