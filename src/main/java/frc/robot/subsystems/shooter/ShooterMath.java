@@ -198,8 +198,6 @@ public class ShooterMath {
     
     double flightTime = calculateFlightTime(targetPoint, currentPose, shooterWheelVelocity, pivotAngle);
 
-    System.out.println(flightTime);
-
     if (Double.isNaN(flightTime)) return targetPoint;
     
     Translation2d projectileOffset = currentVelocity.times(flightTime);

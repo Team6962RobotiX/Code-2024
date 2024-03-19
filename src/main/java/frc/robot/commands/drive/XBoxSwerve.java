@@ -66,7 +66,7 @@ public class XBoxSwerve extends Command {
     
     if (RobotBase.isSimulation()) {
       leftStick = new Translation2d(controller.getRawAxis(0), -controller.getRawAxis(1));
-      rightStick = new Translation2d(controller.getRawAxis(3), -controller.getRawAxis(4));
+      rightStick = new Translation2d(controller.getRawAxis(2), -controller.getRawAxis(3));
       leftTrigger = controller.getRawAxis(5);
       rightTrigger = controller.getRawAxis(4);
     }
@@ -74,6 +74,7 @@ public class XBoxSwerve extends Command {
     // Deadbands
     leftStick = InputMath.addCircularDeadband(leftStick, 0.1);
     rightStick = InputMath.addCircularDeadband(rightStick, 0.1);
+
 
     angularVelocity += -rightStick.getX() * MathUtils.map(rightTrigger, 0, 1, NOMINAL_ANGULAR_VELOCITY, MAX_ANGULAR_VELOCITY);
     

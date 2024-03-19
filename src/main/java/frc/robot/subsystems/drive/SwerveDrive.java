@@ -332,7 +332,7 @@ public class SwerveDrive extends SubsystemBase {
   private void driveAttainableSpeeds(ChassisSpeeds fieldRelativeSpeeds) {
     isDriven = true;
 
-    if (!(RobotState.isAutonomous() && Autonomous.avoidPillars)) {
+    if (!(RobotState.isAutonomous() && !Autonomous.avoidPillars)) {
       Translation2d velocity = XBoxSwerve.avoidObstacles(new Translation2d(
         fieldRelativeSpeeds.vxMetersPerSecond,
         fieldRelativeSpeeds.vyMetersPerSecond
@@ -348,7 +348,7 @@ public class SwerveDrive extends SubsystemBase {
       setTargetHeading(getHeading());
       isAligning = false;
     }
-    if (!isAligning && Math.abs(getMeasuredChassisSpeeds().omegaRadiansPerSecond) < 0.1) {
+    if (!isAligning && Math.abs(drivenChassisSpeeds.omegaRadiansPerSecond) < 0.01) {
       setTargetHeading(getHeading());
       isAligning = true;
     }
