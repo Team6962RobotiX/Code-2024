@@ -242,11 +242,6 @@ public class SwerveDrive extends SubsystemBase {
     // System.out.println(ShooterMath.calcPivotAngle(Field.SPEAKER, getPose(), Preferences.SHOOTER_WHEELS.TARGET_SPEED));
 
     // Update current heading based on gyroscope or wheel speeds
-    if (gyro.isConnected() && !RobotBase.isSimulation()) {
-      gyroHeading = gyro.getRotation2d();
-    } else {
-      gyroHeading = gyroHeading.plus(new Rotation2d(getMeasuredChassisSpeeds().omegaRadiansPerSecond * Robot.getLoopTime()));
-    }
 
     // Update pose based on measured heading and swerve module positions
     
@@ -277,6 +272,11 @@ public class SwerveDrive extends SubsystemBase {
   public void updateOdometry() {
     odometryLock.lock();
     try {
+      if (gyro.isConnected() && !RobotBase.isSimulation()) {
+        gyroHeading = gyro.getRotation2d();
+      } else {
+        gyroHeading = gyroHeading.plus(new Rotation2d(getMeasuredChassisSpeeds().omegaRadiansPerSecond * Robot.getLoopTime()));
+      }
       poseEstimator.update(gyroHeading.plus(gyroOffset), getModulePositions());
       AprilTags.injectVisionData(LIMELIGHT.APRILTAG_CAMERA_POSES, this);
     } catch (Exception e) {
@@ -578,7 +578,7 @@ public class SwerveDrive extends SubsystemBase {
   /**
    * @return Measured module positions
    */
-  private SwerveModulePosition[] getModulePositions() {
+  public SwerveModulePosition[] getModulePositions() {
     SwerveModulePosition[] positions = new SwerveModulePosition[SWERVE_DRIVE.MODULE_COUNT];
     for (int i = 0; i < SWERVE_DRIVE.MODULE_COUNT; i++) {
       positions[i] = modules[i].getModulePosition();

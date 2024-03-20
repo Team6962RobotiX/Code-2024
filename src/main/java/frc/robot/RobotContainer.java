@@ -15,6 +15,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.Constants;
 import frc.robot.Constants.Constants.CAN;
 import frc.robot.commands.autonomous.Autonomous;
+import frc.robot.commands.drive.WheelRadiusCalibration;
 import frc.robot.subsystems.Controls;
 import frc.robot.subsystems.LEDs;
 import frc.robot.subsystems.RobotStateController;
@@ -123,6 +124,6 @@ public class RobotContainer {
   }
 
   public void testInit() {
-    
+    (new WheelRadiusCalibration(swerveDrive)).schedule();
   }
 }
