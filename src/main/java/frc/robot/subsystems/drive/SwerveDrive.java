@@ -121,7 +121,7 @@ public class SwerveDrive extends SubsystemBase {
       SWERVE_DRIVE.STARTING_POSE.get().getRotation(),
       getModulePositions(),
       SWERVE_DRIVE.STARTING_POSE.get(),
-      VecBuilder.fill(0.001, 0.001, Units.degreesToRadians(2)),
+      VecBuilder.fill(0.001, 0.001, Units.degreesToRadians(0.001)),
       VecBuilder.fill(1.0, 1.0, Units.degreesToRadians(30))
     );
 
@@ -465,7 +465,7 @@ public class SwerveDrive extends SubsystemBase {
   }
 
   public void facePoint(Supplier<Translation2d> point, Rotation2d rotationOffset) {
-    double time = Robot.getLoopTime();
+    double time = 0.02;
 
     Translation2d currentPosition = getPose().getTranslation();
     Translation2d futurePosition = getPose().getTranslation().plus(getFieldVelocity().times(time));
