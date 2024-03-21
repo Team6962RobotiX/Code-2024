@@ -196,6 +196,7 @@ public class SwerveDrive extends SubsystemBase {
       setTargetHeading(getHeading());
       isAligning = false;
     }
+
     // System.out.println(Constants.SWERVE_DRIVE.PHYSICS.SLIPLESS_CURRENT_LIMIT);
     // System.out.println(Constants.SWERVE_DRIVE.PHYSICS.MAX_LINEAR_ACCELERATION);
     // System.out.println(Constants.SWERVE_DRIVE.ROBOT_MASS);
@@ -348,7 +349,7 @@ public class SwerveDrive extends SubsystemBase {
       setTargetHeading(getHeading());
       isAligning = false;
     }
-    if (!isAligning && Math.abs(drivenChassisSpeeds.omegaRadiansPerSecond) < 0.01) {
+    if (!isAligning && Math.abs(getMeasuredChassisSpeeds().omegaRadiansPerSecond) < 0.1) {
       setTargetHeading(getHeading());
       isAligning = true;
     }
