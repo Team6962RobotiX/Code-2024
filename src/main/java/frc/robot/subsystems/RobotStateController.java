@@ -75,6 +75,7 @@ public class RobotStateController extends SubsystemBase {
       case INTAKE:
         return Commands.parallel(
           intake.setState(Intake.State.IN),
+          transfer.setState(Transfer.State.SLOW_IN),
           amp.setState(Amp.State.DOWN)
         ).until(() -> hasNote()).raceWith(LEDs.setStateCommand(LEDs.State.RUNNING_COMMAND)).andThen(Commands.runOnce(() -> Controls.rumbleBoth().schedule()));
       case CENTER_NOTE:
@@ -84,7 +85,8 @@ public class RobotStateController extends SubsystemBase {
             transfer.setState(Transfer.State.AMP)
           ).until(() -> !hasNote()),
           amp.setState(Amp.State.OUT).alongWith(
-            transfer.setState(Transfer.State.FROM_AMP)
+            transfer.setState(Transfer.State.FROM_AMP),
+            intake.setState(Intake.State.SLOW_OUT)
           ).until(() -> hasNote()),
           transfer.setState(Transfer.State.FROM_AMP).until(() -> !hasNote()),
           transfer.setState(Transfer.State.SLOW_IN).until(() -> hasNote())

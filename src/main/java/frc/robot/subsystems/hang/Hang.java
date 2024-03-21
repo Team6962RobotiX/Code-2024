@@ -41,6 +41,8 @@ public class Hang extends SubsystemBase {
 
   /** Creates a new ExampleSubsystem. */
   public Hang() {
+    if (!Constants.ENABLED_SYSTEMS.ENABLE_HANG) return;
+    
     gyro = SwerveDrive.getGyro();
     // Gyro = SwerveDrive.getGyro()
 
