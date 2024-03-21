@@ -39,7 +39,7 @@ public class Notes {
     double timestamp = (table.getEntry("hb").getLastChange() / 1000000.0) - (latency / 1000.0);
 
     Pose2d robotPosition = swerveDrive.getPose(timestamp);
-    notePosition = robotPosition.getTranslation().plus(relativePosition.rotateBy(robotPosition.getRotation())).plus(cameraToRobot.toTranslation2d());
+    notePosition = robotPosition.getTranslation().plus(relativePosition.rotateBy(robotPosition.getRotation()));
     
     LEDs.setState(LEDs.State.CAN_SEE_NOTE);
 
