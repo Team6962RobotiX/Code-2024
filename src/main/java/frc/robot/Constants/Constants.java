@@ -334,7 +334,7 @@ public final class Constants {
     public static final Rotation2d ANGLE_PRECISION = Rotation2d.fromDegrees(0.25);
     public static final Rotation2d HEADING_PRECISION = Rotation2d.fromDegrees(0.25);
     public static final Translation3d POSITION = new Translation3d(Units.inchesToMeters(3.33), 0.0, Units.inchesToMeters(12.1));
-    public static final double ABSOLUTE_POSITION_OFFSET = Units.degreesToRotations(-149.281); // 93.15 - [ the angle measured from the front plate of shooter ] - [ rawAbsolutePosition from logs ]
+    public static final double ABSOLUTE_POSITION_OFFSET = Units.degreesToRotations(-141.5 - 93.15 + 27); //  - [ rawAbsolutePosition from logs ] - 93.15 + [ the angle measured from the front plate of shooter ]
     public static final Rotation2d NOTE_ROTATION_OFFSET = Rotation2d.fromDegrees(-1.0); // Theoretically 3.1480961
     public static final double SHOOTER_LENGTH = Units.inchesToMeters(15.023);
     
