@@ -192,27 +192,27 @@ public class ShooterMath {
   }
 
   public static Translation3d calcVelocityCompensatedPoint(Translation3d targetPoint, Pose2d currentPose, Translation2d currentVelocity, double rotationalVelocity, double shooterWheelVelocity, Rotation2d pivotAngle) {    
-    // return targetPoint;
+    return targetPoint;
     
-    if (shooterWheelVelocity == 0.0) return targetPoint;
+    // if (shooterWheelVelocity == 0.0) return targetPoint;
     
-    double flightTime = calculateFlightTime(targetPoint, currentPose, shooterWheelVelocity, pivotAngle);
+    // double flightTime = calculateFlightTime(targetPoint, currentPose, shooterWheelVelocity, pivotAngle);
 
-    if (Double.isNaN(flightTime)) return targetPoint;
+    // if (Double.isNaN(flightTime)) return targetPoint;
     
-    Translation2d projectileOffset = currentVelocity.times(flightTime);
+    // Translation2d projectileOffset = currentVelocity.times(flightTime);
 
-    Translation2d relativeShooterPosition = calcShooterLocationOnField(currentPose, pivotAngle).toTranslation2d().minus(currentPose.getTranslation());
+    // Translation2d relativeShooterPosition = calcShooterLocationOnField(currentPose, pivotAngle).toTranslation2d().minus(currentPose.getTranslation());
 
-    Translation2d rotationAddedOffset = relativeShooterPosition.div(relativeShooterPosition.getNorm()).times(rotationalVelocity * relativeShooterPosition.getNorm() * flightTime).rotateBy(Rotation2d.fromDegrees(90.0));
+    // Translation2d rotationAddedOffset = relativeShooterPosition.div(relativeShooterPosition.getNorm()).times(rotationalVelocity * relativeShooterPosition.getNorm() * flightTime).rotateBy(Rotation2d.fromDegrees(90.0));
     
-    projectileOffset = projectileOffset.minus(rotationAddedOffset);
+    // //projectileOffset = projectileOffset.minus(rotationAddedOffset);
 
-    return new Translation3d(
-      targetPoint.getX() - projectileOffset.getX(),
-      targetPoint.getY() - projectileOffset.getY(),
-      targetPoint.getZ()
-    );
+    // return new Translation3d(
+    //   targetPoint.getX() - projectileOffset.getX(),
+    //   targetPoint.getY() - projectileOffset.getY(),
+    //   targetPoint.getZ()
+    // );
   }
 
 }

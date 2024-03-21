@@ -32,7 +32,7 @@ public class FeedWheels extends SubsystemBase {
   public FeedWheels() {
     motor = new CANSparkMax(CAN.SHOOTER_FEED, MotorType.kBrushless);
 
-    SparkMaxUtil.configureAndLog(this, motor, true, CANSparkMax.IdleMode.kCoast);
+    SparkMaxUtil.configureAndLog(this, motor, true, CANSparkMax.IdleMode.kCoast, 80, 80);
     SparkMaxUtil.configureCANStatusFrames(motor, false, false);
     SparkMaxUtil.save(motor);
 

@@ -67,7 +67,7 @@ public final class Preferences {
 
   public static final class INTAKE {
     public static final double IN_POWER = 0.5;
-    public static final double OUT_POWER = 0.5;
+    public static final double SLOW_OUT_POWER = 0.25;
   }
 
   public static final class HANG {

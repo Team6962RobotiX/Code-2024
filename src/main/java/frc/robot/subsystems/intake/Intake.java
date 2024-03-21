@@ -52,7 +52,7 @@ public class Intake extends SubsystemBase {
         motor.set(-Preferences.INTAKE.IN_POWER);
         break;
       case SLOW_OUT:
-        motor.set(Preferences.INTAKE.OUT_POWER);
+        motor.set(Preferences.INTAKE.SLOW_OUT_POWER);
         break;
       case OFF:
         motor.set(0); 

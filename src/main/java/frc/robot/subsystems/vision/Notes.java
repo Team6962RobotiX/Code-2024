@@ -30,6 +30,7 @@ public class Notes {
     double latency = (table.getEntry("tl").getDouble(0) + table.getEntry("cl").getDouble(0));
     double distance = (cameraToRobot.getZ() / - Math.tan(Units.degreesToRadians(y) + pitch.getRadians())) + Field.NOTE_LENGTH / 2.0;
     Logger.log("note-distance", distance);
+    Logger.log("y-degrees", y);
     Translation2d relativePosition = new Translation2d(
       distance * Math.cos(Units.degreesToRadians(x)),
       -distance * Math.sin(Units.degreesToRadians(x))
@@ -38,7 +39,7 @@ public class Notes {
     double timestamp = (table.getEntry("hb").getLastChange() / 1000000.0) - (latency / 1000.0);
 
     Pose2d robotPosition = swerveDrive.getPose(timestamp);
-    notePosition = robotPosition.getTranslation().plus(relativePosition.rotateBy(robotPosition.getRotation()));
+    notePosition = robotPosition.getTranslation().plus(relativePosition.rotateBy(robotPosition.getRotation())).plus(cameraToRobot.toTranslation2d());
     
     LEDs.setState(LEDs.State.CAN_SEE_NOTE);
 
