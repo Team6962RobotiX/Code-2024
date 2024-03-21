@@ -216,6 +216,10 @@ public class Autonomous extends Command {
     }
 
     List<Translation2d> bezierPoints;
+    Rotation2d bezierHeading = heading;
+    if (swerveDrive.getFieldVelocity().getNorm() > SWERVE_DRIVE.PHYSICS.MAX_LINEAR_VELOCITY / 5) {
+      bezierHeading = swerveDrive.getFieldVelocity().getAngle();
+    }
 
     if (
       alignmentPoint.getDistance(Field.SPEAKER.get().toTranslation2d()) < swerveDrive.getPose().getTranslation().getDistance(Field.SPEAKER.get().toTranslation2d()) && 
@@ -224,12 +228,12 @@ public class Autonomous extends Command {
       alignmentPoint.getDistance(swerveDrive.getPose().getTranslation()) < noteAlignDistance - notePickupDistance)
     ) {
       bezierPoints = PathPlannerPath.bezierFromPoses(
-        new Pose2d(swerveDrive.getPose().getTranslation(), swerveDrive.getFieldVelocity().getAngle()),
+        new Pose2d(swerveDrive.getPose().getTranslation(), bezierHeading),
         new Pose2d(pickupPoint, heading)
       );
     } else {
       bezierPoints = PathPlannerPath.bezierFromPoses(
-        new Pose2d(swerveDrive.getPose().getTranslation(), swerveDrive.getFieldVelocity().getAngle()),
+        new Pose2d(swerveDrive.getPose().getTranslation(), bezierHeading),
         new Pose2d(alignmentPoint, heading),
         new Pose2d(pickupPoint, heading)
       );
