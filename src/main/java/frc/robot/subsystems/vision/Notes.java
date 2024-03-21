@@ -33,7 +33,7 @@ public class Notes {
     Translation2d relativePosition = new Translation2d(
       distance * Math.cos(Units.degreesToRadians(x)),
       -distance * Math.sin(Units.degreesToRadians(x))
-    );
+    ).plus(cameraToRobot.toTranslation2d());
     
     double timestamp = (table.getEntry("hb").getLastChange() / 1000000.0) - (latency / 1000.0);
 

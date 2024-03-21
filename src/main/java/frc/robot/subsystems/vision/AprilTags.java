@@ -43,6 +43,7 @@ public class AprilTags extends SubsystemBase {
       if (pose2d.getTranslation().getNorm() == 0.0) continue;
       if (pose2d.getRotation().getRadians() == 0.0) continue;
       if (Math.abs(poseEstimate.pose.getZ()) > 0.5) continue;
+      if (Double.isNaN(poseEstimate.avgTagDist)) continue;
       
       // if (poseEstimate.avgTagDist > 5) continue;
       if (pose2d.getX() < 0.0 || pose2d.getY() < 0.0 || pose2d.getX() > Field.LENGTH || pose2d.getY() > Field.WIDTH) continue;

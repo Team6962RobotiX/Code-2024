@@ -340,6 +340,11 @@ public class SwerveDrive extends SubsystemBase {
       ), this);
       fieldRelativeSpeeds = new ChassisSpeeds(velocity.getX(), velocity.getY(), fieldRelativeSpeeds.omegaRadiansPerSecond);
     }
+
+    if (fieldRelativeSpeeds.omegaRadiansPerSecond > 0 && !RobotState.isAutonomous()) {
+      rotationOverridePoint = null;
+    }
+
     if (rotationOverridePoint != null) {
       fieldRelativeSpeeds.omegaRadiansPerSecond = 0.0;
       facePoint(rotationOverridePoint, rotationOverrideOffset);
