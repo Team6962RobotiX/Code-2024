@@ -66,8 +66,8 @@ public final class Constants {
     // y is left-to-right
     // z it top-to-bottom
     public static final Map<String, Pose3d> APRILTAG_CAMERA_POSES = Map.of(
-      "limelight-ftag", new Pose3d(Units.inchesToMeters(12.027304), Units.inchesToMeters(1.0), Units.inchesToMeters(21.577 + 1.6), new Rotation3d(0.0, Units.degreesToRadians(24.0), 0.0)),
-      "limelight-btag", new Pose3d(Units.inchesToMeters(2.670592), Units.inchesToMeters(-3.0), Units.inchesToMeters(23.530771 + 1.722460), new Rotation3d(0.0, Units.degreesToRadians(24.0), Units.degreesToRadians(180.0)))
+      "limelight-ftag", new Pose3d(Units.inchesToMeters(7.442142), Units.inchesToMeters(1.0), Units.inchesToMeters(25.283), new Rotation3d(0.0, Units.degreesToRadians(24.0), 0.0)),
+      "limelight-btag", new Pose3d(Units.inchesToMeters(2.670592), Units.inchesToMeters(-3.0), Units.inchesToMeters(25.283), new Rotation3d(0.0, Units.degreesToRadians(24.0), Units.degreesToRadians(180.0)))
     );
 
     public static final String NOTE_CAMERA_NAME = "limelight-fnote";
@@ -75,7 +75,7 @@ public final class Constants {
 
     public static final Rotation2d NOTE_CAMERA_PITCH = Rotation2d.fromDegrees(-24);
     // x is forward, y is left, z is up
-    public static final Translation3d NOTE_CAMERA_POSITION = new Translation3d(Units.inchesToMeters(12.58), Units.inchesToMeters(0.0), Units.inchesToMeters(23.25));
+    public static final Translation3d NOTE_CAMERA_POSITION = new Translation3d(Units.inchesToMeters(12.58), Units.inchesToMeters(0.0), Units.inchesToMeters(22.5));
 
     public static final Rotation2d FOV_HEIGHT = Rotation2d.fromDegrees(48.9); // Degrees
     public static final Rotation2d FOV_WIDTH = Rotation2d.fromDegrees(62.5); // Degrees
