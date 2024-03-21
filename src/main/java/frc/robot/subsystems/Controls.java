@@ -90,7 +90,7 @@ public class Controls {
     operator.povCenter();
     operator.povUp().whileTrue(hang.setState(Hang.State.EXTEND));
     operator.povDown().whileTrue(hang.setState(Hang.State.RETRACT));
-    operator.povLeft();
+    operator.povLeft().whileTrue(stateController.setState(RobotStateController.State.INTAKE_OUT));
     operator.povRight();
     operator.leftTrigger().toggleOnTrue(stateController.setState(RobotStateController.State.SPIN_UP));
     operator.rightTrigger().whileTrue(stateController.setState(RobotStateController.State.SHOOT_SPEAKER));
