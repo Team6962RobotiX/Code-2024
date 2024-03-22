@@ -31,7 +31,7 @@ public class Notes {
     if (Units.degreesToRadians(y) + pitch.getRadians() > 0) return null;
     
     double latency = (table.getEntry("tl").getDouble(0) + table.getEntry("cl").getDouble(0));
-    double distance = ((cameraToRobot.getZ() - Field.NOTE_THICKNESS) / - Math.tan(Units.degreesToRadians(y) + pitch.getRadians())) - Field.NOTE_LENGTH / 2.0;
+    double distance = ((cameraToRobot.getZ() - 0.521453) / - Math.tan(Units.degreesToRadians(y - 3.59747) + pitch.getRadians())) - (Field.NOTE_LENGTH / 2.0) * 0.113078;
     Logger.log("note-distance", distance);
     Logger.log("y-degrees-top", y);
 
