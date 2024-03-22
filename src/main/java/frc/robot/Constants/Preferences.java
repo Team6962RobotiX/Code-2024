@@ -20,7 +20,7 @@ public final class Preferences {
     public static final double   TELEOPERATED_DRIVE_POWER           = 0.5; // Percent driving power
     public static final double   TELEOPERATED_BOOST_POWER           = 1.0; // Percent power when using the triggers
     public static final double   TELEOPERATED_ROTATE_POWER          = 0.5; // Percent rotating power
-    public static final double   TELEOPERATED_SHOOTER_SPEED         = 0.75; // m/s
+    public static final double   TELEOPERATED_SHOOTER_SPEED         = 1.75; // m/s
   }
 
   public final class NOTE_DETECTION {
@@ -67,7 +67,8 @@ public final class Preferences {
 
   public static final class INTAKE {
     public static final double IN_POWER = 0.5;
-    public static final double SLOW_OUT_POWER = 0.25;
+    public static final double TO_SHOOTER_POWER = 0.3;
+    public static final double SLOW_OUT_POWER = 0.4;
   }
 
   public static final class HANG {

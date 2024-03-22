@@ -122,7 +122,7 @@ public class SwerveDrive extends SubsystemBase {
       SWERVE_DRIVE.STARTING_POSE.get().getRotation(),
       getModulePositions(),
       SWERVE_DRIVE.STARTING_POSE.get(),
-      VecBuilder.fill(0.001, 0.001, Units.degreesToRadians(0.001)),
+      VecBuilder.fill(0.05, 0.05, Units.degreesToRadians(2)),
       VecBuilder.fill(1.0, 1.0, Units.degreesToRadians(30))
     );
 
@@ -190,7 +190,6 @@ public class SwerveDrive extends SubsystemBase {
   @Override
   public void periodic() {
     if (!ENABLED_SYSTEMS.ENABLE_DRIVE) return;
-    Notes.getNotePosition(LIMELIGHT.NOTE_CAMERA_NAME, LIMELIGHT.NOTE_CAMERA_PITCH, this, getFieldVelocity(), LIMELIGHT.NOTE_CAMERA_POSITION);
     if (RobotState.isDisabled()) {
       for (SwerveModule module : modules) {
         module.seedSteerEncoder();
@@ -215,15 +214,19 @@ public class SwerveDrive extends SubsystemBase {
 
     // System.out.println(Constants.SHOOTER_WHEELS.PROFILE.kV);
 
-    // FieldObject2d relativePositions = SwerveDrive.getField().getObject("visibleNotes");
+    FieldObject2d visibleNotes = SwerveDrive.getField().getObject("visibleNotes");
+    
     // List<Pose2d> poses = new ArrayList<>();
     // for (Integer note1 : List.of(0, 1, 2, 3, 4, 5, 6, 7)) {
     //   Translation2d position = Field.NOTE_POSITIONS[note1];
     //   Translation2d relativePosition = position.minus(getPose().getTranslation()).rotateBy(getPose().getRotation().unaryMinus());
     //   poses.add(new Pose2d(relativePosition, new Rotation2d()));
     // }
-    // relativePositions.setPoses(poses);
 
+    Translation2d notePosition = Notes.getNotePosition(LIMELIGHT.NOTE_CAMERA_NAME, LIMELIGHT.NOTE_CAMERA_PITCH, this, getFieldVelocity(), LIMELIGHT.NOTE_CAMERA_POSITION);
+    if (notePosition != null) {
+      visibleNotes.setPose(new Pose2d(notePosition, new Rotation2d()));
+    }
 
     // Pose2d randomPose = new Pose2d(
     //   new Translation2d(
@@ -356,11 +359,13 @@ public class SwerveDrive extends SubsystemBase {
       setTargetHeading(getHeading());
       isAligning = false;
     }
-    if (!isAligning && Math.abs(drivenChassisSpeeds.omegaRadiansPerSecond) < 0.1) {
+    if (!isAligning && Math.abs(getMeasuredChassisSpeeds().omegaRadiansPerSecond) < 0.1) {
       setTargetHeading(getHeading());
       isAligning = true;
     }
-    
+    Logger.log("addedAlignmentAngularVelocity", addedAlignmentAngularVelocity);
+    Logger.log("alignmentController.getSetpoint()", alignmentController.getSetpoint());
+
     double alignmentAngularVelocity = alignmentController.calculate(getHeading().getRadians()) + addedAlignmentAngularVelocity;
     addedAlignmentAngularVelocity = 0.0;
     if (isAligning && !alignmentController.atSetpoint() && !parked) fieldRelativeSpeeds.omegaRadiansPerSecond += alignmentAngularVelocity;

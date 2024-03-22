@@ -27,7 +27,7 @@ public class RobotStateController extends SubsystemBase {
   private Transfer transfer;
   private Intake intake;
   private DigitalInput beamBreakSensor;
-  private Debouncer beamBreakDebouncer = new Debouncer(0.05);
+  private Debouncer beamBreakDebouncer = new Debouncer(0.1);
   private boolean isAiming;
   private Debouncer shotDebouncer = new Debouncer(0.5);
   private State currentState;
@@ -127,7 +127,7 @@ public class RobotStateController extends SubsystemBase {
       case SHOOT_SPEAKER:
         return Commands.sequence(
           Commands.waitUntil(() -> canShoot()),
-          transfer.setState(Transfer.State.SHOOTER_FAST).alongWith(intake.setState(Intake.State.IN)).until(() -> beamBreakSensor.get()),
+          transfer.setState(Transfer.State.SHOOTER_FAST).alongWith(intake.setState(Intake.State.SLOW_IN)).until(() -> beamBreakSensor.get()),
           transfer.setState(Transfer.State.SHOOTER_SLOW)
         ).raceWith(LEDs.setStateCommand(LEDs.State.RUNNING_COMMAND));
       case SPIN_UP:

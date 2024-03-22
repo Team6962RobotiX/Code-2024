@@ -21,6 +21,7 @@ public class Intake extends SubsystemBase {
  
   public static enum State {
     IN,
+    SLOW_IN,
     SLOW_OUT,
     OFF
   }
@@ -54,8 +55,11 @@ public class Intake extends SubsystemBase {
       case SLOW_OUT:
         motor.set(Preferences.INTAKE.SLOW_OUT_POWER);
         break;
+      case SLOW_IN:
+        motor.set(Preferences.INTAKE.TO_SHOOTER_POWER);
+        break;
       case OFF:
-        motor.set(0); 
+        motor.set(0);
         break;
     }
     

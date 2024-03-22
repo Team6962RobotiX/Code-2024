@@ -19,13 +19,14 @@ import frc.robot.subsystems.LEDs;
 import frc.robot.subsystems.drive.SwerveDrive;
 import frc.robot.util.software.LimelightHelpers;
 import frc.robot.util.software.LimelightHelpers.PoseEstimate;
+import frc.robot.util.software.Logging.Logger;
 
 
 public class AprilTags extends SubsystemBase {
   public static void injectVisionData(Map<String, Pose3d> cameraPoses, SwerveDrive swerveDrive) {
     List<LimelightHelpers.PoseEstimate> poseEstimates = cameraPoses.keySet().stream().map(LimelightHelpers::getBotPoseEstimate_wpiBlue).collect(Collectors.toList());
     
-    if (swerveDrive.getRotationalVelocity() > 2.0) return;
+    //if (swerveDrive.getRotationalVelocity() > 2.0) return;
 
     int tagCount = 0;
     for (PoseEstimate poseEstimate : poseEstimates) {
@@ -52,8 +53,15 @@ public class AprilTags extends SubsystemBase {
         canChangeHeading = true;
         if (poseEstimate.tagCount >= 2) LEDs.setState(LEDs.State.HAS_VISION_TARGET_SPEAKER);
       }
-      double rotationAccuracy = canChangeHeading ? Units.degreesToRadians(10.0) : Double.POSITIVE_INFINITY;
-      double translationError = Math.pow(poseEstimate.avgTagDist, 2.0) / Math.pow(poseEstimate.tagCount, 2) / 100;
+
+      canChangeHeading = canChangeHeading && swerveDrive.getPose().getTranslation().getDistance(pose2d.getTranslation()) < 0.25;
+      
+      double rotationAccuracy = canChangeHeading ? Units.degreesToRadians(15) : Double.POSITIVE_INFINITY;
+      double translationError = Math.pow(poseEstimate.avgTagDist, 2.0) / Math.pow(poseEstimate.tagCount, 2) / 20;
+      Logger.log("canChangeHeading", canChangeHeading);
+      Logger.log("translationError", translationError);
+      Logger.log("rotationAccuracy", rotationAccuracy);
+      Logger.log("poseRotation", pose2d.getRotation().getDegrees());
 
       if (RobotState.isAutonomous() && poseEstimate.tagCount <= 1) {
         continue;

@@ -135,7 +135,7 @@ public final class Constants {
     public static final double   STEER_ENCODER_CONVERSION_FACTOR    = (Math.PI * 2.0) / STEER_MOTOR_GEARING;
     
     public static class PHYSICS {
-      public static final double ROTATIONAL_INERTIA                 = 1.0 * ((1.0 / 12.0) * ROBOT_MASS * (Math.pow(BUMPER_WIDTH, 2.0) + Math.pow(BUMPER_LENGTH, 2.0)));
+      public static final double ROTATIONAL_INERTIA                 = 1.25 * ((1.0 / 12.0) * ROBOT_MASS * (Math.pow(BUMPER_WIDTH, 2.0) + Math.pow(BUMPER_LENGTH, 2.0)));
       public static final double SLIPLESS_ACCELERATION              = 9.80 * FRICTION_COEFFICIENT;
       public static final int    SLIPLESS_CURRENT_LIMIT             = (int) ((SLIPLESS_ACCELERATION * NEO.STATS.stallCurrentAmps * ROBOT_MASS * WHEEL_RADIUS) / (4.0 * DRIVE_MOTOR_GEARING * NEO.STATS.stallTorqueNewtonMeters));
       
@@ -200,9 +200,9 @@ public final class Constants {
 
     // TELEOPERATED
     public static final class ABSOLUTE_ROTATION_GAINS {
-      public static final double kP = 3.0;
+      public static final double kP = 4.0;
       public static final double kI = 0.0;
-      public static final double kD = 0.0;
+      public static final double kD = 0.5;
       public static final Rotation2d TOLERANCE = Rotation2d.fromDegrees(0.5);
     }
     
