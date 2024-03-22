@@ -356,7 +356,7 @@ public class SwerveDrive extends SubsystemBase {
       setTargetHeading(getHeading());
       isAligning = false;
     }
-    if (!isAligning && Math.abs(getMeasuredChassisSpeeds().omegaRadiansPerSecond) < 0.1) {
+    if (!isAligning && Math.abs(drivenChassisSpeeds.omegaRadiansPerSecond) < 0.1) {
       setTargetHeading(getHeading());
       isAligning = true;
     }
