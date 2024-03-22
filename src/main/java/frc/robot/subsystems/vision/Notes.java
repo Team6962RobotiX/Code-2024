@@ -31,14 +31,15 @@ public class Notes {
     if (Units.degreesToRadians(y) + pitch.getRadians() > 0) return null;
     
     double latency = (table.getEntry("tl").getDouble(0) + table.getEntry("cl").getDouble(0));
-    double distance = ((cameraToRobot.getZ() - 0.521453) / - Math.tan(Units.degreesToRadians(y - 3.59747) + pitch.getRadians())) - (Field.NOTE_LENGTH / 2.0) * 0.113078;
-    Logger.log("note-distance", distance);
+    double distance = ((cameraToRobot.getZ() - 0.521453) / - Math.tan(Units.degreesToRadians(y - 3.59747) + pitch.getRadians())) - (Field.NOTE_LENGTH / 2.0) * 1.97022;
     Logger.log("y-degrees-top", y);
 
     Translation2d relativePosition = new Translation2d(
       distance * Math.cos(Units.degreesToRadians(x)),
       -distance * Math.sin(Units.degreesToRadians(x))
     ).plus(cameraToRobot.toTranslation2d());
+
+    Logger.log("note-distance", relativePosition.getNorm());
     
     double timestamp = (table.getEntry("hb").getLastChange() / 1000000.0) - (latency / 1000.0);
 
