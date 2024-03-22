@@ -43,6 +43,7 @@ public class AprilTags extends SubsystemBase {
       if (pose2d.getTranslation().getNorm() == 0.0) continue;
       if (pose2d.getRotation().getRadians() == 0.0) continue;
       if (Math.abs(poseEstimate.pose.getZ()) > 0.5) continue;
+      if (Double.isNaN(poseEstimate.avgTagDist)) continue;
       
       // if (poseEstimate.avgTagDist > 5) continue;
       if (pose2d.getX() < 0.0 || pose2d.getY() < 0.0 || pose2d.getX() > Field.LENGTH || pose2d.getY() > Field.WIDTH) continue;
@@ -51,8 +52,8 @@ public class AprilTags extends SubsystemBase {
         canChangeHeading = true;
         if (poseEstimate.tagCount >= 2) LEDs.setState(LEDs.State.HAS_VISION_TARGET_SPEAKER);
       }
-      double rotationAccuracy = canChangeHeading ? Units.degreesToRadians(Math.pow(poseEstimate.avgTagDist, 2.0) / Math.pow(poseEstimate.tagCount, 2)) * 5 : Double.POSITIVE_INFINITY;
-      double translationError = Math.pow(poseEstimate.avgTagDist, 2.0) / Math.pow(poseEstimate.tagCount, 2) / 5;
+      double rotationAccuracy = canChangeHeading ? Units.degreesToRadians(10.0) : Double.POSITIVE_INFINITY;
+      double translationError = Math.pow(poseEstimate.avgTagDist, 2.0) / Math.pow(poseEstimate.tagCount, 2) / 100;
 
       if (RobotState.isAutonomous() && poseEstimate.tagCount <= 1) {
         continue;

@@ -29,7 +29,7 @@ public class RobotStateController extends SubsystemBase {
   private DigitalInput beamBreakSensor;
   private Debouncer beamBreakDebouncer = new Debouncer(0.05);
   private boolean isAiming;
-  private Debouncer shotDebouncer = new Debouncer(0.1);
+  private Debouncer shotDebouncer = new Debouncer(0.5);
   private State currentState;
   // private static ShuffleboardTab tab = Shuffleboard.getTab("Auto");
   // private static SimpleWidget hasNote = tab.add("has Note", true).withWidget(BuiltInWidgets.kToggleButton).withSize(1, 1).withPosition(0, 0);
@@ -88,11 +88,11 @@ public class RobotStateController extends SubsystemBase {
             transfer.setState(Transfer.State.FROM_AMP),
             intake.setState(Intake.State.SLOW_OUT)
           ).until(() -> hasNote()),
-          transfer.setState(Transfer.State.FROM_AMP).until(() -> !hasNote()),
-          transfer.setState(Transfer.State.SLOW_IN).until(() -> hasNote())
+          transfer.setState(Transfer.State.FROM_AMP).alongWith(intake.setState(Intake.State.SLOW_OUT)).until(() -> !hasNote()),
+          transfer.setState(Transfer.State.SLOW_IN).alongWith(intake.setState(Intake.State.IN)).until(() -> hasNote())
         ).raceWith(LEDs.setStateCommand(LEDs.State.RUNNING_COMMAND)).andThen(Controls.rumbleBoth());
       case INTAKE_OUT:
-        return transfer.setState(Transfer.State.OUT);
+        return transfer.setState(Transfer.State.OUT).alongWith(intake.setState(Intake.State.SLOW_OUT));
       case PREPARE_AMP:
         return Commands.sequence(
           amp.setState(Amp.State.DOWN),
@@ -127,7 +127,7 @@ public class RobotStateController extends SubsystemBase {
       case SHOOT_SPEAKER:
         return Commands.sequence(
           Commands.waitUntil(() -> canShoot()),
-          transfer.setState(Transfer.State.SHOOTER_FAST).until(() -> beamBreakSensor.get()),
+          transfer.setState(Transfer.State.SHOOTER_FAST).alongWith(intake.setState(Intake.State.IN)).until(() -> beamBreakSensor.get()),
           transfer.setState(Transfer.State.SHOOTER_SLOW)
         ).raceWith(LEDs.setStateCommand(LEDs.State.RUNNING_COMMAND));
       case SPIN_UP:

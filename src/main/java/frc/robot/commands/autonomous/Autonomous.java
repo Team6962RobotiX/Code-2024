@@ -1,5 +1,4 @@
 package frc.robot.commands.autonomous;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -76,7 +75,7 @@ public class Autonomous extends Command {
   public void initialize() {
     state = null;
     simulatedNote = true;
-    controller.setState(RobotStateController.State.LEAVE_AMP).withTimeout(1.0).schedule();
+    controller.setState(RobotStateController.State.LEAVE_AMP).withTimeout(1.5).schedule();
   }
  /**
    * 
@@ -150,7 +149,7 @@ public class Autonomous extends Command {
       List<Translation2d> measuredNotePositions = new ArrayList<>();
       for (Integer note : List.of(0, 1, 2, 3, 4, 5, 6, 7)) {
         if (shouldSeeNote(note)) {
-          measuredNotePositions.add(Field.NOTE_POSITIONS.get(note).get().plus(new Translation2d(random.nextDouble() / 5.0, random.nextDouble() / 5.0)));
+          measuredNotePositions.add(Field.NOTE_POSITIONS.get(note).get());
         }
       }
       if (measuredNotePositions.isEmpty()) measuredNotePosition = null;
@@ -216,6 +215,10 @@ public class Autonomous extends Command {
     }
 
     List<Translation2d> bezierPoints;
+    Rotation2d bezierHeading = heading;
+    if (swerveDrive.getFieldVelocity().getNorm() > SWERVE_DRIVE.PHYSICS.MAX_LINEAR_VELOCITY / 5) {
+      bezierHeading = swerveDrive.getFieldVelocity().getAngle();
+    }
 
     if (
       alignmentPoint.getDistance(Field.SPEAKER.get().toTranslation2d()) < swerveDrive.getPose().getTranslation().getDistance(Field.SPEAKER.get().toTranslation2d()) && 
@@ -224,12 +227,12 @@ public class Autonomous extends Command {
       alignmentPoint.getDistance(swerveDrive.getPose().getTranslation()) < noteAlignDistance - notePickupDistance)
     ) {
       bezierPoints = PathPlannerPath.bezierFromPoses(
-        new Pose2d(swerveDrive.getPose().getTranslation(), swerveDrive.getFieldVelocity().getAngle()),
+        new Pose2d(swerveDrive.getPose().getTranslation(), bezierHeading),
         new Pose2d(pickupPoint, heading)
       );
     } else {
       bezierPoints = PathPlannerPath.bezierFromPoses(
-        new Pose2d(swerveDrive.getPose().getTranslation(), swerveDrive.getFieldVelocity().getAngle()),
+        new Pose2d(swerveDrive.getPose().getTranslation(), bezierHeading),
         new Pose2d(alignmentPoint, heading),
         new Pose2d(pickupPoint, heading)
       );
@@ -259,24 +262,29 @@ public class Autonomous extends Command {
     return Commands.sequence(
       Commands.runOnce(() -> {
         swerveDrive.setRotationTargetOverrideFromPoint(() -> Field.SPEAKER.get().toTranslation2d(), Rotation2d.fromDegrees(180.0));
-        remainingNotes.remove(noteIndex);
-        queuedNotes.remove(noteIndex);
         addNoteObstacles();
       }),
-      AutoBuilder.followPath(path)
-        .raceWith(
+      AutoBuilder.followPath(path).andThen(Commands.waitSeconds(0.5))
+         .raceWith(
           Commands.sequence(
             Commands.waitUntil(() -> swerveDrive.getFuturePose().getTranslation().getDistance(notePosition) < 2.0),
             controller.setState(RobotStateController.State.INTAKE)
           ),
+          Commands.waitUntil(() -> swerveDrive.getFuturePose().getTranslation().getDistance(notePosition) < 0.25).andThen(() -> simulatedNote = true),
           Commands.waitUntil(() -> hasNote())
         ),
       Commands.runOnce(() -> {
-        simulatedNote = true;
         clearNoteObstacles();
         swerveDrive.setRotationTargetOverrideFromPoint(null, new Rotation2d());
       })
-    ).until(() -> hasNote());
+    ).until(() -> hasNote()).finallyDo(
+      () -> {
+        if (swerveDrive.getPose().getTranslation().getDistance(notePosition) < 2.0) {
+          remainingNotes.remove(noteIndex);
+          queuedNotes.remove(noteIndex);
+        }
+      }
+    );
   }
 
   public Command shoot() {
@@ -297,7 +305,7 @@ public class Autonomous extends Command {
       }),
       Commands.parallel(
         moveCommand.until(() -> !controller.underStage() && swerveDrive.getFuturePose().getTranslation().getDistance(Field.SPEAKER.get().toTranslation2d()) < speakerShotDistance)
-          .alongWith(Commands.waitSeconds(0.5).onlyIf(() -> isFirstNote))
+          .alongWith(Commands.waitSeconds(1).onlyIf(() -> isFirstNote))
           .andThen(Commands.sequence(
             Commands.run(() -> {
               if (controller.canShoot()) simulatedNote = false;

@@ -55,6 +55,7 @@ import frc.robot.Constants.Field;
 import frc.robot.commands.autonomous.Autonomous;
 import frc.robot.commands.drive.XBoxSwerve;
 import frc.robot.subsystems.vision.AprilTags;
+import frc.robot.subsystems.vision.Notes;
 import frc.robot.util.software.CustomSwerveDrivePoseEstimator;
 import frc.robot.util.software.MathUtils;
 import frc.robot.util.software.Logging.Logger;
@@ -121,7 +122,7 @@ public class SwerveDrive extends SubsystemBase {
       SWERVE_DRIVE.STARTING_POSE.get().getRotation(),
       getModulePositions(),
       SWERVE_DRIVE.STARTING_POSE.get(),
-      VecBuilder.fill(0.001, 0.001, Units.degreesToRadians(2)),
+      VecBuilder.fill(0.001, 0.001, Units.degreesToRadians(0.001)),
       VecBuilder.fill(1.0, 1.0, Units.degreesToRadians(30))
     );
 
@@ -189,6 +190,7 @@ public class SwerveDrive extends SubsystemBase {
   @Override
   public void periodic() {
     if (!ENABLED_SYSTEMS.ENABLE_DRIVE) return;
+    Notes.getNotePosition(LIMELIGHT.NOTE_CAMERA_NAME, LIMELIGHT.NOTE_CAMERA_PITCH, this, getFieldVelocity(), LIMELIGHT.NOTE_CAMERA_POSITION);
     if (RobotState.isDisabled()) {
       for (SwerveModule module : modules) {
         module.seedSteerEncoder();
@@ -340,6 +342,11 @@ public class SwerveDrive extends SubsystemBase {
       ), this);
       fieldRelativeSpeeds = new ChassisSpeeds(velocity.getX(), velocity.getY(), fieldRelativeSpeeds.omegaRadiansPerSecond);
     }
+
+    if (fieldRelativeSpeeds.omegaRadiansPerSecond > 0 && !RobotState.isAutonomous()) {
+      rotationOverridePoint = null;
+    }
+
     if (rotationOverridePoint != null) {
       fieldRelativeSpeeds.omegaRadiansPerSecond = 0.0;
       facePoint(rotationOverridePoint, rotationOverrideOffset);
@@ -460,7 +467,7 @@ public class SwerveDrive extends SubsystemBase {
   }
 
   public void facePoint(Supplier<Translation2d> point, Rotation2d rotationOffset) {
-    double time = Robot.getLoopTime();
+    double time = 0.02;
 
     Translation2d currentPosition = getPose().getTranslation();
     Translation2d futurePosition = getPose().getTranslation().plus(getFieldVelocity().times(time));
@@ -515,7 +522,7 @@ public class SwerveDrive extends SubsystemBase {
   }
 
   public boolean canZeroHeading() {
-    return parked || isAligning || RobotState.isDisabled();
+    return (parked || isAligning || RobotState.isDisabled()) && (Math.abs(getRotationalVelocity()) < 0.5);
   }
 
   /**
