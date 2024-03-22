@@ -23,12 +23,12 @@ public class Notes {
     double x = table.getEntry("tx").getDouble(0);
     double y = table.getEntry("ty").getDouble(0);// - Math.sqrt(Constants.LIMELIGHT.FOV_HEIGHT.getDegrees() * Constants.LIMELIGHT.FOV_HEIGHT.getDegrees() * target.ta)/2;
 
-    y -= table.getEntry("tvert").getDouble(0) / 2.0 / LIMELIGHT.NOTE_CAMERA_HEIGHT_PIXELS * LIMELIGHT.FOV_HEIGHT.getDegrees();
+    y += table.getEntry("tvert").getDouble(0) / 2.0 / LIMELIGHT.NOTE_CAMERA_HEIGHT_PIXELS * LIMELIGHT.FOV_HEIGHT.getDegrees();
     
     if (Units.degreesToRadians(y) + pitch.getRadians() > 0) return null;
     
     double latency = (table.getEntry("tl").getDouble(0) + table.getEntry("cl").getDouble(0));
-    double distance = (cameraToRobot.getZ() / - Math.tan(Units.degreesToRadians(y) + pitch.getRadians())) + Field.NOTE_LENGTH / 2.0;
+    double distance = ((cameraToRobot.getZ() - Field.NOTE_THICKNESS) / - Math.tan(Units.degreesToRadians(y) + pitch.getRadians())) - Field.NOTE_LENGTH / 2.0;
     Logger.log("note-distance", distance);
     Logger.log("y-degrees", y);
     Translation2d relativePosition = new Translation2d(
