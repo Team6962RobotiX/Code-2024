@@ -267,7 +267,7 @@ public class Autonomous extends Command {
       AutoBuilder.followPath(path).andThen(Commands.waitSeconds(0.5))
          .raceWith(
           Commands.sequence(
-            Commands.waitUntil(() -> swerveDrive.getFuturePose().getTranslation().getDistance(notePosition) < 2.0),
+            //Commands.waitUntil(() -> swerveDrive.getFuturePose().getTranslation().getDistance(notePosition) < 2.0),
             controller.setState(RobotStateController.State.INTAKE)
           ),
           Commands.waitUntil(() -> swerveDrive.getFuturePose().getTranslation().getDistance(notePosition) < 0.25).andThen(() -> simulatedNote = true),

@@ -12,6 +12,7 @@ import frc.robot.Constants.Constants.SHOOTER_PIVOT;
 import frc.robot.Constants.Constants.SHOOTER_WHEELS;
 import frc.robot.Constants.Field;
 import frc.robot.Constants.Preferences;
+import frc.robot.util.software.Logging.Logger;
 
 public class ShooterMath {
   
@@ -54,7 +55,7 @@ public class ShooterMath {
   }
     
   public static Rotation2d calcPivotAngle(Translation3d targetPoint, Pose2d currentPose, double shooterWheelVelocity) {
-    if (shooterWheelVelocity == 0.0) return new Rotation2d(0.0);
+    if (Math.abs(shooterWheelVelocity) < 1.0) return new Rotation2d(0.0);
     
     Rotation2d pivotAngle = Rotation2d.fromDegrees(0);
     int iterations = 4;
@@ -194,10 +195,12 @@ public class ShooterMath {
   public static Translation3d calcVelocityCompensatedPoint(Translation3d targetPoint, Pose2d currentPose, Translation2d currentVelocity, double rotationalVelocity, double shooterWheelVelocity, Rotation2d pivotAngle) {    
     // return targetPoint;
     
-    if (shooterWheelVelocity == 0.0) return targetPoint;
+    if (Math.abs(shooterWheelVelocity) < 1.0) return targetPoint;
     
     double flightTime = calculateFlightTime(targetPoint, currentPose, shooterWheelVelocity, pivotAngle);
 
+    Logger.log("flightTime", flightTime);
+    Logger.log("currentVelocity", currentVelocity);
     if (Double.isNaN(flightTime)) return targetPoint;
     
     Translation2d projectileOffset = currentVelocity.times(flightTime);
@@ -208,11 +211,17 @@ public class ShooterMath {
     
     //projectileOffset = projectileOffset.minus(rotationAddedOffset);
 
-    return new Translation3d(
+    Translation3d velocityCompensatedPoint =  new Translation3d(
       targetPoint.getX() - projectileOffset.getX(),
       targetPoint.getY() - projectileOffset.getY(),
       targetPoint.getZ()
     );
+
+    
+    Logger.log("velocityCompensatedPoint", velocityCompensatedPoint);
+
+
+    return velocityCompensatedPoint;
   }
 
 }

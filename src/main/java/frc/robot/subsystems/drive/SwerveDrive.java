@@ -23,6 +23,7 @@ import com.pathplanner.lib.util.ReplanningConfig;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -74,6 +75,7 @@ public class SwerveDrive extends SubsystemBase {
   private static Field2d field = new Field2d();
   private Rotation2d gyroHeading = Rotation2d.fromDegrees(0.0);
   private Rotation2d gyroOffset = SWERVE_DRIVE.STARTING_POSE.get().getRotation();
+  private Debouncer doneRotating = new Debouncer(0.5);
 
   private ChassisSpeeds drivenChassisSpeeds = new ChassisSpeeds();
 
@@ -117,6 +119,7 @@ public class SwerveDrive extends SubsystemBase {
     }
 
     // Set up pose estimator and rotation controller
+    Logger.log("swerveModulePositions", getModulePositions());
     poseEstimator = new CustomSwerveDrivePoseEstimator(
       kinematics,
       SWERVE_DRIVE.STARTING_POSE.get().getRotation(),
@@ -190,6 +193,7 @@ public class SwerveDrive extends SubsystemBase {
   @Override
   public void periodic() {
     if (!ENABLED_SYSTEMS.ENABLE_DRIVE) return;
+    Logger.log("swerveModulePositions", getModulePositions());
     if (RobotState.isDisabled()) {
       for (SwerveModule module : modules) {
         module.seedSteerEncoder();
@@ -359,7 +363,7 @@ public class SwerveDrive extends SubsystemBase {
       setTargetHeading(getHeading());
       isAligning = false;
     }
-    if (!isAligning && Math.abs(getMeasuredChassisSpeeds().omegaRadiansPerSecond) < 0.1) {
+    if (!isAligning && doneRotating.calculate(Math.abs(getDrivenChassisSpeeds().omegaRadiansPerSecond) < 0.1)) {
       setTargetHeading(getHeading());
       isAligning = true;
     }

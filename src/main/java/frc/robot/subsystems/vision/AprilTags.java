@@ -39,11 +39,11 @@ public class AprilTags extends SubsystemBase {
 
     for (PoseEstimate poseEstimate : poseEstimates) {
       Pose2d pose2d = poseEstimate.pose.toPose2d();
-      if (IntStream.of(LIMELIGHT.BLACKLISTED_APRILTAGS).anyMatch(x -> x == poseEstimate.primaryTagID))
+      if (IntStream.of(LIMELIGHT.BLACKLISTED_APRILTAGS).anyMatch(x -> x == poseEstimate.primaryTagID)) continue;
       if (poseEstimate.tagCount == 0) continue;
       if (pose2d.getTranslation().getNorm() == 0.0) continue;
       if (pose2d.getRotation().getRadians() == 0.0) continue;
-      if (Math.abs(poseEstimate.pose.getZ()) > 0.5) continue;
+      if (Math.abs(poseEstimate.pose.getZ()) > 1) continue;
       if (Double.isNaN(poseEstimate.avgTagDist)) continue;
       
       // if (poseEstimate.avgTagDist > 5) continue;
@@ -68,6 +68,7 @@ public class AprilTags extends SubsystemBase {
       }
 
       poses.add(pose2d);
+      translationError += 0.5;
       swerveDrive.setVisionMeasurementStdDevs(VecBuilder.fill(translationError, translationError, rotationAccuracy));
       swerveDrive.addVisionMeasurement(pose2d, poseEstimate.timestampSeconds);
       LEDs.setState(LEDs.State.HAS_VISION_TARGET);

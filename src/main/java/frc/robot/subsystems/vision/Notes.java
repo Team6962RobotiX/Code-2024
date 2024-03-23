@@ -31,7 +31,7 @@ public class Notes {
     if (Units.degreesToRadians(y) + pitch.getRadians() > 0) return null;
     
     double latency = (table.getEntry("tl").getDouble(0) + table.getEntry("cl").getDouble(0));
-    double distance = ((cameraToRobot.getZ() - 0.521453) / - Math.tan(Units.degreesToRadians(y - 3.59747) + pitch.getRadians())) - (Field.NOTE_LENGTH / 2.0) * 1.97022;
+    double distance = ((cameraToRobot.getZ() - Units.inchesToMeters(0.521453)) / - Math.tan(Units.degreesToRadians(y - 3.59747) + pitch.getRadians())) - (Field.NOTE_LENGTH / 2.0) * 1.97022 + Units.inchesToMeters(4); // empirical offset
     Logger.log("y-degrees-top", y);
 
     Translation2d relativePosition = new Translation2d(

@@ -61,7 +61,7 @@ public class Shooter extends SubsystemBase {
     Logger.autoLog(this, "Speaker Floor Distance", () -> ShooterMath.calcShooterLocationOnField(swerveDrive.getPose(), shooterPivot.getPosition()).toTranslation2d().getDistance(Field.SPEAKER.get().toTranslation2d()));
     Logger.autoLog(this, "Shot Heading", () -> ShooterMath.calcVelocityCompensatedPoint(
           Field.SPEAKER.get(),
-          swerveDrive.getFuturePose(),
+          swerveDrive.getPose(),
           swerveDrive.getFieldVelocity(),
           swerveDrive.getRotationalVelocity(),
           shooterWheels.getVelocity(),
@@ -69,7 +69,7 @@ public class Shooter extends SubsystemBase {
         ).toTranslation2d().minus(swerveDrive.getPose().getTranslation()).getAngle().plus(Rotation2d.fromDegrees(180.0)).getDegrees());
     Logger.autoLog(this, "Aiming Point", () -> ShooterMath.calcVelocityCompensatedPoint(
       Field.SPEAKER.get(),
-      swerveDrive.getFuturePose(),
+      swerveDrive.getPose(),
       swerveDrive.getFieldVelocity(),
       swerveDrive.getRotationalVelocity(),
       shooterWheels.getVelocity(),
@@ -86,7 +86,14 @@ public class Shooter extends SubsystemBase {
     if (RobotState.isAutonomous()) {
       shooterPivot.setTargetAngle(
         ShooterMath.calcPivotAngle(
-          Field.SPEAKER.get(),
+          ShooterMath.calcVelocityCompensatedPoint(
+            Field.SPEAKER.get(),
+            swerveDrive.getPose(),
+            swerveDrive.getFieldVelocity(),
+            swerveDrive.getRotationalVelocity(),
+            shooterWheels.getVelocity(),
+            shooterPivot.getPosition()
+          ),
           swerveDrive.getPose(),
           Preferences.SHOOTER_WHEELS.TARGET_SPEED
         )
@@ -131,7 +138,7 @@ public class Shooter extends SubsystemBase {
       ShooterMath.calcPivotAngle(
         ShooterMath.calcVelocityCompensatedPoint(
           point.get(),
-          swerveDrive.getFuturePose(),
+          swerveDrive.getPose(),
           swerveDrive.getFieldVelocity(),
           swerveDrive.getRotationalVelocity(),
           shooterWheels.getVelocity(),
@@ -144,7 +151,7 @@ public class Shooter extends SubsystemBase {
       swerveDrive.facePointCommand(() -> 
         ShooterMath.calcVelocityCompensatedPoint(
           point.get(),
-          swerveDrive.getFuturePose(),
+          swerveDrive.getPose(),
           swerveDrive.getFieldVelocity(),
           swerveDrive.getRotationalVelocity(),
           shooterWheels.getVelocity(),
