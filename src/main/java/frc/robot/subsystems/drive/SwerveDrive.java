@@ -538,18 +538,13 @@ public class SwerveDrive extends SubsystemBase {
    * 
    * @param visionMeasurement The robot position on the field from the apriltags
    */
-  public void addVisionMeasurement(Pose2d visionMeasurement, double timestamp) {
+  public void addVisionMeasurement(Pose2d visionMeasurement, double timestamp, Matrix<N3,N1> visionMeasurementStdDevs) {
     odometryLock.lock();
     Rotation2d oldHeading = getHeading();
+    poseEstimator.setVisionMeasurementStdDevs(visionMeasurementStdDevs);
     poseEstimator.addVisionMeasurement(visionMeasurement, timestamp);
     Rotation2d newHeading = getHeading();
     alignmentController.setSetpoint(Rotation2d.fromRadians(alignmentController.getSetpoint()).plus(newHeading).minus(oldHeading).getRadians());
-    odometryLock.unlock();
-  }
-
-  public void setVisionMeasurementStdDevs(Matrix<N3,N1> visionMeasurementStdDevs) {
-    odometryLock.lock();
-    poseEstimator.setVisionMeasurementStdDevs(visionMeasurementStdDevs);
     odometryLock.unlock();
   }
 

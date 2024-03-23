@@ -29,7 +29,7 @@ public class Intake extends SubsystemBase {
   public Intake() {
     motor = new CANSparkMax(CAN.INTAKE, MotorType.kBrushless);
 
-    SparkMaxUtil.configureAndLog(this, motor, false, CANSparkMax.IdleMode.kBrake);
+    SparkMaxUtil.configureAndLog(this, motor, false, CANSparkMax.IdleMode.kCoast);
     SparkMaxUtil.configureCANStatusFrames(motor, false, false);
     SparkMaxUtil.save(motor);
   }
@@ -56,7 +56,7 @@ public class Intake extends SubsystemBase {
         motor.set(Preferences.INTAKE.SLOW_OUT_POWER);
         break;
       case SLOW_IN:
-        motor.set(Preferences.INTAKE.TO_SHOOTER_POWER);
+        motor.set(-Preferences.INTAKE.TO_SHOOTER_POWER);
         break;
       case OFF:
         motor.set(0);

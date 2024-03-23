@@ -37,7 +37,7 @@ public class Autonomous extends Command {
   private List<Integer> remainingNotes = List.of();
 
   private double noteAvoidRadius = (Field.NOTE_LENGTH / 2.0 + Constants.SWERVE_DRIVE.BUMPER_DIAGONAL / 2.0);
-  private double notePickupDistance = Constants.SWERVE_DRIVE.BUMPER_LENGTH / 2.0 - Field.NOTE_LENGTH;
+  private double notePickupDistance = Constants.SWERVE_DRIVE.BUMPER_LENGTH / 2.0;
   private double noteAlignDistance = Constants.SWERVE_DRIVE.BUMPER_LENGTH / 2.0 + Field.NOTE_LENGTH * 2.0;
   private double speakerShotDistance = 3.5;
   private double adjacentNoteBand = 0.5;
@@ -264,7 +264,10 @@ public class Autonomous extends Command {
         swerveDrive.setRotationTargetOverrideFromPoint(() -> Field.SPEAKER.get().toTranslation2d(), Rotation2d.fromDegrees(180.0));
         addNoteObstacles();
       }),
-      AutoBuilder.followPath(path).andThen(Commands.waitSeconds(0.5))
+      AutoBuilder.followPath(path).andThen(Commands.waitSeconds(1.0)).finallyDo(() -> {
+          remainingNotes.remove(noteIndex);
+          queuedNotes.remove(noteIndex);
+        })
          .raceWith(
           Commands.sequence(
             //Commands.waitUntil(() -> swerveDrive.getFuturePose().getTranslation().getDistance(notePosition) < 2.0),
@@ -277,14 +280,7 @@ public class Autonomous extends Command {
         clearNoteObstacles();
         swerveDrive.setRotationTargetOverrideFromPoint(null, new Rotation2d());
       })
-    ).until(() -> hasNote()).finallyDo(
-      () -> {
-        if (swerveDrive.getPose().getTranslation().getDistance(notePosition) < 2.0) {
-          remainingNotes.remove(noteIndex);
-          queuedNotes.remove(noteIndex);
-        }
-      }
-    );
+    ).until(() -> hasNote());
   }
 
   public Command shoot() {

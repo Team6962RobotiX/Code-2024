@@ -39,7 +39,7 @@ public final class Constants {
     public static final boolean ENABLE_SHOOTER   = true;
     public static final boolean ENABLE_INTAKE   = true;
     public static final boolean ENABLE_TRANSFER = true;
-    public static final boolean ENABLE_HANG = false;
+    public static final boolean ENABLE_HANG = true;
     public static final boolean ENABLE_AMP = true;
   }
 
@@ -167,7 +167,7 @@ public final class Constants {
         public static final double kD = 0.0;
       }
 
-      public static final double ACCELERATION_REDUCTION = ((SWERVE_DRIVE.PHYSICS.MAX_LINEAR_ACCELERATION * SWERVE_DRIVE.ROBOT_MASS + ((SWERVE_DRIVE.PHYSICS.ROTATIONAL_INERTIA * SWERVE_DRIVE.PHYSICS.MAX_ANGULAR_ACCELERATION) / SWERVE_DRIVE.PHYSICS.DRIVE_RADIUS)) / (9.80 * SWERVE_DRIVE.ROBOT_MASS * SWERVE_DRIVE.FRICTION_COEFFICIENT));
+      public static final double ACCELERATION_REDUCTION = 2.0 * ((SWERVE_DRIVE.PHYSICS.MAX_LINEAR_ACCELERATION * SWERVE_DRIVE.ROBOT_MASS + ((SWERVE_DRIVE.PHYSICS.ROTATIONAL_INERTIA * SWERVE_DRIVE.PHYSICS.MAX_ANGULAR_ACCELERATION) / SWERVE_DRIVE.PHYSICS.DRIVE_RADIUS)) / (9.80 * SWERVE_DRIVE.ROBOT_MASS * SWERVE_DRIVE.FRICTION_COEFFICIENT));
 
       public static final PathConstraints DEFAULT_PATH_CONSTRAINTS =
         new PathConstraints(
@@ -266,8 +266,7 @@ public final class Constants {
     public static final int AMP_PIVOT = 17;
     public static final int AMP_WHEELS = 25;
     // left/right is from the robot's view of from intake
-    public static final int HANG_LEFT = 28;
-    public static final int HANG_RIGHT = 999; // No Spark right now
+    public static final int HANG_RIGHT = 28;
 
   }
 
@@ -281,7 +280,7 @@ public final class Constants {
     public static final DCMotor STATS = DCMotor.getNEO(1);
     public static final double SAFE_TEMPERATURE = 60;
     public static final int SAFE_STALL_CURRENT = 40;
-    public static final int SAFE_FREE_CURRENT = 80;
+    public static final int SAFE_FREE_CURRENT = 60;
     public static final double SAFE_RAMP_RATE = 0.05;
 
     public static double maxTorqueCurrentLimited(int currentLimit) {

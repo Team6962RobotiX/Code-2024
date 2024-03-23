@@ -75,7 +75,7 @@ public class RobotStateController extends SubsystemBase {
       case INTAKE:
         return Commands.parallel(
           intake.setState(Intake.State.IN),
-          transfer.setState(Transfer.State.SLOW_IN),
+          transfer.setState(Transfer.State.IN),
           amp.setState(Amp.State.DOWN)
         ).until(() -> hasNote()).raceWith(LEDs.setStateCommand(LEDs.State.RUNNING_COMMAND)).andThen(Commands.runOnce(() -> Controls.rumbleBoth().schedule()));
       case CENTER_NOTE:
@@ -89,7 +89,7 @@ public class RobotStateController extends SubsystemBase {
             intake.setState(Intake.State.SLOW_OUT)
           ).until(() -> hasNote()),
           transfer.setState(Transfer.State.FROM_AMP).alongWith(intake.setState(Intake.State.SLOW_OUT)).until(() -> !hasNote()),
-          transfer.setState(Transfer.State.SLOW_IN).alongWith(intake.setState(Intake.State.IN)).until(() -> hasNote())
+          transfer.setState(Transfer.State.SLOW_IN).alongWith(intake.setState(Intake.State.SLOW_IN)).until(() -> hasNote())
         ).raceWith(LEDs.setStateCommand(LEDs.State.RUNNING_COMMAND)).andThen(Controls.rumbleBoth());
       case INTAKE_OUT:
         return transfer.setState(Transfer.State.OUT).alongWith(intake.setState(Intake.State.SLOW_OUT));
@@ -127,7 +127,7 @@ public class RobotStateController extends SubsystemBase {
       case SHOOT_SPEAKER:
         return Commands.sequence(
           Commands.waitUntil(() -> canShoot()),
-          transfer.setState(Transfer.State.SHOOTER_FAST).alongWith(intake.setState(Intake.State.SLOW_IN)).until(() -> beamBreakSensor.get()),
+          transfer.setState(Transfer.State.SHOOTER_FAST).until(() -> !hasNote()),
           transfer.setState(Transfer.State.SHOOTER_SLOW)
         ).raceWith(LEDs.setStateCommand(LEDs.State.RUNNING_COMMAND));
       case SPIN_UP:

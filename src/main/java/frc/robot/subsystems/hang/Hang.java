@@ -23,9 +23,7 @@ import frc.robot.subsystems.drive.SwerveDrive;
 import frc.robot.util.hardware.SparkMaxUtil;
 
 public class Hang extends SubsystemBase {
-    private CANSparkMax leftMotor;
     private CANSparkMax rightMotor;
-    private RelativeEncoder leftEncoder;
     private RelativeEncoder rightEncoder;
     private State state = State.OFF; 
     
@@ -46,22 +44,14 @@ public class Hang extends SubsystemBase {
     gyro = SwerveDrive.getGyro();
     // Gyro = SwerveDrive.getGyro()
 
-    leftMotor = new CANSparkMax(CAN.HANG_LEFT, MotorType.kBrushless);
-    // todo: figure out which motor is inverted and confugire it as so
-    SparkMaxUtil.configureAndLog(this, leftMotor, true, CANSparkMax.IdleMode.kBrake);
-    SparkMaxUtil.configureCANStatusFrames(leftMotor, false, true);
-    SparkMaxUtil.save(leftMotor);
-
     rightMotor = new CANSparkMax(CAN.HANG_RIGHT, MotorType.kBrushless);
     
     SparkMaxUtil.configureAndLog(this, rightMotor, false, CANSparkMax.IdleMode.kBrake);
     SparkMaxUtil.configureCANStatusFrames(rightMotor, false, true);
     SparkMaxUtil.save(rightMotor);   
 
-    leftEncoder = leftMotor.getEncoder();
     rightEncoder = rightMotor.getEncoder();
 
-    SparkMaxUtil.configureEncoder(leftMotor, (1.0 / HANG.GEARING) * 2.0 * Math.PI * HANG.SPOOL_RADIUS);
     SparkMaxUtil.configureEncoder(rightMotor, (1.0 / HANG.GEARING) * 2.0 * Math.PI * HANG.SPOOL_RADIUS);
  
   }
@@ -80,21 +70,17 @@ public class Hang extends SubsystemBase {
       state = State.OFF;
     }
 
-    double leftMotorPower = 0.0;
     double rightMotorPower = 0.0;
 
     switch(state) {
       case OFF:
-        leftMotorPower = 0.0;
         rightMotorPower = 0.0;
         break;
       case EXTEND:
         rightMotorPower = Preferences.HANG.RIGHT_MOTOR_EXTEND_POWER;
-        leftMotorPower = Preferences.HANG.LEFT_MOTOR_EXTEND_POWER;
         break;
       case RETRACT:
         rightMotorPower = -1.0;
-        leftMotorPower = -1.0;
 
         // // if it's tilting to the left and it can still retract
         // if (gyroRotation > Preferences.HANG.MAX_ROLL_ANGLE) {
@@ -121,15 +107,11 @@ public class Hang extends SubsystemBase {
     }
 
     // Makes sure we dont overshoot our limits for left hang arm
-    if ((leftEncoder.getPosition() >= Constants.HANG.EXTEND_HEIGHT && leftMotorPower > 0.0) || (leftEncoder.getPosition() <= Constants.HANG.RETRACT_HEIGHT && leftMotorPower < 0.0)) {
-      leftMotorPower = 0.0;
-    }
+    
 
-    leftMotor.set(leftMotorPower);
     rightMotor.set(rightMotorPower);
 
     if (RobotContainer.getVoltage() < VOLTAGE_LADDER.HANG) {
-      leftMotor.stopMotor();
       rightMotor.stopMotor();
     }
   }

@@ -45,19 +45,27 @@ public class AprilTags extends SubsystemBase {
       if (pose2d.getRotation().getRadians() == 0.0) continue;
       if (Math.abs(poseEstimate.pose.getZ()) > 1) continue;
       if (Double.isNaN(poseEstimate.avgTagDist)) continue;
+      if (poseEstimate.avgTagDist > 6) continue;
       
       // if (poseEstimate.avgTagDist > 5) continue;
       if (pose2d.getX() < 0.0 || pose2d.getY() < 0.0 || pose2d.getX() > Field.LENGTH || pose2d.getY() > Field.WIDTH) continue;
       boolean canChangeHeading = false;
       if (swerveDrive.canZeroHeading() && (poseEstimate.tagCount >= 2 || RobotState.isDisabled())) {
         canChangeHeading = true;
-        if (poseEstimate.tagCount >= 2) LEDs.setState(LEDs.State.HAS_VISION_TARGET_SPEAKER);
       }
 
-      canChangeHeading = canChangeHeading && swerveDrive.getPose().getTranslation().getDistance(pose2d.getTranslation()) < 0.25;
+      if (!RobotState.isDisabled()) canChangeHeading = canChangeHeading && swerveDrive.getPose().getTranslation().getDistance(pose2d.getTranslation()) < 0.25;
+      if (canChangeHeading) LEDs.setState(LEDs.State.HAS_VISION_TARGET_SPEAKER);
+
+      if (!canChangeHeading) {
+        pose2d = new Pose2d(
+          pose2d.getTranslation(),
+          swerveDrive.getPose(poseEstimate.timestampSeconds).getRotation()
+        );
+      }
       
-      double rotationAccuracy = canChangeHeading ? Units.degreesToRadians(15) : Double.POSITIVE_INFINITY;
-      double translationError = Math.pow(poseEstimate.avgTagDist, 2.0) / Math.pow(poseEstimate.tagCount, 2) / 20;
+      double rotationAccuracy = Units.degreesToRadians(15);
+      double translationError = Math.pow(poseEstimate.avgTagDist, 3.0) / Math.pow(poseEstimate.tagCount, 2) / 10;
       Logger.log("canChangeHeading", canChangeHeading);
       Logger.log("translationError", translationError);
       Logger.log("rotationAccuracy", rotationAccuracy);
@@ -69,8 +77,8 @@ public class AprilTags extends SubsystemBase {
 
       poses.add(pose2d);
       translationError += 0.5;
-      swerveDrive.setVisionMeasurementStdDevs(VecBuilder.fill(translationError, translationError, rotationAccuracy));
-      swerveDrive.addVisionMeasurement(pose2d, poseEstimate.timestampSeconds);
+      Logger.log("visionPose", pose2d);
+      swerveDrive.addVisionMeasurement(pose2d, poseEstimate.timestampSeconds, VecBuilder.fill(translationError, translationError, rotationAccuracy));
       LEDs.setState(LEDs.State.HAS_VISION_TARGET);
     }
 

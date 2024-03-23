@@ -193,7 +193,7 @@ public class ShooterMath {
   }
 
   public static Translation3d calcVelocityCompensatedPoint(Translation3d targetPoint, Pose2d currentPose, Translation2d currentVelocity, double rotationalVelocity, double shooterWheelVelocity, Rotation2d pivotAngle) {    
-    // return targetPoint;
+    if (RobotState.isAutonomous()) return targetPoint;
     
     if (Math.abs(shooterWheelVelocity) < 1.0) return targetPoint;
     
