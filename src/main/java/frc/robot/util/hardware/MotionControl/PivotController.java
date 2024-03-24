@@ -120,12 +120,7 @@ public class PivotController {
 
 
     // setpointState = profile.calculate(Robot.getLoopTime(), setpointState, targetState);
-    achievableAngle = targetAngle;
-    if (achievableAngle.getRadians() < minAngle.getRadians()) {
-        achievableAngle = minAngle;
-    } else if (achievableAngle.getRadians() > maxAngle.getRadians()) {
-        achievableAngle = maxAngle;
-    }
+    setAchievableAngle();
 
     if (doneMoving()) {
       motor.stopMotor();
@@ -162,6 +157,7 @@ public class PivotController {
 
   public void setTargetAngle(Rotation2d angle) {
     targetAngle = angle;
+    setAchievableAngle();
   }
 
   public Rotation2d getTargetAngle() {
@@ -170,6 +166,19 @@ public class PivotController {
 
   public boolean isPastLimit() {
     return encoder.getPosition() > maxAngle.getRadians() || encoder.getPosition() < minAngle.getRadians();
+  }
+
+  private void setAchievableAngle() {
+    achievableAngle = targetAngle;
+    if (achievableAngle.getRadians() < minAngle.getRadians()) {
+        achievableAngle = minAngle;
+    } else if (achievableAngle.getRadians() > maxAngle.getRadians()) {
+        achievableAngle = maxAngle;
+    }
+  }
+
+  public boolean isAngleAchievable(Rotation2d angle) {
+    return angle.getRadians() > minAngle.getRadians() && angle.getRadians() < maxAngle.getRadians();
   }
 
   public Rotation2d getPosition() {

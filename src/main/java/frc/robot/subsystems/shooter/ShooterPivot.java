@@ -83,6 +83,10 @@ public class ShooterPivot extends SubsystemBase {
     );
   }
 
+  public boolean isAngleAchievable(Rotation2d angle) {
+    return controller.isAngleAchievable(angle);
+  }
+
   public void setTargetAngle(Rotation2d angle) {
     controller.setTargetAngle(angle);
   }

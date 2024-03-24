@@ -311,6 +311,8 @@ public final class Constants {
     public static final double PROJECTILE_MASS = Units.lbsToKilograms(0.5);
     public static final double COMPRESSION = Units.inchesToMeters(0.5);
     public static final double SPEED_PRECISION = Units.rotationsPerMinuteToRadiansPerSecond(10);
+    public static final double MAX_EXIT_VELOCITY = 13.0;
+    public static final double MAX_WHEEL_SPEED = NEO.STATS.freeSpeedRadPerSec * SHOOTER_WHEELS.GEARBOX_STEP_UP;
 
     // x is front-to-back
     // y is left-to-right
@@ -364,10 +366,14 @@ public final class Constants {
   public static final class TRANSFER {
     public static final double GEARING_IN = (42.0 / 12.0) * (24.0 / 18.0);
     public static final double GEARING_OUT = 58.0 / 12.0;
-    public static final double INTAKE_GEARING = GEARING_IN * (15.0 / 36.0);
-    public static final double FREE_TORQUE = 0.5; // TODO
-    public static final double INTAKE_RADIUS = Units.inchesToMeters(0.5);
-    public static final double TRANSFER_RADIUS = Units.inchesToMeters(1.0);
+    public static final double RADIUS = Units.inchesToMeters(1.125);
+    public static final double MAX_LINEAR_SPEED_IN = NEO.STATS.freeSpeedRadPerSec / GEARING_IN * RADIUS;
+  }
+
+  public static final class INTAKE {
+    public static final double GEARING = (38.0 / 16.0) * (15.0 / 18.0);
+    public static final double RADIUS = Units.inchesToMeters(0.5);
+    public static final double MAX_LINEAR_SPEED = NEO.STATS.freeSpeedRadPerSec / GEARING * RADIUS;
   }
 
   public static final class HANG {

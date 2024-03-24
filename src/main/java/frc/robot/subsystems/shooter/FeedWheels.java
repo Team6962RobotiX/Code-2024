@@ -53,9 +53,6 @@ public class FeedWheels extends SubsystemBase {
     if (RobotState.isDisabled()) {
       state = State.OFF;
     }
-    if (RobotState.isAutonomous()) {
-      state = State.SHOOT;
-    }
     switch(state) {
       case OFF:
         motor.set(0);

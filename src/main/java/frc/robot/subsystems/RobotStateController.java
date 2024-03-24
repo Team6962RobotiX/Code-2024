@@ -28,7 +28,6 @@ public class RobotStateController extends SubsystemBase {
   private Intake intake;
   private DigitalInput beamBreakSensor;
   private Debouncer beamBreakDebouncer = new Debouncer(0.1);
-  private boolean isAiming;
   private Debouncer shotDebouncer = new Debouncer(0.5);
   private State currentState;
   // private static ShuffleboardTab tab = Shuffleboard.getTab("Auto");
@@ -43,7 +42,8 @@ public class RobotStateController extends SubsystemBase {
     PLACE_AMP,
     LEAVE_AMP,
     AIM_SPEAKER,
-    SHOOT_SPEAKER,
+    AIM_MORTAR,
+    SHOOT,
     SPIN_UP,
     PREPARE_SOURCE,
     INTAKE_SOURCE,
@@ -115,16 +115,24 @@ public class RobotStateController extends SubsystemBase {
           amp.setState(Amp.State.DOWN)
         );
       case AIM_SPEAKER:
-        return shooter.setState(Shooter.State.AIM)
-          .alongWith(Commands.runOnce(() -> isAiming = true))
+        return shooter.setState(Shooter.State.AIM_SPEAKER)
           .alongWith(Controls.rumbleBoth(() -> canShoot()))
           .raceWith(LEDs.setStateCommand(LEDs.State.RUNNING_COMMAND))
           .alongWith(new ConditionalCommand(
             LEDs.setStateCommand(LEDs.State.BAD),
             Commands.runOnce(() -> {}),
             () -> !hasNote() && !RobotBase.isSimulation()
-          )).finallyDo(() -> isAiming = false);
-      case SHOOT_SPEAKER:
+          ));
+      case AIM_MORTAR:
+        return shooter.setState(Shooter.State.AIM_MORTAR)
+          .alongWith(Controls.rumbleBoth(() -> canShoot()))
+          .raceWith(LEDs.setStateCommand(LEDs.State.RUNNING_COMMAND))
+          .alongWith(new ConditionalCommand(
+            LEDs.setStateCommand(LEDs.State.BAD),
+            Commands.runOnce(() -> {}),
+            () -> !hasNote() && !RobotBase.isSimulation()
+          ));
+      case SHOOT:
         return Commands.sequence(
           Commands.waitUntil(() -> canShoot()),
           transfer.setState(Transfer.State.SHOOTER_FAST).until(() -> !hasNote()),
@@ -147,14 +155,7 @@ public class RobotStateController extends SubsystemBase {
     // }
     return beamBreakDebouncer.calculate(!beamBreakSensor.get());
   }
-
-  public double getShooterVelocity() {
-    return shooter.getVelocity();
-  }
-
-  public boolean isAiming() {
-    return isAiming;
-  }
+  
 
   public boolean underStage() {
     // return true;
@@ -165,18 +166,18 @@ public class RobotStateController extends SubsystemBase {
     return swerveDrive.getFieldVelocity();
   }
 
-  public double getShotChance() {
+  public boolean isAimed() {
     // if (swerveDrive.underStage()) {
     //   return 0.0;
     // }
     // if (!hasNote() && !RobotBase.isSimulation()) {
     //   return 0.0;
     // }
-    return shooter.getShotChance();
+    return shooter.isAimed();
   }
 
   public boolean canShoot() {
-    return shotDebouncer.calculate(getShotChance() == 1.0);
+    return shotDebouncer.calculate(isAimed());
   }
 
   public boolean inRange() {
@@ -185,7 +186,7 @@ public class RobotStateController extends SubsystemBase {
 
   @Override
   public void periodic() {
-    shotDebouncer.calculate(getShotChance() == 1.0);
+    shotDebouncer.calculate(isAimed());
     beamBreakDebouncer.calculate(!beamBreakSensor.get());
 
     if (RobotState.isDisabled()) {
@@ -195,10 +196,10 @@ public class RobotStateController extends SubsystemBase {
     }
     
     if (swerveDrive.underStage()) {
-      shooter.getShooterPivot().setMaxAngle(Preferences.SHOOTER_PIVOT.MAX_ANGLE_UNDER_STAGE);
+      shooter.getPivot().setMaxAngle(Preferences.SHOOTER_PIVOT.MAX_ANGLE_UNDER_STAGE);
       amp.getPivot().setMaxAngle(Preferences.AMP_PIVOT.MAX_ANGLE_UNDER_STAGE);
     } else {
-      shooter.getShooterPivot().setMaxAngle(Preferences.SHOOTER_PIVOT.MAX_ANGLE);
+      shooter.getPivot().setMaxAngle(Preferences.SHOOTER_PIVOT.MAX_ANGLE);
       amp.getPivot().setMaxAngle(Preferences.AMP_PIVOT.MAX_ANGLE);
     }
   }

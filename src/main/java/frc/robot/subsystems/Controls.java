@@ -74,7 +74,7 @@ public class Controls {
     swerveDrive.setDefaultCommand(new XBoxSwerve(swerveDrive, driver.getHID(), stateController));    
 
     if (RobotBase.isSimulation()) {
-      driver.button(1).whileTrue(stateController.setState(RobotStateController.State.AIM_SPEAKER));
+      driver.button(1).whileTrue(stateController.setState(RobotStateController.State.AIM_SPEAKER).alongWith(stateController.setState(RobotStateController.State.SPIN_UP)));
     }
 
     operator.a().onTrue(shooterPivot.setTargetAngleCommand(() -> Rotation2d.fromDegrees(30.0)));
@@ -93,12 +93,12 @@ public class Controls {
     operator.povLeft().whileTrue(stateController.setState(RobotStateController.State.INTAKE_OUT));
     operator.povRight();
     operator.leftTrigger().toggleOnTrue(stateController.setState(RobotStateController.State.SPIN_UP));
-    operator.rightTrigger().whileTrue(stateController.setState(RobotStateController.State.SHOOT_SPEAKER));
+    operator.rightTrigger().whileTrue(stateController.setState(RobotStateController.State.SHOOT));
 
     ShuffleboardTab driverTab = Shuffleboard.getTab("Driver Dashboard");
 
-    driverTab.addDouble("Shot Chance", () -> shooter.getShotChance() * 100)
-      .withWidget(BuiltInWidgets.kDial)
+    driverTab.addBoolean("Is Aimed", () -> shooter.isAimed())
+      .withWidget(BuiltInWidgets.kBooleanBox)
       .withPosition(3, 0)
       .withSize(2, 2)
       .withProperties(Map.of("min", 0, "max", 100));

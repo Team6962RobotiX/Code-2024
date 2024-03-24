@@ -52,7 +52,7 @@ public class Autonomous extends Command {
   public Translation2d visionNoise = new Translation2d();
 
   public Debouncer hasNoteDebouncer = new Debouncer(0.1, DebounceType.kFalling);
-
+  
   // private static ShuffleboardTab tab = Shuffleboard.getTab("Autonomous Sim");
   // private static SimpleWidget hasNote = tab.add("has Note", true).withWidget(BuiltInWidgets.kToggleButton).withSize(1, 1).withPosition(0, 0);
   
@@ -78,6 +78,7 @@ public class Autonomous extends Command {
     simulatedNote = true;
     controller.setState(RobotStateController.State.LEAVE_AMP).withTimeout(1.5).schedule();
   }
+  
  /**
    * 
    * @return 0-7, the closest note that is queued
@@ -327,9 +328,8 @@ public class Autonomous extends Command {
             Commands.run(() -> {
               if (controller.canShoot()) simulatedNote = false;
             }).until(() -> simulatedNote == false).onlyIf(() -> RobotBase.isSimulation()),
-            controller.setState(RobotStateController.State.SHOOT_SPEAKER).until(() -> !hasNote())).onlyIf(() -> nearSpeaker())
+            controller.setState(RobotStateController.State.SHOOT).until(() -> !hasNote())).onlyIf(() -> nearSpeaker())
           ),
-        controller.setState(RobotStateController.State.SPIN_UP),
         controller.setState(RobotStateController.State.AIM_SPEAKER)
       )
     ).until(() -> !hasNote()).finallyDo(() -> {
