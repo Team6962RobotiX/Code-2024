@@ -200,6 +200,7 @@ public class SwerveDrive extends SubsystemBase {
       }
       setTargetHeading(getHeading());
       isAligning = false;
+      rotationOverridePoint = null;
     }
 
     // System.out.println(Constants.SWERVE_DRIVE.PHYSICS.SLIPLESS_CURRENT_LIMIT);
@@ -524,7 +525,7 @@ public class SwerveDrive extends SubsystemBase {
    * Resets the odometer position to a given position
    * @param pose Position to reset the odometer to
    */
-  private void resetPose(Pose2d pose) {
+  public void resetPose(Pose2d pose) {
     odometryLock.lock();
     poseEstimator.resetPosition(getHeading(), getModulePositions(), pose);
     odometryLock.unlock();
@@ -540,6 +541,13 @@ public class SwerveDrive extends SubsystemBase {
    */
   public void addVisionMeasurement(Pose2d visionMeasurement, double timestamp, Matrix<N3,N1> visionMeasurementStdDevs) {
     odometryLock.lock();
+
+    // System.out.println(visionMeasurement);
+    // System.out.println(visionMeasurementStdDevs.get(0, 0));
+    // System.out.println(visionMeasurementStdDevs.get(1, 0));
+    // System.out.println(visionMeasurementStdDevs.get(2, 0));
+
+
     Rotation2d oldHeading = getHeading();
     poseEstimator.setVisionMeasurementStdDevs(visionMeasurementStdDevs);
     poseEstimator.addVisionMeasurement(visionMeasurement, timestamp);
