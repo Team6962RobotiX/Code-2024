@@ -87,7 +87,7 @@ public class Shooter extends SubsystemBase {
       );
     }
 
-    System.out.println(ShooterMath.calcProjectileVelocity(getWheels().getVelocity()));
+    // System.out.println(ShooterMath.calcProjectileVelocity(getWheels().getVelocity()));
   }
 
   public Command setState(State state) {

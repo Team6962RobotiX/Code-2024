@@ -88,12 +88,12 @@ public class ShooterWheels extends SubsystemBase {
       state = State.OFF;
     }
 
-    System.out.println(speed);
-    System.out.println(ShooterMath.calcProjectileVelocity(ShooterMath.calcShooterWheelVelocity(speed)));
+    // System.out.println(speed);
+    // System.out.println(ShooterMath.calcProjectileVelocity(ShooterMath.calcShooterWheelVelocity(speed)));
 
     switch(state) {
       case SPIN_UP:
-        System.out.println(speed);
+        // System.out.println(speed);
         motor.set(ShooterMath.calcShooterWheelVelocity(speed) / SHOOTER_WHEELS.MAX_WHEEL_SPEED);
         break;
       case OFF:

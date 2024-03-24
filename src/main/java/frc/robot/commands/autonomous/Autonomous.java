@@ -39,7 +39,7 @@ public class Autonomous extends Command {
   private double noteAvoidRadius = (Field.NOTE_LENGTH / 2.0 + Constants.SWERVE_DRIVE.BUMPER_DIAGONAL / 2.0);
   private double notePickupDistance = Constants.SWERVE_DRIVE.BUMPER_LENGTH / 2.0;
   private double noteAlignDistance = Constants.SWERVE_DRIVE.BUMPER_LENGTH / 2.0 + Field.NOTE_LENGTH * 2.0;
-  private double speakerShotDistance = 4.5;
+  private double speakerShotDistance = 5.0;
   private double adjacentNoteBand = 0.5;
   private double minPathfindingDistance = 2.5;
   private Command runningCommand;
@@ -311,7 +311,7 @@ public class Autonomous extends Command {
     Translation2d shootingPosition = getClosestShootingPosition();
     
     Command moveCommand = Commands.runOnce(() -> {});
-    if (Field.SPEAKER.get().toTranslation2d().getDistance(swerveDrive.getFuturePose().getTranslation()) > speakerShotDistance || controller.underStage()) {
+    if (!nearSpeaker()) {
       moveCommand = AutoBuilder.pathfindToPose(
         new Pose2d(shootingPosition, swerveDrive.getHeading()),
         SWERVE_DRIVE.AUTONOMOUS.DEFAULT_PATH_CONSTRAINTS
@@ -330,7 +330,8 @@ public class Autonomous extends Command {
             }).until(() -> simulatedNote == false).onlyIf(() -> RobotBase.isSimulation()),
             controller.setState(RobotStateController.State.SHOOT).until(() -> !hasNote())).onlyIf(() -> nearSpeaker())
           ),
-        controller.setState(RobotStateController.State.AIM_SPEAKER)
+        controller.setState(RobotStateController.State.AIM_SPEAKER),
+        controller.setState(RobotStateController.State.SPIN_UP)
       )
     ).until(() -> !hasNote()).finallyDo(() -> {
       isFirstNote = false;
@@ -432,10 +433,10 @@ public class Autonomous extends Command {
   }
 
   public boolean nearSpeaker() {
-    return !controller.underStage() && swerveDrive.getFuturePose().getTranslation().getDistance(Field.SPEAKER.get().toTranslation2d()) < speakerShotDistance;
+    return !controller.underStage() && inRange(swerveDrive.getFuturePose().getTranslation());
   }
 
   public boolean inRange(Translation2d point) {
-    return point.getDistance(Field.SPEAKER.get().toTranslation2d()) < speakerShotDistance;
+    return point.getDistance(Field.SPEAKER.get().toTranslation2d()) < speakerShotDistance && ((point.getX() < Field.WING_X.get() - 0.5 && Constants.IS_BLUE_TEAM.get()) || (point.getX() > Field.WING_X.get() + 0.5 && !Constants.IS_BLUE_TEAM.get()));
   }
 }
