@@ -54,13 +54,14 @@ public class ShooterMath {
 
   public static double calcProjectileVelocity(Translation3d targetPoint, SwerveDrive swerveDrive, Shooter shooter) {
     Rotation2d pivotAngle = shooter.getPivot().getPosition();
+    Rotation2d exitAngle = pivotAngle.plus(Constants.SHOOTER_PIVOT.NOTE_ROTATION_OFFSET);
 
     Translation3d shooterLocation = calcShooterLocationOnField(swerveDrive, shooter);
     double targetHeight = targetPoint.getZ() - shooterLocation.getZ();
     if (targetHeight > 0) return Constants.SHOOTER_WHEELS.MAX_EXIT_VELOCITY;
     double floorDistance = shooterLocation.toTranslation2d().getDistance(targetPoint.toTranslation2d());
     double gravity = 9.80;
-    double velocity = (Math.sqrt(floorDistance) * Math.sqrt(gravity) * Math.sqrt(Math.pow(Math.tan(pivotAngle.getRadians()), 2.0) + 1)) / Math.sqrt(2.0 * Math.tan(pivotAngle.getRadians()) - (2.0 * targetHeight / floorDistance));
+    double velocity = (Math.sqrt(floorDistance) * Math.sqrt(gravity) * Math.sqrt(Math.pow(Math.tan(exitAngle.getRadians()), 2.0) + 1)) / Math.sqrt(2.0 * Math.tan(exitAngle.getRadians()) - (2.0 * targetHeight / floorDistance));
     if (Double.isNaN(velocity) || velocity > Constants.SHOOTER_WHEELS.MAX_EXIT_VELOCITY) velocity = Constants.SHOOTER_WHEELS.MAX_EXIT_VELOCITY;
     return velocity;
   }
@@ -80,13 +81,18 @@ public class ShooterMath {
       double projectileVelocity = calcProjectileVelocity(shooterWheelVelocity);
       double gravity = 9.80;
 
-      double exitRadians = Math.atan((Math.pow(projectileVelocity, 2.0) + (mortarMode ? 1 : -1) * Math.sqrt(Math.pow(projectileVelocity, 4.0) - gravity * (gravity * Math.pow(floorDistance, 2.0) + 2.0 * targetHeight * Math.pow(projectileVelocity, 2.0)))) / (gravity * floorDistance));
-      double distanceAtApex = projectileVelocity * Math.cos(exitRadians) * (projectileVelocity * (Math.sin(exitRadians) / gravity));
-      if (Double.isNaN(exitRadians) || distanceAtApex < floorDistance) {
-        return Rotation2d.fromDegrees(0.0);
-      }
+      double exitRadians = Math.atan((Math.pow(projectileVelocity, 2.0) + (mortarMode ? -1 : -1) * Math.sqrt(Math.pow(projectileVelocity, 4.0) - gravity * (gravity * Math.pow(floorDistance, 2.0) + 2.0 * targetHeight * Math.pow(projectileVelocity, 2.0)))) / (gravity * floorDistance));
+      // double distanceAtApex = projectileVelocity * Math.cos(exitRadians) * (projectileVelocity * (Math.sin(exitRadians) / gravity));
+      // if (Double.isNaN(exitRadians) || distanceAtApex < floorDistance) {
+      //   return Rotation2d.fromDegrees(0.0);
+      // }
       Rotation2d exitAngle = Rotation2d.fromRadians(exitRadians);
       pivotAngle = exitAngle.minus(SHOOTER_PIVOT.NOTE_ROTATION_OFFSET);
+
+      // System.out.println("pivotAngle " + pivotAngle.getDegrees());
+      // System.out.println("targetHeight " + targetHeight);
+      // System.out.println("floorDistance " + floorDistance);
+      // System.out.println("projectileVelocity " + projectileVelocity);
     }
 
     return pivotAngle;
@@ -227,6 +233,7 @@ public class ShooterMath {
     // (v * sin(a) - sqrt(v^2 * sin(a)^2 - 2 * g * h)) / g
     double projectileVelocity = calcProjectileVelocity(shooterWheelVelocity);
     Rotation2d exitAngle = pivotAngle.plus(SHOOTER_PIVOT.NOTE_ROTATION_OFFSET);
+    // System.out.println(targetPoint.toTranslation2d().getDistance(calcShooterLocationOnField(swerveDrive, shooter).toTranslation2d()) / (projectileVelocity * Math.cos(exitAngle.getRadians())));
     return targetPoint.toTranslation2d().getDistance(calcShooterLocationOnField(swerveDrive, shooter).toTranslation2d()) / (projectileVelocity * Math.cos(exitAngle.getRadians()));
   }
 
@@ -240,7 +247,7 @@ public class ShooterMath {
 
     Logger.log("flightTime", flightTime);
     Logger.log("currentVelocity", currentVelocity);
-    if (Double.isNaN(flightTime)) return targetPoint;
+    if (Double.isNaN(flightTime) || Double.isInfinite(flightTime)) return targetPoint;
     
     Translation2d projectileOffset = currentVelocity.times(flightTime);
 

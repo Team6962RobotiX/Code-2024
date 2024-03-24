@@ -45,7 +45,7 @@ public final class Field {
   
   public static final double BLUE_WING_X = Units.inchesToMeters(231.2);
   public static final Supplier<Double> WING_X = flipIfRed(BLUE_WING_X);
-  public static final Supplier<Translation3d> MORTAR_POINT = point3d(2.0, 6.75, 0.0);
+  public static final Supplier<Translation3d> MORTAR_POINT = point3d(1.0, 7.0, 0.0);
 
   public static final List<Supplier<Translation2d>> SHOT_POSITIONS = List.of(
     // point2d(4.5, 6.50),

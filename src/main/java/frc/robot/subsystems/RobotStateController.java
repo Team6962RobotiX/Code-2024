@@ -188,7 +188,7 @@ public class RobotStateController extends SubsystemBase {
   public void periodic() {
     shotDebouncer.calculate(isAimed());
     beamBreakDebouncer.calculate(!beamBreakSensor.get());
-
+    
     if (RobotState.isDisabled()) {
       LEDs.setState(LEDs.State.DISABLED);
     } else {

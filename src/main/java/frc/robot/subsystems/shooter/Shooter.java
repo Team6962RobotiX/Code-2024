@@ -87,6 +87,37 @@ public class Shooter extends SubsystemBase {
       );
     }
 
+    Translation3d compensatedAimingPoint = ShooterMath.calcVelocityCompensatedPoint(aimingPoint.get(), swerveDrive, this);
+    
+    Rotation2d pivotAngle = ShooterMath.calcPivotAngle(compensatedAimingPoint, swerveDrive, this);
+    double projectileVelocity = shooterPivot.isAngleAchievable(ShooterMath.calcPivotAngle(aimingPoint.get(), swerveDrive, this, Constants.SHOOTER_WHEELS.MAX_WHEEL_SPEED)) ? Constants.SHOOTER_WHEELS.MAX_EXIT_VELOCITY : ShooterMath.calcProjectileVelocity(
+      compensatedAimingPoint,
+      swerveDrive,
+      this
+    );
+    double flightTime = ShooterMath.calculateFlightTime(compensatedAimingPoint, swerveDrive, this);
+    double shooterWheelVelocity = ShooterMath.calcShooterWheelVelocity(projectileVelocity);
+    
+    Logger.log("compensatedAimingPoint", compensatedAimingPoint);
+    Logger.log("targetPivotAngle", pivotAngle.getDegrees());
+    Logger.log("realPivotAngle", shooterPivot.getPosition().getDegrees());
+    Logger.log("flightTime", flightTime);
+    Logger.log("targetShooterWheelVelocity", shooterWheelVelocity);
+    Logger.log("realShooterWheelVelocity", shooterWheels.getVelocity());
+    Logger.log("targetProjectileVelocity", projectileVelocity);
+    Logger.log("realProjectileVelocity", ShooterMath.calcProjectileVelocity(shooterWheels.getVelocity()));
+
+
+    // System.out.println(ShooterMath.calcProjectileVelocity(
+    //           ShooterMath.calcVelocityCompensatedPoint(
+    //             aimingPoint.get(),
+    //             swerveDrive,
+    //             this
+    //           ),
+    //           swerveDrive,
+    //           this
+    //         ));
+
     // System.out.println(ShooterMath.calcProjectileVelocity(getWheels().getVelocity()));
   }
 

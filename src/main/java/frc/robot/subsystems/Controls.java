@@ -3,7 +3,10 @@ package frc.robot.subsystems;
 import java.util.Map;
 import java.util.function.BooleanSupplier;
 
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.shuffleboard.BuiltInWidgets;
@@ -53,13 +56,11 @@ public class Controls {
     {
 
     driver.a();
-
-
     driver.b();
     driver.x();
     driver.y(); // USED
-    driver.start();
-    driver.back().whileTrue(swerveDrive.goTo(frc.robot.Constants.Field.AUTO_MOVE_POSITIONS.get("AMP").get()));
+    driver.start().whileTrue(swerveDrive.goTo(frc.robot.Constants.Field.AUTO_MOVE_POSITIONS.get("AMP").get()));;
+    driver.back().whileTrue(stateController.setState(RobotStateController.State.AIM_MORTAR));
     driver.leftBumper();
     driver.rightBumper();
     driver.leftStick().whileTrue(stateController.setState(RobotStateController.State.AIM_SPEAKER));
@@ -74,8 +75,21 @@ public class Controls {
     swerveDrive.setDefaultCommand(new XBoxSwerve(swerveDrive, driver.getHID(), stateController));    
 
     if (RobotBase.isSimulation()) {
-      driver.button(1).whileTrue(stateController.setState(RobotStateController.State.AIM_SPEAKER).alongWith(stateController.setState(RobotStateController.State.SPIN_UP)));
+      // driver.button(1).whileTrue(stateController.setState(RobotStateController.State.AIM_SPEAKER).alongWith(stateController.setState(RobotStateController.State.SPIN_UP)));
     }
+
+    driver.a().whileTrue(shooter.aim(() -> {
+      Translation2d point = swerveDrive.getPose().getTranslation().plus(new Translation2d(
+        5.0,
+        0.0
+      ).rotateBy(swerveDrive.getHeading().plus(Rotation2d.fromDegrees(180.0))));
+      SwerveDrive.getField().getObject("point").setPose(new Pose2d(point, new Rotation2d()));
+      return new Translation3d(
+        point.getX(),
+        point.getY(),
+        0.0
+      );
+    }, 1.0));
 
     operator.a().onTrue(shooterPivot.setTargetAngleCommand(() -> Rotation2d.fromDegrees(30.0)));
     operator.b();

@@ -5,14 +5,11 @@
 
 package frc.robot.commands.vision;
 
-import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import frc.robot.Constants.Constants;
 import frc.robot.Constants.Constants.LIMELIGHT;
-import frc.robot.Constants.Field;
 import frc.robot.subsystems.RobotStateController;
 import frc.robot.subsystems.drive.SwerveDrive;
 import frc.robot.subsystems.vision.Notes;
@@ -50,21 +47,7 @@ public class MoveToNote extends Command {
     // As soon at the camera can't see the note, the robot continues driving to the last known note position.
     Translation2d notePosition = Notes.getNotePosition(cameraName, LIMELIGHT.NOTE_CAMERA_PITCH, swerveDrive, swerveDrive.getFieldVelocity(), LIMELIGHT.NOTE_CAMERA_POSITION);
     if (notePosition != null) {
-
-      if (targetingNote == null || notePosition.getDistance(targetingNote) > Field.NOTE_LENGTH) {
-        Translation2d endSpline = swerveDrive.getPose().getTranslation().minus(notePosition);
-        endSpline = endSpline.div(endSpline.getNorm()).times(Constants.SWERVE_DRIVE.BUMPER_LENGTH / 2.0);
-        endSpline = endSpline.plus(notePosition);
-
-        final Translation2d endSplineFinal = endSpline;
-
-        targetingNote = notePosition;
-        goToCommand.cancel();
-        goToCommand = Commands.runOnce(() -> swerveDrive.setRotationTargetOverrideFromPoint(() -> endSplineFinal, new Rotation2d()))
-          .andThen(swerveDrive.goToSimple(new Pose2d(endSpline, swerveDrive.getHeading())).until(() -> stateController.hasNote()))
-          .finallyDo(() -> swerveDrive.setRotationTargetOverrideFromPoint(null, new Rotation2d()));
-        goToCommand.schedule();
-      }
+      swerveDrive.facePoint(() -> notePosition, new Rotation2d());
     }
 
     // THIS DOES BOTH ROTATION AND TRANSLATION
