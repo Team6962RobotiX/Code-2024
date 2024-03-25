@@ -92,7 +92,7 @@ public class ShooterWheels extends SubsystemBase {
 
     if (RobotState.isAutonomous()) {
       state = State.SPIN_UP;
-      speed = SHOOTER_WHEELS.MAX_EXIT_VELOCITY;
+      speed = SHOOTER_WHEELS.MAX_WHEEL_SPEED;
     }
 
     Logger.log("encoder.getVelocity();", getVelocity());
@@ -103,7 +103,7 @@ public class ShooterWheels extends SubsystemBase {
     switch(state) {
       case SPIN_UP:
         // System.out.println(speed);
-        motor.set((ShooterMath.calcShooterWheelVelocity(speed) / SHOOTER_WHEELS.MAX_WHEEL_SPEED) / 0.8888349515 / 1.0328467153);
+        motor.set((speed / SHOOTER_WHEELS.MAX_WHEEL_SPEED) / 0.8888349515 / 1.0328467153);
         break;
       case OFF:
         motor.set(0.0);
@@ -116,10 +116,17 @@ public class ShooterWheels extends SubsystemBase {
     }
   }
 
-  public Command setTargetSpeedCommand(Supplier<Double> speed) {
+  public Command setTargetWheelSpeedCommand(Supplier<Double> speed) {
     return Commands.runEnd(
       () -> this.speed = speed.get(),
-      () -> this.speed = Constants.SHOOTER_WHEELS.MAX_EXIT_VELOCITY
+      () -> this.speed = Constants.SHOOTER_WHEELS.MAX_WHEEL_SPEED
+    );
+  }
+
+  public Command setTargetExitVelocityCommand(Supplier<Double> exitVelocity) {
+    return Commands.runEnd(
+      () -> this.speed = ShooterMath.calcShooterWheelVelocity(exitVelocity.get()),
+      () -> this.speed = Constants.SHOOTER_WHEELS.MAX_WHEEL_SPEED
     );
   }
 

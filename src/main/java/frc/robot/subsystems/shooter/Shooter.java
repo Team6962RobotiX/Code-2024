@@ -139,7 +139,7 @@ public class Shooter extends SubsystemBase {
         return Commands.parallel(
           shooterWheels.setState(ShooterWheels.State.SPIN_UP),
           feedWheels.setState(FeedWheels.State.SHOOT),
-          shooterWheels.setTargetSpeedCommand(() -> 
+          shooterWheels.setTargetExitVelocityCommand(() -> 
             shooterPivot.isAngleAchievable(ShooterMath.calcPivotAngle(aimingPoint.get(), swerveDrive, this, Constants.SHOOTER_WHEELS.MAX_WHEEL_SPEED)) ? Constants.SHOOTER_WHEELS.MAX_EXIT_VELOCITY : ShooterMath.calcProjectileVelocity(
               ShooterMath.calcVelocityCompensatedPoint(
                 aimingPoint.get(),
