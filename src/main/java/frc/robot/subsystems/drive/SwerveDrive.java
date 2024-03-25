@@ -140,7 +140,7 @@ public class SwerveDrive extends SubsystemBase {
     } catch (RuntimeException ex) {
       DriverStation.reportError("Error instantiating navX-MXP:  " + ex.getMessage(), false);
     }
-    
+
     new Thread(() -> {
       try {
         Thread.sleep(1000);
@@ -206,7 +206,8 @@ public class SwerveDrive extends SubsystemBase {
     Pose2d poseBefore = getPose();
     updateOdometry();
     Pose2d currentPose = getPose();
-    if (currentPose.getX() < -1000 || currentPose.getY() < -1000 || currentPose.getX() > 1000 || currentPose.getY() > 1000) {
+    double magnitude = currentPose.getTranslation().getNorm();
+    if (magnitude > 1000 || Double.isNaN(magnitude) || Double.isInfinite(magnitude)) {
       System.out.println("BAD");
       LEDs.setState(LEDs.State.BAD);
       resetPose(poseBefore);
