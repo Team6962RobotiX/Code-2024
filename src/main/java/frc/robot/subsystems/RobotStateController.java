@@ -197,6 +197,10 @@ public class RobotStateController extends SubsystemBase {
     } else {
       LEDs.setState(LEDs.State.ENABLED);
     }
+
+    if (hasNote()) {
+      LEDs.setState(LEDs.State.HAS_NOTE);
+    }
     
     if (swerveDrive.underStage()) {
       shooter.getPivot().setMaxAngle(Preferences.SHOOTER_PIVOT.MAX_ANGLE_UNDER_STAGE);

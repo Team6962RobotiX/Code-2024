@@ -76,8 +76,6 @@ public class AprilTags extends SubsystemBase {
       translationError += 0.5;
       Logger.log("visionPose", pose2d);
       swerveDrive.addVisionMeasurement(pose2d, poseEstimate.timestampSeconds, VecBuilder.fill(translationError, translationError, rotationError));
-
-      LEDs.setState(LEDs.State.HAS_VISION_TARGET);
     }
 
     SwerveDrive.getField().getObject("visionPosese").setPoses(poses);
