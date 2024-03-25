@@ -16,6 +16,7 @@ import frc.robot.subsystems.drive.SwerveDrive;
 import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.transfer.Transfer;
+import frc.robot.util.software.Logging.Logger;
 import frc.robot.util.software.Logging.StatusChecks;
 
 // This class is a subsystem that controls the state of the robot. It is used to coordinate the actions of the intake, shooter, transfer, and amp subsystems.
@@ -189,6 +190,8 @@ public class RobotStateController extends SubsystemBase {
     shotDebouncer.calculate(isAimed());
     beamBreakDebouncer.calculate(!beamBreakSensor.get());
     
+    Logger.log("isAimed", isAimed());
+
     if (RobotState.isDisabled()) {
       LEDs.setState(LEDs.State.DISABLED);
     } else {

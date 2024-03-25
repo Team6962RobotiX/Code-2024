@@ -5,8 +5,6 @@
 package frc.robot.subsystems.drive;
 
 import java.util.List;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
 
 import com.choreo.lib.Choreo;
@@ -27,15 +25,16 @@ import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
+import edu.wpi.first.math.kinematics.SwerveDriveWheelPositions;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.RobotState;
 import edu.wpi.first.wpilibj.SPI;
@@ -55,6 +54,7 @@ import frc.robot.Constants.Constants.SWERVE_DRIVE;
 import frc.robot.Constants.Field;
 import frc.robot.commands.autonomous.Autonomous;
 import frc.robot.commands.drive.XBoxSwerve;
+import frc.robot.subsystems.LEDs;
 import frc.robot.subsystems.vision.AprilTags;
 import frc.robot.subsystems.vision.Notes;
 import frc.robot.util.software.CustomSwerveDrivePoseEstimator;
@@ -96,8 +96,7 @@ public class SwerveDrive extends SubsystemBase {
 
   private SWERVE_DRIVE.MODULE_CONFIG[] equippedModules;
 
-  private Notifier odometryThread;
-  private final Lock odometryLock = new ReentrantLock();
+  private SwerveDriveWheelPositions previousWheelPositions;
 
   public SwerveDrive() {
     // Create the serve module objects
@@ -129,6 +128,8 @@ public class SwerveDrive extends SubsystemBase {
       VecBuilder.fill(1.0, 1.0, Units.degreesToRadians(30))
     );
 
+    previousWheelPositions = new SwerveDriveWheelPositions(getModulePositions());
+
     alignmentController.enableContinuousInput(-Math.PI, Math.PI);
     alignmentController.setTolerance(SWERVE_DRIVE.ABSOLUTE_ROTATION_GAINS.TOLERANCE.getRadians());
     // setTargetHeading(SWERVE_DRIVE.STARTING_POSE.getRotation());
@@ -146,9 +147,6 @@ public class SwerveDrive extends SubsystemBase {
         gyroOffset = gyroOffset.minus(gyro.getRotation2d());
       } catch (Exception e) {}
     }).start();
-
-    odometryThread = new Notifier(() -> updateOdometry());
-    odometryThread.startPeriodic(0.02);
     
     SmartDashboard.putData("Field", field);
     
@@ -201,6 +199,19 @@ public class SwerveDrive extends SubsystemBase {
       setTargetHeading(getHeading());
       isAligning = false;
       rotationOverridePoint = null;
+    }
+
+    Logger.log("Loop-Time", Robot.getLoopTime());
+    
+    Pose2d poseBefore = getPose();
+
+    updateOdometry();
+
+    Pose2d currentPose = getPose();
+    if (currentPose.getX() < -1000 || currentPose.getY() < -1000 || currentPose.getX() > 1000 || currentPose.getY() > 1000) {
+      System.out.println("BAD");
+      LEDs.setState(LEDs.State.BAD);
+      resetPose(poseBefore);
     }
 
     // System.out.println(Constants.SWERVE_DRIVE.PHYSICS.SLIPLESS_CURRENT_LIMIT);
@@ -281,20 +292,23 @@ public class SwerveDrive extends SubsystemBase {
   }
 
   public void updateOdometry() {
-    odometryLock.lock();
-    try {
-      if (gyro.isConnected() && !RobotBase.isSimulation()) {
-        gyroHeading = gyro.getRotation2d();
-      } else {
-        gyroHeading = gyroHeading.plus(new Rotation2d(getMeasuredChassisSpeeds().omegaRadiansPerSecond * Robot.getLoopTime()));
-      }
-      poseEstimator.update(gyroHeading.plus(gyroOffset), getModulePositions());
-      AprilTags.injectVisionData(LIMELIGHT.APRILTAG_CAMERA_POSES, this);
-    } catch (Exception e) {
-      odometryLock.unlock();
-      throw e;
+    Logger.log("gyro.isConnected()", gyro.isConnected());
+    Logger.log("gyro.getLastSensorTimestamp()", gyro.getLastSensorTimestamp());
+    Logger.log("gyro.isCalibrating()", gyro.isCalibrating());
+    Logger.log("gyro.getRotation2d()", gyro.getRotation2d().getDegrees());
+
+    SwerveDriveWheelPositions wheelPositions = new SwerveDriveWheelPositions(getModulePositions());
+    Twist2d twist = kinematics.toTwist2d(previousWheelPositions, wheelPositions);
+    Pose2d newPose = getPose().exp(twist);
+    previousWheelPositions = wheelPositions.copy();
+    
+    if (gyro.isConnected() && !gyro.isCalibrating() && !RobotBase.isSimulation()) {
+      gyroHeading = gyro.getRotation2d();
+    } else {
+      gyroHeading = newPose.getRotation();
     }
-    odometryLock.unlock();
+    poseEstimator.update(gyroHeading.plus(gyroOffset), getModulePositions());
+    AprilTags.injectVisionData(LIMELIGHT.APRILTAG_CAMERA_POSES, this);
   }
 
   @Override
@@ -357,7 +371,7 @@ public class SwerveDrive extends SubsystemBase {
 
     if (rotationOverridePoint != null) {
       fieldRelativeSpeeds.omegaRadiansPerSecond = 0.0;
-      facePoint(rotationOverridePoint, rotationOverrideOffset);
+      facePoint(rotationOverridePoint.get(), rotationOverrideOffset);
     }
 
     if (Math.abs(fieldRelativeSpeeds.omegaRadiansPerSecond) > 0.01) {
@@ -472,20 +486,30 @@ public class SwerveDrive extends SubsystemBase {
    */
   public Command facePointCommand(Supplier<Translation2d> point, Rotation2d rotationOffset) {
     return Commands.run(
-      () -> facePoint(point, rotationOffset)
+      () -> facePoint(point.get(), rotationOffset)
     );
   }
 
-  public void facePoint(Supplier<Translation2d> point, Rotation2d rotationOffset) {
+  public void facePoint(Translation2d point, Rotation2d rotationOffset) {
     double time = 0.02;
+
+    if (point == null) {
+      setTargetHeadingAndVelocity(getHeading(), 0.0);
+      return;
+    }
 
     Translation2d currentPosition = getPose().getTranslation();
     Translation2d futurePosition = getPose().getTranslation().plus(getFieldVelocity().times(time));
     
-    Rotation2d currentTargetHeading = point.get().minus(currentPosition).getAngle().plus(rotationOffset);
-    Rotation2d futureTargetHeading = point.get().minus(futurePosition).getAngle().plus(rotationOffset);
+    Rotation2d currentTargetHeading = point.minus(currentPosition).getAngle().plus(rotationOffset);
+    Rotation2d futureTargetHeading = point.minus(futurePosition).getAngle().plus(rotationOffset);
     
-    setTargetHeadingAndVelocity(currentTargetHeading, futureTargetHeading.minus(currentTargetHeading).getRadians() / time);
+    double addedVelocity = futureTargetHeading.minus(currentTargetHeading).getRadians() / time;
+    if (getPose().getTranslation().getDistance(point) < 1.0) {
+      addedVelocity = 0.0;
+    }
+
+    setTargetHeadingAndVelocity(currentTargetHeading, addedVelocity);
   }
 
 
@@ -500,6 +524,7 @@ public class SwerveDrive extends SubsystemBase {
   public void setRotationTargetOverrideFromPoint(Supplier<Translation2d> point, Rotation2d rotationOffset) {
     rotationOverridePoint = point;
     rotationOverrideOffset = rotationOffset;
+    addedAlignmentAngularVelocity = 0.0;
   }
 
 
@@ -526,9 +551,8 @@ public class SwerveDrive extends SubsystemBase {
    * @param pose Position to reset the odometer to
    */
   public void resetPose(Pose2d pose) {
-    odometryLock.lock();
     poseEstimator.resetPosition(getHeading(), getModulePositions(), pose);
-    odometryLock.unlock();
+    alignmentController.setSetpoint(getHeading().getRadians());
   }
 
   public boolean canZeroHeading() {
@@ -540,7 +564,6 @@ public class SwerveDrive extends SubsystemBase {
    * @param visionMeasurement The robot position on the field from the apriltags
    */
   public void addVisionMeasurement(Pose2d visionMeasurement, double timestamp, Matrix<N3,N1> visionMeasurementStdDevs) {
-    odometryLock.lock();
 
     // System.out.println(visionMeasurement);
     // System.out.println(visionMeasurementStdDevs.get(0, 0));
@@ -552,8 +575,10 @@ public class SwerveDrive extends SubsystemBase {
     poseEstimator.setVisionMeasurementStdDevs(visionMeasurementStdDevs);
     poseEstimator.addVisionMeasurement(visionMeasurement, timestamp);
     Rotation2d newHeading = getHeading();
+    // Logger.log("newHeading.minus(oldHeading)", newHeading.minus(oldHeading).getRadians());
+    // Logger.log("alignmentController.getSetpoint()", alignmentController.getSetpoint());
+    // Logger.log("getHeading()", getHeading().getRadians());
     alignmentController.setSetpoint(Rotation2d.fromRadians(alignmentController.getSetpoint()).plus(newHeading).minus(oldHeading).getRadians());
-    odometryLock.unlock();
   }
 
   /**
@@ -668,20 +693,24 @@ public class SwerveDrive extends SubsystemBase {
     return getHeading().plus(Rotation2d.fromDegrees(Constants.IS_BLUE_TEAM.get() ? 0.0 : 180.0));
   }
 
+  public Pose2d getPoseToShootFrom() {
+    if (RobotBase.isSimulation()) {
+      return getFuturePose();
+    } else {
+      return getPose();
+    }
+  }
+
   /**
    * @return Pose on the field from odometer data as a Pose2d
    */
   public Pose2d getPose() {
-    odometryLock.lock();
     Pose2d estimatedPose = poseEstimator.getEstimatedPosition();
-    odometryLock.unlock();
     return estimatedPose;
   }
 
   public Pose2d getPose(double timestampSeconds) {
-    odometryLock.lock();
     Pose2d estimatedPose = poseEstimator.getEstimatedPosition(timestampSeconds);
-    odometryLock.unlock();
     return estimatedPose;
   }
 

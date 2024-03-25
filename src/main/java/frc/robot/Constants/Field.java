@@ -47,15 +47,6 @@ public final class Field {
   public static final Supplier<Double> WING_X = flipIfRed(BLUE_WING_X);
   public static final Supplier<Translation3d> MORTAR_POINT = point3d(1.0, 7.0, 0.0);
 
-  public static final List<Supplier<Translation2d>> SHOT_POSITIONS = List.of(
-    // point2d(4.5, 6.50),
-    // point2d(BLUE_WING_X, 1.75),
-    // point2d(4.3, 5.3)
-    point2d(1.5, 5.5),
-    point2d(1.5, 3.5),
-    point2d(1.5, 7.0)
-  );
-
   public static final Translation2d[] BLUE_STAGE_CORNERS = {
     new Translation2d(3.4, 4.1),
     new Translation2d(5.6, 5.4),
@@ -88,6 +79,16 @@ public final class Field {
   public static final double SPEAKER_ANGLE = Units.degreesToRadians(14.0);
   public static final double NOTE_THICKNESS = Units.inchesToMeters(1.0);
   public static final double NOTE_LENGTH    = Units.inchesToMeters(14.0);
+
+  public static final List<Supplier<Translation2d>> SHOT_POSITIONS = List.of(
+    // point2d(4.5, 6.50),
+    // point2d(BLUE_WING_X, 1.75),
+    // point2d(4.3, 5.3)
+    // point2d(1.5, 5.5),
+    // point2d(1.5, 3.5),
+    // point2d(1.5, 7.0)
+    () -> Field.SPEAKER.get().toTranslation2d()
+  );
 
   public static Supplier<Pose2d> pose2d(double x, double y, double degrees) {
     return () -> flipIfRed(new Pose2d(x, y, Rotation2d.fromDegrees(degrees))).get();

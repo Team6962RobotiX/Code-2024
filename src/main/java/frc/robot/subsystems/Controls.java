@@ -18,9 +18,9 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.RobotContainer;
 import frc.robot.Constants.Constants;
 import frc.robot.Constants.Constants.DEVICES;
+import frc.robot.Constants.Constants.LIMELIGHT;
 import frc.robot.Constants.Preferences;
 import frc.robot.commands.drive.XBoxSwerve;
-import frc.robot.commands.vision.MoveToNote;
 import frc.robot.subsystems.amp.Amp;
 import frc.robot.subsystems.amp.AmpPivot;
 import frc.robot.subsystems.amp.AmpWheels;
@@ -33,6 +33,7 @@ import frc.robot.subsystems.shooter.ShooterWheels;
 import frc.robot.subsystems.transfer.Transfer;
 import frc.robot.subsystems.transfer.TransferInWheels;
 import frc.robot.subsystems.transfer.TransferOutWheels;
+import frc.robot.subsystems.vision.Notes;
 
 public class Controls {
   public static final CommandXboxController operator = new CommandXboxController(DEVICES.OPERATOR_XBOX_CONTROLLER);
@@ -64,7 +65,7 @@ public class Controls {
     driver.leftBumper();
     driver.rightBumper();
     driver.leftStick().whileTrue(stateController.setState(RobotStateController.State.AIM_SPEAKER));
-    driver.rightStick().whileTrue(new MoveToNote(Constants.LIMELIGHT.NOTE_CAMERA_NAME, swerveDrive, stateController));
+    driver.rightStick().whileTrue(swerveDrive.facePointCommand(() -> Notes.getNotePosition(LIMELIGHT.NOTE_CAMERA_NAME, LIMELIGHT.NOTE_CAMERA_PITCH, swerveDrive, swerveDrive.getFieldVelocity(), LIMELIGHT.NOTE_CAMERA_POSITION), new Rotation2d()));
     driver.povCenter(); // USED
     driver.povUp(); // USED
     driver.povDown(); // USED
@@ -80,7 +81,7 @@ public class Controls {
 
     driver.a().whileTrue(shooter.aim(() -> {
       Translation2d point = swerveDrive.getPose().getTranslation().plus(new Translation2d(
-        5.0,
+        4.0,
         0.0
       ).rotateBy(swerveDrive.getHeading().plus(Rotation2d.fromDegrees(180.0))));
       SwerveDrive.getField().getObject("point").setPose(new Pose2d(point, new Rotation2d()));
@@ -89,7 +90,8 @@ public class Controls {
         point.getY(),
         0.0
       );
-    }, 1.0));
+    }, 1.0).alongWith(stateController.setState(RobotStateController.State.SPIN_UP)));
+
 
     operator.a().onTrue(shooterPivot.setTargetAngleCommand(() -> Rotation2d.fromDegrees(30.0)));
     operator.b();

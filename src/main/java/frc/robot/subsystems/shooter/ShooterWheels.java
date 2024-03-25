@@ -30,6 +30,7 @@ import frc.robot.Constants.Constants.ENABLED_SYSTEMS;
 import frc.robot.Constants.Constants.SHOOTER_WHEELS;
 import frc.robot.Constants.Preferences.VOLTAGE_LADDER;
 import frc.robot.util.hardware.SparkMaxUtil;
+import frc.robot.util.software.Logging.Logger;
 
 public class ShooterWheels extends SubsystemBase {
   private CANSparkMax motor, motorFollower;
@@ -37,7 +38,7 @@ public class ShooterWheels extends SubsystemBase {
   private boolean isCalibrating = false;
   private State state = State.OFF;
   private double speed = Constants.SHOOTER_WHEELS.MAX_EXIT_VELOCITY;
-
+  
   public enum State {
     SPIN_UP,
     OFF,
@@ -72,7 +73,8 @@ public class ShooterWheels extends SubsystemBase {
 
   public double getVelocity() {
     if (Robot.isSimulation()) return state == State.SPIN_UP ? ShooterMath.calcShooterWheelVelocity(speed) : 0.0;
-    return encoder.getVelocity();
+    if (RobotState.isAutonomous()) return ShooterMath.calcShooterWheelVelocity(13.0);
+    return Math.round(encoder.getVelocity() / 20.0) * 20.0;
   }
 
   public State getState() {
@@ -88,13 +90,20 @@ public class ShooterWheels extends SubsystemBase {
       state = State.OFF;
     }
 
+    if (RobotState.isAutonomous()) {
+      state = State.SPIN_UP;
+      speed = SHOOTER_WHEELS.MAX_EXIT_VELOCITY;
+    }
+
+    Logger.log("encoder.getVelocity();", getVelocity());
+
     // System.out.println(speed);
     // System.out.println(ShooterMath.calcProjectileVelocity(ShooterMath.calcShooterWheelVelocity(speed)));
 
     switch(state) {
       case SPIN_UP:
         // System.out.println(speed);
-        motor.set(ShooterMath.calcShooterWheelVelocity(speed) / SHOOTER_WHEELS.MAX_WHEEL_SPEED);
+        motor.set((ShooterMath.calcShooterWheelVelocity(speed) / SHOOTER_WHEELS.MAX_WHEEL_SPEED) / 0.8888349515 / 1.0328467153);
         break;
       case OFF:
         motor.set(0.0);

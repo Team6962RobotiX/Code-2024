@@ -62,6 +62,7 @@ public class ShooterMath {
     double floorDistance = shooterLocation.toTranslation2d().getDistance(targetPoint.toTranslation2d());
     double gravity = 9.80;
     double velocity = (Math.sqrt(floorDistance) * Math.sqrt(gravity) * Math.sqrt(Math.pow(Math.tan(exitAngle.getRadians()), 2.0) + 1)) / Math.sqrt(2.0 * Math.tan(exitAngle.getRadians()) - (2.0 * targetHeight / floorDistance));
+
     if (Double.isNaN(velocity) || velocity > Constants.SHOOTER_WHEELS.MAX_EXIT_VELOCITY) velocity = Constants.SHOOTER_WHEELS.MAX_EXIT_VELOCITY;
     return velocity;
   }
@@ -81,7 +82,7 @@ public class ShooterMath {
       double projectileVelocity = calcProjectileVelocity(shooterWheelVelocity);
       double gravity = 9.80;
 
-      double exitRadians = Math.atan((Math.pow(projectileVelocity, 2.0) + (mortarMode ? -1 : -1) * Math.sqrt(Math.pow(projectileVelocity, 4.0) - gravity * (gravity * Math.pow(floorDistance, 2.0) + 2.0 * targetHeight * Math.pow(projectileVelocity, 2.0)))) / (gravity * floorDistance));
+      double exitRadians = Math.atan((Math.pow(projectileVelocity, 2.0) + (mortarMode ? 1 : -1) * Math.sqrt(Math.pow(projectileVelocity, 4.0) - gravity * (gravity * Math.pow(floorDistance, 2.0) + 2.0 * targetHeight * Math.pow(projectileVelocity, 2.0)))) / (gravity * floorDistance));
       // double distanceAtApex = projectileVelocity * Math.cos(exitRadians) * (projectileVelocity * (Math.sin(exitRadians) / gravity));
       // if (Double.isNaN(exitRadians) || distanceAtApex < floorDistance) {
       //   return Rotation2d.fromDegrees(0.0);
@@ -109,11 +110,12 @@ public class ShooterMath {
    */
   public static double calcProjectileVelocity(double shooterWheelVelocity) {
     double linearSpeed = (shooterWheelVelocity * SHOOTER_WHEELS.WHEEL_RADIUS);
-    if (linearSpeed / 1.5 > SHOOTER_WHEELS.MAX_EXIT_VELOCITY) {
+    if (linearSpeed / 1.6 > SHOOTER_WHEELS.MAX_EXIT_VELOCITY) {
       return SHOOTER_WHEELS.MAX_EXIT_VELOCITY;
     } else {
-      return linearSpeed / 1.5;
+      return linearSpeed / 1.6;
     }
+
     // // Derived from https://www.reca.lc/shooterWheel
     // // return 1000000.0;
     // if (RobotState.isAutonomous()) {
@@ -130,7 +132,10 @@ public class ShooterMath {
   
   public static double calcShooterWheelVelocity(double projectileVelocity) {
     double angularSpeed = (projectileVelocity / SHOOTER_WHEELS.WHEEL_RADIUS);
-    return angularSpeed * 1.5;
+    if (projectileVelocity >= SHOOTER_WHEELS.MAX_EXIT_VELOCITY * 0.8) {
+      return angularSpeed * 4.0;
+    }
+    return angularSpeed * 1.6;
   }
 
   public static boolean isAimed(Translation3d targetPoint, double targetSize, SwerveDrive swerveDrive, Shooter shooter) {
@@ -143,7 +148,8 @@ public class ShooterMath {
     Rotation2d idealPivotAngle = calcPivotAngle(aimingPoint, swerveDrive, shooter);
 
     if (Math.abs(shooter.getPivot().getPosition().minus(idealPivotAngle).getRadians()) > acceptableError / 2.0) return false;
-    if (Math.abs(swerveDrive.getHeading().minus(idealHeading).getRadians()) > acceptableError * 2.0) return false;
+    if (Math.abs(swerveDrive.getHeading().minus(idealHeading).getRadians()) > acceptableError) return false;
+    if (!inRange(aimingPoint, swerveDrive, shooter)) return false;
     return true;
   }
 
