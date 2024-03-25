@@ -136,11 +136,11 @@ public class SwerveDrive extends SubsystemBase {
     
     // If possible, connect to the gyroscope
     try {
-      gyro = new AHRS(SPI.Port.kMXP, (byte) 200);
+      gyro = new AHRS(SPI.Port.kMXP);
     } catch (RuntimeException ex) {
       DriverStation.reportError("Error instantiating navX-MXP:  " + ex.getMessage(), false);
     }
-
+    
     new Thread(() -> {
       try {
         Thread.sleep(1000);
@@ -204,9 +204,7 @@ public class SwerveDrive extends SubsystemBase {
     Logger.log("Loop-Time", Robot.getLoopTime());
     
     Pose2d poseBefore = getPose();
-
     updateOdometry();
-
     Pose2d currentPose = getPose();
     if (currentPose.getX() < -1000 || currentPose.getY() < -1000 || currentPose.getX() > 1000 || currentPose.getY() > 1000) {
       System.out.println("BAD");
@@ -301,7 +299,7 @@ public class SwerveDrive extends SubsystemBase {
     Twist2d twist = kinematics.toTwist2d(previousWheelPositions, wheelPositions);
     Pose2d newPose = getPose().exp(twist);
     previousWheelPositions = wheelPositions.copy();
-    
+
     if (gyro.isConnected() && !gyro.isCalibrating() && !RobotBase.isSimulation()) {
       gyroHeading = gyro.getRotation2d();
     } else {
