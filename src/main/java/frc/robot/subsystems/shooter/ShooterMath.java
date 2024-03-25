@@ -147,7 +147,7 @@ public class ShooterMath {
     Logger.log("currentHeading", swerveDrive.getHeading().getDegrees());
     Rotation2d idealPivotAngle = calcPivotAngle(aimingPoint, swerveDrive, shooter);
 
-    if (Math.abs(shooter.getPivot().getPosition().minus(idealPivotAngle).getRadians()) > acceptableError / 2.0) return false;
+    if (Math.abs(shooter.getPivot().getPosition().minus(idealPivotAngle).getRadians()) > acceptableError / 4.0) return false;
     if (Math.abs(swerveDrive.getHeading().minus(idealHeading).getRadians()) > acceptableError) return false;
     if (!inRange(aimingPoint, swerveDrive, shooter)) return false;
     return true;
