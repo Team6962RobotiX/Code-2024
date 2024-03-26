@@ -140,7 +140,7 @@ public class ShooterMath {
 
   public static boolean isAimed(Translation3d targetPoint, double targetSize, SwerveDrive swerveDrive, Shooter shooter) {
     Translation3d shooterLocation = calcShooterLocationOnField(swerveDrive, shooter);
-    Translation3d aimingPoint = calcVelocityCompensatedPoint(targetPoint, swerveDrive, shooter);
+    Translation3d aimingPoint = calcVelocityCompensatedPoint(targetPoint, swerveDrive, shooter, true);
     double acceptableError = Math.atan(targetSize / targetPoint.getDistance(shooterLocation)) / 2.0;
     Rotation2d idealHeading = aimingPoint.toTranslation2d().minus(swerveDrive.getPose().getTranslation()).getAngle().plus(Rotation2d.fromDegrees(180.0));
     Logger.log("idealHeading", idealHeading.getDegrees());
@@ -249,6 +249,10 @@ public class ShooterMath {
   }
 
   public static Translation3d calcVelocityCompensatedPoint(Translation3d targetPoint, SwerveDrive swerveDrive, Shooter shooter) {
+    return calcVelocityCompensatedPoint(targetPoint, swerveDrive, shooter, false);
+  }
+
+  public static Translation3d calcVelocityCompensatedPoint(Translation3d targetPoint, SwerveDrive swerveDrive, Shooter shooter, boolean toCheckAiming) {
     double shooterWheelVelocity = shooter.getWheels().getVelocity();
     Translation2d currentVelocity = swerveDrive.getFieldVelocity();
     
@@ -262,11 +266,11 @@ public class ShooterMath {
     
     Translation2d projectileOffset = currentVelocity.times(flightTime);
 
-    // Translation2d relativeShooterPosition = calcShooterLocationOnField(currentPose, pivotAngle).toTranslation2d().minus(currentPose.getTranslation());
-
-    // Translation2d rotationAddedOffset = relativeShooterPosition.div(relativeShooterPosition.getNorm()).times(rotationalVelocity * relativeShooterPosition.getNorm() * flightTime).rotateBy(Rotation2d.fromDegrees(90.0));
-    
-    //projectileOffset = projectileOffset.minus(rotationAddedOffset);
+    if (toCheckAiming) {
+      Translation2d relativeShooterPosition = calcShooterLocationOnField(swerveDrive, shooter).toTranslation2d().minus(swerveDrive.getPose().getTranslation());
+      Translation2d rotationAddedOffset = relativeShooterPosition.div(relativeShooterPosition.getNorm()).times(swerveDrive.getRotationalVelocity() * relativeShooterPosition.getNorm() * flightTime).rotateBy(Rotation2d.fromDegrees(90.0));
+      projectileOffset = projectileOffset.minus(rotationAddedOffset);
+    }
 
     Translation3d velocityCompensatedPoint =  new Translation3d(
       targetPoint.getX() - projectileOffset.getX(),

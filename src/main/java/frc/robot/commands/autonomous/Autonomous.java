@@ -195,8 +195,8 @@ public class Autonomous extends Command {
 
     avoidPillars = noteIndex != 2;
 
-    boolean adjacent = Math.abs(swerveDrive.getPose().getX() - notePosition.getX()) < adjacentNoteBand;
-
+    boolean adjacent = Math.abs(swerveDrive.getPose().getX() - notePosition.getX()) < adjacentNoteBand && Math.abs(swerveDrive.getPose().getY() - notePosition.getY()) > adjacentNoteBand;
+    
     Rotation2d heading = notePosition.minus(Field.SPEAKER.get().toTranslation2d()).getAngle();
     if (!inRange(notePosition) && !adjacent) {
       heading = notePosition.minus(swerveDrive.getPose().getTranslation()).getAngle();
@@ -213,7 +213,7 @@ public class Autonomous extends Command {
       System.out.println("PATHFIND");
       return Commands.sequence(
         Commands.runOnce(() -> {
-          if (!inRange(notePosition)) {
+          if (!inRange(notePosition) && !adjacent) {
             swerveDrive.setRotationTargetOverrideFromPoint(() -> notePosition, Rotation2d.fromDegrees(0.0));
           } else {
             swerveDrive.setRotationTargetOverrideFromPoint(() -> Field.SPEAKER.get().toTranslation2d(), Rotation2d.fromDegrees(180.0));
@@ -283,7 +283,7 @@ public class Autonomous extends Command {
 
     return Commands.sequence(
       Commands.runOnce(() -> {
-        if (!inRange(notePosition)) {
+        if (!inRange(notePosition) && !adjacent) {
           swerveDrive.setRotationTargetOverrideFromPoint(() -> notePosition, Rotation2d.fromDegrees(0.0));
         } else {
           swerveDrive.setRotationTargetOverrideFromPoint(() -> Field.SPEAKER.get().toTranslation2d(), Rotation2d.fromDegrees(180.0));
