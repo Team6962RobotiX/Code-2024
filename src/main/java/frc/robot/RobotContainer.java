@@ -108,7 +108,7 @@ public class RobotContainer {
   }
 
   public static double getVoltage() {
-    return PDH.getVoltage();
+    return RobotController.getBatteryVoltage();
   }
 
   public static double getTotalCurrent() {
