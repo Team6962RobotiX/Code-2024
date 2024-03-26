@@ -62,8 +62,8 @@ public class XBoxSwerve extends Command {
       return;
     }
 
-    double leftTrigger = controller.getLeftTriggerAxis();
-    double rightTrigger = controller.getRightTriggerAxis();
+    double leftTrigger = 0.0; //controller.getLeftTriggerAxis();
+    double rightTrigger = 0.0; // controller.getRightTriggerAxis();
     Translation2d leftStick = new Translation2d(-controller.getLeftY(), -controller.getLeftX());
     Translation2d rightStick = new Translation2d(controller.getRightX(), -controller.getRightY());
     
@@ -87,19 +87,19 @@ public class XBoxSwerve extends Command {
       velocity = velocity.div(velocity.getNorm()).times(Preferences.SWERVE_DRIVE.TELEOPERATED_SHOOTER_SPEED);
     }
 
-    if (controller.getPOV() != -1) {
+    /*if (controller.getPOV() != -1) {
       Translation2d povVelocity = new Translation2d(Math.cos(Units.degreesToRadians(controller.getPOV())) * FINE_TUNE_DRIVE_VELOCITY, -Math.sin(Units.degreesToRadians(controller.getPOV())) * FINE_TUNE_DRIVE_VELOCITY);
       velocity = velocity.plus(povVelocity);
-    }
+    }*/
 
     // Zero heading when Y is pressed
-    if (controller.getYButton()) {
+    /*if (controller.getYButton()) {
       Rotation2d newHeading = new Rotation2d();
       if (!Constants.IS_BLUE_TEAM.get()) {
         newHeading = Rotation2d.fromDegrees(180.0);
       }
       swerveDrive.resetGyroHeading(newHeading); 
-    }
+    }*/
 
     if (controller.getAButton()) {
       // swerveDrive.goToNearestPose(List.of(Field.AUTO_MOVE_POSITIONS.values().toArray(new Pose2d[] {})), controller).schedule();

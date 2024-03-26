@@ -23,7 +23,6 @@ import frc.robot.subsystems.amp.AmpPivot;
 import frc.robot.subsystems.amp.AmpWheels;
 import frc.robot.subsystems.drive.SwerveDrive;
 import frc.robot.subsystems.hang.Hang;
-import frc.robot.subsystems.shooter.FeedWheels;
 import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.shooter.ShooterPivot;
 import frc.robot.subsystems.shooter.ShooterWheels;
@@ -45,7 +44,6 @@ public class Controls {
       Shooter shooter, 
       ShooterWheels shooterWheels, 
       ShooterPivot shooterPivot, 
-      FeedWheels feedWheels,
       Amp amp, 
       AmpPivot ampPivot, 
       AmpWheels ampWheels,
@@ -61,8 +59,8 @@ public class Controls {
     driver.back().whileTrue(stateController.setState(RobotStateController.State.AIM_MORTAR));
     driver.leftBumper();
     driver.rightBumper();
-    driver.leftStick().whileTrue(stateController.setState(RobotStateController.State.AIM_SPEAKER));
-    driver.rightStick().whileTrue(swerveDrive.facePointCommand(() -> Notes.getNotePosition(LIMELIGHT.NOTE_CAMERA_NAME, LIMELIGHT.NOTE_CAMERA_PITCH, swerveDrive, swerveDrive.getFieldVelocity(), LIMELIGHT.NOTE_CAMERA_POSITION), new Rotation2d()));
+    operator.leftStick().whileTrue(stateController.setState(RobotStateController.State.AIM_SPEAKER));
+    operator.rightStick().whileTrue(swerveDrive.facePointCommand(() -> Notes.getNotePosition(LIMELIGHT.NOTE_CAMERA_NAME, LIMELIGHT.NOTE_CAMERA_PITCH, swerveDrive, swerveDrive.getFieldVelocity(), LIMELIGHT.NOTE_CAMERA_POSITION), new Rotation2d()));
     driver.povCenter(); // USED
     driver.povUp(); // USED
     driver.povDown(); // USED
@@ -70,7 +68,7 @@ public class Controls {
     driver.povRight(); // USED
     driver.leftTrigger(); // USED
     driver.rightTrigger(); // USED
-    swerveDrive.setDefaultCommand(new XBoxSwerve(swerveDrive, driver.getHID(), stateController));    
+    swerveDrive.setDefaultCommand(new XBoxSwerve(swerveDrive, operator.getHID(), stateController));    
 
     if (RobotBase.isSimulation()) {
       driver.button(1).whileTrue(stateController.setState(RobotStateController.State.AIM_SPEAKER).alongWith(stateController.setState(RobotStateController.State.SPIN_UP)));
@@ -80,12 +78,12 @@ public class Controls {
     operator.b();
     operator.x();
     operator.y().onTrue(shooterPivot.setTargetAngleCommand(() -> Preferences.SHOOTER_PIVOT.MAX_ANGLE));
-    operator.start().whileTrue(stateController.setState(RobotStateController.State.LEAVE_AMP));
+    //operator.start().whileTrue(stateController.setState(RobotStateController.State.LEAVE_AMP));
     operator.back().onTrue(stateController.setState(RobotStateController.State.CENTER_NOTE).andThen(Controls.rumbleBoth()));
     operator.leftBumper();
     operator.rightBumper().whileTrue(stateController.setState(RobotStateController.State.INTAKE));
-    operator.leftStick().whileTrue(stateController.setState(RobotStateController.State.PREPARE_AMP));
-    operator.rightStick().whileTrue(stateController.setState(RobotStateController.State.PLACE_AMP));
+    //operator.leftStick().whileTrue(stateController.setState(RobotStateController.State.PREPARE_AMP));
+    //operator.rightStick().whileTrue(stateController.setState(RobotStateController.State.PLACE_AMP));
     operator.povCenter();
     operator.povUp().whileTrue(hang.setState(Hang.State.EXTEND));
     operator.povDown().whileTrue(hang.setState(Hang.State.RETRACT));
