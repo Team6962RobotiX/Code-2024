@@ -90,7 +90,7 @@ public class Shooter extends SubsystemBase {
     Translation3d compensatedAimingPoint = ShooterMath.calcVelocityCompensatedPoint(aimingPoint.get(), swerveDrive, this);
     
     Rotation2d pivotAngle = ShooterMath.calcPivotAngle(compensatedAimingPoint, swerveDrive, this);
-    double projectileVelocity = shooterPivot.isAngleAchievable(ShooterMath.calcPivotAngle(aimingPoint.get(), swerveDrive, this, Constants.SHOOTER_WHEELS.MAX_WHEEL_SPEED)) ? Constants.SHOOTER_WHEELS.MAX_EXIT_VELOCITY : ShooterMath.calcProjectileVelocity(
+    double projectileVelocity = shooterPivot.isAngleAchievable(ShooterMath.calcPivotAngle(aimingPoint.get(), swerveDrive, this, Constants.SHOOTER_WHEELS.MAX_WHEEL_SPEED)) ? Constants.SHOOTER_WHEELS.TOP_EXIT_VELOCITY : ShooterMath.calcProjectileVelocity(
       compensatedAimingPoint,
       swerveDrive,
       this
@@ -140,7 +140,7 @@ public class Shooter extends SubsystemBase {
           shooterWheels.setState(ShooterWheels.State.SPIN_UP),
           feedWheels.setState(FeedWheels.State.SHOOT),
           shooterWheels.setTargetExitVelocityCommand(() -> 
-            shooterPivot.isAngleAchievable(ShooterMath.calcPivotAngle(aimingPoint.get(), swerveDrive, this, Constants.SHOOTER_WHEELS.MAX_WHEEL_SPEED)) ? Constants.SHOOTER_WHEELS.MAX_EXIT_VELOCITY : ShooterMath.calcProjectileVelocity(
+            shooterPivot.isAngleAchievable(ShooterMath.calcPivotAngle(aimingPoint.get(), swerveDrive, this, Constants.SHOOTER_WHEELS.MAX_WHEEL_SPEED)) ? Constants.SHOOTER_WHEELS.TOP_EXIT_VELOCITY : ShooterMath.calcProjectileVelocity(
               ShooterMath.calcVelocityCompensatedPoint(
                 aimingPoint.get(),
                 swerveDrive,

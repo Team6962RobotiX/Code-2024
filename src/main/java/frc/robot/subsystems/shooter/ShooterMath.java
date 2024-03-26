@@ -7,7 +7,6 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import frc.robot.Constants.Constants;
 import frc.robot.Constants.Constants.SHOOTER_PIVOT;
-import frc.robot.Constants.Constants.SHOOTER_WHEELS;
 import frc.robot.Constants.Preferences;
 import frc.robot.subsystems.drive.SwerveDrive;
 import frc.robot.util.software.Logging.Logger;
@@ -58,12 +57,12 @@ public class ShooterMath {
 
     Translation3d shooterLocation = calcShooterLocationOnField(swerveDrive, shooter);
     double targetHeight = targetPoint.getZ() - shooterLocation.getZ();
-    if (targetHeight > 0) return Constants.SHOOTER_WHEELS.MAX_EXIT_VELOCITY;
+    if (targetHeight > 0) return Constants.SHOOTER_WHEELS.TOP_EXIT_VELOCITY;
     double floorDistance = shooterLocation.toTranslation2d().getDistance(targetPoint.toTranslation2d());
     double gravity = 9.80;
     double velocity = (Math.sqrt(floorDistance) * Math.sqrt(gravity) * Math.sqrt(Math.pow(Math.tan(exitAngle.getRadians()), 2.0) + 1)) / Math.sqrt(2.0 * Math.tan(exitAngle.getRadians()) - (2.0 * targetHeight / floorDistance));
 
-    if (Double.isNaN(velocity) || velocity > Constants.SHOOTER_WHEELS.MAX_EXIT_VELOCITY) velocity = Constants.SHOOTER_WHEELS.MAX_EXIT_VELOCITY;
+    if (Double.isNaN(velocity)) velocity = Constants.SHOOTER_WHEELS.TOP_EXIT_VELOCITY;
     return velocity;
   }
 
@@ -109,12 +108,8 @@ public class ShooterMath {
    * @return Projectile exit velocity in m/s
    */
   public static double calcProjectileVelocity(double shooterWheelVelocity) {
-    double linearSpeed = (shooterWheelVelocity * SHOOTER_WHEELS.WHEEL_RADIUS);
-    if (linearSpeed / 1.6 > SHOOTER_WHEELS.MAX_EXIT_VELOCITY) {
-      return SHOOTER_WHEELS.MAX_EXIT_VELOCITY;
-    } else {
-      return linearSpeed / 1.6;
-    }
+    if (shooterWheelVelocity >= Constants.SHOOTER_WHEELS.MAX_WHEEL_SPEED) return 12.0;
+    return -Math.pow(1.0077, -shooterWheelVelocity + 521.41) + 12.0;
 
     // // Derived from https://www.reca.lc/shooterWheel
     // // return 1000000.0;
@@ -129,13 +124,17 @@ public class ShooterMath {
     // double speedTransferPercentage = (SHOOTER_WHEELS.TOTAL_MOI * 20.0) / (SHOOTER_WHEELS.PROJECTILE_MASS * SHOOTER_WHEELS.WHEEL_RADIUS * 2.0 * SHOOTER_WHEELS.WHEEL_RADIUS * 2.0 * 7.0 + SHOOTER_WHEELS.TOTAL_MOI * 40.0);
     // return shooterWheelSurfaceSpeed * speedTransferPercentage;
   }
+
+  public static double logB(double number, double custom_base) {
+    // a is value and b is base
+    double result = (int) (Math.log(number) / Math.log(custom_base));
+    return result;
+  }
+
   
   public static double calcShooterWheelVelocity(double projectileVelocity) {
-    double angularSpeed = (projectileVelocity / SHOOTER_WHEELS.WHEEL_RADIUS);
-    if (projectileVelocity >= SHOOTER_WHEELS.MAX_EXIT_VELOCITY * 0.8) {
-      return angularSpeed * 4.0;
-    }
-    return angularSpeed * 1.6;
+    if (projectileVelocity >= 12.0) return Constants.SHOOTER_WHEELS.MAX_WHEEL_SPEED;
+    return -logB(-projectileVelocity + 12.0, 1.0077) + 521.41;
   }
 
   public static boolean isAimed(Translation3d targetPoint, double targetSize, SwerveDrive swerveDrive, Shooter shooter) {

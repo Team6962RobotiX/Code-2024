@@ -37,7 +37,7 @@ public class ShooterWheels extends SubsystemBase {
   private RelativeEncoder encoder;
   private boolean isCalibrating = false;
   private State state = State.OFF;
-  private double speed = Constants.SHOOTER_WHEELS.MAX_EXIT_VELOCITY;
+  private double speed = Constants.SHOOTER_WHEELS.MAX_WHEEL_SPEED;
   
   public enum State {
     SPIN_UP,
