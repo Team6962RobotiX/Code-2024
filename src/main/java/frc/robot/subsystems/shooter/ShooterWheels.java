@@ -125,7 +125,7 @@ public class ShooterWheels extends SubsystemBase {
 
   public Command setTargetExitVelocityCommand(Supplier<Double> exitVelocity) {
     return Commands.runEnd(
-      () -> this.speed = ShooterMath.calcShooterWheelVelocity(exitVelocity.get()),
+      () -> this.speed = ShooterMath.calcShooterWheelVelocity(Math.round(exitVelocity.get() * 10.0) / 10.0),
       () -> this.speed = Constants.SHOOTER_WHEELS.MAX_WHEEL_SPEED
     );
   }
