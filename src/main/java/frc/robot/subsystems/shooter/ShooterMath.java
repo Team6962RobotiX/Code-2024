@@ -49,7 +49,7 @@ public class ShooterMath {
   public static boolean inRange(Translation3d targetPoint, SwerveDrive swerveDrive, Shooter shooter) {
     Rotation2d pivotAngle = calcPivotAngle(targetPoint, swerveDrive, shooter);
     if (pivotAngle == null) return false;
-    System.out.println(pivotAngle);
+    // System.out.println(pivotAngle);
     return pivotAngle.getRadians() != 0 && pivotAngle.getRadians() > Preferences.SHOOTER_PIVOT.MIN_ANGLE.getRadians() && pivotAngle.getRadians() < Preferences.SHOOTER_PIVOT.MAX_ANGLE.getRadians();
   }
 
@@ -148,7 +148,7 @@ public class ShooterMath {
     Logger.log("currentHeading", swerveDrive.getHeading().getDegrees());
     Rotation2d idealPivotAngle = calcPivotAngle(aimingPoint, swerveDrive, shooter);
     if (idealPivotAngle == null) return false;
-    System.out.println(inRange(aimingPoint, swerveDrive, shooter));
+    // System.out.println(inRange(aimingPoint, swerveDrive, shooter));
     
 
     if (Math.abs(shooter.getPivot().getPosition().minus(idealPivotAngle).getRadians()) > acceptableError / 4.0) return false;

@@ -90,6 +90,7 @@ public class SwerveDrive extends SubsystemBase {
   private boolean parked = false;
   private boolean parkingDisabled = false;
   private boolean isDriven = false;
+  private boolean gyroConnected = false;
 
   private Supplier<Translation2d> rotationOverridePoint = null;
   private Rotation2d rotationOverrideOffset = new Rotation2d();
@@ -294,11 +295,18 @@ public class SwerveDrive extends SubsystemBase {
     Twist2d twist = kinematics.toTwist2d(previousWheelPositions, wheelPositions);
     Pose2d newPose = getPose().exp(twist);
 
-    if (gyro.isConnected() && !gyro.isCalibrating() && !RobotBase.isSimulation()) {
+
+    if (!gyroConnected && (gyro.isConnected() && !gyro.isCalibrating())) {
+      gyroOffset = gyroHeading.minus(gyro.getRotation2d());
+    }
+    gyroConnected = gyro.isConnected() && !gyro.isCalibrating();
+
+    if (gyroConnected && !RobotBase.isSimulation()) {
       gyroHeading = gyro.getRotation2d();
     } else {
-      gyroHeading = newPose.getRotation();
+      gyroHeading = gyroHeading.plus(newPose.getRotation().minus(getPose().getRotation()));
     }
+
     Logger.log("swerveModulePositions", getModulePositions());
     poseEstimator.update(gyroHeading.plus(gyroOffset), getModulePositions());
     AprilTags.injectVisionData(LIMELIGHT.APRILTAG_CAMERA_POSES, this);
