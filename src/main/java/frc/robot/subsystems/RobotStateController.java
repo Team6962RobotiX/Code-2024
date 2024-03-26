@@ -178,6 +178,7 @@ public class RobotStateController extends SubsystemBase {
   }
 
   public boolean canShoot() {
+    // System.out.println(isAimed());
     return shotDebouncer.calculate(isAimed());
   }
 
@@ -201,6 +202,8 @@ public class RobotStateController extends SubsystemBase {
     if (hasNote()) {
       LEDs.setState(LEDs.State.HAS_NOTE);
     }
+
+    Logger.log("currentState", getState().name());
     
     if (swerveDrive.underStage()) {
       shooter.getPivot().setMaxAngle(Preferences.SHOOTER_PIVOT.MAX_ANGLE_UNDER_STAGE);

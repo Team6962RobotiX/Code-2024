@@ -41,7 +41,7 @@ public class Autonomous extends Command {
   private double notePickupDistance = Constants.SWERVE_DRIVE.BUMPER_LENGTH / 2.0;
   private double noteAlignDistance = Constants.SWERVE_DRIVE.BUMPER_LENGTH / 2.0 + Field.NOTE_LENGTH;
   private double speakerShotDistance = 6.0;
-  private double adjacentNoteBand = 0.5;
+  private double adjacentNoteBand = 1.0;
   private double minPathfindingDistance = 2.5;
   private Command runningCommand;
 
@@ -150,7 +150,7 @@ public class Autonomous extends Command {
     Random random = new Random();
     
     if (RobotBase.isSimulation()) {
-      visionNoise = visionNoise.plus(new Translation2d((random.nextDouble() - 0.5) / 20, (random.nextDouble() - 0.5) / 20));
+      visionNoise = visionNoise.plus(new Translation2d((random.nextDouble() - 0.5) / 100, (random.nextDouble() - 0.5) / 100));
 
       List<Translation2d> measuredNotePositions = new ArrayList<>();
       for (Integer note : List.of(0, 1, 2, 3, 4, 5, 6, 7)) {
@@ -195,8 +195,10 @@ public class Autonomous extends Command {
 
     avoidPillars = noteIndex != 2;
 
+    boolean adjacent = Math.abs(swerveDrive.getPose().getX() - notePosition.getX()) < adjacentNoteBand;
+
     Rotation2d heading = notePosition.minus(Field.SPEAKER.get().toTranslation2d()).getAngle();
-    if (!nearSpeaker()) {
+    if (!inRange(notePosition) && !adjacent) {
       heading = notePosition.minus(swerveDrive.getPose().getTranslation()).getAngle();
     }
 
@@ -205,7 +207,6 @@ public class Autonomous extends Command {
     
     // SwerveDrive.getField().getObject("bezier").setPoses(List.of(new Pose2d(alignmentPoint, heading), new Pose2d(pickupPoint, heading)));
     
-    boolean adjacent = Math.abs(swerveDrive.getPose().getX() - notePosition.getX()) < adjacentNoteBand;
     boolean pathfind = !adjacent && !tooClose(notePosition) && swerveDrive.getPose().getTranslation().getDistance(alignmentPoint) > 0.6;
     
     if (pathfind) {
@@ -257,7 +258,7 @@ public class Autonomous extends Command {
         new Pose2d(alignmentPoint, heading),
         new Pose2d(pickupPoint, heading)
       );
-      if (adjacent && swerveDrive.getFieldVelocity().getNorm() < 1.0) {
+      if (adjacent) {
         System.out.println("#3");
         System.out.println("ADJACENT");
         bezierPoints = PathPlannerPath.bezierFromPoses(
@@ -290,7 +291,7 @@ public class Autonomous extends Command {
         addNoteObstacles();
       }),
       AutoBuilder.followPath(path).andThen(
-          Commands.runOnce(() -> simulatedNote = true),
+          Commands.runOnce(() -> simulatedNote = false),
           Commands.waitSeconds(0.5)
         ).raceWith(
           Commands.sequence(

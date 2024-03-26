@@ -38,7 +38,7 @@ public class ShooterWheels extends SubsystemBase {
   private RelativeEncoder encoder;
   private boolean isCalibrating = false;
   private State state = State.OFF;
-  private double speed = Constants.SHOOTER_WHEELS.MAX_WHEEL_SPEED;
+  private double speed = ShooterMath.calcShooterWheelVelocity(Constants.SHOOTER_WHEELS.TOP_EXIT_VELOCITY);
   
   public enum State {
     SPIN_UP,
@@ -93,27 +93,26 @@ public class ShooterWheels extends SubsystemBase {
   public void periodic() {
     if (!ENABLED_SYSTEMS.ENABLE_SHOOTER) return;
     if (isCalibrating) return;
-
+    
     if (RobotState.isDisabled()) {
       state = State.OFF;
     }
 
     if (RobotState.isAutonomous()) {
       state = State.SPIN_UP;
-      speed = SHOOTER_WHEELS.MAX_WHEEL_SPEED;
     }
 
     Logger.log("encoder.getVelocity();", getVelocity());
 
     // System.out.println(speed);
     // System.out.println(ShooterMath.calcProjectileVelocity(ShooterMath.calcShooterWheelVelocity(speed)));
-
+    
     switch(state) {
       case SPIN_UP:
         // System.out.println(speed);
         double motorSpeed = (speed / SHOOTER_WHEELS.MAX_WHEEL_SPEED);
-        shooterMotor.set(motorSpeed  / 0.8888349515 / 1.0328467153);
-        feedMotor.set(motorSpeed * 2.0/1.125);
+        shooterMotor.set(motorSpeed / 0.8888349515 / 1.0328467153);
+        feedMotor.set(motorSpeed * 2.0 / 1.125);
         break;
       case OFF:
         shooterMotor.set(0.0);
