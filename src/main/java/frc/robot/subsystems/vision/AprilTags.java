@@ -54,7 +54,7 @@ public class AprilTags extends SubsystemBase {
         canChangeHeading = true;
       }
 
-      canChangeHeading = canChangeHeading && swerveDrive.getPose().getTranslation().getDistance(pose2d.getTranslation()) < 0.25;
+      canChangeHeading = canChangeHeading && swerveDrive.getPose().getTranslation().getDistance(pose2d.getTranslation()) < 1.0;
       if (canChangeHeading) LEDs.setState(LEDs.State.HAS_VISION_TARGET_SPEAKER);
       
       double rotationError = Units.degreesToRadians(15);
@@ -68,9 +68,9 @@ public class AprilTags extends SubsystemBase {
       Logger.log("rotationAccuracy", rotationError);
       Logger.log("poseRotation", pose2d.getRotation().getDegrees());
 
-      if (RobotState.isAutonomous() && poseEstimate.tagCount <= 1) {
-        continue;
-      }
+      // if (RobotState.isAutonomous() && poseEstimate.tagCount <= 1) {
+      //   continue;
+      // }
 
       poses.add(pose2d);
       translationError += 0.5;

@@ -333,7 +333,6 @@ public class Autonomous extends Command {
       }),
       Commands.race(
         moveCommand.until(() -> nearSpeaker())
-          .alongWith(Commands.waitSeconds(0.5).onlyIf(() -> isFirstNote))
           .andThen(Commands.sequence(
             Commands.run(() -> {
               if (controller.canShoot()) simulatedNote = false;
