@@ -291,7 +291,7 @@ public class Autonomous extends Command {
         addNoteObstacles();
       }),
       AutoBuilder.followPath(path).andThen(
-          Commands.runOnce(() -> simulatedNote = false),
+          Commands.runOnce(() -> simulatedNote = true),
           Commands.waitSeconds(0.5)
         ).raceWith(
           Commands.sequence(
