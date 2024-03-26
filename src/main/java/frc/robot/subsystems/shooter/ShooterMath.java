@@ -82,10 +82,10 @@ public class ShooterMath {
       double gravity = 9.80;
 
       double exitRadians = Math.atan((Math.pow(projectileVelocity, 2.0) + (mortarMode ? 1 : -1) * Math.sqrt(Math.pow(projectileVelocity, 4.0) - gravity * (gravity * Math.pow(floorDistance, 2.0) + 2.0 * targetHeight * Math.pow(projectileVelocity, 2.0)))) / (gravity * floorDistance));
-      // double distanceAtApex = projectileVelocity * Math.cos(exitRadians) * (projectileVelocity * (Math.sin(exitRadians) / gravity));
-      // if (Double.isNaN(exitRadians) || distanceAtApex < floorDistance) {
-      //   return Rotation2d.fromDegrees(0.0);
-      // }
+      double distanceAtApex = projectileVelocity * Math.cos(exitRadians) * (projectileVelocity * (Math.sin(exitRadians) / gravity));
+      if (Double.isNaN(exitRadians) || (distanceAtApex < floorDistance && !mortarMode)) {
+        return Rotation2d.fromDegrees(0.0);
+      }
       Rotation2d exitAngle = Rotation2d.fromRadians(exitRadians);
       pivotAngle = exitAngle.minus(SHOOTER_PIVOT.NOTE_ROTATION_OFFSET);
 
