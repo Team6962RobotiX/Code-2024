@@ -48,7 +48,8 @@ public class ShooterMath {
 
   public static boolean inRange(Translation3d targetPoint, SwerveDrive swerveDrive, Shooter shooter) {
     Rotation2d pivotAngle = calcPivotAngle(targetPoint, swerveDrive, shooter);
-    // System.out.println(pivotAngle);
+    if (pivotAngle == null) return false;
+    System.out.println(pivotAngle);
     return pivotAngle.getRadians() != 0 && pivotAngle.getRadians() > Preferences.SHOOTER_PIVOT.MIN_ANGLE.getRadians() && pivotAngle.getRadians() < Preferences.SHOOTER_PIVOT.MAX_ANGLE.getRadians();
   }
 
@@ -68,7 +69,7 @@ public class ShooterMath {
   }
 
   public static Rotation2d calcPivotAngle(Translation3d targetPoint, SwerveDrive swerveDrive, Shooter shooter, double shooterWheelVelocity) {    
-    if (Math.abs(shooterWheelVelocity) < 1.0) return shooter.getPivot().getPosition();
+    if (Math.abs(shooterWheelVelocity) < 1.0) return null;
     
     Rotation2d pivotAngle = Rotation2d.fromDegrees(0);
     int iterations = 4;
@@ -85,7 +86,7 @@ public class ShooterMath {
       double exitRadians = Math.atan((Math.pow(projectileVelocity, 2.0) + (mortarMode ? 1 : -1) * Math.sqrt(Math.pow(projectileVelocity, 4.0) - gravity * (gravity * Math.pow(floorDistance, 2.0) + 2.0 * targetHeight * Math.pow(projectileVelocity, 2.0)))) / (gravity * floorDistance));
       double distanceAtApex = projectileVelocity * Math.cos(exitRadians) * (projectileVelocity * (Math.sin(exitRadians) / gravity));
       if (Double.isNaN(exitRadians) || (distanceAtApex < floorDistance && !mortarMode)) {
-        return shooter.getPivot().getPosition();
+        return null;
       }
       Rotation2d exitAngle = Rotation2d.fromRadians(exitRadians);
       pivotAngle = exitAngle.minus(SHOOTER_PIVOT.NOTE_ROTATION_OFFSET);
@@ -146,8 +147,8 @@ public class ShooterMath {
     Logger.log("idealHeading", idealHeading.getDegrees());
     Logger.log("currentHeading", swerveDrive.getHeading().getDegrees());
     Rotation2d idealPivotAngle = calcPivotAngle(aimingPoint, swerveDrive, shooter);
-
-    // System.out.println(inRange(aimingPoint, swerveDrive, shooter));
+    if (idealPivotAngle == null) return false;
+    System.out.println(inRange(aimingPoint, swerveDrive, shooter));
     
 
     if (Math.abs(shooter.getPivot().getPosition().minus(idealPivotAngle).getRadians()) > acceptableError / 4.0) return false;

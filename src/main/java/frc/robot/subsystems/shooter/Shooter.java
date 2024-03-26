@@ -97,7 +97,7 @@ public class Shooter extends SubsystemBase {
     double shooterWheelVelocity = ShooterMath.calcShooterWheelVelocity(projectileVelocity);
     
     Logger.log("compensatedAimingPoint", compensatedAimingPoint);
-    Logger.log("targetPivotAngle", pivotAngle.getDegrees());
+    Logger.log("targetPivotAngle", pivotAngle == null ? 0.0 : pivotAngle.getDegrees());
     Logger.log("realPivotAngle", shooterPivot.getPosition().getDegrees());
     Logger.log("flightTime", flightTime);
     Logger.log("targetShooterWheelVelocity", shooterWheelVelocity);

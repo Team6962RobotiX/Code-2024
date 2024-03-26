@@ -19,6 +19,8 @@ public class LEDs extends SubsystemBase {
   private static int length = 155;
   private static State state = State.OFF;
   private static double time = 0;
+  private static double centerFillTimer = 0;
+  private static boolean centerFillCalled = false;
   
   public static enum State {
     OFF,
@@ -28,6 +30,8 @@ public class LEDs extends SubsystemBase {
     HAS_NOTE,
     HAS_VISION_TARGET_SPEAKER,
     RUNNING_COMMAND,
+    AIMING,
+    AIMED,
     BAD,
     GOOD,
   }
@@ -58,7 +62,6 @@ public class LEDs extends SubsystemBase {
 
   @Override
   public void periodic() {
-
     switch (state) {
       case OFF:
         setColor(0, length, new int[] {0, 0, 0});
@@ -85,6 +88,12 @@ public class LEDs extends SubsystemBase {
       case RUNNING_COMMAND:
         setColorWave(0, length, ANTARES_YELLOW, 1.0, Direction.LEFT);
         break;
+      case AIMING:
+        setColorBounce(0, length, GREEN, 1.0);
+        break;
+      case AIMED:
+        setColorFromCenter(0, length, GREEN, 0.25);
+        break;
       case GOOD:
         setColor(0, length, GREEN);
         break;
@@ -103,6 +112,13 @@ public class LEDs extends SubsystemBase {
     state = State.OFF;
 
     time += Robot.getLoopTime() * (1.0 + stateController.getFieldVelocity().getNorm());
+
+    if (!centerFillCalled) {
+      centerFillTimer = 0;
+    } else {
+      centerFillTimer += Robot.getLoopTime();
+    }
+    centerFillCalled = false;
   }
 
   @Override
@@ -154,6 +170,7 @@ public class LEDs extends SubsystemBase {
   private static void setColorWave(int start, int stop, int[] RGB, double speed, Direction dir) {    
     setColorWave(start, stop, RGB, new int[]{0, 0, 0}, speed, dir);
   }
+
   private static void setColorWave(int start, int stop, int[] firstRGB, int[] secondRGB, double speed, Direction dir) {
     for (int pixel = 0; pixel < stop - start; pixel++) {
       double t = (pixel / 50.0 + time * speed) % 1.0;
@@ -170,6 +187,34 @@ public class LEDs extends SubsystemBase {
       }
     }
   }
+
+
+  private static void setColorBounce(int start, int stop, int[] RGB, double speed) {
+    int length = stop - start;
+    
+    // Calculate the current pixel position
+    int pos = (int) ((((Timer.getFPGATimestamp() * speed)) * 2 * length) % (2.0 * length));
+    
+    pos = (pos < length) ? pos : 2 * length - pos - 1;
+
+    // Set all pixels to off
+    for (int pixel = start; pixel < stop; pixel++) {
+        setColor(pixel, new int[]{0, 0, 0});
+    }
+
+    for (int pixel = Math.max(0, pos - 10); pixel < Math.min(stop, pos + 10); pixel++) {
+      setColor(pixel, RGB);
+    }
+  }
+
+
+  private static void setColorFromCenter(int start, int stop, int[] RGB, double speed) {
+    centerFillCalled = true;
+    for (int pixel = (int) Math.max(0, length / 2 - (length / 2 * (centerFillTimer / speed))); pixel < (int) Math.min(length, length / 2 + (length / 2 * (centerFillTimer / speed))); pixel++) {
+      setColor(pixel, RGB);
+    }
+  }
+
 
   // private static void setGradientWave(int start, int stop, int[] firstRGB, int[] secondRGB, double speed) {
   //   double time = Timer.getFPGATimestamp();

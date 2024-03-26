@@ -121,7 +121,7 @@ public class RobotStateController extends SubsystemBase {
           .raceWith(LEDs.setStateCommand(LEDs.State.RUNNING_COMMAND))
           .alongWith(new ConditionalCommand(
             LEDs.setStateCommand(LEDs.State.BAD),
-            Commands.runOnce(() -> {}),
+            LEDs.setStateCommand(LEDs.State.AIMING),
             () -> !hasNote() && !RobotBase.isSimulation()
           ));
       case AIM_MORTAR:
@@ -201,6 +201,10 @@ public class RobotStateController extends SubsystemBase {
 
     if (hasNote()) {
       LEDs.setState(LEDs.State.HAS_NOTE);
+    }
+
+    if (isAimed()) {
+      LEDs.setState(LEDs.State.AIMED);
     }
 
     Logger.log("currentState", getState().name());
