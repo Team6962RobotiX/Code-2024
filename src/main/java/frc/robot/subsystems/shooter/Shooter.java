@@ -27,7 +27,6 @@ public class Shooter extends SubsystemBase {
   private SwerveDrive swerveDrive;
   private ShooterWheels shooterWheels;
   private ShooterPivot shooterPivot;
-  private FeedWheels feedWheels;
 
   private Mechanism2d mechanism = new Mechanism2d(0, 0);
   private MechanismRoot2d pivotMechanism = mechanism.getRoot("pivot", SHOOTER_PIVOT.POSITION.getX(), SHOOTER_PIVOT.POSITION.getZ());
@@ -47,7 +46,6 @@ public class Shooter extends SubsystemBase {
     this.shooterWheels = new ShooterWheels();
     this.shooterPivot = new ShooterPivot();
     this.swerveDrive = swerveDrive;
-    this.feedWheels = new FeedWheels();
     
     Logger.autoLog(this, "Is Aimed", () -> isAimed());
     Logger.autoLog(this, "Shooter Position", () -> ShooterMath.calcShooterLocationOnField(swerveDrive, this));
@@ -123,10 +121,6 @@ public class Shooter extends SubsystemBase {
 
   public Command setState(State state) {
     switch(state) {
-      case IN:
-        return Commands.sequence(
-          feedWheels.setState(FeedWheels.State.IN)
-        );
       case AIM_SPEAKER:
         return Commands.parallel(
           aim(Field.SPEAKER, Field.SPEAKER_HEIGHT)
@@ -138,7 +132,6 @@ public class Shooter extends SubsystemBase {
       case SPIN_UP:
         return Commands.parallel(
           shooterWheels.setState(ShooterWheels.State.SPIN_UP),
-          feedWheels.setState(FeedWheels.State.SHOOT),
           shooterWheels.setTargetExitVelocityCommand(() -> 
             shooterPivot.isAngleAchievable(ShooterMath.calcPivotAngle(aimingPoint.get(), swerveDrive, this, Constants.SHOOTER_WHEELS.MAX_WHEEL_SPEED)) ? Constants.SHOOTER_WHEELS.TOP_EXIT_VELOCITY : ShooterMath.calcProjectileVelocity(
               ShooterMath.calcVelocityCompensatedPoint(
@@ -157,10 +150,6 @@ public class Shooter extends SubsystemBase {
 
   public ShooterWheels getWheels() {
     return shooterWheels;
-  }
-
-  public FeedWheels getFeedWheels() {
-    return feedWheels;
   }
 
   public Command aim(Supplier<Translation3d> point, double targetSize) {

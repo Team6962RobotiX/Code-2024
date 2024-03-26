@@ -97,7 +97,7 @@ public class RobotContainer {
     // collisionDetector = new CollisionDetector();
     
     // Configure the trigger bindings
-    Controls.configureBindings(stateController, swerveDrive, transfer, transfer.getInWheels(), transfer.getOutWheels(), shooter, shooter.getWheels(), shooter.getPivot(), shooter.getFeedWheels(), amp, amp.getPivot(), amp.getWheels(), hang);
+    Controls.configureBindings(stateController, swerveDrive, transfer, transfer.getInWheels(), transfer.getOutWheels(), shooter, shooter.getWheels(), shooter.getPivot(), amp, amp.getPivot(), amp.getWheels(), hang);
 
     SwerveDrive.printChoreoConfig();
     AprilTags.printConfig(Constants.LIMELIGHT.APRILTAG_CAMERA_POSES);
