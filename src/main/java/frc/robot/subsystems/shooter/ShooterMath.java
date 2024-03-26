@@ -84,7 +84,7 @@ public class ShooterMath {
       double exitRadians = Math.atan((Math.pow(projectileVelocity, 2.0) + (mortarMode ? 1 : -1) * Math.sqrt(Math.pow(projectileVelocity, 4.0) - gravity * (gravity * Math.pow(floorDistance, 2.0) + 2.0 * targetHeight * Math.pow(projectileVelocity, 2.0)))) / (gravity * floorDistance));
       double distanceAtApex = projectileVelocity * Math.cos(exitRadians) * (projectileVelocity * (Math.sin(exitRadians) / gravity));
       if (Double.isNaN(exitRadians) || (distanceAtApex < floorDistance && !mortarMode)) {
-        return Rotation2d.fromDegrees(0.0);
+        return shooter.getPivot().getPosition();
       }
       Rotation2d exitAngle = Rotation2d.fromRadians(exitRadians);
       pivotAngle = exitAngle.minus(SHOOTER_PIVOT.NOTE_ROTATION_OFFSET);
@@ -108,8 +108,8 @@ public class ShooterMath {
    * @return Projectile exit velocity in m/s
    */
   public static double calcProjectileVelocity(double shooterWheelVelocity) {
-    if (shooterWheelVelocity >= Constants.SHOOTER_WHEELS.MAX_WHEEL_SPEED) return 12.0;
-    return -Math.pow(1.0077, -shooterWheelVelocity + 521.41) + 12.0;
+    if (shooterWheelVelocity >= Constants.SHOOTER_WHEELS.MAX_WHEEL_SPEED) return 13.0;
+    return -Math.pow(1.01014, -shooterWheelVelocity + 495.499) + 13.0;
 
     // // Derived from https://www.reca.lc/shooterWheel
     // // return 1000000.0;
@@ -133,8 +133,8 @@ public class ShooterMath {
 
   
   public static double calcShooterWheelVelocity(double projectileVelocity) {
-    if (projectileVelocity >= 12.0) return Constants.SHOOTER_WHEELS.MAX_WHEEL_SPEED;
-    return -logB(-projectileVelocity + 12.0, 1.0077) + 521.41;
+    if (projectileVelocity >= 13.0) return Constants.SHOOTER_WHEELS.MAX_WHEEL_SPEED;
+    return -logB(-projectileVelocity + 13.0, 1.01014) + 495.499;
   }
 
   public static boolean isAimed(Translation3d targetPoint, double targetSize, SwerveDrive swerveDrive, Shooter shooter) {
@@ -215,7 +215,7 @@ public class ShooterMath {
 
   //   return shotChance;
   // }
-  
+
   public static Translation3d calcShooterLocationOnField(SwerveDrive swerveDrive, Shooter shooter) {
     Pose2d currentPose = swerveDrive.getPose();
     Rotation2d pivotAngle = shooter.getPivot().getPosition();
@@ -232,8 +232,10 @@ public class ShooterMath {
   }
 
 
+
   public static double calculateFlightTime(Translation3d targetPoint, SwerveDrive swerveDrive, Shooter shooter) {
     double shooterWheelVelocity = shooter.getWheels().getVelocity();
+    if (Math.abs(shooterWheelVelocity) < 1.0) return 0.0;
     Rotation2d pivotAngle = shooter.getPivot().getPosition();
     // (v * sin(a) - sqrt(v^2 * sin(a)^2 - 2 * g * h)) / g
     double projectileVelocity = calcProjectileVelocity(shooterWheelVelocity);

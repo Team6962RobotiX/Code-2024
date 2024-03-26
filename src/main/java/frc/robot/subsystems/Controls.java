@@ -23,7 +23,6 @@ import frc.robot.subsystems.amp.AmpPivot;
 import frc.robot.subsystems.amp.AmpWheels;
 import frc.robot.subsystems.drive.SwerveDrive;
 import frc.robot.subsystems.hang.Hang;
-import frc.robot.subsystems.shooter.FeedWheels;
 import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.shooter.ShooterPivot;
 import frc.robot.subsystems.shooter.ShooterWheels;
@@ -45,7 +44,6 @@ public class Controls {
       Shooter shooter, 
       ShooterWheels shooterWheels, 
       ShooterPivot shooterPivot, 
-      FeedWheels feedWheels,
       Amp amp, 
       AmpPivot ampPivot, 
       AmpWheels ampWheels,

@@ -191,7 +191,6 @@ public class SwerveDrive extends SubsystemBase {
   @Override
   public void periodic() {
     if (!ENABLED_SYSTEMS.ENABLE_DRIVE) return;
-    Logger.log("swerveModulePositions", getModulePositions());
     if (RobotState.isDisabled()) {
       for (SwerveModule module : modules) {
         module.seedSteerEncoder();
@@ -203,15 +202,8 @@ public class SwerveDrive extends SubsystemBase {
     
     Logger.log("Loop-Time", Robot.getLoopTime());
     
-    Pose2d poseBefore = getPose();
     updateOdometry();
-    Pose2d currentPose = getPose();
-    double magnitude = currentPose.getTranslation().getNorm();
-    if (magnitude > 1000 || Double.isNaN(magnitude) || Double.isInfinite(magnitude)) {
-      System.out.println("BAD");
-      LEDs.setState(LEDs.State.BAD);
-      resetPose(poseBefore);
-    }
+
 
     // System.out.println(Constants.SWERVE_DRIVE.PHYSICS.SLIPLESS_CURRENT_LIMIT);
     // System.out.println(Constants.SWERVE_DRIVE.PHYSICS.MAX_LINEAR_ACCELERATION);
@@ -296,18 +288,30 @@ public class SwerveDrive extends SubsystemBase {
     Logger.log("gyro.isCalibrating()", gyro.isCalibrating());
     Logger.log("gyro.getRotation2d()", gyro.getRotation2d().getDegrees());
 
+    Pose2d poseBefore = getPose();
+
     SwerveDriveWheelPositions wheelPositions = new SwerveDriveWheelPositions(getModulePositions());
     Twist2d twist = kinematics.toTwist2d(previousWheelPositions, wheelPositions);
     Pose2d newPose = getPose().exp(twist);
-    previousWheelPositions = wheelPositions.copy();
 
     if (gyro.isConnected() && !gyro.isCalibrating() && !RobotBase.isSimulation()) {
       gyroHeading = gyro.getRotation2d();
     } else {
       gyroHeading = newPose.getRotation();
     }
+    Logger.log("swerveModulePositions", getModulePositions());
     poseEstimator.update(gyroHeading.plus(gyroOffset), getModulePositions());
     AprilTags.injectVisionData(LIMELIGHT.APRILTAG_CAMERA_POSES, this);
+
+    Pose2d currentPose = getPose();
+    double magnitude = currentPose.getTranslation().getNorm();
+    if (magnitude > 1000 || Double.isNaN(magnitude) || Double.isInfinite(magnitude)) {
+      System.out.println("BAD");
+      LEDs.setState(LEDs.State.BAD);
+      resetPose(gyroHeading.plus(gyroOffset), poseBefore, previousWheelPositions);
+    }
+    
+    previousWheelPositions = wheelPositions.copy();
   }
 
   @Override
@@ -386,7 +390,7 @@ public class SwerveDrive extends SubsystemBase {
 
     double alignmentAngularVelocity = alignmentController.calculate(getHeading().getRadians()) + addedAlignmentAngularVelocity;
     addedAlignmentAngularVelocity = 0.0;
-    if (isAligning && !alignmentController.atSetpoint() && !parked) fieldRelativeSpeeds.omegaRadiansPerSecond += alignmentAngularVelocity;
+    if (isAligning && !alignmentController.atSetpoint() && !parked && Math.abs(alignmentAngularVelocity) > 0.05) fieldRelativeSpeeds.omegaRadiansPerSecond += alignmentAngularVelocity;
     
     SwerveModuleState[] moduleStates = kinematics.toSwerveModuleStates(ChassisSpeeds.fromFieldRelativeSpeeds(fieldRelativeSpeeds, getAllianceAwareHeading()));
     SwerveDriveKinematics.desaturateWheelSpeeds(
@@ -549,6 +553,15 @@ public class SwerveDrive extends SubsystemBase {
    * Resets the odometer position to a given position
    * @param pose Position to reset the odometer to
    */
+  public void resetPose(Rotation2d heading, Pose2d pose, SwerveDriveWheelPositions wheelPositions) {
+    poseEstimator.resetPosition(heading, wheelPositions, pose);
+    alignmentController.setSetpoint(getHeading().getRadians());
+  }
+
+  /**
+   * Resets the odometer position to a given position
+   * @param pose Position to reset the odometer to
+   */
   public void resetPose(Pose2d pose) {
     poseEstimator.resetPosition(getHeading(), getModulePositions(), pose);
     alignmentController.setSetpoint(getHeading().getRadians());
@@ -690,14 +703,6 @@ public class SwerveDrive extends SubsystemBase {
    */
   public Rotation2d getAllianceAwareHeading() {
     return getHeading().plus(Rotation2d.fromDegrees(Constants.IS_BLUE_TEAM.get() ? 0.0 : 180.0));
-  }
-
-  public Pose2d getPoseToShootFrom() {
-    if (RobotBase.isSimulation()) {
-      return getFuturePose();
-    } else {
-      return getPose();
-    }
   }
 
   /**

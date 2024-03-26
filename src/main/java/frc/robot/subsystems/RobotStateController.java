@@ -29,7 +29,7 @@ public class RobotStateController extends SubsystemBase {
   private Intake intake;
   private DigitalInput beamBreakSensor;
   private Debouncer beamBreakDebouncer = new Debouncer(0.1);
-  private Debouncer shotDebouncer = new Debouncer(0.5);
+  private Debouncer shotDebouncer = new Debouncer(0.25);
   private State currentState;
   // private static ShuffleboardTab tab = Shuffleboard.getTab("Auto");
   // private static SimpleWidget hasNote = tab.add("has Note", true).withWidget(BuiltInWidgets.kToggleButton).withSize(1, 1).withPosition(0, 0);
