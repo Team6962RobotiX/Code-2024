@@ -350,7 +350,7 @@ public class Autonomous extends Command {
     }
     return Commands.sequence(
       Commands.runOnce(() -> {
-        swerveDrive.setRotationTargetOverrideFromPoint(() -> null, Rotation2d.fromDegrees(0.0));
+        swerveDrive.setRotationTargetOverrideFromPoint(null, Rotation2d.fromDegrees(0.0));
       }),
       Commands.race(
         moveCommand

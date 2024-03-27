@@ -380,11 +380,11 @@ public class SwerveDrive extends SubsystemBase {
       rotationOverridePoint = null;
     }
 
-    if (rotationOverridePoint != null) {
+    if (rotationOverridePoint != null || RobotState.isAutonomous()) {
       fieldRelativeSpeeds.omegaRadiansPerSecond = 0.0;
-      facePoint(rotationOverridePoint.get(), rotationOverrideOffset);
+      if (rotationOverridePoint != null) facePoint(rotationOverridePoint.get(), rotationOverrideOffset);
     }
-
+    
     if (Math.abs(fieldRelativeSpeeds.omegaRadiansPerSecond) > 0.01) {
       setTargetHeading(getHeading());
       isAligning = false;
@@ -393,6 +393,7 @@ public class SwerveDrive extends SubsystemBase {
       setTargetHeading(getHeading());
       isAligning = true;
     }
+    
     Logger.log("addedAlignmentAngularVelocity", addedAlignmentAngularVelocity);
     Logger.log("alignmentController.getSetpoint()", alignmentController.getSetpoint());
 
@@ -509,6 +510,7 @@ public class SwerveDrive extends SubsystemBase {
       return;
     }
 
+
     Translation2d currentPosition = getPose().getTranslation();
     Translation2d futurePosition = getPose().getTranslation().plus(getFieldVelocity().times(time));
     
@@ -519,6 +521,7 @@ public class SwerveDrive extends SubsystemBase {
     if (getPose().getTranslation().getDistance(point) < 1.0) {
       addedVelocity = 0.0;
     }
+
 
     setTargetHeadingAndVelocity(currentTargetHeading, addedVelocity);
   }
