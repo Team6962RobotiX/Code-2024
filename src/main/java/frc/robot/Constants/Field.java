@@ -26,7 +26,7 @@ public final class Field {
   public static final double LENGTH = 16.54;
   
   public static final Map<String, Supplier<Pose2d>> AUTO_MOVE_POSITIONS = Map.of(
-    "AMP", pose2d(1.85, 7.65, 90.0),
+    "AMP", pose2d(1.85, 7.5, 90.0),
     "SOURCE", pose2d(15.4, 1.0, -60.0),
     "SPEAKER", pose2d(1.5, 5.5, 180.0),
     "TRAP", pose2d(6, WIDTH / 2, 180.0)
@@ -45,7 +45,7 @@ public final class Field {
   
   public static final double BLUE_WING_X = Units.inchesToMeters(231.2);
   public static final Supplier<Double> WING_X = flipIfRed(BLUE_WING_X);
-  public static final Supplier<Translation3d> MORTAR_POINT = point3d(1.0, 7.0, 0.0);
+  public static final Supplier<Translation3d> MORTAR_POINT = point3d(0.5, 6.0, 0.0);
 
   public static final Translation2d[] BLUE_STAGE_CORNERS = {
     new Translation2d(3.4, 4.1),

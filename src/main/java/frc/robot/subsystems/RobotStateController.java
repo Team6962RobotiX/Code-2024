@@ -118,12 +118,7 @@ public class RobotStateController extends SubsystemBase {
       case AIM_SPEAKER:
         return shooter.setState(Shooter.State.AIM_SPEAKER)
           .alongWith(Controls.rumbleBoth(() -> canShoot()))
-          .raceWith(LEDs.setStateCommand(LEDs.State.RUNNING_COMMAND))
-          .alongWith(new ConditionalCommand(
-            LEDs.setStateCommand(LEDs.State.BAD),
-            LEDs.setStateCommand(LEDs.State.AIMING),
-            () -> !hasNote() && !RobotBase.isSimulation()
-          ));
+          .raceWith(LEDs.setStateCommand(LEDs.State.RUNNING_COMMAND));
       case AIM_MORTAR:
         return shooter.setState(Shooter.State.AIM_MORTAR)
           .alongWith(Controls.rumbleBoth(() -> canShoot()))
@@ -207,6 +202,16 @@ public class RobotStateController extends SubsystemBase {
       LEDs.setState(LEDs.State.AIMED);
     }
 
+    if (shooter.isAiming()) {
+      if (!hasNote() && !RobotBase.isSimulation()) {
+        LEDs.setState(LEDs.State.BAD);
+      }
+      if (shooter.inRange()) {
+        LEDs.setState(LEDs.State.AIMING_IN_RANGE);
+      } else {
+        LEDs.setState(LEDs.State.AIMING);
+      }
+    }
     Logger.log("currentState", getState().name());
     
     if (swerveDrive.underStage()) {

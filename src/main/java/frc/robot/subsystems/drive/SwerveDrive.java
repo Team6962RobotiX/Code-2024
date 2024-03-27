@@ -398,7 +398,7 @@ public class SwerveDrive extends SubsystemBase {
 
     double alignmentAngularVelocity = alignmentController.calculate(getHeading().getRadians()) + addedAlignmentAngularVelocity;
     addedAlignmentAngularVelocity = 0.0;
-    if (isAligning && !alignmentController.atSetpoint() && !parked && Math.abs(alignmentAngularVelocity) > 0.05) fieldRelativeSpeeds.omegaRadiansPerSecond += alignmentAngularVelocity;
+    if (isAligning && !alignmentController.atSetpoint() && !parked) fieldRelativeSpeeds.omegaRadiansPerSecond += alignmentAngularVelocity;
     
     SwerveModuleState[] moduleStates = kinematics.toSwerveModuleStates(ChassisSpeeds.fromFieldRelativeSpeeds(fieldRelativeSpeeds, getAllianceAwareHeading()));
     SwerveDriveKinematics.desaturateWheelSpeeds(
@@ -896,25 +896,30 @@ public class SwerveDrive extends SubsystemBase {
    * @param orientation Field-relative orientation to rotate to
    * @return A command to run
    */
-  public Command goTo(Pose2d pose) {
-    Command pathfindingCommand = goToSimple(pose);
+  // public Command goTo(Pose2d pose) {
+  //   return pathfindThenFollowPath(
+  //     new Pose2d(new Translation2d(-1.0, 0).rotateBy(pose.getTranslation().minus(getPose().getTranslation()).getAngle()).plus(pose.getTranslation()), pose.getRotation()),
+  //     pose
+  //   );
 
-    if (pose.getTranslation().getDistance(getPose().getTranslation()) > 1.0) {
-      // Since AutoBuilder is configured, we can use it to build pathfinding commands
-      pathfindingCommand = AutoBuilder.pathfindToPose(
-        pose,
-        SWERVE_DRIVE.AUTONOMOUS.DEFAULT_PATH_CONSTRAINTS,
-        0.0, // Goal end velocity in meters/sec
-        0.0 // Rotation delay distance in meters. This is how far the robot should travel before attempting to rotate.
-      ).andThen(goToSimple(pose));
-    }
+  //   // Command pathfindingCommand = goToSimple(pose);
 
-    if (RobotState.isAutonomous()) {
-      return pathfindingCommand;
-    } else {
-      return pathfindingCommand.andThen(Commands.runOnce(() -> setTargetHeading(pose.getRotation())));
-    }
-  }
+  //   // if (pose.getTranslation().getDistance(getPose().getTranslation()) > 1.0) {
+  //   //   // Since AutoBuilder is configured, we can use it to build pathfinding commands
+  //   //   pathfindingCommand = AutoBuilder.path(
+  //   //     pose,
+  //   //     SWERVE_DRIVE.AUTONOMOUS.DEFAULT_PATH_CONSTRAINTS,
+  //   //     0.0, // Goal end velocity in meters/sec
+  //   //     0.0 // Rotation delay distance in meters. This is how far the robot should travel before attempting to rotate.
+  //   //   ).andThen(goToSimple(pose));
+  //   // }
+
+  //   // if (RobotState.isAutonomous()) {
+  //   //   return pathfindingCommand;
+  //   // } else {
+  //   //   return pathfindingCommand.andThen(Commands.runOnce(() -> setTargetHeading(pose.getRotation())));
+  //   // }
+  // }
 
   public Command pathfindThenFollowPath(Pose2d firstPoint, Pose2d secondPoint) {
     Rotation2d angle = secondPoint.getTranslation().minus(firstPoint.getTranslation()).getAngle();
@@ -971,15 +976,15 @@ public class SwerveDrive extends SubsystemBase {
     );
   }
 
-  /**
-   * Go to the nearest pose in a list of poses
-   * @param poses List of poses to go to
-   * @param xboxController Xbox controller to cancel the command
-   * @return A command to run
-   */
-  public Command goToNearestPose(List<Pose2d> poses) {
-   return goTo(getPose().nearest(poses));
-  }
+  // /**
+  //  * Go to the nearest pose in a list of poses
+  //  * @param poses List of poses to go to
+  //  * @param xboxController Xbox controller to cancel the command
+  //  * @return A command to run
+  //  */
+  // public Command goToNearestPose(List<Pose2d> poses) {
+  //  return goTo(getPose().nearest(poses));
+  // }
   
   public boolean shouldFlipPaths() {
     return false;

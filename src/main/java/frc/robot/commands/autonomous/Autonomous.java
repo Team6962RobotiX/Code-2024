@@ -40,7 +40,7 @@ public class Autonomous extends Command {
   private double noteAvoidRadius = (Field.NOTE_LENGTH / 2.0 + Constants.SWERVE_DRIVE.BUMPER_DIAGONAL / 2.0);
   private double notePickupDistance = Constants.SWERVE_DRIVE.BUMPER_LENGTH / 2.0;
   private double noteAlignDistance = Constants.SWERVE_DRIVE.BUMPER_LENGTH / 2.0 + Field.NOTE_LENGTH;
-  private double speakerShotDistance = 6.0;
+  private double speakerShotDistance = 5.0;
   private double adjacentNoteBand = 1.0;
   private double minPathfindingDistance = 2.5;
   private Command runningCommand;
@@ -201,6 +201,8 @@ public class Autonomous extends Command {
     if (!inRange(notePosition) && !adjacent) {
       heading = notePosition.minus(swerveDrive.getPose().getTranslation()).getAngle();
     }
+
+    
 
     Translation2d alignmentPoint = new Translation2d(-noteAlignDistance, 0).rotateBy(heading).plus(notePosition);
     Translation2d pickupPoint = new Translation2d(-notePickupDistance, 0).rotateBy(heading).plus(notePosition);

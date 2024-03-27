@@ -17,6 +17,7 @@ import frc.robot.Constants.Constants;
 import frc.robot.Constants.Constants.DEVICES;
 import frc.robot.Constants.Constants.LIMELIGHT;
 import frc.robot.Constants.Preferences;
+import frc.robot.commands.drive.GoToPose;
 import frc.robot.commands.drive.XBoxSwerve;
 import frc.robot.subsystems.amp.Amp;
 import frc.robot.subsystems.amp.AmpPivot;
@@ -55,7 +56,7 @@ public class Controls {
     driver.b();
     driver.x();
     driver.y(); // USED
-    driver.start().whileTrue(swerveDrive.goTo(frc.robot.Constants.Field.AUTO_MOVE_POSITIONS.get("AMP").get()));;
+    driver.start().whileTrue(new GoToPose(frc.robot.Constants.Field.AUTO_MOVE_POSITIONS.get("AMP"), swerveDrive));
     driver.back().whileTrue(stateController.setState(RobotStateController.State.AIM_MORTAR));
     driver.leftBumper();
     driver.rightBumper();
@@ -71,7 +72,9 @@ public class Controls {
     swerveDrive.setDefaultCommand(new XBoxSwerve(swerveDrive, driver.getHID(), stateController));    
 
     if (RobotBase.isSimulation()) {
-      driver.button(1).whileTrue(stateController.setState(RobotStateController.State.AIM_SPEAKER).alongWith(stateController.setState(RobotStateController.State.SPIN_UP)));
+      // driver.button(1).whileTrue(new GoToPose(frc.robot.Constants.Field.AUTO_MOVE_POSITIONS.get("AMP"), swerveDrive));
+
+      // driver.button(1).whileTrue(stateController.setState(RobotStateController.State.AIM_SPEAKER).alongWith(stateController.setState(RobotStateController.State.SPIN_UP)));
     }
 
     operator.a().onTrue(shooterPivot.setTargetAngleCommand(() -> Rotation2d.fromDegrees(30.0)));

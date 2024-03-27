@@ -31,6 +31,7 @@ public class LEDs extends SubsystemBase {
     HAS_VISION_TARGET_SPEAKER,
     RUNNING_COMMAND,
     AIMING,
+    AIMING_IN_RANGE,
     AIMED,
     BAD,
     GOOD,
@@ -89,6 +90,9 @@ public class LEDs extends SubsystemBase {
         setColorWave(0, length, ANTARES_YELLOW, 1.0, Direction.LEFT);
         break;
       case AIMING:
+        setColorBounce(0, length, ANTARES_YELLOW, 1.0);
+        break;
+      case AIMING_IN_RANGE:
         setColorBounce(0, length, GREEN, 1.0);
         break;
       case AIMED:

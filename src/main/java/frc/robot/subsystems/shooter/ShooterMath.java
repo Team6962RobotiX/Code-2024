@@ -55,6 +55,9 @@ public class ShooterMath {
 
   public static double calcProjectileVelocity(Translation3d targetPoint, SwerveDrive swerveDrive, Shooter shooter) {
     Rotation2d pivotAngle = shooter.getPivot().getPosition();
+
+    pivotAngle = Rotation2d.fromDegrees(Math.min(Math.max(pivotAngle.getDegrees(), Preferences.SHOOTER_PIVOT.MIN_ANGLE.getDegrees() + 10.0), Preferences.SHOOTER_PIVOT.MAX_ANGLE.getDegrees() - 10.0));
+
     Rotation2d exitAngle = pivotAngle.plus(Constants.SHOOTER_PIVOT.NOTE_ROTATION_OFFSET);
 
     Translation3d shooterLocation = calcShooterLocationOnField(swerveDrive, shooter);
@@ -111,7 +114,9 @@ public class ShooterMath {
    */
   public static double calcProjectileVelocity(double shooterWheelVelocity) {
     if (shooterWheelVelocity >= Constants.SHOOTER_WHEELS.MAX_WHEEL_SPEED) return 13.0;
-    return -Math.pow(1.01014, -shooterWheelVelocity + 495.499) + 13.0;
+    double velocity = -Math.pow(1.01014, -shooterWheelVelocity + 495.499) + 13.0;
+    if (velocity < 0) return 0.0;
+    return velocity;
 
     // // Derived from https://www.reca.lc/shooterWheel
     // // return 1000000.0;
@@ -152,7 +157,7 @@ public class ShooterMath {
     
 
     if (Math.abs(shooter.getPivot().getPosition().minus(idealPivotAngle).getRadians()) > acceptableError / 4.0) return false;
-    if (Math.abs(swerveDrive.getHeading().minus(idealHeading).getRadians()) > acceptableError) return false;
+    if (Math.abs(swerveDrive.getHeading().minus(idealHeading).getRadians()) > acceptableError * 2.0) return false;
     if (!inRange(aimingPoint, swerveDrive, shooter)) return false;
     return true;
   }
@@ -268,9 +273,9 @@ public class ShooterMath {
     Translation2d projectileOffset = currentVelocity.times(flightTime);
 
     if (toCheckAiming) {
-      Translation2d relativeShooterPosition = calcShooterLocationOnField(swerveDrive, shooter).toTranslation2d().minus(swerveDrive.getPose().getTranslation());
-      Translation2d rotationAddedOffset = relativeShooterPosition.div(relativeShooterPosition.getNorm()).times(swerveDrive.getRotationalVelocity() * relativeShooterPosition.getNorm() * flightTime).rotateBy(Rotation2d.fromDegrees(90.0));
-      projectileOffset = projectileOffset.minus(rotationAddedOffset);
+      // Translation2d relativeShooterPosition = calcShooterLocationOnField(swerveDrive, shooter).toTranslation2d().minus(swerveDrive.getPose().getTranslation());
+      // Translation2d rotationAddedOffset = relativeShooterPosition.div(relativeShooterPosition.getNorm()).times(swerveDrive.getRotationalVelocity() * relativeShooterPosition.getNorm() * flightTime).rotateBy(Rotation2d.fromDegrees(90.0));
+      // projectileOffset = projectileOffset.minus(rotationAddedOffset);
     }
 
     Translation3d velocityCompensatedPoint =  new Translation3d(

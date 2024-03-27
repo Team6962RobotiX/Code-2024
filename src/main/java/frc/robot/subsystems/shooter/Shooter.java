@@ -33,6 +33,7 @@ public class Shooter extends SubsystemBase {
   private MechanismLigament2d shooterMechanism = pivotMechanism.append(new MechanismLigament2d("shooter", SHOOTER_PIVOT.SHOOTER_LENGTH, .0));
 
   private Supplier<Translation3d> aimingPoint = Field.SPEAKER;
+  private boolean isAiming = false;
   private double targetSize = 0.0;
 
   public static enum State {
@@ -127,7 +128,12 @@ public class Shooter extends SubsystemBase {
         );
       case AIM_MORTAR:
         return Commands.parallel(
-          aim(Field.MORTAR_POINT, 2.5)
+          aim(Field.MORTAR_POINT, 10.0).finallyDo(
+            () -> {
+              this.aimingPoint = Field.SPEAKER;
+              this.targetSize = Field.SPEAKER_HEIGHT;
+            }
+          )
         );
       case SPIN_UP:
         return Commands.parallel(
@@ -144,7 +150,7 @@ public class Shooter extends SubsystemBase {
             )
           )
       );
-    }
+    } 
     return null;
   }
 
@@ -177,8 +183,9 @@ public class Shooter extends SubsystemBase {
       Commands.runOnce(() -> {
         this.aimingPoint = point;
         this.targetSize = targetSize;
+        this.isAiming = true;
       })
-    );
+    ).finallyDo(() -> this.isAiming = false);
   }
 
   public boolean doneMoving() {
@@ -205,5 +212,9 @@ public class Shooter extends SubsystemBase {
 
   public boolean inRange() {
     return ShooterMath.inRange(aimingPoint.get(), swerveDrive, this);
+  }
+
+  public boolean isAiming() {
+    return isAiming;
   }
 }

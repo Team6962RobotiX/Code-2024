@@ -2,6 +2,7 @@
 package frc.robot.subsystems.vision;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -12,6 +13,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.RobotState;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.Constants.LIMELIGHT;
 import frc.robot.Constants.Field;
@@ -26,6 +28,13 @@ public class AprilTags extends SubsystemBase {
   public static void injectVisionData(Map<String, Pose3d> cameraPoses, SwerveDrive swerveDrive) {
     List<LimelightHelpers.PoseEstimate> poseEstimates = cameraPoses.keySet().stream().map(LimelightHelpers::getBotPoseEstimate_wpiBlue).collect(Collectors.toList());
     
+    HashMap<String, Object> bestPoseEstimate = new HashMap<>();
+    bestPoseEstimate.put("pose", new Pose2d());
+    bestPoseEstimate.put("timestamp", Timer.getFPGATimestamp());
+    bestPoseEstimate.put("translationError", Double.MAX_VALUE);
+    bestPoseEstimate.put("rotationError", Double.MAX_VALUE);
+    bestPoseEstimate.put("tagCount", 0);
+
     //if (swerveDrive.getRotationalVelocity() > 2.0) return;
 
     int tagCount = 0;
@@ -54,7 +63,7 @@ public class AprilTags extends SubsystemBase {
         canChangeHeading = true;
       }
 
-      canChangeHeading = canChangeHeading && swerveDrive.getPose().getTranslation().getDistance(pose2d.getTranslation()) < 1.0;
+      // canChangeHeading = canChangeHeading && swerveDrive.getPose().getTranslation().getDistance(pose2d.getTranslation()) < 1.0;
       if (canChangeHeading) LEDs.setState(LEDs.State.HAS_VISION_TARGET_SPEAKER);
       
       double rotationError = Units.degreesToRadians(15);
@@ -62,20 +71,33 @@ public class AprilTags extends SubsystemBase {
         rotationError = 9999999;
       }
 
-      double translationError = Math.pow(poseEstimate.avgTagDist, 3.0) / Math.pow(poseEstimate.tagCount, 2) / 10;
-      Logger.log("canChangeHeading", canChangeHeading);
-      Logger.log("translationError", translationError);
-      Logger.log("rotationAccuracy", rotationError);
-      Logger.log("poseRotation", pose2d.getRotation().getDegrees());
+      double translationError = Math.pow(Math.abs(poseEstimate.avgTagDist), 3.0) / Math.pow(poseEstimate.tagCount, 2) / 10;
 
       // if (RobotState.isAutonomous() && poseEstimate.tagCount <= 1) {
       //   continue;
       // }
+      
 
       poses.add(pose2d);
       translationError += 0.5;
       Logger.log("visionPose", pose2d);
-      swerveDrive.addVisionMeasurement(pose2d, poseEstimate.timestampSeconds, VecBuilder.fill(translationError, translationError, rotationError));
+
+      if (translationError < (double) bestPoseEstimate.get("translationError") || rotationError < Units.degreesToRadians(360.0)) {
+        bestPoseEstimate.put("pose", pose2d);
+        bestPoseEstimate.put("timestamp", poseEstimate.timestampSeconds);
+        bestPoseEstimate.put("translationError", translationError);
+        bestPoseEstimate.put("rotationError", rotationError);
+        bestPoseEstimate.put("tagCount", poseEstimate.tagCount);
+      }
+    }
+
+    if ((int) bestPoseEstimate.get("tagCount") > 0) {
+      // Logger.log("canChangeHeading", canChangeHeading);
+      Logger.log("translationError", (double) bestPoseEstimate.get("translationError"));
+      // Logger.log("rotationAccuracy", rotationError);
+      // Logger.log("poseRotation", pose2d.getRotation().getDegrees());
+
+      swerveDrive.addVisionMeasurement((Pose2d) bestPoseEstimate.get("pose"), (double) bestPoseEstimate.get("timestamp"), VecBuilder.fill((double) bestPoseEstimate.get("translationError"), (double) bestPoseEstimate.get("translationError"), (double) bestPoseEstimate.get("rotationError")));
     }
 
     SwerveDrive.getField().getObject("visionPosese").setPoses(poses);

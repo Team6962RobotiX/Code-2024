@@ -147,7 +147,7 @@ public class XBoxSwerve extends Command {
       double bubbleRadius = 
         Math.hypot(Units.inchesToMeters(6.0), Units.inchesToMeters(6.0)) + 
         Constants.SWERVE_DRIVE.BUMPER_DIAGONAL / 2.0 +
-        (swerveDrive.getPose().getTranslation().getDistance(pillar) - swerveDrive.getFuturePose().getTranslation().getDistance(pillar)) * 2.0;
+        (swerveDrive.getPose().getTranslation().getDistance(pillar) - swerveDrive.getFuturePose().getTranslation().getDistance(pillar)) * 3.0;
       if (bubbleRadius <= 0) continue;
       if (swerveDrive.getPose().getTranslation().getDistance(pillar) > bubbleRadius) continue;
       Translation2d force = swerveDrive.getPose().getTranslation().minus(pillar);
