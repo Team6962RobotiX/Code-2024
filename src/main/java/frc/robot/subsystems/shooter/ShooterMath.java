@@ -5,6 +5,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.wpilibj.RobotState;
 import frc.robot.Constants.Constants;
 import frc.robot.Constants.Constants.SHOOTER_PIVOT;
 import frc.robot.Constants.Preferences;
@@ -259,6 +260,10 @@ public class ShooterMath {
   }
 
   public static Translation3d calcVelocityCompensatedPoint(Translation3d targetPoint, SwerveDrive swerveDrive, Shooter shooter, boolean toCheckAiming) {
+    if (RobotState.isAutonomous() && !toCheckAiming) {
+      return calcFutureAimingPoint(targetPoint, swerveDrive, shooter);
+    }
+    
     double shooterWheelVelocity = shooter.getWheels().getVelocity();
     Translation2d currentVelocity = swerveDrive.getFieldVelocity();
     
@@ -287,6 +292,18 @@ public class ShooterMath {
     Logger.log("velocityCompensatedPoint", velocityCompensatedPoint);
 
     return velocityCompensatedPoint;
+  }
+
+  public static Translation3d calcFutureAimingPoint(Translation3d targetPoint, SwerveDrive swerveDrive, Shooter shooter) {
+    Translation2d futureOffset = swerveDrive.getPose().getTranslation().minus(swerveDrive.getFuturePose().getTranslation());
+    Translation3d futureAimingPoint =  new Translation3d(
+      targetPoint.getX() + futureOffset.getX(),
+      targetPoint.getY() + futureOffset.getY(),
+      targetPoint.getZ()
+    );
+    SwerveDrive.getField().getObject("futureAimingPoint").setPose(new Pose2d(futureAimingPoint.toTranslation2d(), new Rotation2d()));
+    
+    return futureAimingPoint;
   }
 
 }
