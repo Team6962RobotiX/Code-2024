@@ -63,12 +63,16 @@ public class AprilTags extends SubsystemBase {
         canChangeHeading = true;
       }
 
-      // canChangeHeading = canChangeHeading && swerveDrive.getPose().getTranslation().getDistance(pose2d.getTranslation()) < 1.0;
+      canChangeHeading = canChangeHeading && swerveDrive.getPose().getTranslation().getDistance(pose2d.getTranslation()) < 1.0;
       if (canChangeHeading) LEDs.setState(LEDs.State.HAS_VISION_TARGET_SPEAKER);
       
       double rotationError = Units.degreesToRadians(15);
       if (!canChangeHeading) {
         rotationError = 9999999;
+        pose2d = new Pose2d(
+          pose2d.getTranslation(),
+          swerveDrive.getPose(poseEstimate.timestampSeconds).getRotation()
+        );
       }
 
       double translationError = Math.pow(Math.abs(poseEstimate.avgTagDist), 3.0) / Math.pow(poseEstimate.tagCount, 2) / 10;

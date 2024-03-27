@@ -185,7 +185,6 @@ public class Autonomous extends Command {
     return null;
   }
 
-
   public Command pickup(Translation2d notePosition) {
     if (hasNote()) return Commands.runOnce(() -> {});
     
@@ -201,8 +200,6 @@ public class Autonomous extends Command {
     if (!inRange(notePosition) && !adjacent) {
       heading = notePosition.minus(swerveDrive.getPose().getTranslation()).getAngle();
     }
-
-    
 
     Translation2d alignmentPoint = new Translation2d(-noteAlignDistance, 0).rotateBy(heading).plus(notePosition);
     Translation2d pickupPoint = new Translation2d(-notePickupDistance, 0).rotateBy(heading).plus(notePosition);
@@ -371,6 +368,8 @@ public class Autonomous extends Command {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
+    List<Translation2d> fieldNotePositions = Field.NOTE_POSITIONS.stream().map(Supplier::get).collect(Collectors.toList());
+
     if (!RobotState.isAutonomous()) {
       runningCommand.cancel();
       this.cancel();
@@ -389,7 +388,10 @@ public class Autonomous extends Command {
     if ((state != State.PICKUP || (state == State.PICKUP && !runningCommand.isScheduled())) && !hasNote() && !queuedNotes.isEmpty()) {
       state = State.PICKUP;
       if (runningCommand != null) runningCommand.cancel();
-      targetedNote = Field.NOTE_POSITIONS.get(getClosestNote()).get();
+      Translation2d closestNote = Field.NOTE_POSITIONS.get(getClosestNote()).get();
+      if (targetedNote == null || targetedNote.nearest(fieldNotePositions).getDistance(closestNote) > 0.01) {
+        targetedNote = closestNote;
+      }
       runningCommand = pickup(targetedNote);
       runningCommand.schedule();
       System.out.println("PICKUP");
@@ -397,7 +399,6 @@ public class Autonomous extends Command {
     }
 
     if (state == State.PICKUP && !hasNote() && targetedNote != null) {
-      List<Translation2d> fieldNotePositions = Field.NOTE_POSITIONS.stream().map(Supplier::get).collect(Collectors.toList());
       Translation2d visionNotePosition = getVisionNotePosition(targetedNote.nearest(fieldNotePositions));
       boolean firstVisionPosition = targetedNote.nearest(fieldNotePositions).getDistance(targetedNote) < 0.01;
       if (visionNotePosition != null && (visionNotePosition.getDistance(targetedNote) > Field.NOTE_LENGTH * swerveDrive.getPose().getTranslation().getDistance(visionNotePosition) || firstVisionPosition)) {
