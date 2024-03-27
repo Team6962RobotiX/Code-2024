@@ -4,11 +4,13 @@ import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.RobotState;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.RobotContainer;
 import frc.robot.Constants.Constants;
 import frc.robot.Constants.Preferences;
 import frc.robot.subsystems.amp.Amp;
@@ -188,7 +190,11 @@ public class RobotStateController extends SubsystemBase {
   public void periodic() {
     shotDebouncer.calculate(isAimed());
     beamBreakDebouncer.calculate(!beamBreakSensor.get());
-    
+
+    // Logger.log("PDH", RobotContainer.getPDH());
+    Logger.log("Voltage", RobotController.getBatteryVoltage());
+    Logger.log("CAN Bus", RobotController.getCANStatus().percentBusUtilization);
+    Logger.log("Current", RobotContainer.getTotalCurrent());
     Logger.log("isAimed", isAimed());
 
     if (RobotState.isDisabled()) {

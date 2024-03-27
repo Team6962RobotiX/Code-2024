@@ -53,6 +53,9 @@ public class SwerveModule extends SubsystemBase {
   private SwerveModuleState targetState = new SwerveModuleState();
   private String name;
   private int corner;
+  private Rotation2d trueSteerDirection = new Rotation2d();
+  private double driveVelocity = 0.0;
+  private double drivePosition = 0.0;
 
   private boolean isCalibrating = false;
   
@@ -111,7 +114,7 @@ public class SwerveModule extends SubsystemBase {
     driveMotor.setOpenLoopRampRate(SWERVE_DRIVE.PHYSICS.MAX_LINEAR_VELOCITY / SWERVE_DRIVE.PHYSICS.MAX_LINEAR_ACCELERATION);
     
     SparkMaxUtil.configureCANStatusFrames(driveMotor, true, true);
-    SparkMaxUtil.configureCANStatusFrames(steerMotor, false, false);
+    SparkMaxUtil.configureCANStatusFrames(steerMotor, false, true);
     
     seedSteerEncoder();
 
@@ -129,6 +132,10 @@ public class SwerveModule extends SubsystemBase {
 
 
   public void periodic() {
+    trueSteerDirection = Rotation2d.fromRotations(absoluteSteerEncoder.getAbsolutePosition().getValue());
+    driveVelocity = driveEncoder.getVelocity();
+    drivePosition = driveEncoder.getPosition();
+
     if (!ENABLED_SYSTEMS.ENABLE_DRIVE) return;
     if (isCalibrating) return;
 
@@ -183,7 +190,7 @@ public class SwerveModule extends SubsystemBase {
   }
   
   private Rotation2d getTrueSteerDirection() {
-    return Rotation2d.fromRotations(absoluteSteerEncoder.getAbsolutePosition().getValue());
+    return trueSteerDirection;
   }
 
   public SwerveModuleState getTargetState() {
@@ -191,11 +198,11 @@ public class SwerveModule extends SubsystemBase {
   }
   
   public SwerveModuleState getMeasuredState() {
-    return new SwerveModuleState(driveEncoder.getVelocity(), getTrueSteerDirection());
+    return new SwerveModuleState(driveVelocity, getTrueSteerDirection());
   }
 
   public SwerveModulePosition getModulePosition() {
-    return new SwerveModulePosition(driveEncoder.getPosition(), getMeasuredState().angle);
+    return new SwerveModulePosition(drivePosition, getMeasuredState().angle);
   }
 
   public static double calcWheelVelocity(double power) {

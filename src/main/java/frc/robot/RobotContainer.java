@@ -119,6 +119,10 @@ public class RobotContainer {
     return PDH.getTotalCurrent();
   }
 
+  public static PowerDistribution getPDH() {
+    return PDH;
+  }
+
   public void disabledPeriodic() {
 
   }

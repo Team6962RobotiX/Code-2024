@@ -39,7 +39,7 @@ public final class Constants {
     public static final boolean ENABLE_SHOOTER   = true;
     public static final boolean ENABLE_INTAKE   = true;
     public static final boolean ENABLE_TRANSFER = true;
-    public static final boolean ENABLE_HANG = true;
+    public static final boolean ENABLE_HANG = false;
     public static final boolean ENABLE_AMP = true;
   }
 
@@ -104,7 +104,7 @@ public final class Constants {
     public static final double   STEER_MOTOR_GEARING                = 150.0 / 7.0;
     public static final double   GEARBOX_EFFICIENCY                 = 1.0;
     public static final double   BATTERY_RESISTANCE                 = 0.02; // ohms
-    public static final double   BATTERY_VOLTAGE                    = 12.0; // volts
+    public static final double   BATTERY_VOLTAGE                    = 12.6; // volts
     public static final double   BROWNOUT_VOLTAGE                   = 6.8; // volts
 
     // public static final double   VELOCITY_DEADBAND                  = 0.05; // Velocity we stop moving at
@@ -190,9 +190,9 @@ public final class Constants {
 
     public static final class STEER_MOTOR_PROFILE {
       // FROM WPILIB SYSTEM IDENTIFICATION
-      public static final double kP                 = 1.00000; // Proportion Gain
+      public static final double kP                 = 0.90000; // Proportion Gain
       public static final double kI                 = 0.00000; // Integral Gain
-      public static final double kD                 = 0.50000; // Derivative Gain
+      public static final double kD                 = 0.10000; // Derivative Gain
       public static final double kS                 = 0.00000; // volts
       public static final double kV                 = 12.0 / (NEO.STATS.freeSpeedRadPerSec / STEER_MOTOR_GEARING); // volts per rad/s
       public static final double kA                 = 0.00010; // volts per rad/s^2
@@ -281,7 +281,7 @@ public final class Constants {
     public static final double SAFE_TEMPERATURE = 60;
     public static final int SAFE_STALL_CURRENT = 40;
     public static final int SAFE_FREE_CURRENT = 60;
-    public static final double SAFE_RAMP_RATE = 0.05;
+    public static final double SAFE_RAMP_RATE = 0.1;
 
     public static double maxTorqueCurrentLimited(int currentLimit) {
       return STATS.stallTorqueNewtonMeters / STATS.stallCurrentAmps * currentLimit;
