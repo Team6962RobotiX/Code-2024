@@ -38,6 +38,7 @@ public class RobotStateController extends SubsystemBase {
 
   public enum State {
     INTAKE,
+    INTAKE_AND_CENTER,
     INTAKE_OUT,
     PREPARE_AMP,
     PLACE_AMP,
@@ -94,6 +95,8 @@ public class RobotStateController extends SubsystemBase {
         ).raceWith(LEDs.setStateCommand(LEDs.State.RUNNING_COMMAND)).andThen(Controls.rumbleBoth());
       case INTAKE_OUT:
         return transfer.setState(Transfer.State.OUT).alongWith(intake.setState(Intake.State.SLOW_OUT));
+      case INTAKE_AND_CENTER:
+        return setState(State.INTAKE).andThen(Commands.runOnce(() -> setState(State.CENTER_NOTE).schedule()));
       case PREPARE_AMP:
         return Commands.sequence(
           amp.setState(Amp.State.DOWN),

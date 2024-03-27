@@ -84,7 +84,7 @@ public class Controls {
     operator.start().whileTrue(stateController.setState(RobotStateController.State.LEAVE_AMP));
     operator.back().onTrue(stateController.setState(RobotStateController.State.CENTER_NOTE).andThen(Controls.rumbleBoth()));
     operator.leftBumper();
-    operator.rightBumper().whileTrue(stateController.setState(RobotStateController.State.INTAKE));
+    operator.rightBumper().whileTrue(stateController.setState(RobotStateController.State.INTAKE_AND_CENTER));
     operator.leftStick().whileTrue(stateController.setState(RobotStateController.State.PREPARE_AMP));
     operator.rightStick().whileTrue(stateController.setState(RobotStateController.State.PLACE_AMP));
     operator.povCenter();
