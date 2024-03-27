@@ -51,7 +51,7 @@ public class ShooterMath {
     Rotation2d pivotAngle = calcPivotAngle(targetPoint, swerveDrive, shooter);
     if (pivotAngle == null) return false;
     // System.out.println(pivotAngle);
-    return pivotAngle.getRadians() != 0 && pivotAngle.getRadians() > Preferences.SHOOTER_PIVOT.MIN_ANGLE.getRadians() && pivotAngle.getRadians() < Preferences.SHOOTER_PIVOT.MAX_ANGLE.getRadians();
+    return shooter.getPivot().isAngleAchievable(pivotAngle);
   }
 
   public static double calcProjectileVelocity(Translation3d targetPoint, SwerveDrive swerveDrive, Shooter shooter) {
