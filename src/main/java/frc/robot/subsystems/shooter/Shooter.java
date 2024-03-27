@@ -162,7 +162,7 @@ public class Shooter extends SubsystemBase {
     // Calculate point to aim towards, accounting for current velocity
     return shooterPivot.setTargetAngleCommand(() -> 
       ShooterMath.calcPivotAngle(
-        RobotState.isAutonomous() ? point.get() : ShooterMath.calcVelocityCompensatedPoint(
+        ShooterMath.calcVelocityCompensatedPoint(
           point.get(),
           swerveDrive,
           this
@@ -172,11 +172,11 @@ public class Shooter extends SubsystemBase {
       )
     ).alongWith(
       swerveDrive.facePointCommand(() -> 
-        (RobotState.isAutonomous() ? point.get() : ShooterMath.calcVelocityCompensatedPoint(
+        ShooterMath.calcVelocityCompensatedPoint(
           point.get(),
           swerveDrive,
           this
-        )).toTranslation2d(),
+        ).toTranslation2d(),
         Rotation2d.fromDegrees(180.0)
       )
     ).alongWith(

@@ -324,15 +324,37 @@ public class Autonomous extends Command {
       moveCommand = Commands.runOnce(() -> clearNoteObstacles()).andThen(AutoBuilder.pathfindToPose(
         new Pose2d(shootingPosition, swerveDrive.getHeading()),
         SWERVE_DRIVE.AUTONOMOUS.DEFAULT_PATH_CONSTRAINTS
-      ).until(() -> !hasNote()));
+      ).until(() -> !hasNote() || nearSpeaker()));
+    }
+    if (!avoidPillars) {
+      Rotation2d heading = swerveDrive.getPose().getTranslation().minus(Field.SPEAKER.get().toTranslation2d()).getAngle();
+      Translation2d backupPoint = new Translation2d(-0.5, 0).rotateBy(heading).plus(swerveDrive.getPose().getTranslation());
+      List<Translation2d> bezierPoints = PathPlannerPath.bezierFromPoses(
+        new Pose2d(swerveDrive.getPose().getTranslation(), backupPoint.minus(swerveDrive.getPose().getTranslation()).getAngle()),
+        new Pose2d(backupPoint, heading)
+      );
+
+      PathPlannerPath path = new PathPlannerPath(
+        bezierPoints,
+        SWERVE_DRIVE.AUTONOMOUS.DEFAULT_PATH_CONSTRAINTS,
+        new GoalEndState(
+          0.0,
+          swerveDrive.getHeading(),
+          true
+        )
+      );
+
+      moveCommand = Commands.runOnce(() -> clearNoteObstacles()).andThen(
+        AutoBuilder.followPath(path)
+      );
     }
     return Commands.sequence(
       Commands.runOnce(() -> {
-        swerveDrive.setRotationTargetOverrideFromPoint(() -> Field.SPEAKER.get().toTranslation2d(), Rotation2d.fromDegrees(180.0));
+        swerveDrive.setRotationTargetOverrideFromPoint(() -> null, Rotation2d.fromDegrees(0.0));
       }),
       Commands.race(
-        moveCommand.until(() -> nearSpeaker())
-          .andThen(Commands.sequence(
+        moveCommand
+          .alongWith(Commands.sequence(
             Commands.run(() -> {
               if (controller.canShoot()) simulatedNote = false;
             }).until(() -> simulatedNote == false).onlyIf(() -> RobotBase.isSimulation()),
