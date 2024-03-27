@@ -81,7 +81,7 @@ public class ShooterWheels extends SubsystemBase {
   }
 
   public double getVelocity() {
-    if (Robot.isSimulation()) return state == State.SPIN_UP ? speed : 0.0;
+    if (Robot.isSimulation() || RobotState.isAutonomous()) return state == State.SPIN_UP ? speed : 0.0;
     return Math.round(encoder.getVelocity() / 10.0) * 10.0;
   }
 

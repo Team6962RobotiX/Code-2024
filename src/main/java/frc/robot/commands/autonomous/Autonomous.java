@@ -358,7 +358,10 @@ public class Autonomous extends Command {
             Commands.run(() -> {
               if (controller.canShoot()) simulatedNote = false;
             }).until(() -> simulatedNote == false).onlyIf(() -> RobotBase.isSimulation()),
-            controller.setState(RobotStateController.State.SHOOT).until(() -> !hasNote())).onlyIf(() -> nearSpeaker())
+            Commands.sequence(
+              Commands.waitSeconds(0.5).onlyIf(() -> isFirstNote),
+              controller.setState(RobotStateController.State.SHOOT).until(() -> !hasNote())).onlyIf(() -> nearSpeaker())
+            )
           ),
         controller.setState(RobotStateController.State.AIM_SPEAKER),
         controller.setState(RobotStateController.State.SPIN_UP)
@@ -391,7 +394,7 @@ public class Autonomous extends Command {
   @Override
   public void execute() {
     List<Translation2d> fieldNotePositions = Field.NOTE_POSITIONS.stream().map(Supplier::get).collect(Collectors.toList());
-
+        
     if (!RobotState.isAutonomous()) {
       runningCommand.cancel();
       this.cancel();

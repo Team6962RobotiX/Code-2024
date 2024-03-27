@@ -87,7 +87,7 @@ public final class Field {
     // point2d(1.5, 5.5),
     // point2d(1.5, 3.5),
     // point2d(1.5, 7.0)
-    () -> Field.SPEAKER.get().toTranslation2d()
+    () -> new Translation2d(flipIfRed(1.5).get(), Field.SPEAKER.get().getY())
   );
 
   public static Supplier<Pose2d> pose2d(double x, double y, double degrees) {

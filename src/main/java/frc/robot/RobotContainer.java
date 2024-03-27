@@ -4,6 +4,8 @@
 
 package frc.robot;
 
+import com.pathplanner.lib.pathfinding.Pathfinding;
+
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution;
@@ -101,6 +103,8 @@ public class RobotContainer {
 
     SwerveDrive.printChoreoConfig();
     AprilTags.printConfig(Constants.LIMELIGHT.APRILTAG_CAMERA_POSES);
+
+    Pathfinding.ensureInitialized();
   }
 
   public Command getAutonomousCommand() {
