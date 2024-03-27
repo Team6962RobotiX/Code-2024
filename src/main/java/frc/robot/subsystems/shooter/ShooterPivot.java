@@ -46,7 +46,7 @@ public class ShooterPivot extends SubsystemBase {
       SHOOTER_PIVOT.GEARING,
       Preferences.SHOOTER_PIVOT.MIN_ANGLE,
       Preferences.SHOOTER_PIVOT.MAX_ANGLE,
-      Rotation2d.fromDegrees(0.25),
+      Rotation2d.fromDegrees(0.25 / 2.0),
       true
     );
 

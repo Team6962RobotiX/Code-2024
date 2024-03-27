@@ -8,6 +8,7 @@ import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.wpilibj.RobotState;
 import frc.robot.Constants.Constants;
 import frc.robot.Constants.Constants.SHOOTER_PIVOT;
+import frc.robot.Constants.Constants.SHOOTER_WHEELS;
 import frc.robot.Constants.Preferences;
 import frc.robot.subsystems.drive.SwerveDrive;
 import frc.robot.util.software.Logging.Logger;
@@ -44,7 +45,6 @@ public class ShooterMath {
 
     //todo: maybe return a band of pose2ds
     return shootingDistance;
-
   }
 
   public static boolean inRange(Translation3d targetPoint, SwerveDrive swerveDrive, Shooter shooter) {
@@ -114,8 +114,8 @@ public class ShooterMath {
    * @return Projectile exit velocity in m/s
    */
   public static double calcProjectileVelocity(double shooterWheelVelocity) {
-    if (shooterWheelVelocity >= Constants.SHOOTER_WHEELS.MAX_WHEEL_SPEED) return 12.5;
-    double velocity = -Math.pow(1.00868, -shooterWheelVelocity + 508.704) + 12.5;
+    if (shooterWheelVelocity >= Constants.SHOOTER_WHEELS.MAX_WHEEL_SPEED) return SHOOTER_WHEELS.MAX_EXIT_VELOCITY;
+    double velocity = -Math.pow(SHOOTER_WHEELS.NOTE_LOG_BASE, -shooterWheelVelocity + SHOOTER_WHEELS.NOTE_LOG_OFFSET) + SHOOTER_WHEELS.MAX_EXIT_VELOCITY;
     if (velocity < 0) return 0.0;
     return velocity;
 
@@ -141,8 +141,8 @@ public class ShooterMath {
 
   
   public static double calcShooterWheelVelocity(double projectileVelocity) {
-    if (projectileVelocity >= 12.5) return Constants.SHOOTER_WHEELS.MAX_WHEEL_SPEED;
-    return -logB(-projectileVelocity + 12.5, 1.00868) + 508.704;
+    if (projectileVelocity >= SHOOTER_WHEELS.MAX_EXIT_VELOCITY) return Constants.SHOOTER_WHEELS.MAX_WHEEL_SPEED;
+    return -logB(-projectileVelocity + SHOOTER_WHEELS.MAX_EXIT_VELOCITY, SHOOTER_WHEELS.NOTE_LOG_BASE) + SHOOTER_WHEELS.NOTE_LOG_OFFSET;
   }
 
   public static boolean isAimed(Translation3d targetPoint, double targetSize, SwerveDrive swerveDrive, Shooter shooter) {
@@ -156,9 +156,8 @@ public class ShooterMath {
     if (idealPivotAngle == null) return false;
     // System.out.println(inRange(aimingPoint, swerveDrive, shooter));
     
-
-    if (Math.abs(shooter.getPivot().getPosition().minus(idealPivotAngle).getRadians()) > acceptableError / 4.0) return false;
-    if (Math.abs(swerveDrive.getHeading().minus(idealHeading).getRadians()) > acceptableError * 2.0) return false;
+    if (Math.abs(shooter.getPivot().getPosition().minus(idealPivotAngle).getRadians()) > acceptableError / 8.0) return false;
+    if (Math.abs(swerveDrive.getHeading().minus(idealHeading).getRadians()) > acceptableError) return false;
     if (!inRange(aimingPoint, swerveDrive, shooter)) return false;
     return true;
   }

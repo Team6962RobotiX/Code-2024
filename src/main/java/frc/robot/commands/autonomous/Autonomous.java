@@ -333,7 +333,7 @@ public class Autonomous extends Command {
         new Pose2d(swerveDrive.getPose().getTranslation(), backupPoint.minus(swerveDrive.getPose().getTranslation()).getAngle()),
         new Pose2d(backupPoint, heading)
       );
-
+      
       PathPlannerPath path = new PathPlannerPath(
         bezierPoints,
         SWERVE_DRIVE.AUTONOMOUS.DEFAULT_PATH_CONSTRAINTS,
