@@ -114,8 +114,8 @@ public class ShooterMath {
    * @return Projectile exit velocity in m/s
    */
   public static double calcProjectileVelocity(double shooterWheelVelocity) {
-    if (shooterWheelVelocity >= Constants.SHOOTER_WHEELS.MAX_WHEEL_SPEED) return 13.0;
-    double velocity = -Math.pow(1.01014, -shooterWheelVelocity + 495.499) + 13.0;
+    if (shooterWheelVelocity >= Constants.SHOOTER_WHEELS.MAX_WHEEL_SPEED) return 12.5;
+    double velocity = -Math.pow(1.00868, -shooterWheelVelocity + 508.704) + 12.5;
     if (velocity < 0) return 0.0;
     return velocity;
 
@@ -141,8 +141,8 @@ public class ShooterMath {
 
   
   public static double calcShooterWheelVelocity(double projectileVelocity) {
-    if (projectileVelocity >= 13.0) return Constants.SHOOTER_WHEELS.MAX_WHEEL_SPEED;
-    return -logB(-projectileVelocity + 13.0, 1.01014) + 495.499;
+    if (projectileVelocity >= 12.5) return Constants.SHOOTER_WHEELS.MAX_WHEEL_SPEED;
+    return -logB(-projectileVelocity + 12.5, 1.00868) + 508.704;
   }
 
   public static boolean isAimed(Translation3d targetPoint, double targetSize, SwerveDrive swerveDrive, Shooter shooter) {

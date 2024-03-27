@@ -174,6 +174,7 @@ public class RobotStateController extends SubsystemBase {
     // if (!hasNote() && !RobotBase.isSimulation()) {
     //   return 0.0;
     // }
+    
     return shooter.isAimed();
   }
 

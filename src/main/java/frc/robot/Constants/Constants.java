@@ -311,7 +311,7 @@ public final class Constants {
     public static final double PROJECTILE_MASS = Units.lbsToKilograms(0.5);
     public static final double COMPRESSION = Units.inchesToMeters(0.5);
     public static final double SPEED_PRECISION = Units.rotationsPerMinuteToRadiansPerSecond(10);
-    public static final double TOP_EXIT_VELOCITY = 12.5;
+    public static final double TOP_EXIT_VELOCITY = 12.0;
     public static final double MAX_WHEEL_SPEED = NEO.STATS.freeSpeedRadPerSec * SHOOTER_WHEELS.GEARBOX_STEP_UP;
 
     // x is front-to-back

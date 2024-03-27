@@ -74,7 +74,7 @@ public class Controls {
     if (RobotBase.isSimulation()) {
       // driver.button(1).whileTrue(new GoToPose(frc.robot.Constants.Field.AUTO_MOVE_POSITIONS.get("AMP"), swerveDrive));
 
-      // driver.button(1).whileTrue(stateController.setState(RobotStateController.State.AIM_SPEAKER).alongWith(stateController.setState(RobotStateController.State.SPIN_UP)));
+      driver.button(1).whileTrue(stateController.setState(RobotStateController.State.AIM_SPEAKER).alongWith(stateController.setState(RobotStateController.State.SPIN_UP)));
     }
 
     operator.a().onTrue(shooterPivot.setTargetAngleCommand(() -> Rotation2d.fromDegrees(30.0)));
