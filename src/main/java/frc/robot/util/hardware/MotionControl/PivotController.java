@@ -136,9 +136,6 @@ public class PivotController {
       kS * Math.signum(achievableAngle.getRadians() - getPosition().getRadians())
     );
 
-    Logger.log("motor.getAppliedOutput() " + motor.getDeviceId(), motor.getAppliedOutput());
-
-
     if (RobotBase.isSimulation()) sim.setInputVoltage(simPID.calculate(sim.getAngleRads(), achievableAngle.getRadians()) * 12.0);
 
     // System.out.println(Math.signum(targetAngle.getRadians() - getPosition().getRadians()));
