@@ -328,7 +328,7 @@ public class Autonomous extends Command {
     }
     if (!avoidPillars) {
       Rotation2d heading = swerveDrive.getPose().getTranslation().minus(Field.SPEAKER.get().toTranslation2d()).getAngle();
-      Translation2d backupPoint = new Translation2d(-0.5, 0).rotateBy(heading).plus(swerveDrive.getPose().getTranslation());
+      Translation2d backupPoint = new Translation2d(-0.25, 0).rotateBy(heading).plus(swerveDrive.getPose().getTranslation());
       List<Translation2d> bezierPoints = PathPlannerPath.bezierFromPoses(
         new Pose2d(swerveDrive.getPose().getTranslation(), backupPoint.minus(swerveDrive.getPose().getTranslation()).getAngle()),
         new Pose2d(backupPoint, heading)
