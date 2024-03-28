@@ -325,15 +325,14 @@ public class Autonomous extends Command {
         new Pose2d(shootingPosition, swerveDrive.getHeading()),
         SWERVE_DRIVE.AUTONOMOUS.DEFAULT_PATH_CONSTRAINTS
       ).until(() -> !hasNote() || nearSpeaker()));
-    }
-    if (!avoidPillars) {
+    } else if (!avoidPillars) {
       Rotation2d heading = swerveDrive.getPose().getTranslation().minus(Field.SPEAKER.get().toTranslation2d()).getAngle();
       Translation2d backupPoint = new Translation2d(-0.25, 0).rotateBy(heading).plus(swerveDrive.getPose().getTranslation());
       List<Translation2d> bezierPoints = PathPlannerPath.bezierFromPoses(
         new Pose2d(swerveDrive.getPose().getTranslation(), backupPoint.minus(swerveDrive.getPose().getTranslation()).getAngle()),
         new Pose2d(backupPoint, heading)
       );
-      
+
       PathPlannerPath path = new PathPlannerPath(
         bezierPoints,
         SWERVE_DRIVE.AUTONOMOUS.DEFAULT_PATH_CONSTRAINTS,
@@ -348,6 +347,7 @@ public class Autonomous extends Command {
         AutoBuilder.followPath(path)
       );
     }
+    
     return Commands.sequence(
       Commands.runOnce(() -> {
         swerveDrive.setRotationTargetOverrideFromPoint(null, Rotation2d.fromDegrees(0.0));
