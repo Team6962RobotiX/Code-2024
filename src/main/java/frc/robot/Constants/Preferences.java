@@ -20,7 +20,7 @@ public final class Preferences {
     public static final double   TELEOPERATED_DRIVE_POWER           = 0.5; // Percent driving power
     public static final double   TELEOPERATED_BOOST_POWER           = 1.0; // Percent power when using the triggers
     public static final double   TELEOPERATED_ROTATE_POWER          = 0.5; // Percent rotating power
-    public static final double   TELEOPERATED_SHOOTER_SPEED         = 0.75; // m/s
+    public static final double   TELEOPERATED_SHOOTER_SPEED         = 1.5; // m/s
   }
 
   public final class NOTE_DETECTION {
@@ -57,12 +57,18 @@ public final class Preferences {
 
   public static final class TRANSFER {
     public static final double IN_POWER = 0.5;
-    public static final double SLOW_IN_POWER = 0.4;
+    public static final double SLOW_IN_POWER = 0.5;
     public static final double OUT_POWER_BOTTOM = 0.5;
     public static final double OUT_POWER_TOP = 1.0;
     public static final double TO_SHOOTER_FAST_POWER = 0.2;
     public static final double TO_SHOOTER_SLOW_POWER = 0.1;
     public static final double TO_AMP_POWER = 0.4;
+  }
+
+  public static final class INTAKE {
+    public static final double IN_POWER = 0.5;
+    public static final double TO_SHOOTER_POWER = 0.3;
+    public static final double SLOW_OUT_POWER = 0.4;
   }
 
   public static final class HANG {
@@ -76,8 +82,9 @@ public final class Preferences {
   public static final class VOLTAGE_LADDER {
     public static final double SWERVE_DRIVE = 7.0;
     public static final double SHOOTER = 8.0;
-    public static final double HANG = 9.0;
+    public static final double INTAKE = 8.5;
     public static final double TRANSFER = 9.0;
+    public static final double HANG = 9.0;
     public static final double AMP = 10.0;
   }
 }

@@ -11,6 +11,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.RobotState;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants.Constants;
@@ -53,6 +54,8 @@ public class XBoxSwerve extends Command {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
+    if (!RobotState.isTeleop()) return;
+
     // Disable drive if the controller disconnects
     if (!controller.isConnected()) {
       swerveDrive.stopModules();
@@ -66,27 +69,29 @@ public class XBoxSwerve extends Command {
     
     if (RobotBase.isSimulation()) {
       leftStick = new Translation2d(controller.getRawAxis(0), -controller.getRawAxis(1));
-      rightStick = new Translation2d(controller.getRawAxis(3), -controller.getRawAxis(4));
-      leftTrigger = (controller.getRawAxis(5) + 1.0) / 2.0;
-      rightTrigger = (controller.getRawAxis(4) + 1.0) / 2.0;
+      rightStick = new Translation2d(controller.getRawAxis(2), -controller.getRawAxis(3));
+      leftTrigger = controller.getRawAxis(5);
+      rightTrigger = controller.getRawAxis(4);
     }
 
     // Deadbands
     leftStick = InputMath.addCircularDeadband(leftStick, 0.1);
     rightStick = InputMath.addCircularDeadband(rightStick, 0.1);
 
+
     angularVelocity += -rightStick.getX() * MathUtils.map(rightTrigger, 0, 1, NOMINAL_ANGULAR_VELOCITY, MAX_ANGULAR_VELOCITY);
     
     velocity = velocity.plus(leftStick.times(MathUtils.map(rightTrigger, 0, 1, NOMINAL_DRIVE_VELOCITY, MAX_DRIVE_VELOCITY)));
+    
+    if (leftTrigger > 0.5 && velocity.getNorm() > 0) {
+      velocity = velocity.div(velocity.getNorm()).times(Preferences.SWERVE_DRIVE.TELEOPERATED_SHOOTER_SPEED);
+    }
 
     if (controller.getPOV() != -1) {
       Translation2d povVelocity = new Translation2d(Math.cos(Units.degreesToRadians(controller.getPOV())) * FINE_TUNE_DRIVE_VELOCITY, -Math.sin(Units.degreesToRadians(controller.getPOV())) * FINE_TUNE_DRIVE_VELOCITY);
       velocity = velocity.plus(povVelocity);
     }
 
-    // if (stateController.isAiming() && velocity.getNorm() > 0) {
-    //   velocity = velocity.div(velocity.getNorm()).times(Preferences.SWERVE_DRIVE.TELEOPERATED_SHOOTER_SPEED);
-    // }
     // Zero heading when Y is pressed
     if (controller.getYButton()) {
       Rotation2d newHeading = new Rotation2d();
@@ -108,10 +113,6 @@ public class XBoxSwerve extends Command {
       }
     }
 
-    if (!controller.getBackButton()) {
-      velocity = avoidObstacles(velocity, swerveDrive);
-    }
-    
     swerveDrive.driveFieldRelative(velocity.getX(), velocity.getY(), angularVelocity);
     // if (leftStick.getNorm() > 0.05 && (controller.getLeftBumper() || controller.getRightBumper())) {
     //   swerveDrive.setTargetHeading(leftStick.getAngle());
@@ -144,10 +145,10 @@ public class XBoxSwerve extends Command {
     for (Translation2d pillar : Field.RED_STAGE_CORNERS) stagePillars.add(pillar);
     for (Translation2d pillar : stagePillars) {
       double bubbleRadius = 
-        Units.inchesToMeters(6.0) + 
+        Math.hypot(Units.inchesToMeters(6.0), Units.inchesToMeters(6.0)) + 
         Constants.SWERVE_DRIVE.BUMPER_DIAGONAL / 2.0 +
         (swerveDrive.getPose().getTranslation().getDistance(pillar) - swerveDrive.getFuturePose().getTranslation().getDistance(pillar)) * 2.0;
-      if (bubbleRadius < 0) continue;
+      if (bubbleRadius <= 0) continue;
       if (swerveDrive.getPose().getTranslation().getDistance(pillar) > bubbleRadius) continue;
       Translation2d force = swerveDrive.getPose().getTranslation().minus(pillar);
       force = force.div(force.getNorm()).times(mag);

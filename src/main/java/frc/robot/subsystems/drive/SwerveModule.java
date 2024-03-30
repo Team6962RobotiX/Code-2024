@@ -25,7 +25,6 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.Voltage;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -54,6 +53,9 @@ public class SwerveModule extends SubsystemBase {
   private SwerveModuleState targetState = new SwerveModuleState();
   private String name;
   private int corner;
+  private Rotation2d trueSteerDirection = new Rotation2d();
+  private double driveVelocity = 0.0;
+  private double drivePosition = 0.0;
 
   private boolean isCalibrating = false;
   
@@ -107,9 +109,12 @@ public class SwerveModule extends SubsystemBase {
     SparkMaxUtil.configureEncoder(steerMotor, SWERVE_DRIVE.STEER_ENCODER_CONVERSION_FACTOR);
     SparkMaxUtil.configurePID(this, driveMotor, DRIVE_MOTOR_PROFILE.kP, DRIVE_MOTOR_PROFILE.kI, DRIVE_MOTOR_PROFILE.kD, 0.0, false);
     SparkMaxUtil.configurePID(this, steerMotor, STEER_MOTOR_PROFILE.kP, STEER_MOTOR_PROFILE.kI, STEER_MOTOR_PROFILE.kD, 0.0, true);
+
+    driveMotor.setClosedLoopRampRate(SWERVE_DRIVE.PHYSICS.MAX_LINEAR_VELOCITY / SWERVE_DRIVE.PHYSICS.MAX_LINEAR_ACCELERATION);
+    driveMotor.setOpenLoopRampRate(SWERVE_DRIVE.PHYSICS.MAX_LINEAR_VELOCITY / SWERVE_DRIVE.PHYSICS.MAX_LINEAR_ACCELERATION);
     
     SparkMaxUtil.configureCANStatusFrames(driveMotor, true, true);
-    SparkMaxUtil.configureCANStatusFrames(steerMotor, false, false);
+    SparkMaxUtil.configureCANStatusFrames(steerMotor, false, true);
     
     seedSteerEncoder();
 
@@ -127,13 +132,13 @@ public class SwerveModule extends SubsystemBase {
 
 
   public void periodic() {
+    trueSteerDirection = Rotation2d.fromRotations(absoluteSteerEncoder.getAbsolutePosition().getValue());
+    driveVelocity = driveEncoder.getVelocity();
+    drivePosition = driveEncoder.getPosition();
+
     if (!ENABLED_SYSTEMS.ENABLE_DRIVE) return;
     if (isCalibrating) return;
 
-    if (Math.abs(getMeasuredState().speedMetersPerSecond) < 0.05 && SwerveMath.angleDistance(getMeasuredState().angle.getRadians(), getTargetState().angle.getRadians()) < Units.degreesToRadians(1.0)) {
-      seedSteerEncoder();
-    }
-    
     drive(targetState);
 
     if (RobotContainer.getVoltage() < VOLTAGE_LADDER.SWERVE_DRIVE) stop();
@@ -154,11 +159,15 @@ public class SwerveModule extends SubsystemBase {
       0,
       driveFF.calculate(speedMetersPerSecond)
     );
-    
+
     steerPID.setReference(
       radians,
       CANSparkMax.ControlType.kPosition
     );
+
+    if (Math.abs(steerMotor.getAppliedOutput()) < 0.1 && state.speedMetersPerSecond == 0) {
+      seedSteerEncoder();
+    }
   }
     
   public void setTargetState(SwerveModuleState state) {
@@ -181,7 +190,7 @@ public class SwerveModule extends SubsystemBase {
   }
   
   private Rotation2d getTrueSteerDirection() {
-    return Rotation2d.fromRotations(absoluteSteerEncoder.getAbsolutePosition().getValue());
+    return trueSteerDirection;
   }
 
   public SwerveModuleState getTargetState() {
@@ -189,11 +198,11 @@ public class SwerveModule extends SubsystemBase {
   }
   
   public SwerveModuleState getMeasuredState() {
-    return new SwerveModuleState(driveEncoder.getVelocity(), getTrueSteerDirection());
+    return new SwerveModuleState(driveVelocity, getTrueSteerDirection());
   }
 
   public SwerveModulePosition getModulePosition() {
-    return new SwerveModulePosition(driveEncoder.getPosition(), getMeasuredState().angle);
+    return new SwerveModulePosition(drivePosition, getMeasuredState().angle);
   }
 
   public static double calcWheelVelocity(double power) {

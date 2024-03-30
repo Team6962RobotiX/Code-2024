@@ -39,7 +39,7 @@ public final class Constants {
     public static final boolean ENABLE_SHOOTER   = true;
     public static final boolean ENABLE_INTAKE   = true;
     public static final boolean ENABLE_TRANSFER = true;
-    public static final boolean ENABLE_HANG = true;
+    public static final boolean ENABLE_HANG = false;
     public static final boolean ENABLE_AMP = true;
   }
 
@@ -59,32 +59,38 @@ public final class Constants {
   }
 
   // LIMELIGHT
+  // Exposure: 750
+  // Sensor Gain: 10
   public static final class LIMELIGHT {
     // x is front-to-back
     // y is left-to-right
     // z it top-to-bottom
     public static final Map<String, Pose3d> APRILTAG_CAMERA_POSES = Map.of(
-      "limelight-ftag", new Pose3d(Units.inchesToMeters(12.027304), Units.inchesToMeters(1.0), Units.inchesToMeters(21.577 + 1.6), new Rotation3d(0.0, Units.degreesToRadians(24.0), 0.0)),
-      "limelight-btag", new Pose3d(Units.inchesToMeters(2.670592), Units.inchesToMeters(-3.0), Units.inchesToMeters(23.530771 + 1.722460), new Rotation3d(0.0, Units.degreesToRadians(24.0), Units.degreesToRadians(180.0)))
+      "limelight-ftag", new Pose3d(Units.inchesToMeters(7.442142), Units.inchesToMeters(1.0), Units.inchesToMeters(25.283), new Rotation3d(0.0, Units.degreesToRadians(24.0), 0.0)),
+      "limelight-btag", new Pose3d(Units.inchesToMeters(2.670592), Units.inchesToMeters(-3.0), Units.inchesToMeters(25.283), new Rotation3d(0.0, Units.degreesToRadians(24.0), Units.degreesToRadians(180.0)))
     );
 
     public static final String NOTE_CAMERA_NAME = "limelight-fnote";
+    public static final int[] BLACKLISTED_APRILTAGS = {};
 
     public static final Rotation2d NOTE_CAMERA_PITCH = Rotation2d.fromDegrees(-24);
     // x is forward, y is left, z is up
-    public static final Translation3d NOTE_CAMERA_POSITION = new Translation3d(Units.inchesToMeters(12.58), Units.inchesToMeters(0.0), Units.inchesToMeters(23.25));
+    public static final Translation3d NOTE_CAMERA_POSITION = new Translation3d(Units.inchesToMeters(13.0), Units.inchesToMeters(0.0), Units.inchesToMeters(22.5));
 
     public static final Rotation2d FOV_HEIGHT = Rotation2d.fromDegrees(48.9); // Degrees
     public static final Rotation2d FOV_WIDTH = Rotation2d.fromDegrees(62.5); // Degrees
+    public static final double NOTE_CAMERA_HEIGHT_PIXELS = 960;
   }
 
   // SWERVE DRIVE
   public static final class SWERVE_DRIVE {
 
     ///////////////////////// CONFIG /////////////////////////
-    public static final double   INSPECTION_WEIGHT                  = Units.lbsToKilograms(122);
+    public static final boolean  IS_PROTOTYPE_CHASSIS               = !new DigitalInput(0).get();
+
+    public static final double   INSPECTION_WEIGHT                  = IS_PROTOTYPE_CHASSIS ? Units.lbsToKilograms(42) : Units.lbsToKilograms(122);
     public static final double   BATTERY_WEIGHT                     = Units.lbsToKilograms(12.89);
-    public static final double   BUMPER_WEIGHT                      = Units.lbsToKilograms(10.0);
+    public static final double   BUMPER_WEIGHT                      = IS_PROTOTYPE_CHASSIS ? 0.0 : Units.lbsToKilograms(11.0);
     public static final double   ROBOT_MASS                         = INSPECTION_WEIGHT + BATTERY_WEIGHT + BUMPER_WEIGHT; // kg
     public static final double   FRICTION_COEFFICIENT               = 1.0;
     public static final int      MODULE_COUNT                       = 4;
@@ -96,9 +102,9 @@ public final class Constants {
     public static final double   WHEEL_WIDTH                        = Units.inchesToMeters(2.0);
     public static final double   DRIVE_MOTOR_GEARING                = 6.75;
     public static final double   STEER_MOTOR_GEARING                = 150.0 / 7.0;
-    public static final double   GEARBOX_EFFICIENCY                 = 0.99;
+    public static final double   GEARBOX_EFFICIENCY                 = 1.0;
     public static final double   BATTERY_RESISTANCE                 = 0.02; // ohms
-    public static final double   BATTERY_VOLTAGE                    = 12.0; // volts
+    public static final double   BATTERY_VOLTAGE                    = 12.6; // volts
     public static final double   BROWNOUT_VOLTAGE                   = 6.8; // volts
 
     // public static final double   VELOCITY_DEADBAND                  = 0.05; // Velocity we stop moving at
@@ -120,9 +126,8 @@ public final class Constants {
     public static final double   WHEELBASE                          = CHASSIS_LENGTH - WHEEL_TO_EDGE_DISTANCE * 2.0; // front-to-back distance between the drivetrain wheels
     public static final double   BUMPER_WIDTH                       = SWERVE_DRIVE.CHASSIS_WIDTH + SWERVE_DRIVE.BUMPER_THICKNESS * 2.0;
     public static final double   BUMPER_LENGTH                      = SWERVE_DRIVE.CHASSIS_LENGTH + SWERVE_DRIVE.BUMPER_THICKNESS * 2.0;
-    public static final double   BUMPER_DIAGONAL                    = Math.hypot(SWERVE_DRIVE.BUMPER_WIDTH, SWERVE_DRIVE.BUMPER_LENGTH);
+    public static final double   BUMPER_DIAGONAL                    = Math.hypot(SWERVE_DRIVE.BUMPER_WIDTH, SWERVE_DRIVE.BUMPER_LENGTH + Units.inchesToMeters(3.5 * 2.0));
     public static final double   MAX_CURRENT_DRAW                   = (BATTERY_VOLTAGE - BROWNOUT_VOLTAGE) / BATTERY_RESISTANCE;
-    public static final boolean  IS_PROTOTYPE_CHASSIS               = !new DigitalInput(0).get();
 
     
     // GEAR AND WHEEL RATIOS
@@ -130,11 +135,11 @@ public final class Constants {
     public static final double   STEER_ENCODER_CONVERSION_FACTOR    = (Math.PI * 2.0) / STEER_MOTOR_GEARING;
     
     public static class PHYSICS {
-      public static final double ROTATIONAL_INERTIA                 = ((1.0 / 12.0) * ROBOT_MASS * (Math.pow(BUMPER_WIDTH, 2.0) + Math.pow(BUMPER_LENGTH, 2.0)));
+      public static final double ROTATIONAL_INERTIA                 = 1.25 * ((1.0 / 12.0) * ROBOT_MASS * (Math.pow(BUMPER_WIDTH, 2.0) + Math.pow(BUMPER_LENGTH, 2.0)));
       public static final double SLIPLESS_ACCELERATION              = 9.80 * FRICTION_COEFFICIENT;
       public static final int    SLIPLESS_CURRENT_LIMIT             = (int) ((SLIPLESS_ACCELERATION * NEO.STATS.stallCurrentAmps * ROBOT_MASS * WHEEL_RADIUS) / (4.0 * DRIVE_MOTOR_GEARING * NEO.STATS.stallTorqueNewtonMeters));
       
-      public static final double MAX_MOTOR_SPEED                    = NEO.RPM * GEARBOX_EFFICIENCY;
+      public static final double MAX_MOTOR_SPEED                    = Units.radiansPerSecondToRotationsPerMinute(NEO.STATS.freeSpeedRadPerSec) * GEARBOX_EFFICIENCY;
       public static final double MAX_MOTOR_TORQUE                   = NEO.maxTorqueCurrentLimited(SLIPLESS_CURRENT_LIMIT);
       
       public static final double MAX_WHEEL_VELOCITY                 = (MAX_MOTOR_SPEED * (Math.PI * 2.0)) / 60.0 / DRIVE_MOTOR_GEARING;
@@ -162,7 +167,7 @@ public final class Constants {
         public static final double kD = 0.0;
       }
 
-      public static final double ACCELERATION_REDUCTION = 1.5; // * ((SWERVE_DRIVE.PHYSICS.MAX_LINEAR_ACCELERATION * SWERVE_DRIVE.ROBOT_MASS + ((SWERVE_DRIVE.PHYSICS.ROTATIONAL_INERTIA * SWERVE_DRIVE.PHYSICS.MAX_ANGULAR_ACCELERATION) / SWERVE_DRIVE.PHYSICS.DRIVE_RADIUS)) / (9.80 * SWERVE_DRIVE.ROBOT_MASS * SWERVE_DRIVE.FRICTION_COEFFICIENT));
+      public static final double ACCELERATION_REDUCTION = 1.5;//((SWERVE_DRIVE.PHYSICS.MAX_LINEAR_ACCELERATION * SWERVE_DRIVE.ROBOT_MASS + ((SWERVE_DRIVE.PHYSICS.ROTATIONAL_INERTIA * SWERVE_DRIVE.PHYSICS.MAX_ANGULAR_ACCELERATION) / SWERVE_DRIVE.PHYSICS.DRIVE_RADIUS)) / (9.80 * SWERVE_DRIVE.ROBOT_MASS * SWERVE_DRIVE.FRICTION_COEFFICIENT));
 
       public static final PathConstraints DEFAULT_PATH_CONSTRAINTS =
         new PathConstraints(
@@ -190,14 +195,14 @@ public final class Constants {
       public static final double kD                 = 0.10000; // Derivative Gain
       public static final double kS                 = 0.00000; // volts
       public static final double kV                 = 12.0 / (NEO.STATS.freeSpeedRadPerSec / STEER_MOTOR_GEARING); // volts per rad/s
-      public static final double kA                 = 0.02000; // volts per rad/s^2
+      public static final double kA                 = 0.00010; // volts per rad/s^2
     }
 
     // TELEOPERATED
     public static final class ABSOLUTE_ROTATION_GAINS {
-      public static final double kP = 3.0;
+      public static final double kP = 4.0;
       public static final double kI = 0.0;
-      public static final double kD = 0.0;
+      public static final double kD = 0.5;
       public static final Rotation2d TOLERANCE = Rotation2d.fromDegrees(0.5);
     }
     
@@ -218,10 +223,10 @@ public final class Constants {
       new MODULE_CONFIG(1, 34, 35, 36, 0.246582),
       new MODULE_CONFIG(2, 37, 38, 39, -0.348633),
       new MODULE_CONFIG(3, 40, 41, 42, -0.224854),
-      new MODULE_CONFIG(4, 43, 44, 45, -0.5917972222),
-      new MODULE_CONFIG(5, 46, 47, 48, -0.1811527778),
-      new MODULE_CONFIG(6, 49, 50, 51, 0.1533194444),
-      new MODULE_CONFIG(7, 52, 53, 54, -0.5322277778),
+      new MODULE_CONFIG(4, 43, 44, 45, -0.340576),
+      new MODULE_CONFIG(5, 46, 47, 48, -0.432373),
+      new MODULE_CONFIG(6, 49, 50, 51, -0.102783),
+      new MODULE_CONFIG(7, 52, 53, 54, -0.279785),
       new MODULE_CONFIG(8, 55, 56, 57, -0.002197),
       new MODULE_CONFIG(9, 58, 59, 60, -0.217041),
     };
@@ -257,11 +262,11 @@ public final class Constants {
     public static final int SHOOTER_FEED = 20;
     public static final int TRANSFER_OUT = 24;
     public static final int TRANSFER_IN = 22;
+    public static final int INTAKE = 29; 
     public static final int AMP_PIVOT = 17;
     public static final int AMP_WHEELS = 25;
     // left/right is from the robot's view of from intake
-    public static final int HANG_LEFT = 28; 
-    public static final int HANG_RIGHT = 29;
+    public static final int HANG_RIGHT = 28;
 
   }
 
@@ -272,11 +277,10 @@ public final class Constants {
   }
 
   public static final class NEO {
-    public static final double RPM = 5880;
-    public static final DCMotor STATS = new DCMotor(12.0, 3.28, 181, 1.3, Units.rotationsPerMinuteToRadiansPerSecond(RPM), 1);
+    public static final DCMotor STATS = DCMotor.getNEO(1);
     public static final double SAFE_TEMPERATURE = 60;
     public static final int SAFE_STALL_CURRENT = 40;
-    public static final int SAFE_FREE_CURRENT = 80;
+    public static final int SAFE_FREE_CURRENT = 60;
     public static final double SAFE_RAMP_RATE = 0.1;
 
     public static double maxTorqueCurrentLimited(int currentLimit) {
@@ -284,8 +288,7 @@ public final class Constants {
     }
   }
   public static final class NEO550 {
-    public static final double RPM = 11710;
-    public static final DCMotor STATS = new DCMotor(12.0, 1.08, 111, 1.1, Units.rotationsPerMinuteToRadiansPerSecond(RPM), 1);
+    public static final DCMotor STATS = DCMotor.getNeo550(1);
     public static final double SAFE_TEMPERATURE = 60;
     public static final int SAFE_STALL_CURRENT = 10;
     public static final double SAFE_RAMP_RATE = 0.1;
@@ -308,6 +311,11 @@ public final class Constants {
     public static final double PROJECTILE_MASS = Units.lbsToKilograms(0.5);
     public static final double COMPRESSION = Units.inchesToMeters(0.5);
     public static final double SPEED_PRECISION = Units.rotationsPerMinuteToRadiansPerSecond(10);
+    public static final double TOP_EXIT_VELOCITY = 12.5;
+    public static final double MAX_EXIT_VELOCITY = 13.0;
+    public static final double NOTE_LOG_BASE = 1.0082;
+    public static final double NOTE_LOG_OFFSET = 504.213;
+    public static final double MAX_WHEEL_SPEED = NEO.STATS.freeSpeedRadPerSec * SHOOTER_WHEELS.GEARBOX_STEP_UP;
 
     // x is front-to-back
     // y is left-to-right
@@ -324,19 +332,19 @@ public final class Constants {
   }
 
   public static final class SHOOTER_PIVOT {
-    public static final double GEARING = 25.0 * (78.0 / 20.0) * (200.0 / 18.0);
+    public static final double GEARING = 15.0 * (78.0 / 20.0) * (200.0 / 18.0);
     public static final double ROTATION_DELAY = 0.3; // seconds
     public static final Rotation2d ANGLE_TOLERANCE = Rotation2d.fromDegrees(0.25);
     public static final Rotation2d ANGLE_PRECISION = Rotation2d.fromDegrees(0.25);
     public static final Rotation2d HEADING_PRECISION = Rotation2d.fromDegrees(0.25);
     public static final Translation3d POSITION = new Translation3d(Units.inchesToMeters(3.33), 0.0, Units.inchesToMeters(12.1));
-    public static final double ABSOLUTE_POSITION_OFFSET = Units.degreesToRotations(-149.281);
-    public static final Rotation2d NOTE_ROTATION_OFFSET = Rotation2d.fromDegrees(-1.0); // Theoretically 3.1480961
+    public static final double ABSOLUTE_POSITION_OFFSET = Units.degreesToRotations(-141.5 - 93.15 + 27); //  - [ rawAbsolutePosition from logs ] - 93.15 + [ the angle measured from the front plate of shooter ]
+    public static final Rotation2d NOTE_ROTATION_OFFSET = Rotation2d.fromDegrees(-0.75); // Theoretically 3.1480961
     public static final double SHOOTER_LENGTH = Units.inchesToMeters(15.023);
     
     public static final class PROFILE {
       public static final double kP = 20.0;
-      public static final double kS = 0.5;
+      public static final double kS = 0.3;
       public static final double MAX_ACCELERATION = 30.0; // rad/s^2
     }
   }
@@ -361,10 +369,14 @@ public final class Constants {
   public static final class TRANSFER {
     public static final double GEARING_IN = (42.0 / 12.0) * (24.0 / 18.0);
     public static final double GEARING_OUT = 58.0 / 12.0;
-    public static final double INTAKE_GEARING = GEARING_IN * (15.0 / 36.0);
-    public static final double FREE_TORQUE = 0.5; // TODO
-    public static final double INTAKE_RADIUS = Units.inchesToMeters(0.5);
-    public static final double TRANSFER_RADIUS = Units.inchesToMeters(1.0);
+    public static final double RADIUS = Units.inchesToMeters(1.125);
+    public static final double MAX_LINEAR_SPEED_IN = NEO.STATS.freeSpeedRadPerSec / GEARING_IN * RADIUS;
+  }
+
+  public static final class INTAKE {
+    public static final double GEARING = (38.0 / 16.0) * (15.0 / 18.0);
+    public static final double RADIUS = Units.inchesToMeters(0.5);
+    public static final double MAX_LINEAR_SPEED = NEO.STATS.freeSpeedRadPerSec / GEARING * RADIUS;
   }
 
   public static final class HANG {

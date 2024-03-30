@@ -47,7 +47,7 @@ public final class Logger {
       }
     }
   );
-
+  
   public static void startLog() {
     notifier.startPeriodic(LOGGING.LOGGING_PERIOD_MS / 1000.0);
   }

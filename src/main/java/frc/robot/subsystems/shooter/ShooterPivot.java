@@ -46,7 +46,7 @@ public class ShooterPivot extends SubsystemBase {
       SHOOTER_PIVOT.GEARING,
       Preferences.SHOOTER_PIVOT.MIN_ANGLE,
       Preferences.SHOOTER_PIVOT.MAX_ANGLE,
-      Rotation2d.fromDegrees(0.5),
+      Rotation2d.fromDegrees(0.25),
       true
     );
 
@@ -83,7 +83,13 @@ public class ShooterPivot extends SubsystemBase {
     );
   }
 
+  public boolean isAngleAchievable(Rotation2d angle) {
+    if (angle == null) return false;
+    return controller.isAngleAchievable(angle);
+  }
+
   public void setTargetAngle(Rotation2d angle) {
+    if (angle == null) return;
     controller.setTargetAngle(angle);
   }
 
