@@ -6,7 +6,9 @@ package frc.robot.subsystems.shooter;
 
 import java.util.function.Supplier;
 
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.wpilibj.RobotState;
 import edu.wpi.first.wpilibj.smartdashboard.Mechanism2d;
@@ -41,6 +43,7 @@ public class Shooter extends SubsystemBase {
     AIM_SPEAKER,
     AIM_MORTAR,
     SPIN_UP,
+    REVERSE
   }
 
   public Shooter(SwerveDrive swerveDrive) {
@@ -49,25 +52,7 @@ public class Shooter extends SubsystemBase {
     this.swerveDrive = swerveDrive;
     
     Logger.autoLog(this, "Is Aimed", () -> isAimed());
-    Logger.autoLog(this, "Shooter Position", () -> ShooterMath.calcShooterLocationOnField(swerveDrive, this));
-    Logger.autoLog(this, "Straight Line Angle", () -> {
-      Translation3d loc = Field.SPEAKER.get().minus(ShooterMath.calcShooterLocationOnField(swerveDrive, this));
-      return Rotation2d.fromRadians(Math.atan(loc.getZ() / loc.toTranslation2d().getNorm())).minus(Constants.SHOOTER_PIVOT.NOTE_ROTATION_OFFSET).getRadians();
-    }
-    );
-    Logger.autoLog(this, "Speaker Distance", () -> ShooterMath.calcShooterLocationOnField(swerveDrive, this).getDistance(Field.SPEAKER.get()));
-    Logger.autoLog(this, "Speaker Height", () -> ShooterMath.calcShooterLocationOnField(swerveDrive, this).minus(Field.SPEAKER.get()).getZ());
-    Logger.autoLog(this, "Speaker Floor Distance", () -> ShooterMath.calcShooterLocationOnField(swerveDrive, this).toTranslation2d().getDistance(Field.SPEAKER.get().toTranslation2d()));
-    Logger.autoLog(this, "Shot Heading", () -> ShooterMath.calcVelocityCompensatedPoint(
-          Field.SPEAKER.get(),
-          swerveDrive,
-          this
-        ).toTranslation2d().minus(swerveDrive.getPose().getTranslation()).getAngle().plus(Rotation2d.fromDegrees(180.0)).getDegrees());
-    Logger.autoLog(this, "Aiming Point", () -> ShooterMath.calcVelocityCompensatedPoint(
-      Field.SPEAKER.get(),
-      swerveDrive,
-      this
-    ));
+
     SmartDashboard.putData("ShooterMechanism", mechanism);
   }
   
@@ -90,23 +75,16 @@ public class Shooter extends SubsystemBase {
     
     Rotation2d pivotAngle = ShooterMath.calcPivotAngle(compensatedAimingPoint, swerveDrive, this);
     double projectileVelocity = shooterPivot.isAngleAchievable(ShooterMath.calcPivotAngle(aimingPoint.get(), swerveDrive, this, Constants.SHOOTER_WHEELS.MAX_WHEEL_SPEED)) ? Constants.SHOOTER_WHEELS.TOP_EXIT_VELOCITY : ShooterMath.calcProjectileVelocity(
-      compensatedAimingPoint,
+      aimingPoint.get(),
       swerveDrive,
       this
     );
     double flightTime = ShooterMath.calculateFlightTime(compensatedAimingPoint, swerveDrive, this);
     double shooterWheelVelocity = ShooterMath.calcShooterWheelVelocity(projectileVelocity);
     
-    Logger.log("compensatedAimingPoint", compensatedAimingPoint);
-    Logger.log("targetPivotAngle", pivotAngle == null ? 0.0 : pivotAngle.getDegrees());
-    Logger.log("realPivotAngle", shooterPivot.getPosition().getDegrees());
-    Logger.log("flightTime", flightTime);
-    Logger.log("targetShooterWheelVelocity", shooterWheelVelocity);
-    Logger.log("realShooterWheelVelocity", shooterWheels.getVelocity());
-    Logger.log("targetProjectileVelocity", projectileVelocity);
-    Logger.log("realProjectileVelocity", ShooterMath.calcProjectileVelocity(shooterWheels.getVelocity()));
-
-
+    SwerveDrive.getField().getObject("Aiming Point").setPose(new Pose2d(aimingPoint.get().toTranslation2d(), new Rotation2d()));
+    SwerveDrive.getField().getObject("Velocity Compensated Point").setPose(new Pose2d(compensatedAimingPoint.toTranslation2d(), new Rotation2d()));
+    
     // System.out.println(ShooterMath.calcProjectileVelocity(
     //           ShooterMath.calcVelocityCompensatedPoint(
     //             aimingPoint.get(),
@@ -140,16 +118,14 @@ public class Shooter extends SubsystemBase {
           shooterWheels.setState(ShooterWheels.State.SPIN_UP),
           shooterWheels.setTargetExitVelocityCommand(() -> 
             shooterPivot.isAngleAchievable(ShooterMath.calcPivotAngle(aimingPoint.get(), swerveDrive, this, Constants.SHOOTER_WHEELS.MAX_WHEEL_SPEED)) ? Constants.SHOOTER_WHEELS.TOP_EXIT_VELOCITY : ShooterMath.calcProjectileVelocity(
-              ShooterMath.calcVelocityCompensatedPoint(
-                aimingPoint.get(),
-                swerveDrive,
-                this
-              ),
+              aimingPoint.get(),
               swerveDrive,
               this
             )
           )
       );
+      case REVERSE:
+        return shooterWheels.setState(ShooterWheels.State.REVERSE);
     } 
     return null;
   }
@@ -159,11 +135,26 @@ public class Shooter extends SubsystemBase {
   }
 
   public Command aim(Supplier<Translation3d> point, double targetSize) {
+
+    Supplier<Translation3d> finalPoint = () -> {
+      if (point.get().getZ() == 0.0) {
+        Translation2d newPoint = point.get().toTranslation2d().minus(swerveDrive.getPose().getTranslation()).rotateBy(Rotation2d.fromDegrees(-20.0 * (1.0 - shooterWheels.getVelocity() / Constants.SHOOTER_WHEELS.MAX_WHEEL_SPEED))).plus(swerveDrive.getPose().getTranslation());
+        return new Translation3d(
+          newPoint.getX(),
+          newPoint.getY(),
+          0.0
+        );
+      } else {
+        return point.get();
+      }
+    };
+
+    // Supplier<Translation3d> finalPoint = () -> point.get();
     // Calculate point to aim towards, accounting for current velocity
     return shooterPivot.setTargetAngleCommand(() -> 
       ShooterMath.calcPivotAngle(
         ShooterMath.calcVelocityCompensatedPoint(
-          point.get(),
+          finalPoint.get(),
           swerveDrive,
           this
         ),
@@ -173,7 +164,7 @@ public class Shooter extends SubsystemBase {
     ).alongWith(
       swerveDrive.facePointCommand(() -> 
         ShooterMath.calcVelocityCompensatedPoint(
-          point.get(),
+          finalPoint.get(),
           swerveDrive,
           this
         ).toTranslation2d(),
@@ -181,7 +172,7 @@ public class Shooter extends SubsystemBase {
       )
     ).alongWith(
       Commands.runOnce(() -> {
-        this.aimingPoint = point;
+        this.aimingPoint = finalPoint;
         this.targetSize = targetSize;
         this.isAiming = true;
       })

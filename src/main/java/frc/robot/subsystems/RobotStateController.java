@@ -4,14 +4,14 @@ import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.RobotBase;
-import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.RobotState;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.ConditionalCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.RobotContainer;
+import frc.robot.Robot;
 import frc.robot.Constants.Constants;
+import frc.robot.Constants.Field;
 import frc.robot.Constants.Preferences;
 import frc.robot.subsystems.amp.Amp;
 import frc.robot.subsystems.drive.SwerveDrive;
@@ -32,7 +32,7 @@ public class RobotStateController extends SubsystemBase {
   private DigitalInput beamBreakSensor;
   private Debouncer beamBreakDebouncer = new Debouncer(0.1);
   private Debouncer shotDebouncer = new Debouncer(0.25);
-  private State currentState;
+  private boolean shootOverride = false;
   // private static ShuffleboardTab tab = Shuffleboard.getTab("Auto");
   // private static SimpleWidget hasNote = tab.add("has Note", true).withWidget(BuiltInWidgets.kToggleButton).withSize(1, 1).withPosition(0, 0);
 
@@ -54,6 +54,8 @@ public class RobotStateController extends SubsystemBase {
     PREPARE_TRAP,
     SHOOT_TRAP,
     CENTER_NOTE,
+    REVERSE_SHOOTER,
+    SHOOT_OVERIDE
   }
 
   public RobotStateController(Amp amp, SwerveDrive swerveDrive, Shooter shooter, Transfer transfer, Intake intake) {
@@ -65,6 +67,13 @@ public class RobotStateController extends SubsystemBase {
     beamBreakSensor = new DigitalInput(Constants.DIO.BEAM_BREAK);
 
     StatusChecks.addCheck(new SubsystemBase() {}, "Beam Break Sensor", () -> beamBreakSensor.get());
+
+    Logger.autoLog(this, "isAimed", () -> isAimed());
+    Logger.autoLog(this, "hasNote", () -> hasNote());
+    Logger.autoLog(this, "canShoot", () -> canShoot());
+    Logger.autoLog(this, "inRange", () -> inRange());
+    Logger.autoLog(this, "Loop Time", () -> Robot.getLoopTime());
+    Logger.autoLog(this, "Compute Time", () -> Robot.getComputeTime());
   }
 
   /**
@@ -74,7 +83,6 @@ public class RobotStateController extends SubsystemBase {
    */
 
   public Command setState(State state) {
-    currentState = state;
     switch(state) {
       case INTAKE:
         return Commands.parallel(
@@ -103,7 +111,9 @@ public class RobotStateController extends SubsystemBase {
         return Commands.sequence(
           amp.setState(Amp.State.DOWN),
           amp.setState(Amp.State.IN).alongWith(
-            transfer.setState(Transfer.State.AMP)
+            transfer.setState(Transfer.State.AMP).alongWith(
+              intake.setState(Intake.State.SLOW_IN)
+            )
           ).until(() -> !hasNote()),
           Commands.parallel(
             transfer.setState(Transfer.State.AMP),
@@ -136,18 +146,26 @@ public class RobotStateController extends SubsystemBase {
       case SHOOT:
         return Commands.sequence(
           Commands.waitUntil(() -> canShoot()),
-          transfer.setState(Transfer.State.SHOOTER_FAST).until(() -> !hasNote()),
+          transfer.setState(Transfer.State.SHOOTER_FAST).alongWith(
+            intake.setState(Intake.State.SLOW_IN)
+          ).until(() -> !hasNote()),
           transfer.setState(Transfer.State.SHOOTER_SLOW)
-        ).raceWith(LEDs.setStateCommand(LEDs.State.RUNNING_COMMAND));
+        ).raceWith(
+          shooter.getWheels().turnOnFeedWheels(),
+          LEDs.setStateCommand(LEDs.State.RUNNING_COMMAND)
+        );
+      case SHOOT_OVERIDE:
+        return Commands.runEnd(
+          () -> shootOverride = true,
+          () -> shootOverride = false
+        );
       case SPIN_UP:
         return shooter.setState(Shooter.State.SPIN_UP);
+      case REVERSE_SHOOTER:
+        return shooter.setState(Shooter.State.REVERSE);
       default:
         return Commands.run(() -> {});
     }
-  }
-
-  public State getState() {
-    return currentState;
   }
 
   public boolean hasNote() {
@@ -180,7 +198,9 @@ public class RobotStateController extends SubsystemBase {
 
   public boolean canShoot() {
     // System.out.println(isAimed());
-    return shotDebouncer.calculate(isAimed());
+    if (shootOverride) return true;
+    return shotDebouncer.calculate(isAimed()) &&
+    ((swerveDrive.getPose().getX() < ((Field.LENGTH - Field.WING_X.get()) - Constants.SWERVE_DRIVE.BUMPER_DIAGONAL / 2.0) && Constants.IS_BLUE_TEAM.get()) || (swerveDrive.getPose().getX() > (Field.LENGTH - Field.WING_X.get() + Constants.SWERVE_DRIVE.BUMPER_DIAGONAL / 2.0) && !Constants.IS_BLUE_TEAM.get()));
   }
 
   public boolean inRange() {
@@ -191,12 +211,6 @@ public class RobotStateController extends SubsystemBase {
   public void periodic() {
     shotDebouncer.calculate(isAimed());
     beamBreakDebouncer.calculate(!beamBreakSensor.get());
-
-    // Logger.log("PDH", RobotContainer.getPDH());
-    Logger.log("Voltage", RobotController.getBatteryVoltage());
-    Logger.log("CAN Bus", RobotController.getCANStatus().percentBusUtilization);
-    Logger.log("Current", RobotContainer.getTotalCurrent());
-    Logger.log("isAimed", isAimed());
 
     if (RobotState.isDisabled()) {
       LEDs.setState(LEDs.State.DISABLED);
@@ -222,7 +236,6 @@ public class RobotStateController extends SubsystemBase {
         LEDs.setState(LEDs.State.AIMING);
       }
     }
-    Logger.log("currentState", getState().name());
     
     if (swerveDrive.underStage()) {
       shooter.getPivot().setMaxAngle(Preferences.SHOOTER_PIVOT.MAX_ANGLE_UNDER_STAGE);

@@ -92,12 +92,15 @@ public class SwerveDrive extends SubsystemBase {
   private boolean isDriven = false;
   private boolean gyroConnected = false;
 
+  private double angularAcceleration = 0.0;
+
   private Supplier<Translation2d> rotationOverridePoint = null;
   private Rotation2d rotationOverrideOffset = new Rotation2d();
 
   private SWERVE_DRIVE.MODULE_CONFIG[] equippedModules;
 
   private SwerveDriveWheelPositions previousWheelPositions;
+  private Translation2d linearAcceleration;
 
   public SwerveDrive() {
     // Create the serve module objects
@@ -119,7 +122,6 @@ public class SwerveDrive extends SubsystemBase {
     }
 
     // Set up pose estimator and rotation controller
-    Logger.log("swerveModulePositions", getModulePositions());
     poseEstimator = new CustomSwerveDrivePoseEstimator(
       kinematics,
       SWERVE_DRIVE.STARTING_POSE.get().getRotation(),
@@ -151,12 +153,23 @@ public class SwerveDrive extends SubsystemBase {
     
     SmartDashboard.putData("Field", field);
     
-    Logger.autoLog("SwerveDrive/pose", () -> this.getPose());
-    Logger.autoLog("SwerveDrive/measuredHeading", () -> this.getHeading().getDegrees());
-    Logger.autoLog("SwerveDrive/targetHeading", () -> Units.radiansToDegrees(alignmentController.getSetpoint()));
-    Logger.autoLog("SwerveDrive/targetStates", this::getTargetModuleStates);
-    Logger.autoLog("SwerveDrive/measuredStates", this::getMeasuredModuleStates);
-    
+    Logger.autoLog(this, "pose", () -> this.getPose());
+    Logger.autoLog(this, "measuredHeading", () -> this.getHeading().getDegrees());
+    Logger.autoLog(this, "targetHeading", () -> Units.radiansToDegrees(alignmentController.getSetpoint()));
+    Logger.autoLog(this, "targetStates", () -> getTargetModuleStates());
+    Logger.autoLog(this, "measuredStates", () -> getMeasuredModuleStates());
+    Logger.autoLog(this, "modulePositions", () -> getModulePositions());
+    Logger.autoLog(this, "gyroAcceleration", () -> Math.hypot(gyro.getWorldLinearAccelX(), gyro.getWorldLinearAccelY()));
+    Logger.autoLog(this, "gyroVelocity", () -> Math.hypot(gyro.getVelocityX(), gyro.getVelocityY()));
+    Logger.autoLog(this, "commandedLinearAcceleration", () -> linearAcceleration.getNorm());
+    Logger.autoLog(this, "commandedLinearVelocity", () -> Math.hypot(getDrivenChassisSpeeds().vxMetersPerSecond, getDrivenChassisSpeeds().vyMetersPerSecond));
+    Logger.autoLog(this, "commandedAngularAcceleration", () -> angularAcceleration);
+    Logger.autoLog(this, "commandedAngularVelocity", () -> getDrivenChassisSpeeds().omegaRadiansPerSecond);
+    Logger.autoLog(this, "measuredAngularVelocity", () -> getMeasuredChassisSpeeds().omegaRadiansPerSecond);
+    Logger.autoLog(this, "measuredLinearVelocity", () -> Math.hypot(getMeasuredChassisSpeeds().vxMetersPerSecond, getMeasuredChassisSpeeds().vyMetersPerSecond));
+    Logger.autoLog(this, "gyroIsCalibrating", () -> gyro.isCalibrating());
+    Logger.autoLog(this, "gyroIsConnected", () -> gyro.isConnected());
+    Logger.autoLog(this, "gyroRawDegrees", () -> gyro.getRotation2d().getDegrees());
     StatusChecks.addCheck(this, "isGyroConnected", gyro::isConnected);
 
     AutoBuilder.configureHolonomic(
@@ -199,9 +212,7 @@ public class SwerveDrive extends SubsystemBase {
       setTargetHeading(getHeading());
       isAligning = false;
       rotationOverridePoint = null;
-    }
-    
-    Logger.log("Loop-Time", Robot.getLoopTime());
+    }    
     
     updateOdometry();
 
@@ -235,6 +246,9 @@ public class SwerveDrive extends SubsystemBase {
     if (notePosition != null) {
       visibleNotes.setPose(new Pose2d(notePosition, new Rotation2d()));
     }
+
+    // getField().getObject("futurePose").setPose(getFuturePose());
+
 
     // Pose2d randomPose = new Pose2d(
     //   new Translation2d(
@@ -284,11 +298,6 @@ public class SwerveDrive extends SubsystemBase {
   }
 
   public void updateOdometry() {
-    Logger.log("gyro.isConnected()", gyro.isConnected());
-    Logger.log("gyro.getLastSensorTimestamp()", gyro.getLastSensorTimestamp());
-    Logger.log("gyro.isCalibrating()", gyro.isCalibrating());
-    Logger.log("gyro.getRotation2d()", gyro.getRotation2d().getDegrees());
-
     Pose2d poseBefore = getPose();
 
     SwerveDriveWheelPositions wheelPositions = new SwerveDriveWheelPositions(getModulePositions());
@@ -307,7 +316,6 @@ public class SwerveDrive extends SubsystemBase {
       gyroHeading = gyroHeading.plus(newPose.getRotation().minus(getPose().getRotation()));
     }
 
-    Logger.log("swerveModulePositions", getModulePositions());
     poseEstimator.update(gyroHeading.plus(gyroOffset), getModulePositions());
     AprilTags.injectVisionData(LIMELIGHT.APRILTAG_CAMERA_POSES, this);
 
@@ -394,14 +402,14 @@ public class SwerveDrive extends SubsystemBase {
       isAligning = true;
     }
     
-    Logger.log("addedAlignmentAngularVelocity", addedAlignmentAngularVelocity);
-    Logger.log("alignmentController.getSetpoint()", alignmentController.getSetpoint());
+    // Logger.log("addedAlignmentAngularVelocity", addedAlignmentAngularVelocity);
+    // Logger.log("alignmentController.getSetpoint()", alignmentController.getSetpoint());
 
     double alignmentAngularVelocity = alignmentController.calculate(getHeading().getRadians()) + addedAlignmentAngularVelocity;
     addedAlignmentAngularVelocity = 0.0;
     if (isAligning && !alignmentController.atSetpoint() && !parked) fieldRelativeSpeeds.omegaRadiansPerSecond += alignmentAngularVelocity;
-    
-    SwerveModuleState[] moduleStates = kinematics.toSwerveModuleStates(ChassisSpeeds.fromFieldRelativeSpeeds(fieldRelativeSpeeds, getAllianceAwareHeading()));
+
+    SwerveModuleState[] moduleStates = kinematics.toSwerveModuleStates(fieldRelativeSpeeds);
     SwerveDriveKinematics.desaturateWheelSpeeds(
       moduleStates,
       fieldRelativeSpeeds,
@@ -409,18 +417,19 @@ public class SwerveDrive extends SubsystemBase {
       SWERVE_DRIVE.PHYSICS.MAX_LINEAR_VELOCITY,
       SWERVE_DRIVE.PHYSICS.MAX_ANGULAR_VELOCITY
     );
-    fieldRelativeSpeeds = ChassisSpeeds.fromRobotRelativeSpeeds(kinematics.toChassisSpeeds(moduleStates), getAllianceAwareHeading());
+    fieldRelativeSpeeds = kinematics.toChassisSpeeds(moduleStates);
+
 
     // Limit translational acceleration
     Translation2d targetLinearVelocity = new Translation2d(fieldRelativeSpeeds.vxMetersPerSecond, fieldRelativeSpeeds.vyMetersPerSecond);
     Translation2d currentLinearVelocity = new Translation2d(drivenChassisSpeeds.vxMetersPerSecond, drivenChassisSpeeds.vyMetersPerSecond);
-    Translation2d linearAcceleration = (targetLinearVelocity).minus(currentLinearVelocity).div(Robot.getLoopTime());
+    linearAcceleration = (targetLinearVelocity).minus(currentLinearVelocity).div(Robot.getLoopTime());
     double linearForce = linearAcceleration.getNorm() * SWERVE_DRIVE.ROBOT_MASS;
 
-     // Limit rotational acceleration
+    // Limit rotational acceleration
     double targetAngularVelocity = fieldRelativeSpeeds.omegaRadiansPerSecond;
     double currentAngularVelocity = drivenChassisSpeeds.omegaRadiansPerSecond;
-    double angularAcceleration = (targetAngularVelocity - currentAngularVelocity) / Robot.getLoopTime();
+    angularAcceleration = (targetAngularVelocity - currentAngularVelocity) / Robot.getLoopTime();
     double angularForce = Math.abs((SWERVE_DRIVE.PHYSICS.ROTATIONAL_INERTIA * angularAcceleration) / SWERVE_DRIVE.PHYSICS.DRIVE_RADIUS);
     
     double frictionForce = 9.80 * SWERVE_DRIVE.ROBOT_MASS * SWERVE_DRIVE.FRICTION_COEFFICIENT;
@@ -507,6 +516,10 @@ public class SwerveDrive extends SubsystemBase {
 
     if (point == null) {
       setTargetHeadingAndVelocity(getHeading(), 0.0);
+      return;
+    }
+
+    if (point.getDistance(getPose().getTranslation()) < 1.0 && RobotState.isAutonomous()) {
       return;
     }
 
@@ -736,10 +749,15 @@ public class SwerveDrive extends SubsystemBase {
   }
 
   public boolean underStage() {
-    return MathUtils.isInsideTriangle(Field.BLUE_STAGE_CORNERS[0], Field.BLUE_STAGE_CORNERS[1], Field.BLUE_STAGE_CORNERS[2], getFuturePose().getTranslation()) ||
-           MathUtils.isInsideTriangle(Field.RED_STAGE_CORNERS[0], Field.RED_STAGE_CORNERS[1], Field.RED_STAGE_CORNERS[2], getFuturePose().getTranslation()) ||
-           MathUtils.isInsideTriangle(Field.BLUE_STAGE_CORNERS[0], Field.BLUE_STAGE_CORNERS[1], Field.BLUE_STAGE_CORNERS[2], getPose().getTranslation()) ||
-           MathUtils.isInsideTriangle(Field.RED_STAGE_CORNERS[0], Field.RED_STAGE_CORNERS[1], Field.RED_STAGE_CORNERS[2], getPose().getTranslation());
+    if (!RobotState.isAutonomous()) {
+      return MathUtils.isInsideTriangle(Field.BLUE_STAGE_CORNERS[0], Field.BLUE_STAGE_CORNERS[1], Field.BLUE_STAGE_CORNERS[2], getFuturePose().getTranslation()) ||
+             MathUtils.isInsideTriangle(Field.RED_STAGE_CORNERS[0], Field.RED_STAGE_CORNERS[1], Field.RED_STAGE_CORNERS[2], getFuturePose().getTranslation()) ||
+             MathUtils.isInsideTriangle(Field.BLUE_STAGE_CORNERS[0], Field.BLUE_STAGE_CORNERS[1], Field.BLUE_STAGE_CORNERS[2], getPose().getTranslation()) ||
+             MathUtils.isInsideTriangle(Field.RED_STAGE_CORNERS[0], Field.RED_STAGE_CORNERS[1], Field.RED_STAGE_CORNERS[2], getPose().getTranslation());
+    } else {
+      return MathUtils.isInsideTriangle(Field.BLUE_STAGE_CORNERS[0], Field.BLUE_STAGE_CORNERS[1], Field.BLUE_STAGE_CORNERS[2], getFuturePose().getTranslation()) ||
+             MathUtils.isInsideTriangle(Field.RED_STAGE_CORNERS[0], Field.RED_STAGE_CORNERS[1], Field.RED_STAGE_CORNERS[2], getFuturePose().getTranslation());
+    }
   }
 
   /**

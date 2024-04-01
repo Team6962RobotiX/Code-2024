@@ -44,7 +44,7 @@ public final class Constants {
   }
 
   public static final class LOGGING {
-    public static final int LOGGING_PERIOD_MS = 100;
+    public static final int LOGGING_PERIOD_MS = 20;
   }
 
   // DEVICES
@@ -88,7 +88,7 @@ public final class Constants {
     ///////////////////////// CONFIG /////////////////////////
     public static final boolean  IS_PROTOTYPE_CHASSIS               = !new DigitalInput(0).get();
 
-    public static final double   INSPECTION_WEIGHT                  = IS_PROTOTYPE_CHASSIS ? Units.lbsToKilograms(42) : Units.lbsToKilograms(122);
+    public static final double   INSPECTION_WEIGHT                  = IS_PROTOTYPE_CHASSIS ? Units.lbsToKilograms(42) : Units.lbsToKilograms(113.5);
     public static final double   BATTERY_WEIGHT                     = Units.lbsToKilograms(12.89);
     public static final double   BUMPER_WEIGHT                      = IS_PROTOTYPE_CHASSIS ? 0.0 : Units.lbsToKilograms(11.0);
     public static final double   ROBOT_MASS                         = INSPECTION_WEIGHT + BATTERY_WEIGHT + BUMPER_WEIGHT; // kg
@@ -102,7 +102,7 @@ public final class Constants {
     public static final double   WHEEL_WIDTH                        = Units.inchesToMeters(2.0);
     public static final double   DRIVE_MOTOR_GEARING                = 6.75;
     public static final double   STEER_MOTOR_GEARING                = 150.0 / 7.0;
-    public static final double   GEARBOX_EFFICIENCY                 = 1.0;
+    public static final double   GEARBOX_EFFICIENCY                 = 0.975;
     public static final double   BATTERY_RESISTANCE                 = 0.02; // ohms
     public static final double   BATTERY_VOLTAGE                    = 12.6; // volts
     public static final double   BROWNOUT_VOLTAGE                   = 6.8; // volts
@@ -167,7 +167,7 @@ public final class Constants {
         public static final double kD = 0.0;
       }
 
-      public static final double ACCELERATION_REDUCTION = 1.5;//((SWERVE_DRIVE.PHYSICS.MAX_LINEAR_ACCELERATION * SWERVE_DRIVE.ROBOT_MASS + ((SWERVE_DRIVE.PHYSICS.ROTATIONAL_INERTIA * SWERVE_DRIVE.PHYSICS.MAX_ANGULAR_ACCELERATION) / SWERVE_DRIVE.PHYSICS.DRIVE_RADIUS)) / (9.80 * SWERVE_DRIVE.ROBOT_MASS * SWERVE_DRIVE.FRICTION_COEFFICIENT));
+      public static final double ACCELERATION_REDUCTION = ((SWERVE_DRIVE.PHYSICS.MAX_LINEAR_ACCELERATION * SWERVE_DRIVE.ROBOT_MASS + ((SWERVE_DRIVE.PHYSICS.ROTATIONAL_INERTIA * SWERVE_DRIVE.PHYSICS.MAX_ANGULAR_ACCELERATION) / SWERVE_DRIVE.PHYSICS.DRIVE_RADIUS)) / (9.80 * SWERVE_DRIVE.ROBOT_MASS * SWERVE_DRIVE.FRICTION_COEFFICIENT));
 
       public static final PathConstraints DEFAULT_PATH_CONSTRAINTS =
         new PathConstraints(
@@ -277,7 +277,8 @@ public final class Constants {
   }
 
   public static final class NEO {
-    public static final DCMotor STATS = DCMotor.getNEO(1);
+    public static final DCMotor STATS = new DCMotor(12.0, 3.0, 160.0, 2.065, Units.rotationsPerMinuteToRadiansPerSecond(5820), 1);
+
     public static final double SAFE_TEMPERATURE = 60;
     public static final int SAFE_STALL_CURRENT = 40;
     public static final int SAFE_FREE_CURRENT = 60;
@@ -339,12 +340,12 @@ public final class Constants {
     public static final Rotation2d HEADING_PRECISION = Rotation2d.fromDegrees(0.25);
     public static final Translation3d POSITION = new Translation3d(Units.inchesToMeters(3.33), 0.0, Units.inchesToMeters(12.1));
     public static final double ABSOLUTE_POSITION_OFFSET = Units.degreesToRotations(-141.5 - 93.15 + 27); //  - [ rawAbsolutePosition from logs ] - 93.15 + [ the angle measured from the front plate of shooter ]
-    public static final Rotation2d NOTE_ROTATION_OFFSET = Rotation2d.fromDegrees(-0.75); // Theoretically 3.1480961
+    public static final Rotation2d NOTE_ROTATION_OFFSET = Rotation2d.fromDegrees(-1.25); // Theoretically 3.1480961
     public static final double SHOOTER_LENGTH = Units.inchesToMeters(15.023);
     
     public static final class PROFILE {
-      public static final double kP = 20.0;
-      public static final double kS = 0.3;
+      public static final double kP = 15.0;
+      public static final double kS = 0.2;
       public static final double MAX_ACCELERATION = 30.0; // rad/s^2
     }
   }
