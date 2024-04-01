@@ -11,7 +11,6 @@ import frc.robot.Constants.Constants.SHOOTER_PIVOT;
 import frc.robot.Constants.Constants.SHOOTER_WHEELS;
 import frc.robot.Constants.Preferences;
 import frc.robot.subsystems.drive.SwerveDrive;
-import frc.robot.util.software.Logging.Logger;
 
 public class ShooterMath {
   
@@ -48,7 +47,7 @@ public class ShooterMath {
   }
 
   public static boolean inRange(Translation3d targetPoint, SwerveDrive swerveDrive, Shooter shooter) {
-    Rotation2d pivotAngle = calcPivotAngle(targetPoint, swerveDrive, shooter);
+    Rotation2d pivotAngle = calcPivotAngle(targetPoint, swerveDrive, shooter, shooter.getWheels().getVelocity());
     if (pivotAngle == null) return false;
     // System.out.println(pivotAngle);
     return shooter.getPivot().isAngleAchievable(pivotAngle);
@@ -67,7 +66,7 @@ public class ShooterMath {
     double floorDistance = shooterLocation.toTranslation2d().getDistance(targetPoint.toTranslation2d());
     double gravity = 9.80;
     double velocity = (Math.sqrt(floorDistance) * Math.sqrt(gravity) * Math.sqrt(Math.pow(Math.tan(exitAngle.getRadians()), 2.0) + 1)) / Math.sqrt(2.0 * Math.tan(exitAngle.getRadians()) - (2.0 * targetHeight / floorDistance));
-
+    
     if (Double.isNaN(velocity)) velocity = Constants.SHOOTER_WHEELS.TOP_EXIT_VELOCITY;
     return velocity;
   }
@@ -105,7 +104,11 @@ public class ShooterMath {
   }
 
   public static Rotation2d calcPivotAngle(Translation3d targetPoint, SwerveDrive swerveDrive, Shooter shooter) {
-    return calcPivotAngle(targetPoint, swerveDrive, shooter, shooter.getWheels().getVelocity());
+    Rotation2d realPivot = calcPivotAngle(targetPoint, swerveDrive, shooter, shooter.getWheels().getVelocity());
+    if (realPivot == null) {
+      return calcPivotAngle(targetPoint, swerveDrive, shooter, shooter.getWheels().getTargetVelocity());
+    }
+    return realPivot;
   }
 
   /**
@@ -148,16 +151,19 @@ public class ShooterMath {
   public static boolean isAimed(Translation3d targetPoint, double targetSize, SwerveDrive swerveDrive, Shooter shooter) {
     Translation3d shooterLocation = calcShooterLocationOnField(swerveDrive, shooter);
     Translation3d aimingPoint = calcVelocityCompensatedPoint(targetPoint, swerveDrive, shooter, true);
-    double acceptableError = Math.atan(targetSize / targetPoint.getDistance(shooterLocation)) / 2.0;
+    double acceptableError = Math.atan(targetSize / (targetPoint.getDistance(shooterLocation) * 2.0));
     Rotation2d idealHeading = aimingPoint.toTranslation2d().minus(swerveDrive.getPose().getTranslation()).getAngle().plus(Rotation2d.fromDegrees(180.0));
-    Logger.log("idealHeading", idealHeading.getDegrees());
-    Logger.log("currentHeading", swerveDrive.getHeading().getDegrees());
-    Rotation2d idealPivotAngle = calcPivotAngle(aimingPoint, swerveDrive, shooter);
+
+    Rotation2d idealPivotAngle = calcPivotAngle(aimingPoint, swerveDrive, shooter, shooter.getWheels().getVelocity());
+    if (targetSize >= 10.0) idealPivotAngle = calcPivotAngle(aimingPoint, swerveDrive, shooter);
     if (idealPivotAngle == null) return false;
     // System.out.println(inRange(aimingPoint, swerveDrive, shooter));
     
-    if (Math.abs(shooter.getPivot().getPosition().minus(idealPivotAngle).getRadians()) > acceptableError / 8.0) return false;
-    if (Math.abs(swerveDrive.getHeading().minus(idealHeading).getRadians()) > acceptableError) return false;
+    if (Math.abs(swerveDrive.getHeading().minus(idealHeading).getRadians()) > acceptableError * 2.0) return false;
+
+    if (targetSize >= 10.0) return true;
+
+    if (Math.abs(shooter.getPivot().getPosition().minus(idealPivotAngle).getRadians()) > acceptableError / 3.0) return false;
     if (!inRange(aimingPoint, swerveDrive, shooter)) return false;
     return true;
   }
@@ -270,8 +276,6 @@ public class ShooterMath {
     
     double flightTime = calculateFlightTime(targetPoint, swerveDrive, shooter);
 
-    Logger.log("flightTime", flightTime);
-    Logger.log("currentVelocity", currentVelocity);
     if (Double.isNaN(flightTime) || Double.isInfinite(flightTime)) return targetPoint;
     
     Translation2d projectileOffset = currentVelocity.times(flightTime);
@@ -288,8 +292,6 @@ public class ShooterMath {
       targetPoint.getZ()
     );
     
-    Logger.log("velocityCompensatedPoint", velocityCompensatedPoint);
-
     return velocityCompensatedPoint;
   }
 

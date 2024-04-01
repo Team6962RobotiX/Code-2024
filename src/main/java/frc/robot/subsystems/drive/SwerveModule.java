@@ -53,9 +53,10 @@ public class SwerveModule extends SubsystemBase {
   private SwerveModuleState targetState = new SwerveModuleState();
   private String name;
   private int corner;
-  private Rotation2d trueSteerDirection = new Rotation2d();
+  private Rotation2d absoluteSteerDirection = new Rotation2d();
   private double driveVelocity = 0.0;
   private double drivePosition = 0.0;
+  private Rotation2d relativeSteerDirection = new Rotation2d();
 
   private boolean isCalibrating = false;
   
@@ -109,22 +110,21 @@ public class SwerveModule extends SubsystemBase {
     SparkMaxUtil.configureEncoder(steerMotor, SWERVE_DRIVE.STEER_ENCODER_CONVERSION_FACTOR);
     SparkMaxUtil.configurePID(this, driveMotor, DRIVE_MOTOR_PROFILE.kP, DRIVE_MOTOR_PROFILE.kI, DRIVE_MOTOR_PROFILE.kD, 0.0, false);
     SparkMaxUtil.configurePID(this, steerMotor, STEER_MOTOR_PROFILE.kP, STEER_MOTOR_PROFILE.kI, STEER_MOTOR_PROFILE.kD, 0.0, true);
-
-    driveMotor.setClosedLoopRampRate(SWERVE_DRIVE.PHYSICS.MAX_LINEAR_VELOCITY / SWERVE_DRIVE.PHYSICS.MAX_LINEAR_ACCELERATION);
-    driveMotor.setOpenLoopRampRate(SWERVE_DRIVE.PHYSICS.MAX_LINEAR_VELOCITY / SWERVE_DRIVE.PHYSICS.MAX_LINEAR_ACCELERATION);
+    
+    // driveMotor.setClosedLoopRampRate(SWERVE_DRIVE.PHYSICS.MAX_LINEAR_VELOCITY / SWERVE_DRIVE.PHYSICS.MAX_LINEAR_ACCELERATION);
+    // driveMotor.setOpenLoopRampRate(SWERVE_DRIVE.PHYSICS.MAX_LINEAR_VELOCITY / SWERVE_DRIVE.PHYSICS.MAX_LINEAR_ACCELERATION);
+    
+    SparkMaxUtil.save(driveMotor);
+    SparkMaxUtil.save(steerMotor);
     
     SparkMaxUtil.configureCANStatusFrames(driveMotor, true, true);
     SparkMaxUtil.configureCANStatusFrames(steerMotor, false, true);
-    
+
     seedSteerEncoder();
 
     String logPath = "module" + name + "/";
-    Logger.autoLog(this, logPath + "measuredState",           () -> getMeasuredState());
-    Logger.autoLog(this, logPath + "measuredAngle",           () -> getMeasuredState().angle.getDegrees());
-    Logger.autoLog(this, logPath + "measuredVelocity",        () -> getMeasuredState().speedMetersPerSecond);
-    Logger.autoLog(this, logPath + "targetState",             () -> getTargetState());
-    Logger.autoLog(this, logPath + "targetAngle",             () -> getTargetState().angle.getDegrees());
-    Logger.autoLog(this, logPath + "targetVelocity",          () -> getTargetState().speedMetersPerSecond);
+    Logger.autoLog(this, logPath + "relativeSteerDirection",           () -> relativeSteerDirection.getDegrees());
+    Logger.autoLog(this, logPath + "absoluteSteerDirection",        () -> absoluteSteerDirection.getDegrees());
 
     StatusChecks.addCheck(this, name + "canCoderHasFaults", () -> absoluteSteerEncoder.getFaultField().getValue() == 0);
     StatusChecks.addCheck(this, name + "canCoderIsConnected", () -> absoluteSteerEncoder.getVersion().getValue() != 0);
@@ -132,7 +132,8 @@ public class SwerveModule extends SubsystemBase {
 
 
   public void periodic() {
-    trueSteerDirection = Rotation2d.fromRotations(absoluteSteerEncoder.getAbsolutePosition().getValue());
+    relativeSteerDirection = Rotation2d.fromRadians(steerEncoder.getPosition());
+    absoluteSteerDirection = Rotation2d.fromRotations(absoluteSteerEncoder.getAbsolutePosition().getValue());
     driveVelocity = driveEncoder.getVelocity();
     drivePosition = driveEncoder.getPosition();
 
@@ -165,11 +166,11 @@ public class SwerveModule extends SubsystemBase {
       CANSparkMax.ControlType.kPosition
     );
 
-    if (Math.abs(steerMotor.getAppliedOutput()) < 0.1 && state.speedMetersPerSecond == 0) {
+    if (state.speedMetersPerSecond == 0 && Math.abs(getRelativeSteerDirection().minus(getAbsoluteSteerDirection()).getDegrees()) > 0.5) {
       seedSteerEncoder();
     }
   }
-    
+  
   public void setTargetState(SwerveModuleState state) {
     targetState = SwerveModuleState.optimize(state, getMeasuredState().angle);
   }
@@ -186,11 +187,15 @@ public class SwerveModule extends SubsystemBase {
    * Also the built-in SparkMaxPIDControllers require a compatible encoder to run the faster 1kHz closed loop 
    */
   public void seedSteerEncoder() {
-    steerEncoder.setPosition(getTrueSteerDirection().getRadians());
+    steerEncoder.setPosition(getAbsoluteSteerDirection().getRadians());
+  }
+
+  public Rotation2d getRelativeSteerDirection() {
+    return relativeSteerDirection;
   }
   
-  private Rotation2d getTrueSteerDirection() {
-    return trueSteerDirection;
+  private Rotation2d getAbsoluteSteerDirection() {
+    return absoluteSteerDirection;
   }
 
   public SwerveModuleState getTargetState() {
@@ -198,7 +203,7 @@ public class SwerveModule extends SubsystemBase {
   }
   
   public SwerveModuleState getMeasuredState() {
-    return new SwerveModuleState(driveVelocity, getTrueSteerDirection());
+    return new SwerveModuleState(driveVelocity, getAbsoluteSteerDirection());
   }
 
   public SwerveModulePosition getModulePosition() {

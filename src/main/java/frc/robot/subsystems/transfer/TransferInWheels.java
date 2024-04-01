@@ -12,6 +12,7 @@ import frc.robot.Constants.Constants.ENABLED_SYSTEMS;
 import frc.robot.Constants.Preferences;
 import frc.robot.Constants.Preferences.VOLTAGE_LADDER;
 import frc.robot.util.hardware.SparkMaxUtil;
+import frc.robot.util.software.Logging.Logger;
 
 public class TransferInWheels extends SubsystemBase {
   private CANSparkMax motor;
@@ -28,8 +29,10 @@ public class TransferInWheels extends SubsystemBase {
     motor = new CANSparkMax(CAN.TRANSFER_IN, MotorType.kBrushless); // TODO
 
     SparkMaxUtil.configureAndLog(this, motor, false, CANSparkMax.IdleMode.kBrake);
-    SparkMaxUtil.configureCANStatusFrames(motor, false, false);
     SparkMaxUtil.save(motor);
+    SparkMaxUtil.configureCANStatusFrames(motor, false, false);
+
+    Logger.autoLog(this, "state", () -> state.name());
 
     // detector = new NoteDetector(motor, Constants.TRANSFER.INTAKE_GEARING, Constants.TRANSFER.FREE_TORQUE, false);
   }

@@ -11,7 +11,6 @@ import com.revrobotics.SparkPIDController;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.Constants.NEO;
-import frc.robot.util.software.Logging.Logger;
 import frc.robot.util.software.Logging.StatusChecks;
 
 public final class SparkMaxUtil {
@@ -32,13 +31,13 @@ public final class SparkMaxUtil {
     
     String logPath = "motor" + motor.getDeviceId() + "/";
 
-    Logger.autoLog(subsystem, logPath + "current",          () -> motor.getOutputCurrent());
-    Logger.autoLog(subsystem, logPath + "voltage",          () -> motor.getBusVoltage());
-    Logger.autoLog(subsystem, logPath + "setOutput",        () -> motor.get());
-    Logger.autoLog(subsystem, logPath + "appliedOutput",    () -> motor.getAppliedOutput());
-    Logger.autoLog(subsystem, logPath + "appliedVoltage",   () -> motor.getBusVoltage() * motor.getAppliedOutput());
-    Logger.autoLog(subsystem, logPath + "powerWatts",       () -> motor.getBusVoltage() * motor.getAppliedOutput() * motor.getOutputCurrent());
-    Logger.autoLog(subsystem, logPath + "motorTemperature", () -> motor.getMotorTemperature());
+    // Logger.autoLog(subsystem, logPath + "current",          () -> motor.getOutputCurrent());
+    // Logger.autoLog(subsystem, logPath + "voltage",          () -> motor.getBusVoltage());
+    // Logger.autoLog(subsystem, logPath + "setOutput",        () -> motor.get());
+    // Logger.autoLog(subsystem, logPath + "appliedOutput",    () -> motor.getAppliedOutput());
+    // Logger.autoLog(subsystem, logPath + "appliedVoltage",   () -> motor.getBusVoltage() * motor.getAppliedOutput());
+    // Logger.autoLog(subsystem, logPath + "powerWatts",       () -> motor.getBusVoltage() * motor.getAppliedOutput() * motor.getOutputCurrent());
+    // Logger.autoLog(subsystem, logPath + "motorTemperature", () -> motor.getMotorTemperature());
     // Logger.autoLog(subsystem, logPath + "position",         () -> encoder.getPosition());
     // Logger.autoLog(subsystem, logPath + "velocity",         () -> encoder.getVelocity());
     
@@ -66,12 +65,12 @@ public final class SparkMaxUtil {
 
   public static void configureCANStatusFrames(CANSparkMax motor, boolean velocityTemperatureVoltageCurrent, boolean position, boolean analogSensor, boolean alternateEncoder, boolean absoluteEncoderPosition, boolean absoluteEncoderVelocity) {
     configure(() -> motor.setPeriodicFramePeriod(PeriodicFrame.kStatus0, 10), motor);
-    configure(() -> motor.setPeriodicFramePeriod(PeriodicFrame.kStatus1, velocityTemperatureVoltageCurrent ? 20 : 65535), motor);
-    configure(() -> motor.setPeriodicFramePeriod(PeriodicFrame.kStatus2, position ? 20 : 65535), motor);
-    configure(() -> motor.setPeriodicFramePeriod(PeriodicFrame.kStatus3, analogSensor ? 20 : 65535), motor);
-    configure(() -> motor.setPeriodicFramePeriod(PeriodicFrame.kStatus4, alternateEncoder ? 20 : 65535), motor);
-    configure(() -> motor.setPeriodicFramePeriod(PeriodicFrame.kStatus5, absoluteEncoderPosition ? 20 : 65535), motor);
-    configure(() -> motor.setPeriodicFramePeriod(PeriodicFrame.kStatus6, absoluteEncoderVelocity ? 20 : 65535), motor);
+    configure(() -> motor.setPeriodicFramePeriod(PeriodicFrame.kStatus1, velocityTemperatureVoltageCurrent ? 20 : 250), motor);
+    configure(() -> motor.setPeriodicFramePeriod(PeriodicFrame.kStatus2, position ? 250 : 250), motor);
+    configure(() -> motor.setPeriodicFramePeriod(PeriodicFrame.kStatus3, analogSensor ? 20 : 250), motor);
+    configure(() -> motor.setPeriodicFramePeriod(PeriodicFrame.kStatus4, alternateEncoder ? 20 : 250), motor);
+    configure(() -> motor.setPeriodicFramePeriod(PeriodicFrame.kStatus5, absoluteEncoderPosition ? 20 : 250), motor);
+    configure(() -> motor.setPeriodicFramePeriod(PeriodicFrame.kStatus6, absoluteEncoderVelocity ? 20 : 250), motor);
     // https://docs.revrobotics.com/sparkmax/operating-modes/control-interfaces
   }
 
@@ -98,6 +97,7 @@ public final class SparkMaxUtil {
   }
 
   public static void save(CANSparkMax motor) {
+    configure(() -> motor.setCANTimeout(0), motor);
     configure(() -> motor.burnFlash(), motor);
   }
 }

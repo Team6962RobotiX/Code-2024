@@ -12,8 +12,6 @@ import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import frc.robot.RobotContainer;
-import frc.robot.Constants.Constants;
 import frc.robot.Constants.Constants.DEVICES;
 import frc.robot.Constants.Constants.LIMELIGHT;
 import frc.robot.Constants.Preferences;
@@ -73,26 +71,26 @@ public class Controls {
 
     if (RobotBase.isSimulation()) {
       // driver.button(1).whileTrue(new GoToPose(frc.robot.Constants.Field.AUTO_MOVE_POSITIONS.get("AMP"), swerveDrive));
-
+      
       driver.button(1).whileTrue(stateController.setState(RobotStateController.State.AIM_SPEAKER).alongWith(stateController.setState(RobotStateController.State.SPIN_UP)));
     }
 
-    operator.a().onTrue(shooterPivot.setTargetAngleCommand(() -> Rotation2d.fromDegrees(30.0)));
+    operator.a().whileTrue(shooterPivot.setTargetAngleCommand(() -> Rotation2d.fromDegrees(30.0)));
     operator.b();
-    operator.x();
-    operator.y().onTrue(shooterPivot.setTargetAngleCommand(() -> Preferences.SHOOTER_PIVOT.MAX_ANGLE));
+    operator.x().whileTrue(stateController.setState(RobotStateController.State.SHOOT_OVERIDE));
+    operator.y().whileTrue(shooterPivot.setTargetAngleCommand(() -> Preferences.SHOOTER_PIVOT.MAX_ANGLE));
     operator.start().whileTrue(stateController.setState(RobotStateController.State.LEAVE_AMP));
     operator.back().onTrue(stateController.setState(RobotStateController.State.CENTER_NOTE).andThen(Controls.rumbleBoth()));
     operator.leftBumper();
-    operator.rightBumper().whileTrue(stateController.setState(RobotStateController.State.INTAKE_AND_CENTER));
-    operator.leftStick().whileTrue(stateController.setState(RobotStateController.State.PREPARE_AMP));
+    operator.rightBumper().whileTrue(stateController.setState(RobotStateController.State.INTAKE));
+    operator.leftStick().onTrue(stateController.setState(RobotStateController.State.PREPARE_AMP));
     operator.rightStick().whileTrue(stateController.setState(RobotStateController.State.PLACE_AMP));
     operator.povCenter();
     operator.povUp().whileTrue(hang.setState(Hang.State.EXTEND));
     operator.povDown().whileTrue(hang.setState(Hang.State.RETRACT));
     operator.povLeft().whileTrue(stateController.setState(RobotStateController.State.INTAKE_OUT));
-    operator.povRight();
-    operator.leftTrigger().toggleOnTrue(stateController.setState(RobotStateController.State.SPIN_UP));
+    operator.povRight().whileTrue(stateController.setState(RobotStateController.State.REVERSE_SHOOTER));
+    operator.leftTrigger().toggleOnTrue(stateController.setState(RobotStateController.State.SPIN_UP).alongWith(Controls.rumbleOperator()));
     operator.rightTrigger().whileTrue(stateController.setState(RobotStateController.State.SHOOT));
 
     ShuffleboardTab driverTab = Shuffleboard.getTab("Driver Dashboard");
@@ -108,20 +106,15 @@ public class Controls {
       .withPosition(0, 2)
       .withSize(3, 1);
 
-    driverTab.addDouble("Battery Capacity", () -> Constants.SWERVE_DRIVE.BATTERY_VOLTAGE < RobotContainer.getVoltage() ? 100.0 : (RobotContainer.getTotalCurrent() / ((Constants.SWERVE_DRIVE.BATTERY_VOLTAGE - RobotContainer.getVoltage()) / (Constants.SWERVE_DRIVE.BATTERY_RESISTANCE)) * 100.0))
-      .withWidget(BuiltInWidgets.kDial)
-      .withPosition(3, 2)
-      .withSize(2, 2)
-      .withProperties(Map.of("min", 0, "max", 100));
+    // driverTab.addDouble("Battery Capacity", () -> Constants.SWERVE_DRIVE.BATTERY_VOLTAGE < RobotContainer.getVoltage() ? 100.0 : (RobotContainer.getTotalCurrent() / ((Constants.SWERVE_DRIVE.BATTERY_VOLTAGE - RobotContainer.getVoltage()) / (Constants.SWERVE_DRIVE.BATTERY_RESISTANCE)) * 100.0))
+    //   .withWidget(BuiltInWidgets.kDial)
+    //   .withPosition(3, 2)
+    //   .withSize(2, 2)
+    //   .withProperties(Map.of("min", 0, "max", 100));
 
     driverTab.addBoolean("Flywheel Status", () -> shooterWheels.getState() == ShooterWheels.State.SPIN_UP)
       .withWidget(BuiltInWidgets.kBooleanBox)
       .withPosition(0, 3)
-      .withSize(3, 1);
-
-    driverTab.addString("Current State", () -> stateController.getState().name())
-      .withWidget(BuiltInWidgets.kTextView)
-      .withPosition(1, 4)
       .withSize(3, 1);
   }
 
