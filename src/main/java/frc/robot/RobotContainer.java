@@ -6,6 +6,10 @@ package frc.robot;
 
 import com.pathplanner.lib.pathfinding.Pathfinding;
 
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution;
@@ -16,6 +20,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.Constants;
 import frc.robot.Constants.Constants.CAN;
+import frc.robot.Constants.Constants.SWERVE_DRIVE;
 import frc.robot.commands.autonomous.Autonomous;
 import frc.robot.commands.drive.WheelRadiusCalibration;
 import frc.robot.subsystems.Controls;
@@ -105,6 +110,44 @@ public class RobotContainer {
     AprilTags.printConfig(Constants.LIMELIGHT.APRILTAG_CAMERA_POSES);
 
     Pathfinding.ensureInitialized();
+
+    System.out.println("BEGINNING POSE TEST");
+
+    Pose2d robotPose = new Pose2d(10, 14, Rotation2d.fromDegrees(74));
+    Rotation2d angle = Rotation2d.fromDegrees(-67);
+    int i = 3;
+
+    System.out.print("Old: ");
+    System.out.println(poseTestOld(robotPose, angle, i));
+    System.out.print("New: ");
+    System.out.println(poseTestNew(robotPose, angle, i));
+  }
+
+  private Pose2d poseTestOld(Pose2d robotPose, Rotation2d angle, int i) {
+    return new Pose2d(
+        ((i & 2) == 0 ? 1 : -1) * SWERVE_DRIVE.WHEELBASE / 2.0,
+        ((i & 1) == 0 ? 1 : -1) * SWERVE_DRIVE.TRACKWIDTH / 2.0,
+        angle
+    ).relativeTo(new Pose2d(
+        new Translation2d(),
+        robotPose.getRotation().times(-1.0)
+    )).relativeTo(new Pose2d(
+        -robotPose.getX(),
+        -robotPose.getY(),
+        new Rotation2d()
+    ));
+  }
+
+  private Pose2d poseTestNew(Pose2d robotPose, Rotation2d angle, int i) {
+    return new Pose2d(
+        robotPose.getX(),
+        robotPose.getY(),
+        robotPose.getRotation()
+    ).plus(new Transform2d(
+        ((i & 2) == 0 ? 1 : -1) * SWERVE_DRIVE.WHEELBASE / 2.0,
+        ((i & 1) == 0 ? 1 : -1) * SWERVE_DRIVE.TRACKWIDTH / 2.0,
+        angle
+    ));
   }
 
   public Command getAutonomousCommand() {

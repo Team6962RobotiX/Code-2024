@@ -84,7 +84,6 @@ public class SwerveDrive extends SubsystemBase {
     SWERVE_DRIVE.ABSOLUTE_ROTATION_GAINS.kI,
     SWERVE_DRIVE.ABSOLUTE_ROTATION_GAINS.kD
   );
-  private double addedAlignmentAngularVelocity = 0.0;
 
   private boolean isAligning = false;
   private boolean parked = false;
@@ -103,13 +102,10 @@ public class SwerveDrive extends SubsystemBase {
   private Translation2d linearAcceleration;
 
   public SwerveDrive() {
-    // Create the serve module objects
-    if (SWERVE_DRIVE.IS_PROTOTYPE_CHASSIS) {
-      equippedModules = SWERVE_DRIVE.EQUIPPED_MODULES_PROTOTYPE;
-    } else {
-      equippedModules = SWERVE_DRIVE.EQUIPPED_MODULES_COMPETITION;
-    }
+    this(SWERVE_DRIVE.IS_PROTOTYPE_CHASSIS ? SWERVE_DRIVE.EQUIPPED_MODULES_PROTOTYPE : SWERVE_DRIVE.EQUIPPED_MODULES_COMPETITION);
+  }
 
+  public SwerveDrive(SWERVE_DRIVE.MODULE_CONFIG[] equippedModules) {
     int corner = 0;
     for (SWERVE_DRIVE.MODULE_CONFIG config : equippedModules) {
       String name = SWERVE_DRIVE.MODULE_NAMES[corner];
@@ -200,11 +196,8 @@ public class SwerveDrive extends SubsystemBase {
     });
   }
 
-  // List<Pose2d> shotPoses = new ArrayList<>();
-
   @Override
   public void periodic() {
-    if (!ENABLED_SYSTEMS.ENABLE_DRIVE) return;
     if (RobotState.isDisabled()) {
       for (SwerveModule module : modules) {
         module.seedSteerEncoder();
@@ -216,32 +209,8 @@ public class SwerveDrive extends SubsystemBase {
     
     updateOdometry();
 
-
-    // System.out.println(Constants.SWERVE_DRIVE.PHYSICS.SLIPLESS_CURRENT_LIMIT);
-    // System.out.println(Constants.SWERVE_DRIVE.PHYSICS.MAX_LINEAR_ACCELERATION);
-    // System.out.println(Constants.SWERVE_DRIVE.ROBOT_MASS);
-    // System.out.println(Constants.SWERVE_DRIVE.PHYSICS.MAX_LINEAR_VELOCITY);
-
-
-    // List<Translation2d> notePositions = Notes.getNotePositions(LIMELIGHT.NOTE_CAMERA_NAME, LIMELIGHT.NOTE_CAMERA_PITCH, this, getFieldVelocity(), LIMELIGHT.NOTE_CAMERA_POSITION);
-    // SwerveDrive.getField().getObject("notes").setPoses(notePositions.stream().map(p -> new Pose2d(p, new Rotation2d())).toList());
-
-    
-    // List<Translation2d> notePositions = Notes.getNotePositions(LIMELIGHT.NOTE_CAMERA_NAME, LIMELIGHT.NOTE_CAMERA_PITCH, this, getFieldVelocity(), LIMELIGHT.NOTE_CAMERA_POSITION);
-    // SwerveDrive.getField().getObject("notes").setPoses(notePositions.stream().map(p -> new Pose2d(p, new Rotation2d())).toList());
-    // SwerveDrive.getField().getObject("futurePosition").setPose(getFuturePose());
-
-    // System.out.println(Constants.SHOOTER_WHEELS.PROFILE.kV);
-
     FieldObject2d visibleNotes = SwerveDrive.getField().getObject("visibleNotes");
     
-    // List<Pose2d> poses = new ArrayList<>();
-    // for (Integer note1 : List.of(0, 1, 2, 3, 4, 5, 6, 7)) {
-    //   Translation2d position = Field.NOTE_POSITIONS[note1];
-    //   Translation2d relativePosition = position.minus(getPose().getTranslation()).rotateBy(getPose().getRotation().unaryMinus());
-    //   poses.add(new Pose2d(relativePosition, new Rotation2d()));
-    // }
-
     Translation2d notePosition = Notes.getNotePosition(LIMELIGHT.NOTE_CAMERA_NAME, LIMELIGHT.NOTE_CAMERA_PITCH, this, getFieldVelocity(), LIMELIGHT.NOTE_CAMERA_POSITION);
     if (notePosition != null) {
       visibleNotes.setPose(new Pose2d(notePosition, new Rotation2d()));
@@ -376,7 +345,7 @@ public class SwerveDrive extends SubsystemBase {
   private void driveAttainableSpeeds(ChassisSpeeds fieldRelativeSpeeds) {
     isDriven = true;
 
-    if (!(RobotState.isAutonomous() && !Autonomous.avoidPillars)) {
+    if (!RobotState.isAutonomous() || Autonomous.avoidPillars) {
       Translation2d velocity = XBoxSwerve.avoidObstacles(new Translation2d(
         fieldRelativeSpeeds.vxMetersPerSecond,
         fieldRelativeSpeeds.vyMetersPerSecond
@@ -390,7 +359,8 @@ public class SwerveDrive extends SubsystemBase {
 
     if (rotationOverridePoint != null || RobotState.isAutonomous()) {
       fieldRelativeSpeeds.omegaRadiansPerSecond = 0.0;
-      if (rotationOverridePoint != null) facePoint(rotationOverridePoint.get(), rotationOverrideOffset);
+
+      facePoint(rotationOverridePoint.get(), rotationOverrideOffset);
     }
     
     if (Math.abs(fieldRelativeSpeeds.omegaRadiansPerSecond) > 0.01) {
@@ -498,7 +468,6 @@ public class SwerveDrive extends SubsystemBase {
    */
   public void setTargetHeadingAndVelocity(Rotation2d heading, double velocity) {
     setTargetHeading(heading);
-    addedAlignmentAngularVelocity = velocity;
   }
 
   /**
@@ -551,7 +520,6 @@ public class SwerveDrive extends SubsystemBase {
   public void setRotationTargetOverrideFromPoint(Supplier<Translation2d> point, Rotation2d rotationOffset) {
     rotationOverridePoint = point;
     rotationOverrideOffset = rotationOffset;
-    addedAlignmentAngularVelocity = 0.0;
   }
 
 

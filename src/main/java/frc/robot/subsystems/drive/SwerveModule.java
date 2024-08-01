@@ -78,29 +78,6 @@ public class SwerveModule extends SubsystemBase {
     drivePID             = driveMotor.getPIDController();
     steerPID             = steerMotor.getPIDController();
 
-    double encoderOffset = config.ENCODER_OFFSET();
-    switch (corner) {
-      case 0:
-        encoderOffset += 0.0;
-        break;
-      case 1:
-        encoderOffset += 0.25;
-        break;
-      case 2:
-        encoderOffset += -0.25;
-        break;
-      case 3:
-        encoderOffset += 0.5;
-        break;
-      default:
-    }
-
-    encoderOffset %= 2;
-    encoderOffset = (encoderOffset > 1.0) ? encoderOffset - 2.0 : (encoderOffset < -1.0) ? encoderOffset + 2.0 : encoderOffset;
-
-    MagnetSensorConfigs magConfig = new MagnetSensorConfigs();
-    magConfig.withAbsoluteSensorRange(AbsoluteSensorRangeValue.Signed_PlusMinusHalf);
-    magConfig.withMagnetOffset(encoderOffset);
     BaseStatusSignal.setUpdateFrequencyForAll(50, absoluteSteerEncoder.getAbsolutePosition(), absoluteSteerEncoder.getFaultField(), absoluteSteerEncoder.getVersion());
     absoluteSteerEncoder.optimizeBusUtilization();
 
