@@ -2,6 +2,7 @@ package frc.robot.subsystems;
 
 import edu.wpi.first.math.filter.Debouncer;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.RobotState;
@@ -14,7 +15,8 @@ import frc.robot.Constants.Constants;
 import frc.robot.Constants.Field;
 import frc.robot.Constants.Preferences;
 import frc.robot.subsystems.amp.Amp;
-import frc.robot.subsystems.drive.SwerveDrive;
+import frc.robot.subsystems.drive.alt.ConfiguredSwerveDrive;
+import frc.robot.subsystems.drive.alt.SwerveDrive;
 import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.transfer.Transfer;
@@ -24,7 +26,7 @@ import frc.robot.util.software.Logging.StatusChecks;
 // This class is a subsystem that controls the state of the robot. It is used to coordinate the actions of the intake, shooter, transfer, and amp subsystems.
 
 public class RobotStateController extends SubsystemBase {
-  private SwerveDrive swerveDrive;
+  private ConfiguredSwerveDrive swerveDrive;
   private Amp amp;
   private Shooter shooter;
   private Transfer transfer;
@@ -58,7 +60,7 @@ public class RobotStateController extends SubsystemBase {
     SHOOT_OVERIDE
   }
 
-  public RobotStateController(Amp amp, SwerveDrive swerveDrive, Shooter shooter, Transfer transfer, Intake intake) {
+  public RobotStateController(Amp amp, ConfiguredSwerveDrive swerveDrive, Shooter shooter, Transfer transfer, Intake intake) {
     this.swerveDrive = swerveDrive;
     this.amp = amp;
     this.shooter = shooter;
@@ -175,14 +177,17 @@ public class RobotStateController extends SubsystemBase {
     return beamBreakDebouncer.calculate(!beamBreakSensor.get());
   }
   
+  // TODO: Substitute the following methods with direct access to SwerveDrive in the dependent classes
 
   public boolean underStage() {
     // return true;
-    return swerveDrive.underStage();
+    return swerveDrive.isUnderStage();
   }
 
   public Translation2d getFieldVelocity() {
-    return swerveDrive.getFieldVelocity();
+    ChassisSpeeds speeds = swerveDrive.getEstimatedSpeeds();
+
+    return new Translation2d(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond);
   }
 
   public boolean isAimed() {
@@ -200,7 +205,7 @@ public class RobotStateController extends SubsystemBase {
     // System.out.println(isAimed());
     if (shootOverride) return true;
     return shotDebouncer.calculate(isAimed()) &&
-    ((swerveDrive.getPose().getX() < ((Field.LENGTH - Field.WING_X.get()) - Constants.SWERVE_DRIVE.BUMPER_DIAGONAL / 2.0) && Constants.IS_BLUE_TEAM.get()) || (swerveDrive.getPose().getX() > (Field.LENGTH - Field.WING_X.get() + Constants.SWERVE_DRIVE.BUMPER_DIAGONAL / 2.0) && !Constants.IS_BLUE_TEAM.get()));
+    ((swerveDrive.getEstimatedPose().getX() < ((Field.LENGTH - Field.WING_X.get()) - Constants.SWERVE_DRIVE.BUMPER_DIAGONAL / 2.0) && Constants.IS_BLUE_TEAM.get()) || (swerveDrive.getEstimatedPose().getX() > (Field.LENGTH - Field.WING_X.get() + Constants.SWERVE_DRIVE.BUMPER_DIAGONAL / 2.0) && !Constants.IS_BLUE_TEAM.get()));
   }
 
   public boolean inRange() {
@@ -237,7 +242,7 @@ public class RobotStateController extends SubsystemBase {
       }
     }
     
-    if (swerveDrive.underStage()) {
+    if (swerveDrive.isUnderStage()) {
       shooter.getPivot().setMaxAngle(Preferences.SHOOTER_PIVOT.MAX_ANGLE_UNDER_STAGE);
       amp.getPivot().setMaxAngle(Preferences.AMP_PIVOT.MAX_ANGLE_UNDER_STAGE);
     } else {

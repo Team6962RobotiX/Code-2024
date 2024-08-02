@@ -5,12 +5,13 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.RobotState;
 import frc.robot.Constants.Constants;
 import frc.robot.Constants.Constants.SHOOTER_PIVOT;
 import frc.robot.Constants.Constants.SHOOTER_WHEELS;
 import frc.robot.Constants.Preferences;
-import frc.robot.subsystems.drive.SwerveDrive;
+import frc.robot.subsystems.drive.alt.SwerveDrive;
 
 public class ShooterMath {
   
@@ -152,14 +153,14 @@ public class ShooterMath {
     Translation3d shooterLocation = calcShooterLocationOnField(swerveDrive, shooter);
     Translation3d aimingPoint = calcVelocityCompensatedPoint(targetPoint, swerveDrive, shooter, true);
     double acceptableError = Math.atan(targetSize / (targetPoint.getDistance(shooterLocation) * 2.0));
-    Rotation2d idealHeading = aimingPoint.toTranslation2d().minus(swerveDrive.getPose().getTranslation()).getAngle().plus(Rotation2d.fromDegrees(180.0));
+    Rotation2d idealHeading = aimingPoint.toTranslation2d().minus(swerveDrive.getEstimatedPose().getTranslation()).getAngle().plus(Rotation2d.fromDegrees(180.0));
 
     Rotation2d idealPivotAngle = calcPivotAngle(aimingPoint, swerveDrive, shooter, shooter.getWheels().getVelocity());
     if (targetSize >= 10.0) idealPivotAngle = calcPivotAngle(aimingPoint, swerveDrive, shooter);
     if (idealPivotAngle == null) return false;
     // System.out.println(inRange(aimingPoint, swerveDrive, shooter));
     
-    if (Math.abs(swerveDrive.getHeading().minus(idealHeading).getRadians()) > acceptableError * 2.0) return false;
+    if (Math.abs(swerveDrive.getEstimatedPose().getRotation().minus(idealHeading).getRadians()) > acceptableError * 2.0) return false;
 
     if (targetSize >= 10.0) return true;
 
@@ -233,7 +234,7 @@ public class ShooterMath {
   // }
 
   public static Translation3d calcShooterLocationOnField(SwerveDrive swerveDrive, Shooter shooter) {
-    Pose2d currentPose = swerveDrive.getPose();
+    Pose2d currentPose = swerveDrive.getEstimatedPose();
     Rotation2d pivotAngle = shooter.getPivot().getPosition();
 
     Translation2d swerveDrivePosition = currentPose.getTranslation();
@@ -270,7 +271,8 @@ public class ShooterMath {
     }
     
     double shooterWheelVelocity = shooter.getWheels().getVelocity();
-    Translation2d currentVelocity = swerveDrive.getFieldVelocity();
+    ChassisSpeeds currentSpeeds = swerveDrive.getEstimatedSpeeds();
+    Translation2d currentVelocity = new Translation2d(currentSpeeds.vxMetersPerSecond, currentSpeeds.vyMetersPerSecond);
     
     if (Math.abs(shooterWheelVelocity) < 1.0) return targetPoint;
     
@@ -296,13 +298,15 @@ public class ShooterMath {
   }
 
   public static Translation3d calcFutureAimingPoint(Translation3d targetPoint, SwerveDrive swerveDrive, Shooter shooter) {
-    Translation2d futureOffset = swerveDrive.getPose().getTranslation().minus(swerveDrive.getFuturePose().getTranslation());
+    Translation2d futureOffset = swerveDrive.getEstimatedPose().getTranslation().minus(swerveDrive.getFuturePose().getTranslation());
     Translation3d futureAimingPoint =  new Translation3d(
       targetPoint.getX() + futureOffset.getX(),
       targetPoint.getY() + futureOffset.getY(),
       targetPoint.getZ()
     );
-    SwerveDrive.getField().getObject("futureAimingPoint").setPose(new Pose2d(futureAimingPoint.toTranslation2d(), new Rotation2d()));
+
+    // TODO: Add this feature back in. Commented out because the FieldManager cannot be accessed statically.
+    // SwerveDrive.getField().getObject("futureAimingPoint").setPose(new Pose2d(futureAimingPoint.toTranslation2d(), new Rotation2d()));
     
     return futureAimingPoint;
   }

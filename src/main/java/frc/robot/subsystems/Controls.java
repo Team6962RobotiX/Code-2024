@@ -20,7 +20,8 @@ import frc.robot.commands.drive.XBoxSwerve;
 import frc.robot.subsystems.amp.Amp;
 import frc.robot.subsystems.amp.AmpPivot;
 import frc.robot.subsystems.amp.AmpWheels;
-import frc.robot.subsystems.drive.SwerveDrive;
+import frc.robot.subsystems.drive.alt.SwerveDrive;
+import frc.robot.subsystems.drive.alt.SwerveMath;
 import frc.robot.subsystems.hang.Hang;
 import frc.robot.subsystems.shooter.Shooter;
 import frc.robot.subsystems.shooter.ShooterPivot;
@@ -54,12 +55,12 @@ public class Controls {
     driver.b();
     driver.x();
     driver.y(); // USED
-    driver.start().whileTrue(new GoToPose(frc.robot.Constants.Field.AUTO_MOVE_POSITIONS.get("AMP"), swerveDrive));
+    driver.start().whileTrue(swerveDrive.pathfindTo(frc.robot.Constants.Field.AUTO_MOVE_POSITIONS.get("AMP")));
     driver.back().whileTrue(stateController.setState(RobotStateController.State.AIM_MORTAR));
     driver.leftBumper();
     driver.rightBumper();
     driver.leftStick().whileTrue(stateController.setState(RobotStateController.State.AIM_SPEAKER));
-    driver.rightStick().whileTrue(swerveDrive.facePointCommand(() -> Notes.getNotePosition(LIMELIGHT.NOTE_CAMERA_NAME, LIMELIGHT.NOTE_CAMERA_PITCH, swerveDrive, swerveDrive.getFieldVelocity(), LIMELIGHT.NOTE_CAMERA_POSITION), new Rotation2d()));
+    driver.rightStick().whileTrue(swerveDrive.createLookAtCommand(() -> Notes.getNotePosition(LIMELIGHT.NOTE_CAMERA_NAME, LIMELIGHT.NOTE_CAMERA_PITCH, (Double timestamp) -> swerveDrive.getEstimatedPose(timestamp), SwerveMath.getTranslation(swerveDrive.getEstimatedSpeeds()), LIMELIGHT.NOTE_CAMERA_POSITION), new Rotation2d()));
     driver.povCenter(); // USED
     driver.povUp(); // USED
     driver.povDown(); // USED

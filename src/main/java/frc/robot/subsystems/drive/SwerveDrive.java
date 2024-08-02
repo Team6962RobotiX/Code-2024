@@ -208,7 +208,7 @@ public class SwerveDrive extends SubsystemBase {
 
     FieldObject2d visibleNotes = SwerveDrive.getField().getObject("visibleNotes");
     
-    Translation2d notePosition = Notes.getNotePosition(LIMELIGHT.NOTE_CAMERA_NAME, LIMELIGHT.NOTE_CAMERA_PITCH, this, getFieldVelocity(), LIMELIGHT.NOTE_CAMERA_POSITION);
+    Translation2d notePosition = Notes.getNotePosition(LIMELIGHT.NOTE_CAMERA_NAME, LIMELIGHT.NOTE_CAMERA_PITCH, (Double timestamp) -> getPose(timestamp), getFieldVelocity(), LIMELIGHT.NOTE_CAMERA_POSITION);
     if (notePosition != null) {
       visibleNotes.setPose(new Pose2d(notePosition, new Rotation2d()));
     }

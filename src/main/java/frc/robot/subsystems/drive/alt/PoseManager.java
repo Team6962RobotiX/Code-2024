@@ -10,6 +10,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.wpilibj.RobotState;
+import frc.robot.util.software.CustomSwerveDrivePoseEstimator;
 
 /**
  * A {@code PoseManager} is responsible for managing the swerve drive's pose estimation.
@@ -24,7 +25,7 @@ import edu.wpi.first.wpilibj.RobotState;
  * </ol>
  */
 public class PoseManager {
-    private SwerveDrivePoseEstimator poseEstimator;
+    private CustomSwerveDrivePoseEstimator poseEstimator;
 
     private Pose2d initialPose;
     private double initialInaccuracy = 0.0;
@@ -51,7 +52,7 @@ public class PoseManager {
                 initialInaccuracy += Rotation2d.fromDegrees(gyroscope.getRate()).getRotations();
             }
         } else if (poseEstimator == null) {
-            poseEstimator = new SwerveDrivePoseEstimator(
+            poseEstimator = new CustomSwerveDrivePoseEstimator(
                 kinematics,
                 Rotation2d.fromDegrees(-gyroscope.getAngle()),
                 modulePositionsSupplier.get(),
@@ -79,7 +80,11 @@ public class PoseManager {
         }
     }
 
-    public Pose2d getEstimatedPosition() {
+    public Pose2d getEstimatedPose() {
         return poseEstimator == null ? initialPose : livePose;
+    }
+
+    public Pose2d getEstimatedPose(double timestamp) {
+        return poseEstimator == null ? initialPose : poseEstimator.getEstimatedPosition(timestamp);
     }
 }

@@ -11,6 +11,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.wpilibj.RobotState;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.Mechanism2d;
 import edu.wpi.first.wpilibj.smartdashboard.MechanismLigament2d;
 import edu.wpi.first.wpilibj.smartdashboard.MechanismRoot2d;
@@ -22,7 +23,8 @@ import frc.robot.Constants.Constants;
 import frc.robot.Constants.Constants.ENABLED_SYSTEMS;
 import frc.robot.Constants.Constants.SHOOTER_PIVOT;
 import frc.robot.Constants.Field;
-import frc.robot.subsystems.drive.SwerveDrive;
+import frc.robot.subsystems.drive.alt.FieldElement;
+import frc.robot.subsystems.drive.alt.SwerveDrive;
 import frc.robot.util.software.Logging.Logger;
 
 public class Shooter extends SubsystemBase {
@@ -37,6 +39,8 @@ public class Shooter extends SubsystemBase {
   private Supplier<Translation3d> aimingPoint = Field.SPEAKER;
   private boolean isAiming = false;
   private double targetSize = 0.0;
+
+  private ShooterTarget target = new ShooterTarget();
 
   public static enum State {
     IN,
@@ -82,8 +86,8 @@ public class Shooter extends SubsystemBase {
     double flightTime = ShooterMath.calculateFlightTime(compensatedAimingPoint, swerveDrive, this);
     double shooterWheelVelocity = ShooterMath.calcShooterWheelVelocity(projectileVelocity);
     
-    SwerveDrive.getField().getObject("Aiming Point").setPose(new Pose2d(aimingPoint.get().toTranslation2d(), new Rotation2d()));
-    SwerveDrive.getField().getObject("Velocity Compensated Point").setPose(new Pose2d(compensatedAimingPoint.toTranslation2d(), new Rotation2d()));
+    target.setAimingPoint(aimingPoint.get().toTranslation2d());
+    target.setVelocityCompensatedPoint(compensatedAimingPoint.toTranslation2d());
     
     // System.out.println(ShooterMath.calcProjectileVelocity(
     //           ShooterMath.calcVelocityCompensatedPoint(
@@ -138,7 +142,7 @@ public class Shooter extends SubsystemBase {
 
     Supplier<Translation3d> finalPoint = () -> {
       if (point.get().getZ() == 0.0) {
-        Translation2d newPoint = point.get().toTranslation2d().minus(swerveDrive.getPose().getTranslation()).rotateBy(Rotation2d.fromDegrees(-20.0 * (1.0 - shooterWheels.getVelocity() / Constants.SHOOTER_WHEELS.MAX_WHEEL_SPEED))).plus(swerveDrive.getPose().getTranslation());
+        Translation2d newPoint = point.get().toTranslation2d().minus(swerveDrive.getEstimatedPose().getTranslation()).rotateBy(Rotation2d.fromDegrees(-20.0 * (1.0 - shooterWheels.getVelocity() / Constants.SHOOTER_WHEELS.MAX_WHEEL_SPEED))).plus(swerveDrive.getEstimatedPose().getTranslation());
         return new Translation3d(
           newPoint.getX(),
           newPoint.getY(),
@@ -162,7 +166,7 @@ public class Shooter extends SubsystemBase {
         this
       )
     ).alongWith(
-      swerveDrive.facePointCommand(() -> 
+      swerveDrive.createLookAtCommand(() -> 
         ShooterMath.calcVelocityCompensatedPoint(
           finalPoint.get(),
           swerveDrive,
@@ -207,5 +211,24 @@ public class Shooter extends SubsystemBase {
 
   public boolean isAiming() {
     return isAiming;
+  }
+
+  private static class ShooterTarget implements FieldElement {
+    private Pose2d aimingPoint;
+    private Pose2d velocityCompensatedPoint;
+
+    public void setAimingPoint(Translation2d aimingPoint) {
+      this.aimingPoint = new Pose2d(aimingPoint, new Rotation2d());
+    }
+
+    public void setVelocityCompensatedPoint(Translation2d velocityCompensatedPoint) {
+      this.velocityCompensatedPoint = new Pose2d(velocityCompensatedPoint, new Rotation2d());
+    }
+
+    @Override
+    public void updateFieldElement(Field2d field) {
+      field.getObject("Aiming Point").setPose(aimingPoint);;
+      field.getObject("Aiming Point (Velocity Compensated)").setPose(velocityCompensatedPoint);;
+    }
   }
 }

@@ -6,10 +6,6 @@ package frc.robot;
 
 import com.pathplanner.lib.pathfinding.Pathfinding;
 
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Transform2d;
-import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution;
@@ -20,14 +16,14 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.Constants;
 import frc.robot.Constants.Constants.CAN;
-import frc.robot.Constants.Constants.SWERVE_DRIVE;
 import frc.robot.commands.autonomous.Autonomous;
 import frc.robot.commands.drive.WheelRadiusCalibration;
 import frc.robot.subsystems.Controls;
 import frc.robot.subsystems.LEDs;
 import frc.robot.subsystems.RobotStateController;
 import frc.robot.subsystems.amp.Amp;
-import frc.robot.subsystems.drive.SwerveDrive;
+import frc.robot.subsystems.drive.alt.ConfiguredSwerveDrive;
+import frc.robot.subsystems.drive.alt.SwerveDrive;
 import frc.robot.subsystems.hang.Hang;
 import frc.robot.subsystems.intake.Intake;
 import frc.robot.subsystems.shooter.Shooter;
@@ -48,7 +44,7 @@ public class RobotContainer {
 
 
   // The robot's subsystems and commands
-  private final SwerveDrive swerveDrive;
+  private final ConfiguredSwerveDrive swerveDrive;
   
   private final Shooter shooter;
   private final Transfer transfer;
@@ -93,7 +89,7 @@ public class RobotContainer {
     StatusChecks.addCheck(new SubsystemBase() {}, "Shooter Enabled", () -> Constants.ENABLED_SYSTEMS.ENABLE_SHOOTER);
     StatusChecks.addCheck(new SubsystemBase() {}, "Transfer Enabled", () -> Constants.ENABLED_SYSTEMS.ENABLE_TRANSFER);
 
-    swerveDrive = new SwerveDrive();
+    swerveDrive = new ConfiguredSwerveDrive();
     shooter = new Shooter(swerveDrive);
     transfer = new Transfer();
     amp = new Amp();
@@ -106,7 +102,6 @@ public class RobotContainer {
     // Configure the trigger bindings
     Controls.configureBindings(stateController, swerveDrive, transfer, transfer.getInWheels(), transfer.getOutWheels(), shooter, shooter.getWheels(), shooter.getPivot(), amp, amp.getPivot(), amp.getWheels(), hang);
 
-    SwerveDrive.printChoreoConfig();
     AprilTags.printConfig(Constants.LIMELIGHT.APRILTAG_CAMERA_POSES);
 
     Pathfinding.ensureInitialized();

@@ -1,5 +1,7 @@
 package frc.robot.subsystems.vision;
 
+import java.util.function.Function;
+
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -11,10 +13,9 @@ import edu.wpi.first.wpilibj.RobotState;
 import frc.robot.Constants.Constants.LIMELIGHT;
 import frc.robot.Constants.Field;
 import frc.robot.subsystems.LEDs;
-import frc.robot.subsystems.drive.SwerveDrive;
 
 public class Notes {
-  public static Translation2d getNotePosition(String name, Rotation2d pitch, SwerveDrive swerveDrive, Translation2d fieldVelocity, Translation3d cameraToRobot) {
+  public static Translation2d getNotePosition(String name, Rotation2d pitch, Function<Double, Pose2d> getPoseAtTimestamp, Translation2d fieldVelocity, Translation3d cameraToRobot) {
     NetworkTable table = NetworkTableInstance.getDefault().getTable(name);
     
     if (table.getEntry("tv").getDouble(0) == 0) return null;
@@ -38,7 +39,7 @@ public class Notes {
     
     double timestamp = (table.getEntry("hb").getLastChange() / 1000000.0) - (latency / 1000.0);
 
-    Pose2d robotPosition = swerveDrive.getPose(timestamp);
+    Pose2d robotPosition = getPoseAtTimestamp.apply(Double.valueOf(timestamp));
     notePosition = robotPosition.getTranslation().plus(relativePosition.rotateBy(robotPosition.getRotation()));
     
     if (!RobotState.isDisabled()) {
