@@ -19,7 +19,6 @@ import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.Velocity;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Constants.Constants.SWERVE_DRIVE;
 
 public abstract class SwerveDrive extends SubsystemBase implements FieldElement {
     // TODO: Improve design, move to seperate class
@@ -208,8 +207,8 @@ public abstract class SwerveDrive extends SubsystemBase implements FieldElement 
             // See https://docs.wpilib.org/en/stable/docs/software/basic-programming/coordinate-system.html
             // for more information on the coordinate system
             Pose2d modulePose = new Pose2d(
-                ((i & 2) == 0 ? 1 : -1) * SWERVE_DRIVE.WHEELBASE / 2.0,
-                ((i & 1) == 0 ? 1 : -1) * SWERVE_DRIVE.TRACKWIDTH / 2.0,
+                ((i & 2) == 0 ? 1 : -1) * configuration.wheelBase().in(Meters) / 2.0,
+                ((i & 1) == 0 ? 1 : -1) * configuration.trackWidth().in(Meters) / 2.0,
                 modulePositions[i].angle
             );
 

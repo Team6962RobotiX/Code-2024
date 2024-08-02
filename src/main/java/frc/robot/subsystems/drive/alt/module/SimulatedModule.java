@@ -4,9 +4,12 @@
 
 package frc.robot.subsystems.drive.alt.module;
 
+import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.MetersPerSecondPerSecond;
+import static edu.wpi.first.units.Units.Second;
+import static edu.wpi.first.units.Units.Volts;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
@@ -15,36 +18,18 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.system.plant.LinearSystemId;
+import edu.wpi.first.units.Measure;
+import edu.wpi.first.units.Voltage;
 import edu.wpi.first.wpilibj.simulation.FlywheelSim;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Constants.Constants.NEO;
-import frc.robot.Constants.Constants.SWERVE_DRIVE;
-import frc.robot.Constants.Constants.SWERVE_DRIVE.DRIVE_MOTOR_PROFILE;
-import frc.robot.Constants.Constants.SWERVE_DRIVE.STEER_MOTOR_PROFILE;
 import frc.robot.subsystems.drive.alt.SwerveConfig;
-import frc.robot.util.software.MathUtils.SwerveMath;
 import frc.robot.util.software.Logging.Logger;
 
 public class SimulatedModule extends SubsystemBase implements SwerveModule {
-  private FlywheelSim driveMotor;
-  
-  private FlywheelSim steerMotor;
-
-  private PIDController drivePID = new PIDController(
-    DRIVE_MOTOR_PROFILE.kP,
-    DRIVE_MOTOR_PROFILE.kI,
-    DRIVE_MOTOR_PROFILE.kD
-  );
-  private PIDController steerPID = new PIDController(
-    STEER_MOTOR_PROFILE.kP, 
-    STEER_MOTOR_PROFILE.kI,
-    STEER_MOTOR_PROFILE.kD
-  );
-  private SimpleMotorFeedforward driveFF = new SimpleMotorFeedforward(
-    DRIVE_MOTOR_PROFILE.kS,
-    DRIVE_MOTOR_PROFILE.kV,
-    DRIVE_MOTOR_PROFILE.kA
-  );
+  private FlywheelSim driveMotor, steerMotor;
+  private PIDController drivePID, steerPID;
+  private SimpleMotorFeedforward driveFeedforward;
       
   private double driveVoltRamp = 0.0;
   private double steerVoltRamp = 0.0;
@@ -52,25 +37,51 @@ public class SimulatedModule extends SubsystemBase implements SwerveModule {
   private double steerRadians = (Math.random() * 2.0 * Math.PI) - Math.PI;
 
   private SwerveConfig configuration;
+
+  private SwerveModuleState targetState;
   
   public SimulatedModule(SwerveConfig config, int corner) {
     configuration = config;
 
     steerPID.enableContinuousInput(-Math.PI, Math.PI);
 
+    SwerveConfig.MotorProfile driveMotorProfile = config.driveMotorProfile();
+    SwerveConfig.MotorProfile steerMotorProfile = config.steerMotorProfile();
+
     driveMotor = new FlywheelSim(
       LinearSystemId.identifyVelocitySystem(
-        config.wheelRadius().times(config.driveMotorProfile().kV()).in(Meters),
-        config.wheelRadius().times(config.driveMotorProfile().kA()).in(Meters)
+        config.wheelRadius().times(driveMotorProfile.kV()).in(Meters),
+        config.wheelRadius().times(driveMotorProfile.kA()).in(Meters)
       ),
-      NEO.STATS,
-      SWERVE_DRIVE.DRIVE_MOTOR_GEARING
+      config.swerveMotorInfo().stats(),
+      config.driveMotorGearing()
     );
 
     steerMotor = new FlywheelSim(
-      LinearSystemId.identifyVelocitySystem(STEER_MOTOR_PROFILE.kV, STEER_MOTOR_PROFILE.kA),
-      NEO.STATS,
-      SWERVE_DRIVE.STEER_MOTOR_GEARING
+      LinearSystemId.identifyVelocitySystem(
+        steerMotorProfile.kV(),
+        steerMotorProfile.kA()
+      ),
+      config.swerveMotorInfo().stats(),
+      config.steerMotorGearing()
+    );
+
+    drivePID = new PIDController(
+      driveMotorProfile.kP(),
+      driveMotorProfile.kI(),
+      driveMotorProfile.kD()
+    );
+
+    steerPID = new PIDController(
+      steerMotorProfile.kP(), 
+      steerMotorProfile.kI(),
+      steerMotorProfile.kD()
+    );
+
+    driveFeedforward = new SimpleMotorFeedforward(
+      driveMotorProfile.kS(),
+      driveMotorProfile.kV(),
+      driveMotorProfile.kA()
     );
 
     String logPath = SwerveModule.getLogPath(corner);
@@ -85,22 +96,32 @@ public class SimulatedModule extends SubsystemBase implements SwerveModule {
   }
 
   @Override
+  public void periodic() {
+    if (targetState != null) {
+      driveState(targetState);
+    }
+  }
+
   public void drive(SwerveModuleState state) {
+    targetState = state;
+  }
+  
+  private void driveState(SwerveModuleState state) {
     double speedMetersPerSecond = state.speedMetersPerSecond;
     double radians = state.angle.getRadians();
-
-    if (SWERVE_DRIVE.DO_ANGLE_ERROR_SPEED_REDUCTION) {
-      speedMetersPerSecond *= Math.cos(SwerveMath.angleDistance(getMeasuredState().angle.getRadians(), getMeasuredState().angle.getRadians()));
-    }
     
     for (int i = 0; i < 20; i++) {
-      double driveVolts = driveFF.calculate(speedMetersPerSecond, 0.0) + 12.0 * drivePID.calculate(getMeasuredState().speedMetersPerSecond, speedMetersPerSecond);
+      double driveVolts = driveFeedforward.calculate(speedMetersPerSecond, 0.0) + 12.0 * drivePID.calculate(getMeasuredState().speedMetersPerSecond, speedMetersPerSecond);
       double steerVolts = 12.0 * steerPID.calculate(getMeasuredState().angle.getRadians(), radians);
+
+      double maxDriveRampRate = configuration.maxLinearWheelSpeed().in(MetersPerSecond) / configuration.maxRobotAcceleration().in(MetersPerSecondPerSecond);
       
-      driveVoltRamp += (MathUtil.clamp(driveVolts - driveVoltRamp, -12.0 / (configuration.maxLinearWheelSpeed().in(MetersPerSecond) / configuration.maxRobotAcceleration().in(MetersPerSecondPerSecond)) / 1000.0, 12.0 / (configuration.maxLinearWheelSpeed().in(MetersPerSecond) / configuration.maxRobotAcceleration().in(MetersPerSecondPerSecond)) / 1000.0));
+      driveVoltRamp += (MathUtil.clamp(driveVolts - driveVoltRamp, -12.0 / maxDriveRampRate / 1000.0, 12.0 / maxDriveRampRate / 1000.0));
       driveVolts = driveVoltRamp;
+
+      double maxSteerRampRate = configuration.swerveMotorInfo().maxRampRate().in(Amps.per(Second));
       
-      steerVoltRamp += (MathUtil.clamp(steerVolts - steerVoltRamp, -12.0 / NEO.SAFE_RAMP_RATE / 1000.0, 12.0 / NEO.SAFE_RAMP_RATE / 1000.0));
+      steerVoltRamp += (MathUtil.clamp(steerVolts - steerVoltRamp, -12.0 / maxSteerRampRate / 1000.0, 12.0 / maxSteerRampRate / 1000.0));
       steerVolts = steerVoltRamp;
 
       driveMotor.setInputVoltage(MathUtil.clamp(driveVolts, -12.0, 12.0));
@@ -116,34 +137,42 @@ public class SimulatedModule extends SubsystemBase implements SwerveModule {
   }
 
   @Override
-  public double getTotalCurrent() {
-    return 
+  public Measure<Voltage> getTotalCurrent() {
+    return Volts.of(
       driveMotor.getCurrentDrawAmps() + 
-      steerMotor.getCurrentDrawAmps();
+      steerMotor.getCurrentDrawAmps()
+    );
   }
   
   @Override
   public void stop() {
-    super.setTargetState(new SwerveModuleState(0.0, getMeasuredState().angle));
+    drive(new SwerveModuleState(0.0, getMeasuredState().angle));
     steerMotor.setInputVoltage(0.0);
     driveMotor.setInputVoltage(0.0);
   }
 
   @Override
-  public SwerveModuleState getMeasuredState() {
-    return new SwerveModuleState(driveMotor.getAngularVelocityRadPerSec() * SWERVE_DRIVE.WHEEL_RADIUS, Rotation2d.fromRadians(steerRadians));
+  public SwerveModuleState getTargetState() {
+    return targetState;
   }
 
   @Override
-  public SwerveModulePosition getModulePosition() {
+  public SwerveModuleState getMeasuredState() {
+    return new SwerveModuleState(driveMotor.getAngularVelocityRadPerSec() * configuration.wheelRadius().in(Meters), Rotation2d.fromRadians(steerRadians));
+  }
+
+  @Override
+  public SwerveModulePosition getMeasuredPosition() {
     return new SwerveModulePosition(drivePosition, getMeasuredState().angle);
   }
 
-  public static double wheelMOI(double radius, double mass) {
-    return (1.0 / 2.0) * mass * Math.pow(radius, 2.0);
+  @Override
+  public Command calibrateDriveMotor() {
+      throw new UnsupportedOperationException("Cannot calibrate simulated motor");
   }
 
-  public static double steerWheelMOI(double radius, double mass, double width) {
-    return (1.0 / 4.0) * mass * Math.pow(radius, 2.0) + (1.0 / 12.0) * mass * Math.pow(width, 2.0);
+  @Override
+  public Command calibrateSteerMotor() {
+      throw new UnsupportedOperationException("Cannot calibrate simulated motor");
   }
 }

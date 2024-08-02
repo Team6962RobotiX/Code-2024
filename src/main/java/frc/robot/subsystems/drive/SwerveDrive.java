@@ -48,7 +48,6 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Robot;
 import frc.robot.Constants.Constants;
-import frc.robot.Constants.Constants.ENABLED_SYSTEMS;
 import frc.robot.Constants.Constants.LIMELIGHT;
 import frc.robot.Constants.Constants.SWERVE_DRIVE;
 import frc.robot.Constants.Field;
@@ -95,8 +94,6 @@ public class SwerveDrive extends SubsystemBase {
 
   private Supplier<Translation2d> rotationOverridePoint = null;
   private Rotation2d rotationOverrideOffset = new Rotation2d();
-
-  private SWERVE_DRIVE.MODULE_CONFIG[] equippedModules;
 
   private SwerveDriveWheelPositions previousWheelPositions;
   private Translation2d linearAcceleration;
@@ -375,8 +372,7 @@ public class SwerveDrive extends SubsystemBase {
     // Logger.log("addedAlignmentAngularVelocity", addedAlignmentAngularVelocity);
     // Logger.log("alignmentController.getSetpoint()", alignmentController.getSetpoint());
 
-    double alignmentAngularVelocity = alignmentController.calculate(getHeading().getRadians()) + addedAlignmentAngularVelocity;
-    addedAlignmentAngularVelocity = 0.0;
+    double alignmentAngularVelocity = alignmentController.calculate(getHeading().getRadians());
     if (isAligning && !alignmentController.atSetpoint() && !parked) fieldRelativeSpeeds.omegaRadiansPerSecond += alignmentAngularVelocity;
 
     SwerveModuleState[] moduleStates = kinematics.toSwerveModuleStates(fieldRelativeSpeeds);
