@@ -110,44 +110,6 @@ public class RobotContainer {
     AprilTags.printConfig(Constants.LIMELIGHT.APRILTAG_CAMERA_POSES);
 
     Pathfinding.ensureInitialized();
-
-    System.out.println("BEGINNING POSE TEST");
-
-    Pose2d robotPose = new Pose2d(10, 14, Rotation2d.fromDegrees(74));
-    Rotation2d angle = Rotation2d.fromDegrees(-67);
-    int i = 3;
-
-    System.out.print("Old: ");
-    System.out.println(poseTestOld(robotPose, angle, i));
-    System.out.print("New: ");
-    System.out.println(poseTestNew(robotPose, angle, i));
-  }
-
-  private Pose2d poseTestOld(Pose2d robotPose, Rotation2d angle, int i) {
-    return new Pose2d(
-        ((i & 2) == 0 ? 1 : -1) * SWERVE_DRIVE.WHEELBASE / 2.0,
-        ((i & 1) == 0 ? 1 : -1) * SWERVE_DRIVE.TRACKWIDTH / 2.0,
-        angle
-    ).relativeTo(new Pose2d(
-        new Translation2d(),
-        robotPose.getRotation().times(-1.0)
-    )).relativeTo(new Pose2d(
-        -robotPose.getX(),
-        -robotPose.getY(),
-        new Rotation2d()
-    ));
-  }
-
-  private Pose2d poseTestNew(Pose2d robotPose, Rotation2d angle, int i) {
-    return new Pose2d(
-        robotPose.getX(),
-        robotPose.getY(),
-        robotPose.getRotation()
-    ).plus(new Transform2d(
-        ((i & 2) == 0 ? 1 : -1) * SWERVE_DRIVE.WHEELBASE / 2.0,
-        ((i & 1) == 0 ? 1 : -1) * SWERVE_DRIVE.TRACKWIDTH / 2.0,
-        angle
-    ));
   }
 
   public Command getAutonomousCommand() {

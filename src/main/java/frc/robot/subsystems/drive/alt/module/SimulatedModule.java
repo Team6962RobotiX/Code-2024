@@ -28,11 +28,7 @@ import frc.robot.util.software.Logging.Logger;
 public class SimulatedModule extends SubsystemBase implements SwerveModule {
   private FlywheelSim driveMotor;
   
-  private FlywheelSim steerMotor = new FlywheelSim(
-    LinearSystemId.identifyVelocitySystem(STEER_MOTOR_PROFILE.kV, STEER_MOTOR_PROFILE.kA),
-    NEO.STATS,
-    SWERVE_DRIVE.STEER_MOTOR_GEARING
-  );
+  private FlywheelSim steerMotor;
 
   private PIDController drivePID = new PIDController(
     DRIVE_MOTOR_PROFILE.kP,
@@ -69,6 +65,12 @@ public class SimulatedModule extends SubsystemBase implements SwerveModule {
       ),
       NEO.STATS,
       SWERVE_DRIVE.DRIVE_MOTOR_GEARING
+    );
+
+    steerMotor = new FlywheelSim(
+      LinearSystemId.identifyVelocitySystem(STEER_MOTOR_PROFILE.kV, STEER_MOTOR_PROFILE.kA),
+      NEO.STATS,
+      SWERVE_DRIVE.STEER_MOTOR_GEARING
     );
 
     String logPath = SwerveModule.getLogPath(corner);
