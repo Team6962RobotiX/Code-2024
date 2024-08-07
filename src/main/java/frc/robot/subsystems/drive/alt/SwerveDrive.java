@@ -1,11 +1,12 @@
 package frc.robot.subsystems.drive.alt;
 
 import static edu.wpi.first.units.Units.Meters;
+import static edu.wpi.first.units.Units.MetersPerSecond;
+import static edu.wpi.first.units.Units.RadiansPerSecond;
 
 import java.util.List;
 import java.util.function.Supplier;
 
-import com.kauailabs.navx.frc.AHRS;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.path.GoalEndState;
 import com.pathplanner.lib.path.PathPlannerPath;
@@ -22,6 +23,7 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.units.Angle;
 import edu.wpi.first.units.Distance;
 import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.Velocity;
@@ -31,6 +33,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.Constants;
 import frc.robot.Constants.Constants.SWERVE_DRIVE;
+import frc.robot.subsystems.drive.alt.field.FieldElement;
 
 public abstract class SwerveDrive extends SubsystemBase implements FieldElement {
     // TODO: Improve design, move to seperate class
@@ -44,8 +47,8 @@ public abstract class SwerveDrive extends SubsystemBase implements FieldElement 
     private boolean speedsSupplierRepeats;
 
     private DriveManager driveManager;
-    private PoseManager poseManager;
-    private AHRS gyroscope;
+    private PoseEstimator poseEstimator;
+    private Gyroscope gyroscope;
 
     private SwerveDriveKinematics kinematics;
 
@@ -70,9 +73,10 @@ public abstract class SwerveDrive extends SubsystemBase implements FieldElement 
 
         kinematics = new SwerveDriveKinematics(moduleTranslations);
 
-        driveManager = new DriveManager(config.equippedModules(), kinematics);
-        poseManager = new PoseManager(kinematics, () -> gyroscope, () -> driveManager.getModulePositions());
-        gyroscope = new AHRS();
+        gyroscope = new Gyroscope();
+
+        driveManager = new DriveManager(config, kinematics);
+        poseEstimator = new PoseEstimator(kinematics, gyroscope, driveManager::getModulePositions);
 
         AutoBuilder.configureHolonomic(
             this::getEstimatedPose, // Robot pose supplier
@@ -215,15 +219,15 @@ public abstract class SwerveDrive extends SubsystemBase implements FieldElement 
         if (statesSupplier != null && !statesSupplierRepeats) statesSupplier = null;
         if (speedsSupplier != null && !speedsSupplierRepeats) speedsSupplier = null;
 
-        poseManager.update();
+        poseEstimator.update();
     }
 
     public Pose2d getEstimatedPose() {
-        return poseManager.getEstimatedPose();
+        return poseEstimator.getEstimatedPose();
     }
 
     public Pose2d getEstimatedPose(double timestamp) {
-        return poseManager.getEstimatedPose(timestamp);
+        return poseEstimator.getEstimatedPose(timestamp);
     }
 
     public ChassisSpeeds getEstimatedSpeeds() {
@@ -247,7 +251,7 @@ public abstract class SwerveDrive extends SubsystemBase implements FieldElement 
     @Override
     public void updateFieldElement(Field2d field) {
         // Get the current estimated position of the robot
-        Pose2d robotPose = poseManager.getEstimatedPose();
+        Pose2d robotPose = poseEstimator.getEstimatedPose();
 
         // Update the field with the new robot pose
         field.getObject("Robot").setPose(robotPose);
@@ -407,5 +411,35 @@ public abstract class SwerveDrive extends SubsystemBase implements FieldElement 
                 field.getObject("PathfindTo Active Path").setPoses(path);
             }
         }
+    }
+
+    /**
+     * Converts the speed of a wheel moving to the angular velocity of the robot as if it's
+     * rotating in place
+     * @param wheelSpeed Drive velocity in m/s
+     * @return Equivalent rotational velocity in rad/s
+     * @see #toWheelSpeed(double)
+     */
+    public double toAngularSpeed(double wheelSpeed) {
+        return wheelSpeed / configuration.driveRadius().in(Meters);
+    }
+
+    public Measure<Velocity<Angle>> toAngularSpeed(Measure<Velocity<Distance>> wheelSpeed) {
+        return RadiansPerSecond.of(toAngularSpeed(wheelSpeed.in(MetersPerSecond)));
+    }
+
+    /**
+     * Converts the angular velocity of the robot to the speed of a wheel moving as if the
+     * robot is rotating in place
+     * @param angularVelocity Rotational velocity in rad/s
+     * @return Equivalent drive velocity in m/s
+     * @see #toAngularSpeed(double)
+     */
+    public double toWheelSpeed(double angularVelocity) {
+        return angularVelocity * configuration.driveRadius().in(Meters);
+    }
+
+    public Measure<Velocity<Distance>> toWheelSpeed(Measure<Velocity<Angle>> angularVelocity) {
+        return MetersPerSecond.of(toWheelSpeed(angularVelocity.in(RadiansPerSecond)));
     }
 }

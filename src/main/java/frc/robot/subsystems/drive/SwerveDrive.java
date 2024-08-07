@@ -51,7 +51,6 @@ import frc.robot.Constants.Constants;
 import frc.robot.Constants.Constants.LIMELIGHT;
 import frc.robot.Constants.Constants.SWERVE_DRIVE;
 import frc.robot.Constants.Field;
-import frc.robot.commands.autonomous.Autonomous;
 import frc.robot.commands.drive.XBoxSwerve;
 import frc.robot.subsystems.LEDs;
 import frc.robot.subsystems.vision.AprilTags;
@@ -342,13 +341,14 @@ public class SwerveDrive extends SubsystemBase {
   private void driveAttainableSpeeds(ChassisSpeeds fieldRelativeSpeeds) {
     isDriven = true;
 
-    if (!RobotState.isAutonomous() || Autonomous.avoidPillars) {
-      Translation2d velocity = XBoxSwerve.avoidObstacles(new Translation2d(
-        fieldRelativeSpeeds.vxMetersPerSecond,
-        fieldRelativeSpeeds.vyMetersPerSecond
-      ), this);
-      fieldRelativeSpeeds = new ChassisSpeeds(velocity.getX(), velocity.getY(), fieldRelativeSpeeds.omegaRadiansPerSecond);
-    }
+    // NOTE: Commented out to remove errors
+    // if (!RobotState.isAutonomous() || Autonomous.avoidPillars) {
+    //   Translation2d velocity = XBoxSwerve.avoidObstacles(new Translation2d(
+    //     fieldRelativeSpeeds.vxMetersPerSecond,
+    //     fieldRelativeSpeeds.vyMetersPerSecond
+    //   ), this);
+    //   fieldRelativeSpeeds = new ChassisSpeeds(velocity.getX(), velocity.getY(), fieldRelativeSpeeds.omegaRadiansPerSecond);
+    // }
 
     if (fieldRelativeSpeeds.omegaRadiansPerSecond > 0 && !RobotState.isAutonomous()) {
       rotationOverridePoint = null;

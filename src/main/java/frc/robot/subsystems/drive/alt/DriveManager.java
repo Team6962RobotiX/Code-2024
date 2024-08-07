@@ -4,19 +4,22 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.wpilibj.RobotBase;
 import frc.robot.subsystems.drive.alt.module.RealModule;
+import frc.robot.subsystems.drive.alt.module.SimulatedModule;
+import frc.robot.subsystems.drive.alt.module.SwerveModule;
 
 public class DriveManager {
-    private RealModule[] modules;
+    private SwerveModule[] modules;
     private SwerveDriveKinematics kinematics;
 
-    public DriveManager(SwerveConfig.Module[] equippedModules, SwerveDriveKinematics kinematics) {
-        if (equippedModules.length != 4) throw new IllegalArgumentException("Swerve drive must have exactly 4 modules");
+    public DriveManager(SwerveConfig swerveConfig, SwerveDriveKinematics kinematics) {
+        if (swerveConfig.equippedModules().length != 4) throw new IllegalArgumentException("Swerve drive must have exactly 4 modules");
 
-        modules = new RealModule[equippedModules.length];
+        modules = new SwerveModule[swerveConfig.equippedModules().length];
 
-        for (int i = 0; i < equippedModules.length; i++) {
-            modules[i] = new RealModule(equippedModules[i], i);
+        for (int i = 0; i < swerveConfig.equippedModules().length; i++) {
+            modules[i] = RobotBase.isSimulation() ? new SimulatedModule(swerveConfig, i) : new RealModule(swerveConfig.equippedModules()[i], i);
         }
 
         this.kinematics = kinematics;
@@ -61,7 +64,7 @@ public class DriveManager {
     }
 
     public void stop() {
-        for (RealModule module : modules) {
+        for (SwerveModule module : modules) {
             module.stop();
         }
     }

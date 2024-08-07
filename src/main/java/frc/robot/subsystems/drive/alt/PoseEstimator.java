@@ -1,30 +1,31 @@
 package frc.robot.subsystems.drive.alt;
 
+import static edu.wpi.first.units.Units.RotationsPerSecond;
+
 import java.util.function.Supplier;
 
-import com.kauailabs.navx.frc.AHRS;
-
-import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
+import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.RobotState;
 import frc.robot.util.software.CustomSwerveDrivePoseEstimator;
 
 /**
- * A {@code PoseManager} is responsible for managing the swerve drive's pose estimation.
- * All calculations are encapsulated inside of this class, so we can change the algorithm
- * without affecting the rest of the code.<br><br>
+ * A {@code PoseEstimator} is responsible for managing the swerve drive's pose
+ * estimation. All calculations are encapsulated inside of this class, so we can
+ * change the algorithm without affecting the rest of the code.<br><br>
  * 
  * Currently, this works in two stages: <ol>
- *   <li>Before the robot is enabled, the PoseManager will use the vision measurements and
- *   gyroscope data to estimate the robot's initial pose.</li>
- *   <li>Once the robot is enabled, the PoseManager will create a {@link SwerveDrivePoseEstimator}
- *   to estimate the robot's pose in real-time based on gyroscope, odometry, and vision data.</li>
+ *   <li>Before the robot is enabled, the PoseEstimator will use the vision
+ *   measurements and gyroscope data to estimate the robot's initial pose.</li>
+ *   <li>Once the robot is enabled, the PoseEstimator will create a
+ *   {@link CustomSwerveDrivePoseEstimator} to estimate the robot's pose in
+ *   real-time based on gyroscope, odometry, and vision data.</li>
  * </ol>
  */
-public class PoseManager {
+public class PoseEstimator {
     private CustomSwerveDrivePoseEstimator poseEstimator;
 
     private Pose2d initialPose;
@@ -33,34 +34,43 @@ public class PoseManager {
 
     private Pose2d livePose;
 
-    private Supplier<AHRS> gyroscopeSupplier;
+    private Gyroscope gyroscope;
     private SwerveDriveKinematics kinematics;
     private Supplier<SwerveModulePosition[]> modulePositionsSupplier;
     
-    public PoseManager(SwerveDriveKinematics kinematics, Supplier<AHRS> gyroscopeSupplier, Supplier<SwerveModulePosition[]> modulePositionsSupplier) {
-        this.gyroscopeSupplier = gyroscopeSupplier;
+    public PoseEstimator(
+        SwerveDriveKinematics kinematics, Gyroscope gyroscope,
+        Supplier<SwerveModulePosition[]> modulePositionsSupplier
+    ) {
+        this.gyroscope = gyroscope;
         this.kinematics = kinematics;
         this.modulePositionsSupplier = modulePositionsSupplier;
+
+        if (RobotBase.isSimulation()) {
+            initialPose = new Pose2d();
+        }
     }
 
     public void update() {
-        AHRS gyroscope = gyroscopeSupplier.get();
-
         if (RobotState.isDisabled()) {
-            if (gyroscope != null) {
-                initialInaccuracy += gyroscope.getVelocityX() + gyroscope.getVelocityY() + gyroscope.getVelocityZ();
-                initialInaccuracy += Rotation2d.fromDegrees(gyroscope.getRate()).getRotations();
+            Translation3d velocity = gyroscope.getVelocity();
+
+            if (velocity != null) {
+                initialInaccuracy += velocity.getNorm();
+                initialInaccuracy += gyroscope.getRate().in(RotationsPerSecond);
             }
         } else if (poseEstimator == null) {
             poseEstimator = new CustomSwerveDrivePoseEstimator(
                 kinematics,
-                Rotation2d.fromDegrees(-gyroscope.getAngle()),
+                gyroscope.getCurrentHeading().times(-1),
                 modulePositionsSupplier.get(),
                 initialPose
             );
+
+            livePose = poseEstimator.getEstimatedPosition();
         } else {
             poseEstimator.update(
-                Rotation2d.fromDegrees(-gyroscope.getAngle()),
+                gyroscope.getCurrentHeading().times(-1),
                 modulePositionsSupplier.get()
             );
 

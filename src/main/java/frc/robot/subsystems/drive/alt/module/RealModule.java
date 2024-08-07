@@ -195,7 +195,10 @@ public class RealModule extends SubsystemBase implements SwerveModule {
      * an alternative to calibration commands.
      */
     private Command driveModule() {
-        return Commands.run(() -> driveState(targetState));
+        Command command = Commands.run(() -> driveState(targetState));
+        command.addRequirements(this);
+
+        return command;
     }
 
     /**

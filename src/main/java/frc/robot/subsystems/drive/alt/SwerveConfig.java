@@ -36,6 +36,10 @@ public record SwerveConfig(
         return MetersPerSecond.of(maxWheelSpeed.in(RotationsPerSecond) * wheelRadius.in(Meters));
     }
 
+    public Measure<Distance> driveRadius() {
+        return Meters.of(Math.hypot(wheelBase().in(Meters) / 2.0, trackWidth().in(Meters) / 2.0));
+    }
+
     public static record MotorInfo(
         DCMotor stats,
         Measure<Temperature> maxTemperature,

@@ -66,7 +66,7 @@ public final class Logger {
       try {
         log(key, supplied_value);
       } catch (IllegalArgumentException e) {
-        System.out.println("[LOGGING] unknown type: " + supplied_value.getClass().getSimpleName());
+        System.out.println("[LOGGING] unknown type: " + supplied_value.getClass().getSimpleName() + " under key " + key);
       }
     }
     logRio("roboRio");

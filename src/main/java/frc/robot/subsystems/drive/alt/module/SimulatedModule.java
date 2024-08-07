@@ -43,8 +43,6 @@ public class SimulatedModule extends SubsystemBase implements SwerveModule {
   public SimulatedModule(SwerveConfig config, int corner) {
     configuration = config;
 
-    steerPID.enableContinuousInput(-Math.PI, Math.PI);
-
     SwerveConfig.MotorProfile driveMotorProfile = config.driveMotorProfile();
     SwerveConfig.MotorProfile steerMotorProfile = config.steerMotorProfile();
 
@@ -78,6 +76,8 @@ public class SimulatedModule extends SubsystemBase implements SwerveModule {
       steerMotorProfile.kD()
     );
 
+    steerPID.enableContinuousInput(-Math.PI, Math.PI);
+
     driveFeedforward = new SimpleMotorFeedforward(
       driveMotorProfile.kS(),
       driveMotorProfile.kV(),
@@ -85,7 +85,7 @@ public class SimulatedModule extends SubsystemBase implements SwerveModule {
     );
 
     String logPath = SwerveModule.getLogPath(corner);
-    Logger.autoLog(this, logPath + "current",                 () -> getTotalCurrent());
+    Logger.autoLog(this, logPath + "current",                 () -> getTotalCurrent().in(Volts));
     Logger.autoLog(this, logPath + "getAbsoluteSteerDegrees", () -> getMeasuredState().angle.getDegrees());
     Logger.autoLog(this, logPath + "measuredState",           () -> getMeasuredState());
     Logger.autoLog(this, logPath + "measuredAngle",           () -> getMeasuredState().angle.getDegrees());

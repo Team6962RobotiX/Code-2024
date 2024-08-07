@@ -23,8 +23,8 @@ import frc.robot.Constants.Constants;
 import frc.robot.Constants.Constants.ENABLED_SYSTEMS;
 import frc.robot.Constants.Constants.SHOOTER_PIVOT;
 import frc.robot.Constants.Field;
-import frc.robot.subsystems.drive.alt.FieldElement;
 import frc.robot.subsystems.drive.alt.SwerveDrive;
+import frc.robot.subsystems.drive.alt.field.FieldElement;
 import frc.robot.util.software.Logging.Logger;
 
 public class Shooter extends SubsystemBase {
