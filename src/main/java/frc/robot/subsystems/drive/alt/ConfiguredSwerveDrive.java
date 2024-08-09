@@ -63,7 +63,23 @@ public class ConfiguredSwerveDrive extends SwerveDrive {
                 Amps.per(Second).of(NEO.SAFE_RAMP_RATE)
             ),
             SWERVE_DRIVE.DRIVE_MOTOR_GEARING,
-            SWERVE_DRIVE.STEER_MOTOR_GEARING
+            SWERVE_DRIVE.STEER_MOTOR_GEARING,
+            new SwerveConfig.PIDConstants(
+                SWERVE_DRIVE.ABSOLUTE_ROTATION_GAINS.kP,
+                SWERVE_DRIVE.ABSOLUTE_ROTATION_GAINS.kI,
+                SWERVE_DRIVE.ABSOLUTE_ROTATION_GAINS.kD
+            ),
+            new SwerveConfig.PIDConstants(
+                SWERVE_DRIVE.AUTONOMOUS.TRANSLATION_GAINS.kP,
+                SWERVE_DRIVE.AUTONOMOUS.TRANSLATION_GAINS.kI,
+                SWERVE_DRIVE.AUTONOMOUS.TRANSLATION_GAINS.kD
+            ),
+            new SwerveConfig.PIDConstants(
+                SWERVE_DRIVE.AUTONOMOUS.ROTATION_GAINS.kP,
+                SWERVE_DRIVE.AUTONOMOUS.ROTATION_GAINS.kI,
+                SWERVE_DRIVE.AUTONOMOUS.ROTATION_GAINS.kD
+            ),
+            SWERVE_DRIVE.AUTONOMOUS.DEFAULT_PATH_CONSTRAINTS
         );
     }
 

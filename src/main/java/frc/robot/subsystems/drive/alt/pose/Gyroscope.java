@@ -1,6 +1,9 @@
-package frc.robot.subsystems.drive.alt;
+package frc.robot.subsystems.drive.alt.pose;
 
 import static edu.wpi.first.units.Units.DegreesPerSecond;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import com.kauailabs.navx.frc.AHRS;
 
@@ -142,6 +145,17 @@ public class Gyroscope extends SubsystemBase {
     public void periodic() {
         if (gyroscope != null && gyroscope.isConnected()) {
             heading = gyroscope.getRotation2d();
+        }
+    }
+
+    private List<Observer> observers = new ArrayList<>();
+
+    public void subscribe(Observer observer) {
+        observers.add(observer);
+    }
+
+    public static interface Observer {
+        public default void onGyroscopeReset(Rotation2d offsetChange) {
         }
     }
 }

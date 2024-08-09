@@ -1,5 +1,7 @@
 package frc.robot.subsystems.drive.alt;
 
+import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
@@ -8,10 +10,12 @@ import edu.wpi.first.wpilibj.RobotBase;
 import frc.robot.subsystems.drive.alt.module.RealModule;
 import frc.robot.subsystems.drive.alt.module.SimulatedModule;
 import frc.robot.subsystems.drive.alt.module.SwerveModule;
+import frc.robot.subsystems.drive.alt.pose.Gyroscope;
 
-public class DriveManager {
+public class DriveManager implements Gyroscope.Observer {
     private SwerveModule[] modules;
     private SwerveDriveKinematics kinematics;
+    private PIDController headingPID;
 
     public DriveManager(SwerveConfig swerveConfig, SwerveDriveKinematics kinematics) {
         if (swerveConfig.equippedModules().length != 4) throw new IllegalArgumentException("Swerve drive must have exactly 4 modules");
@@ -21,6 +25,12 @@ public class DriveManager {
         for (int i = 0; i < swerveConfig.equippedModules().length; i++) {
             modules[i] = RobotBase.isSimulation() ? new SimulatedModule(swerveConfig, i) : new RealModule(swerveConfig.equippedModules()[i], i);
         }
+
+        headingPID = new PIDController(
+            swerveConfig.headingPID().kP(),
+            swerveConfig.headingPID().kI(),
+            swerveConfig.headingPID().kD()
+        );
 
         this.kinematics = kinematics;
     }
@@ -60,12 +70,18 @@ public class DriveManager {
     }
 
     public void drive(ChassisSpeeds speeds) {
-        drive(kinematics.toSwerveModuleStates(speeds)); // TODO: Add fancier logic, use PID control
+        headingPID.setSetpoint(speeds.omegaRadiansPerSecond);
+        // TODO: IEI)#JIEWJIOJDONDJINEJHCDNHJNCHJDNCHJNSHJ PROBLEM
     }
 
     public void stop() {
         for (SwerveModule module : modules) {
             module.stop();
         }
+    }
+
+    @Override
+    public void onGyroscopeReset(Rotation2d offsetChange) {
+        
     }
 }

@@ -4,19 +4,7 @@ import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 
-import java.util.List;
-import java.util.function.Supplier;
-
-import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.path.GoalEndState;
-import com.pathplanner.lib.path.PathPlannerPath;
-import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
-import com.pathplanner.lib.util.PIDConstants;
-import com.pathplanner.lib.util.PathPlannerLogging;
-import com.pathplanner.lib.util.ReplanningConfig;
-
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -28,23 +16,14 @@ import edu.wpi.first.units.Distance;
 import edu.wpi.first.units.Measure;
 import edu.wpi.first.units.Velocity;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.Constants;
-import frc.robot.Constants.Constants.SWERVE_DRIVE;
 import frc.robot.subsystems.drive.alt.field.FieldElement;
+import frc.robot.subsystems.drive.alt.pose.Gyroscope;
+import frc.robot.subsystems.drive.alt.pose.PoseEstimator;
 
 public abstract class SwerveDrive extends SubsystemBase implements FieldElement {
-    // TODO: Improve design, move to seperate class
-    private Supplier<Translation2d> translationSupplier;
-    private boolean translationSupplierRepeats;
-    private Supplier<Rotation2d> headingSupplier;
-    private boolean headingSupplierRepeats;
-    private Supplier<SwerveModuleState[]> statesSupplier;
-    private boolean statesSupplierRepeats;
-    private Supplier<ChassisSpeeds> speedsSupplier;
-    private boolean speedsSupplierRepeats;
+    private SwerveModuleState[] targetStates;
 
     private DriveManager driveManager;
     private PoseEstimator poseEstimator;
@@ -55,8 +34,6 @@ public abstract class SwerveDrive extends SubsystemBase implements FieldElement 
     private Translation2d[] moduleTranslations;
 
     private SwerveConfig configuration;
-
-    private AutoPath autoPath = new AutoPath();
 
     public SwerveDrive(SwerveConfig config) {
         configuration = config;
@@ -77,148 +54,19 @@ public abstract class SwerveDrive extends SubsystemBase implements FieldElement 
 
         driveManager = new DriveManager(config, kinematics);
         poseEstimator = new PoseEstimator(kinematics, gyroscope, driveManager::getModulePositions);
-
-        AutoBuilder.configureHolonomic(
-            this::getEstimatedPose, // Robot pose supplier
-            (Pose2d pose) -> {
-                throw new UnsupportedOperationException("Resetting odometry is not supported. Do not give an auto path a starting pose.");
-            }, // Method to reset odometry (will be called if your auto has a starting pose)
-            this::getEstimatedSpeeds, // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
-            this::drive, // Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds
-            new HolonomicPathFollowerConfig( // HolonomicPathFollowerConfig, this should likely live in your Constants class
-                new PIDConstants(SWERVE_DRIVE.AUTONOMOUS.TRANSLATION_GAINS.kP, SWERVE_DRIVE.AUTONOMOUS.TRANSLATION_GAINS.kI, SWERVE_DRIVE.AUTONOMOUS.TRANSLATION_GAINS.kD), // Translation PID constants
-                new PIDConstants(SWERVE_DRIVE.AUTONOMOUS.   ROTATION_GAINS.kP, SWERVE_DRIVE.AUTONOMOUS.   ROTATION_GAINS.kI, SWERVE_DRIVE.AUTONOMOUS.   ROTATION_GAINS.kD), // Rotation PID constants
-                SWERVE_DRIVE.PHYSICS.MAX_LINEAR_VELOCITY, // Max module speed, in m/s
-                SWERVE_DRIVE.PHYSICS.DRIVE_RADIUS, // Drive base radius in meters. Distance from robot center to furthest module.
-                new ReplanningConfig(true, true) // Default path replanning config. See the API for the options here
-            ),
-            () -> false, // Should flip paths
-            this // Reference to this subsystem to set requirements
-        );
-
-        // Logging callback for target robot pose
-        PathPlannerLogging.setLogTargetPoseCallback((pose) -> {
-            // Do whatever you want with the pose here
-            autoPath.setTargetPose(pose);
-        });
-
-        // Logging callback for the active path, this is sent as a list of poses
-        PathPlannerLogging.setLogActivePathCallback((poses) -> {
-            // Do whatever you want with the poses here
-            autoPath.setPath(poses);
-        });
     }
 
     public void drive(ChassisSpeeds speeds) {
-        drive(speeds, false);
-    }
-
-    public void drive(ChassisSpeeds speeds, boolean repeating) {
-        driveChassisSpeeds(() -> speeds, repeating);
+        targetStates = kinematics.toSwerveModuleStates(speeds);
     }
 
     public void drive(SwerveModuleState[] states) {
-        drive(states, false);
-    }
-
-    public void drive(SwerveModuleState[] states, boolean repeating) {
-        driveModuleStates(() -> states, repeating);
-    }
-
-    public void drive(Translation2d translation) {
-        drive(translation, false);
-    }
-
-    public void drive(Translation2d translation, boolean repeating) {
-        driveTranslation(() -> translation, repeating);
-    }
-
-    public void drive(Rotation2d heading) {
-        drive(heading, false);
-    }
-
-    public void drive(Rotation2d heading, boolean repeating) {
-        driveHeading(() -> heading, repeating);
-    }
-
-    public void driveModuleStates(Supplier<SwerveModuleState[]> statesSupplier, boolean repeating) {
-        this.statesSupplier = statesSupplier;
-        this.statesSupplierRepeats = repeating;
-        headingSupplier = null;
-        translationSupplier = null;
-        speedsSupplier = null;
-    }
-
-    public void driveHeading(Supplier<Rotation2d> headingSupplier, boolean repeating) {
-        this.headingSupplier = headingSupplier;
-        this.headingSupplierRepeats = repeating;
-        statesSupplier = null;
-        speedsSupplier = null;
-    }
-
-    public void driveTranslation(Supplier<Translation2d> translationSupplier, boolean repeating) {
-        this.translationSupplier = translationSupplier;
-        this.translationSupplierRepeats = repeating;
-        statesSupplier = null;
-        speedsSupplier = null;
-    }
-
-    public void driveChassisSpeeds(Supplier<ChassisSpeeds> speedsSupplier, boolean repeating) {
-        this.speedsSupplier = speedsSupplier;
-        this.speedsSupplierRepeats = repeating;
-        statesSupplier = null;
-        translationSupplier = null;
-        headingSupplier = null;
-    }
-
-    public void stop() {
-        headingSupplier = null;
-        translationSupplier = null;
-        statesSupplier = null;
-        speedsSupplier = null;
-    }
-
-    public void park() {
-        drive(new SwerveModuleState[] {
-            new SwerveModuleState(0, Rotation2d.fromDegrees(45.0)),
-            new SwerveModuleState(0, Rotation2d.fromDegrees(-45.0)),
-            new SwerveModuleState(0, Rotation2d.fromDegrees(45.0)),
-            new SwerveModuleState(0, Rotation2d.fromDegrees(-45.0))
-        });
+        targetStates = states;
     }
 
     @Override
     public void periodic() {
-        boolean usingHeadingTranslation = headingSupplier != null || translationSupplier != null;
-        boolean usingStates = statesSupplier != null;
-        boolean usingSpeeds = speedsSupplier != null;
-
-        if ((usingHeadingTranslation && usingStates) || (usingHeadingTranslation && usingSpeeds) || (usingStates && usingSpeeds)) {
-            throw new IllegalStateException("Cannot use multiple types of drive suppliers at once");
-        }
-
-        if (usingHeadingTranslation) {
-            Translation2d translation = translationSupplier == null ? null : translationSupplier.get();
-            Rotation2d heading = headingSupplier == null ? null : headingSupplier.get();
-
-            driveManager.drive(new ChassisSpeeds(
-                translationSupplier == null ? 0.0 : translation.getX(),
-                translationSupplier == null ? 0.0 : translation.getY(),
-                headingSupplier == null ? 0.0 : heading.getRadians()
-            ));
-        } else if (usingStates) {
-            driveManager.drive(statesSupplier.get());
-        } else if (usingSpeeds) {
-            driveManager.drive(speedsSupplier.get());
-        } else {
-            driveManager.stop();
-        }
-
-        if (headingSupplier != null && !headingSupplierRepeats) headingSupplier = null;
-        if (translationSupplier != null && !translationSupplierRepeats) translationSupplier = null;
-        if (statesSupplier != null && !statesSupplierRepeats) statesSupplier = null;
-        if (speedsSupplier != null && !speedsSupplierRepeats) speedsSupplier = null;
-
+        driveManager.drive(targetStates);
         poseEstimator.update();
     }
 
@@ -246,6 +94,18 @@ public abstract class SwerveDrive extends SubsystemBase implements FieldElement 
         futurePosition = futurePosition.plus(velocity.times(velocity.getNorm()).div(2 * Constants.SWERVE_DRIVE.PHYSICS.MAX_LINEAR_ACCELERATION));
 
         return new Pose2d(futurePosition, getEstimatedPose().getRotation());
+    }
+
+    public SwerveDriveKinematics getKinematics() {
+        return kinematics;
+    }
+
+    public SwerveModuleState[] getModuleStates() {
+        return driveManager.getModuleStates();
+    }
+
+    public SwerveModulePosition[] getModulePositions() {
+        return driveManager.getModulePositions();
     }
 
     @Override
@@ -295,122 +155,6 @@ public abstract class SwerveDrive extends SubsystemBase implements FieldElement 
 
     public Measure<Velocity<Distance>> getWheelVelocity(double powerFraction) {
         return configuration.maxLinearWheelSpeed().times(powerFraction);
-    }
-
-    public void lookAt(Supplier<Translation2d> point, Rotation2d rotationOffset, boolean repeating) {
-        driveHeading(() -> point.get().minus(getEstimatedPose().getTranslation()).getAngle().plus(rotationOffset), repeating);
-    }
-
-    public Command createLookAtCommand(Supplier<Translation2d> point, Rotation2d rotationOffset) {
-        return new LookAtCommand(point, rotationOffset, this);
-    }
-
-    // TODO: Improve design of LookAtCommand to not need to be inside the SwerveDrive class
-    private static class LookAtCommand extends Command {
-        private SwerveDrive swerveDrive;
-        private Supplier<Rotation2d> runningSupplier;
-
-        public LookAtCommand(Supplier<Translation2d> point, Rotation2d rotationOffset, SwerveDrive swerveDrive) {
-            this.swerveDrive = swerveDrive;
-
-            runningSupplier = () -> point.get().minus(swerveDrive.getEstimatedPose().getTranslation()).getAngle().plus(rotationOffset);
-
-            swerveDrive.driveHeading(runningSupplier, true);
-        }
-
-        @Override
-        public void execute() {
-        }
-
-        @Override
-        public boolean isFinished() {
-            return runningSupplier == swerveDrive.headingSupplier;
-        }
-    }
-
-    private Command simplePathfind(Pose2d pose) {
-        Rotation2d angle = pose.getTranslation().minus(getEstimatedPose().getTranslation()).getAngle();
-
-        List<Translation2d> bezierPoints = PathPlannerPath.bezierFromPoses(
-            new Pose2d(getEstimatedPose().getTranslation(), angle),
-            new Pose2d(pose.getTranslation(), angle)
-        );
-
-        PathPlannerPath path = new PathPlannerPath(
-            bezierPoints,
-            SWERVE_DRIVE.AUTONOMOUS.DEFAULT_PATH_CONSTRAINTS,
-            new GoalEndState(
-                0.0,
-                pose.getRotation(),
-                true
-            )
-        );
-
-        return Commands.sequence(
-            AutoBuilder.followPath(path),
-            runOnce(() -> drive(pose.getRotation()))
-        );
-    }
-
-    public Command pathfindTo(Pose2d pose) {
-        return new PathfindTo(() -> pose, this);
-    }
-
-    public Command pathfindTo(Supplier<Pose2d> poseSupplier) {
-        return new PathfindTo(poseSupplier, this);
-    }
-
-    private static class PathfindTo extends Command {
-        private Command command;
-        private SwerveDrive swerveDrive;
-        private Supplier<Pose2d> poseSupplier;
-      
-        public PathfindTo(Supplier<Pose2d> poseSupplier, SwerveDrive swerveDrive) {
-            this.poseSupplier = poseSupplier;
-            this.swerveDrive = swerveDrive;
-        }
-      
-        @Override
-        public void initialize() {
-            Pose2d pose = poseSupplier.get();
-
-            command = swerveDrive.simplePathfind(pose);
-
-            command.schedule();
-        }
-
-        @Override
-        public void execute() {
-        }
-
-        @Override
-        public void end(boolean interrupted) {
-            command.cancel();
-        }
-    }
-
-    private static class AutoPath implements FieldElement {
-        private Pose2d targetPose;
-        private List<Pose2d> path;
-
-        public void setTargetPose(Pose2d targetPose) {
-            this.targetPose = targetPose;
-        }
-
-        public void setPath(List<Pose2d> path) {
-            this.path = path;
-        }
-
-        @Override
-        public void updateFieldElement(Field2d field) {
-            if (targetPose != null) {
-                field.getObject("PathfindTo Target Pose").setPose(targetPose);
-            }
-
-            if (path != null) {
-                field.getObject("PathfindTo Active Path").setPoses(path);
-            }
-        }
     }
 
     /**

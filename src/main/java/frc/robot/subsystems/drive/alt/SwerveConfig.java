@@ -7,6 +7,10 @@ import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static frc.robot.subsystems.drive.alt.units.Force.Newtons;
 
+import com.pathplanner.lib.path.PathConstraints;
+
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.Angle;
 import edu.wpi.first.units.Current;
@@ -16,6 +20,7 @@ import edu.wpi.first.units.Temperature;
 import edu.wpi.first.units.Velocity;
 import frc.robot.subsystems.drive.alt.units.Force;
 
+// TODO: Reconsider if this should be a record.
 public record SwerveConfig(
     Measure<Distance> trackWidth,
     Measure<Distance> wheelBase,
@@ -30,8 +35,21 @@ public record SwerveConfig(
     MotorProfile steerMotorProfile,
     MotorInfo swerveMotorInfo,
     double driveMotorGearing,
-    double steerMotorGearing
+    double steerMotorGearing,
+    PIDConstants headingPID,
+    PIDConstants pathTranslationPID,
+    PIDConstants pathRotationPID,
+    PathConstraints pathConstraints // TODO: Add calculations
 ) {
+    public SwerveDriveKinematics kinematics() {
+        return new SwerveDriveKinematics(
+            new Translation2d(wheelBase().in(Meters) / 2.0, trackWidth().in(Meters) / 2.0),
+            new Translation2d(wheelBase().in(Meters) / 2.0, -trackWidth().in(Meters) / 2.0),
+            new Translation2d(-wheelBase().in(Meters) / 2.0, trackWidth().in(Meters) / 2.0),
+            new Translation2d(-wheelBase().in(Meters) / 2.0, -trackWidth().in(Meters) / 2.0)
+        );
+    }
+
     public Measure<Velocity<Distance>> maxLinearWheelSpeed() {
         return MetersPerSecond.of(maxWheelSpeed.in(RotationsPerSecond) * wheelRadius.in(Meters));
     }
@@ -86,5 +104,15 @@ public record SwerveConfig(
         double kI,
         double kD
     ) {
+    }
+
+    public static record PIDConstants(
+        double kP,
+        double kI,
+        double kD
+    ) {
+        public com.pathplanner.lib.util.PIDConstants toPathplannerPIDConstants() {
+            return new com.pathplanner.lib.util.PIDConstants(kP(), kI(), kD());
+        }
     }
 }
