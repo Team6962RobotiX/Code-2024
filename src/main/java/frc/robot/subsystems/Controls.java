@@ -15,7 +15,6 @@ import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.Constants.Constants.DEVICES;
 import frc.robot.Constants.Constants.LIMELIGHT;
 import frc.robot.Constants.Preferences;
-import frc.robot.commands.drive.GoToPose;
 import frc.robot.commands.drive.XBoxSwerve;
 import frc.robot.subsystems.amp.Amp;
 import frc.robot.subsystems.amp.AmpPivot;
@@ -54,7 +53,7 @@ public class Controls {
     driver.b();
     driver.x();
     driver.y(); // USED
-    driver.start().whileTrue(new GoToPose(frc.robot.Constants.Field.AUTO_MOVE_POSITIONS.get("AMP"), swerveDrive));
+    //driver.start().whileTrue(new GoToPose(frc.robot.Constants.Field.AUTO_MOVE_POSITIONS.get("AMP"), swerveDrive));
     driver.back().whileTrue(stateController.setState(RobotStateController.State.AIM_MORTAR));
     driver.leftBumper();
     driver.rightBumper();
