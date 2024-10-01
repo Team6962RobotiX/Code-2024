@@ -333,7 +333,7 @@ public final class Constants {
   }
 
   public static final class SHOOTER_PIVOT {
-    public static final double GEARING = 15.0 * (78.0 / 20.0) * (200.0 / 18.0);
+    public static final double GEARING = 15.0 * (78.0 / 20.0) * (200.0 / 19.0);
     public static final double ROTATION_DELAY = 0.3; // seconds
     public static final Rotation2d ANGLE_TOLERANCE = Rotation2d.fromDegrees(0.25);
     public static final Rotation2d ANGLE_PRECISION = Rotation2d.fromDegrees(0.25);
