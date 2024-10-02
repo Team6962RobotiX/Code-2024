@@ -32,7 +32,7 @@ public class TransferInWheels extends SubsystemBase {
     SparkMaxUtil.save(motor);
     SparkMaxUtil.configureCANStatusFrames(motor, false, false);
 
-    Logger.autoLog(this, "state", () -> state.name());
+    Logger.logOther(this, "state", () -> state.name());
 
     // detector = new NoteDetector(motor, Constants.TRANSFER.INTAKE_GEARING, Constants.TRANSFER.FREE_TORQUE, false);
   }

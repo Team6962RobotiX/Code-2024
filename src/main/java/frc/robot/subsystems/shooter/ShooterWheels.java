@@ -75,9 +75,9 @@ public class ShooterWheels extends SubsystemBase {
     SparkMaxUtil.save(feedMotor);
     SparkMaxUtil.configureCANStatusFrames(feedMotor, false, false);
 
-    Logger.autoLog(this, "velocity", () -> getVelocity());
-    Logger.autoLog(this, "targetVelocity", () -> speed);
-    Logger.autoLog(this, "state", () -> state.name());
+    Logger.logOther(this, "velocity", () -> getVelocity());
+    Logger.logOther(this, "targetVelocity", () -> speed);
+    Logger.logOther(this, "state", () -> state.name());
   }
 
   public Command setState(State state) {

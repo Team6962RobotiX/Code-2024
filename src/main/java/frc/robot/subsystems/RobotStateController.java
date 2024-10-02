@@ -68,12 +68,12 @@ public class RobotStateController extends SubsystemBase {
 
     StatusChecks.addCheck(new SubsystemBase() {}, "Beam Break Sensor", () -> beamBreakSensor.get());
 
-    Logger.autoLog(this, "isAimed", () -> isAimed());
-    Logger.autoLog(this, "hasNote", () -> hasNote());
-    Logger.autoLog(this, "canShoot", () -> canShoot());
-    Logger.autoLog(this, "inRange", () -> inRange());
-    Logger.autoLog(this, "Loop Time", () -> Robot.getLoopTime());
-    Logger.autoLog(this, "Compute Time", () -> Robot.getComputeTime());
+    Logger.logOther(this, "isAimed", () -> isAimed());
+    Logger.logOther(this, "hasNote", () -> hasNote());
+    Logger.logOther(this, "canShoot", () -> canShoot());
+    Logger.logOther(this, "inRange", () -> inRange());
+    Logger.logOther(this, "Loop Time", () -> Robot.getLoopTime());
+    Logger.logOther(this, "Compute Time", () -> Robot.getComputeTime());
   }
 
   /**

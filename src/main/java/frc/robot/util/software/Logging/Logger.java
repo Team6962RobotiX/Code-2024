@@ -35,6 +35,7 @@ public final class Logger {
   private static Map<String, Object> values = new HashMap<String, Object>();
   private static ShuffleboardTab tab = Shuffleboard.getTab("Logging");
   private static GenericEntry loggingButton = tab.add("Enable Logging", true).withWidget(BuiltInWidgets.kToggleSwitch).withSize(1, 1).withPosition(0, 0).getEntry();
+  private static GenericEntry otherLoggingButton = tab.add("Log Non-Control", false).withWidget(BuiltInWidgets.kToggleSwitch).withSize(1, 1).withPosition(1, 0).getEntry();
   
   private static Notifier notifier = new Notifier(
     () -> {
@@ -72,19 +73,23 @@ public final class Logger {
     logRio("roboRio");
   }
 
-  public static void autoLog(String key, Supplier<Object> supplier) {
+  public static void logOther(String key, Supplier<Object> supplier) {
+    if (otherLoggingButton.getBoolean(false)) suppliers.put(key, supplier);
+  }
+
+  public static void logControl(String key, Supplier<Object> supplier) {
     suppliers.put(key, supplier);
   }
 
-  public static void autoLog(String key, Object obj) {
-    autoLog(key, () -> obj);
+  public static void logOther(String key, Object obj) {
+    logOther(key, () -> obj);
   }
 
-  public static void autoLog(SubsystemBase subsystem, String key, Supplier<Object> supplier) {
-    autoLog(subsystem.getClass().getSimpleName() + "/" + key, supplier);
+  public static void logOther(SubsystemBase subsystem, String key, Supplier<Object> supplier) {
+    logOther(subsystem.getClass().getSimpleName() + "/" + key, supplier);
   }
 
-  public static void log(String key, Object obj) {
+  private static void log(String key, Object obj) {
     if (obj instanceof CANSparkMax) log(key, (CANSparkMax) obj);
     else if (obj instanceof RelativeEncoder) log(key, (RelativeEncoder) obj);
     else if (obj instanceof AHRS) log(key, (AHRS) obj);
@@ -186,6 +191,8 @@ public final class Logger {
   }
 
   public static void logRio(String path) {
+    if (!otherLoggingButton.getBoolean(false)) return;
+
     log(path + "/isBrownedOut", RobotController.isBrownedOut());
     log(path + "/isSysActive", RobotController.isSysActive());
     log(path + "/brownoutVoltage", RobotController.getBrownoutVoltage());

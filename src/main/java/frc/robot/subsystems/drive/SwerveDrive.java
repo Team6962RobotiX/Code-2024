@@ -153,23 +153,66 @@ public class SwerveDrive extends SubsystemBase {
     
     SmartDashboard.putData("Field", field);
     
-    Logger.autoLog(this, "pose", () -> this.getPose());
-    Logger.autoLog(this, "measuredHeading", () -> this.getHeading().getDegrees());
-    Logger.autoLog(this, "targetHeading", () -> Units.radiansToDegrees(alignmentController.getSetpoint()));
-    Logger.autoLog(this, "targetStates", () -> getTargetModuleStates());
-    Logger.autoLog(this, "measuredStates", () -> getMeasuredModuleStates());
-    Logger.autoLog(this, "modulePositions", () -> getModulePositions());
-    Logger.autoLog(this, "gyroAcceleration", () -> Math.hypot(gyro.getWorldLinearAccelX(), gyro.getWorldLinearAccelY()));
-    Logger.autoLog(this, "gyroVelocity", () -> Math.hypot(gyro.getVelocityX(), gyro.getVelocityY()));
-    Logger.autoLog(this, "commandedLinearAcceleration", () -> linearAcceleration.getNorm());
-    Logger.autoLog(this, "commandedLinearVelocity", () -> Math.hypot(getDrivenChassisSpeeds().vxMetersPerSecond, getDrivenChassisSpeeds().vyMetersPerSecond));
-    Logger.autoLog(this, "commandedAngularAcceleration", () -> angularAcceleration);
-    Logger.autoLog(this, "commandedAngularVelocity", () -> getDrivenChassisSpeeds().omegaRadiansPerSecond);
-    Logger.autoLog(this, "measuredAngularVelocity", () -> getMeasuredChassisSpeeds().omegaRadiansPerSecond);
-    Logger.autoLog(this, "measuredLinearVelocity", () -> Math.hypot(getMeasuredChassisSpeeds().vxMetersPerSecond, getMeasuredChassisSpeeds().vyMetersPerSecond));
-    Logger.autoLog(this, "gyroIsCalibrating", () -> gyro.isCalibrating());
-    Logger.autoLog(this, "gyroIsConnected", () -> gyro.isConnected());
-    Logger.autoLog(this, "gyroRawDegrees", () -> gyro.getRotation2d().getDegrees());
+    Logger.logControl("Pose/xMeters", () -> this.getPose().getX());
+    Logger.logControl("Pose/yMeters", () -> this.getPose().getY());
+    Logger.logControl("Pose/rotation/radians", () -> this.getPose().getRotation().getRadians());
+    Logger.logControl("Pose/rotation/degrees", () -> this.getPose().getRotation().getDegrees());
+    Logger.logControl("IMU/rawHeading/radians", () -> gyro.getRotation2d().getRadians());
+    Logger.logControl("IMU/rawHeading/degrees", () -> gyro.getRotation2d().getDegrees());
+    Logger.logControl("IMU/fieldHeading/radians", () -> gyro.getRotation2d().plus(gyroOffset).getRadians());
+    Logger.logControl("IMU/fieldHeading/degrees", () -> gyro.getRotation2d().plus(gyroOffset).getDegrees());
+    Logger.logControl("IMU/rawAccelerationX", () -> gyro.getWorldLinearAccelX() * 9.80665);
+    Logger.logControl("IMU/rawAccelerationY", () -> gyro.getWorldLinearAccelY() * 9.80665);
+    Logger.logControl("IMU/rawAccelerationZ", () -> gyro.getWorldLinearAccelZ() * 9.80665);
+
+    Logger.logControl("IMU/fieldAccelerationX", () -> 
+      new Translation2d(gyro.getWorldLinearAccelX(), gyro.getWorldLinearAccelY()).times(9.80665)
+        .rotateBy(gyroOffset).getX()
+    );
+    Logger.logControl("IMU/fieldAccelerationY", () -> 
+      new Translation2d(gyro.getWorldLinearAccelX(), gyro.getWorldLinearAccelY()).times(9.80665)
+        .rotateBy(gyroOffset).getY()
+    );
+    Logger.logControl("IMU/fieldAccelerationZ", () -> gyro.getWorldLinearAccelZ() * 9.80665);
+
+    Logger.logControl("Heading/rawHeading/radians", () -> gyroHeading.getRadians());
+    Logger.logControl("Heading/rawHeading/degrees", () -> gyroHeading.getDegrees());
+    Logger.logControl("Heading/fieldHeading/radians", () -> gyroHeading.plus(gyroOffset).getRadians());
+    Logger.logControl("Heading/fieldHeading/degrees", () -> gyroHeading.plus(gyroOffset).getDegrees());
+
+    Logger.logControl("Heading/dataSource", () -> gyro.isConnected() && !gyro.isCalibrating() && RobotBase.isReal() ? "Gyroscope" : "Odometry");
+    Logger.logControl("IMU/isConnected", () -> gyro.isConnected());
+    Logger.logControl("IMU/isCalibrating", () -> gyro.isCalibrating());
+    Logger.logControl("Robot/isReal", () -> RobotBase.isReal());
+    Logger.logControl("Robot/isSimulation", () -> RobotBase.isSimulation());
+
+    for (int moduleIndex = 0; moduleIndex < 4; moduleIndex++) {
+      SwerveModule module = modules[moduleIndex];
+      String cornerName = SWERVE_DRIVE.MODULE_NAMES[moduleIndex];
+      
+      Logger.logControl("Odometry/" + cornerName + "/speedMetersPerSecond", () -> module.getMeasuredState().speedMetersPerSecond);
+      Logger.logControl("Odometry/" + cornerName + "/angle/radians", () -> module.getMeasuredState().angle.getDegrees());
+      Logger.logControl("Odometry/" + cornerName + "/angle/degrees", () -> module.getMeasuredState().angle.getDegrees());
+      Logger.logControl("Odometry/" + cornerName + "/positionMeters", () -> module.getModulePosition().distanceMeters);
+    }
+
+    Logger.logOther(this, "pose", () -> this.getPose());
+    Logger.logOther(this, "measuredHeading", () -> this.getHeading().getDegrees());
+    Logger.logOther(this, "targetHeading", () -> Units.radiansToDegrees(alignmentController.getSetpoint()));
+    Logger.logOther(this, "targetStates", () -> getTargetModuleStates());
+    Logger.logOther(this, "measuredStates", () -> getMeasuredModuleStates());
+    Logger.logOther(this, "modulePositions", () -> getModulePositions());
+    Logger.logOther(this, "gyroAcceleration", () -> Math.hypot(gyro.getWorldLinearAccelX(), gyro.getWorldLinearAccelY()));
+    Logger.logOther(this, "gyroVelocity", () -> Math.hypot(gyro.getVelocityX(), gyro.getVelocityY()));
+    Logger.logOther(this, "commandedLinearAcceleration", () -> linearAcceleration.getNorm());
+    Logger.logOther(this, "commandedLinearVelocity", () -> Math.hypot(getDrivenChassisSpeeds().vxMetersPerSecond, getDrivenChassisSpeeds().vyMetersPerSecond));
+    Logger.logOther(this, "commandedAngularAcceleration", () -> angularAcceleration);
+    Logger.logOther(this, "commandedAngularVelocity", () -> getDrivenChassisSpeeds().omegaRadiansPerSecond);
+    Logger.logOther(this, "measuredAngularVelocity", () -> getMeasuredChassisSpeeds().omegaRadiansPerSecond);
+    Logger.logOther(this, "measuredLinearVelocity", () -> Math.hypot(getMeasuredChassisSpeeds().vxMetersPerSecond, getMeasuredChassisSpeeds().vyMetersPerSecond));
+    Logger.logOther(this, "gyroIsCalibrating", () -> gyro.isCalibrating());
+    Logger.logOther(this, "gyroIsConnected", () -> gyro.isConnected());
+    Logger.logOther(this, "gyroRawDegrees", () -> gyro.getRotation2d().getDegrees());
     StatusChecks.addCheck(this, "isGyroConnected", gyro::isConnected);
 
     AutoBuilder.configureHolonomic(

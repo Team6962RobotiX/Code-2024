@@ -76,11 +76,11 @@ public class PivotController {
     SparkMaxUtil.configureEncoder(motor, 2.0 * Math.PI / gearing);
     SparkMaxUtil.configurePID(subsystem, motor, kP, 0.0, 0.0, 0.0, false);
     
-    Logger.autoLog(subsystem, "targetPosition",                   () -> getTargetAngle().getRadians());
-    Logger.autoLog(subsystem, "position",                         () -> getPosition().getRadians());
-    Logger.autoLog(subsystem, "relativePosition",                 () -> encoder.getPosition());
-    Logger.autoLog(subsystem, "rawAbsolutePosition",              () -> absoluteEncoder.getAbsolutePosition() * 360);
-    Logger.autoLog(subsystem, "doneMoving",                       () -> doneMoving());
+    Logger.logOther(subsystem, "targetPosition",                   () -> getTargetAngle().getRadians());
+    Logger.logOther(subsystem, "position",                         () -> getPosition().getRadians());
+    Logger.logOther(subsystem, "relativePosition",                 () -> encoder.getPosition());
+    Logger.logOther(subsystem, "rawAbsolutePosition",              () -> absoluteEncoder.getAbsolutePosition() * 360);
+    Logger.logOther(subsystem, "doneMoving",                       () -> doneMoving());
 
     StatusChecks.addCheck(subsystem, "absoluteEncoderConnected", () -> absoluteEncoder.isConnected());
     StatusChecks.addCheck(subsystem, "absoluteEncoderUpdated",   () -> absoluteEncoder.getAbsolutePosition() != 0.0);

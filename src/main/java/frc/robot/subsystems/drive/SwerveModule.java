@@ -123,8 +123,8 @@ public class SwerveModule extends SubsystemBase {
     seedSteerEncoder();
 
     String logPath = "module" + name + "/";
-    Logger.autoLog(this, logPath + "relativeSteerDirection",           () -> relativeSteerDirection.getDegrees());
-    Logger.autoLog(this, logPath + "absoluteSteerDirection",        () -> absoluteSteerDirection.getDegrees());
+    Logger.logOther(this, logPath + "relativeSteerDirection",           () -> relativeSteerDirection.getDegrees());
+    Logger.logOther(this, logPath + "absoluteSteerDirection",        () -> absoluteSteerDirection.getDegrees());
 
     StatusChecks.addCheck(this, name + "canCoderHasFaults", () -> absoluteSteerEncoder.getFaultField().getValue() == 0);
     StatusChecks.addCheck(this, name + "canCoderIsConnected", () -> absoluteSteerEncoder.getVersion().getValue() != 0);

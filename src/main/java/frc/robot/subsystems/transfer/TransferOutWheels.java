@@ -32,7 +32,7 @@ public class TransferOutWheels extends SubsystemBase {
     SparkMaxUtil.save(motor);
     SparkMaxUtil.configureCANStatusFrames(motor, false, false);
 
-    Logger.autoLog(this, "state", () -> state.name());
+    Logger.logOther(this, "state", () -> state.name());
   }
 
   public Command setState(State state) {

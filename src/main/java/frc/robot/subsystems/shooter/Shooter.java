@@ -51,7 +51,7 @@ public class Shooter extends SubsystemBase {
     this.shooterPivot = new ShooterPivot();
     this.swerveDrive = swerveDrive;
     
-    Logger.autoLog(this, "Is Aimed", () -> isAimed());
+    Logger.logOther(this, "Is Aimed", () -> isAimed());
 
     SmartDashboard.putData("ShooterMechanism", mechanism);
   }

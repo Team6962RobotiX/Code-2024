@@ -25,9 +25,9 @@ public class NoteDetector extends SubsystemBase {
     this.gearing = gearing;
     this.freeTorque = freeTorque;
     this.isNeo550 = isNeo550;
-    Logger.autoLog("NoteDetectors/" + motor.getDeviceId() + "/isNoteStatusTrue", () -> isNoteStatus(true));
-    Logger.autoLog("NoteDetectors/" + motor.getDeviceId() + "/isNoteStatusFalse", () -> isNoteStatus(false));
-    Logger.autoLog("NoteDetectors/" + motor.getDeviceId() + "/appliedTorque", () -> filteredTorque);
+    Logger.logOther("NoteDetectors/" + motor.getDeviceId() + "/isNoteStatusTrue", () -> isNoteStatus(true));
+    Logger.logOther("NoteDetectors/" + motor.getDeviceId() + "/isNoteStatusFalse", () -> isNoteStatus(false));
+    Logger.logOther("NoteDetectors/" + motor.getDeviceId() + "/appliedTorque", () -> filteredTorque);
   }
 
   @Override

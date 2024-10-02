@@ -37,7 +37,7 @@ public class AmpWheels extends SubsystemBase {
     SparkMaxUtil.configureAndLog(this, motor, true, CANSparkMax.IdleMode.kBrake);
     SparkMaxUtil.configureCANStatusFrames(motor, false, false);
     SparkMaxUtil.save(motor);
-    Logger.autoLog(this, "state", () -> state.name());
+    Logger.logOther(this, "state", () -> state.name());
 
     // detector = new NoteDetector(motor, Constants.AMP_WHEELS.GEARING, Constants.AMP_WHEELS.FREE_TORQUE, true);
   }
