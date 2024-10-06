@@ -172,6 +172,7 @@ public class RobotStateController extends SubsystemBase {
     // if (RobotBase.isSimulation()) {
     //   return hasNote.getEntry().getBoolean(false);
     // }
+
     return beamBreakDebouncer.calculate(!beamBreakSensor.get());
   }
   
@@ -205,6 +206,35 @@ public class RobotStateController extends SubsystemBase {
 
   public boolean inRange() {
     return shooter.inRange();
+  }
+
+  public boolean shouldAutoSpinUp() {
+    Translation2d robotTranslation = swerveDrive.getPose().getTranslation();
+    Translation2d speakerTranslation = Field.SPEAKER.get().toTranslation2d();
+    Translation2d ampTranslation = new Translation2d(14.703, 8.459);
+
+    double ampExlusionSpeaker = 1.4;
+    double speakerInclusionDistance = 5;
+
+    boolean isInRange = robotTranslation.getY() > speakerTranslation.getY() ?
+      Math.hypot(
+        Math.abs(robotTranslation.getX() - speakerTranslation.getX()) / speakerInclusionDistance,
+        Math.abs(robotTranslation.getY() - speakerTranslation.getY()) / ampExlusionSpeaker
+      ) < 1
+    : robotTranslation.getDistance(speakerTranslation) < speakerInclusionDistance;
+
+    boolean underStage = swerveDrive.underStage();
+
+    System.out.print("SPEAKER DISTANCE: ");
+    System.out.println(robotTranslation.getDistance(speakerTranslation));
+    System.out.print("AMP DISTANCE: ");
+    System.out.println(robotTranslation.getDistance(ampTranslation));
+    System.out.print("UNDER STAGE: ");
+    System.out.println(underStage);
+
+    return // hasNote() &&
+      isInRange &&
+      !underStage;
   }
 
   @Override
@@ -244,5 +274,8 @@ public class RobotStateController extends SubsystemBase {
       shooter.getPivot().setMaxAngle(Preferences.SHOOTER_PIVOT.MAX_ANGLE);
       amp.getPivot().setMaxAngle(Preferences.AMP_PIVOT.MAX_ANGLE);
     }
+
+    if (RobotState.isTeleop() && RobotState.isEnabled()) shooter.getShooterWheels().setAutoSpinUp(shouldAutoSpinUp());
+    else shooter.getShooterWheels().setAutoSpinUp(false);
   }
 }

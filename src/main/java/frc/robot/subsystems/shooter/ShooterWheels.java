@@ -31,10 +31,16 @@ import frc.robot.Constants.Constants.CAN;
 import frc.robot.Constants.Constants.ENABLED_SYSTEMS;
 import frc.robot.Constants.Constants.SHOOTER_WHEELS;
 import frc.robot.Constants.Preferences.VOLTAGE_LADDER;
+import frc.robot.subsystems.RobotStateController;
+import frc.robot.subsystems.drive.SwerveDrive;
+import frc.robot.subsystems.transfer.Transfer;
 import frc.robot.util.hardware.SparkMaxUtil;
 import frc.robot.util.software.Logging.Logger;
 
 public class ShooterWheels extends SubsystemBase {
+  private static boolean AUTOMATIC_SPIN_UP = true;
+  public static double TARGET_SPIN_SPEED = ShooterMath.calcShooterWheelVelocity(Constants.SHOOTER_WHEELS.TOP_EXIT_VELOCITY) / SHOOTER_WHEELS.MAX_WHEEL_SPEED / 0.8888349515 / 1.0328467153 / 0.975257732;
+
   private CANSparkMax shooterMotor, shooterMotorFollower, feedMotor;
   private RelativeEncoder encoder;
   private boolean isCalibrating = false;
@@ -49,6 +55,9 @@ public class ShooterWheels extends SubsystemBase {
     REVERSE,
     OFF,
   }
+
+  private boolean autoSpinUp;
+  private State executedState;
 
   public ShooterWheels() {
     shooterMotor = new CANSparkMax(CAN.SHOOTER_WHEELS_BOTTOM, MotorType.kBrushless);
@@ -78,6 +87,7 @@ public class ShooterWheels extends SubsystemBase {
     Logger.autoLog(this, "velocity", () -> getVelocity());
     Logger.autoLog(this, "targetVelocity", () -> speed);
     Logger.autoLog(this, "state", () -> state.name());
+    Logger.autoLog(this, "executedState", () -> executedState.name());
   }
 
   public Command setState(State state) {
@@ -94,6 +104,10 @@ public class ShooterWheels extends SubsystemBase {
 
   public State getState() {
     return state;
+  }
+
+  public void setAutoSpinUp(boolean autoSpinUp) {
+    this.autoSpinUp = autoSpinUp;
   }
 
   @Override
@@ -113,10 +127,13 @@ public class ShooterWheels extends SubsystemBase {
       speed = ShooterMath.calcShooterWheelVelocity(Constants.SHOOTER_WHEELS.TOP_EXIT_VELOCITY);
     }
 
+    if (AUTOMATIC_SPIN_UP && autoSpinUp) executedState = State.SPIN_UP;
+    else executedState = state;
+
     // System.out.println(speed);
     // System.out.println(ShooterMath.calcProjectileVelocity(ShooterMath.calcShooterWheelVelocity(speed)));
     double motorSpeed;
-    switch(state) {
+    switch(executedState) {
       case SPIN_UP:
         // System.out.println(speed);
         motorSpeed = (speed / SHOOTER_WHEELS.MAX_WHEEL_SPEED);

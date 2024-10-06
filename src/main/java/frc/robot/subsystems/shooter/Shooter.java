@@ -192,6 +192,10 @@ public class Shooter extends SubsystemBase {
     );
   }
 
+  public ShooterWheels getShooterWheels() {
+    return shooterWheels;
+  }
+
   @Override
   public void simulationPeriodic() {
   // This method will be called once per scheduler run during simulation
