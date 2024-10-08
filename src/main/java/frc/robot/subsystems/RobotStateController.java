@@ -118,7 +118,7 @@ public class RobotStateController extends SubsystemBase {
           Commands.parallel(
             transfer.setState(Transfer.State.AMP),
             amp.setState(Amp.State.IN)
-          ).withTimeout(0.25),
+          ).withTimeout(0.3),
           amp.setState(Amp.State.UP)
         ).raceWith(LEDs.setStateCommand(LEDs.State.RUNNING_COMMAND)).andThen(Controls.rumbleBoth());
       case PLACE_AMP:
