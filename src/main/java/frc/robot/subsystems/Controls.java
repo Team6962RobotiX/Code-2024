@@ -75,9 +75,9 @@ public class Controls {
     }
 
     operator.a().whileTrue(shooterPivot.setTargetAngleCommand(() -> Rotation2d.fromDegrees(30.0)));
-    operator.b();
+    operator.b().whileTrue(shooterPivot.setTargetAngleCommand(() -> Preferences.SHOOTER_PIVOT.MAX_ANGLE));
     operator.x().whileTrue(stateController.setState(RobotStateController.State.SHOOT_OVERIDE));
-    operator.y().whileTrue(shooterPivot.setTargetAngleCommand(() -> Preferences.SHOOTER_PIVOT.MAX_ANGLE));
+    operator.y();
     operator.start().whileTrue(stateController.setState(RobotStateController.State.LEAVE_AMP));
     operator.back().onTrue(stateController.setState(RobotStateController.State.CENTER_NOTE).andThen(Controls.rumbleBoth()));
     operator.leftBumper();
