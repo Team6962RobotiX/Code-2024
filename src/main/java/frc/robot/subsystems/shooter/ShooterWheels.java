@@ -43,6 +43,7 @@ public class ShooterWheels extends SubsystemBase {
   private double encoderVelocity = 0.0;
   private boolean isShooting = false;
   private Debouncer isShootingDebouncer = new Debouncer(2.0, DebounceType.kFalling);
+  private boolean feedMax;
   
   public enum State {
     SPIN_UP,
@@ -78,6 +79,7 @@ public class ShooterWheels extends SubsystemBase {
     Logger.autoLog(this, "velocity", () -> getVelocity());
     Logger.autoLog(this, "targetVelocity", () -> speed);
     Logger.autoLog(this, "state", () -> state.name());
+    // Logger.autoLog(this, "feedVelocity", () -> feedMotor.get());
   }
 
   public Command setState(State state) {
@@ -90,6 +92,10 @@ public class ShooterWheels extends SubsystemBase {
   public double getVelocity() {
     if (Robot.isSimulation()) return state == State.SPIN_UP ? speed : 0.0;
     return Math.round(encoderVelocity / 10.0) * 10.0;
+  }
+
+  public void setFeedMax(boolean maxOn) {
+    feedMax = maxOn;
   }
 
   public State getState() {
@@ -123,9 +129,14 @@ public class ShooterWheels extends SubsystemBase {
         shooterMotor.set(motorSpeed / 0.8888349515 / 1.0328467153 / 0.975257732);
         if (isShootingDebouncer.calculate(isShooting)) {
           feedMotor.set(motorSpeed * (62.0 / 38.0) / 1.125);
+          
+          if (feedMax) {
+            feedMotor.set(1.0);
+          }
         } else {
           feedMotor.set(0.0);
         }
+
         break;
       case REVERSE:
         shooterMotor.set(-1.0);
