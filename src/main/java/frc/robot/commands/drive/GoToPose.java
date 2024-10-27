@@ -16,6 +16,7 @@ public class GoToPose extends Command {
     this.swerveDrive = swerveDrive;
   }
 
+  @Override
   public void initialize() {
     Pose2d pose = poseSupplier.get();
     command = swerveDrive.goToSimple(pose);
@@ -26,11 +27,13 @@ public class GoToPose extends Command {
     command.schedule();
   }
 
+  @Override
   public void execute() {
 
   }
 
-  public void end() {
+  @Override
+  public void end(boolean interrupted) {
     command.cancel();
   }
 }

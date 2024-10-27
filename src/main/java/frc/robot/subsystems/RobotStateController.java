@@ -45,6 +45,7 @@ public class RobotStateController extends SubsystemBase {
     PREPARE_AMP,
     PLACE_AMP,
     LEAVE_AMP,
+    IN_AMP,
     AIM_SPEAKER,
     AIM_MORTAR,
     SHOOT,
@@ -118,7 +119,7 @@ public class RobotStateController extends SubsystemBase {
           Commands.parallel(
             transfer.setState(Transfer.State.AMP),
             amp.setState(Amp.State.IN)
-          ).withTimeout(0.3),
+          ).withTimeout(0.35),
           amp.setState(Amp.State.UP)
         ).raceWith(LEDs.setStateCommand(LEDs.State.RUNNING_COMMAND)).andThen(Controls.rumbleBoth());
       case PLACE_AMP:
@@ -129,6 +130,10 @@ public class RobotStateController extends SubsystemBase {
       case LEAVE_AMP:
         return Commands.sequence(
           amp.setState(Amp.State.DOWN)
+        );
+      case IN_AMP:
+        return Commands.sequence(
+          amp.setState(Amp.State.IN)
         );
       case AIM_SPEAKER:
         return shooter.setState(Shooter.State.AIM_SPEAKER)
