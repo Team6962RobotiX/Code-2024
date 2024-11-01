@@ -52,7 +52,7 @@ public final class Preferences {
     public static final Rotation2d MIN_ANGLE = Rotation2d.fromDegrees(-60.0);
     public static final Rotation2d OUTPUT_ANGLE = Rotation2d.fromDegrees(68.0);
     public static final Rotation2d INTAKE_ANGLE = Rotation2d.fromDegrees(-50.0);
-    public static final Rotation2d MAX_ANGLE_UNDER_STAGE = Rotation2d.fromDegrees(-20.0);
+    public static final Rotation2d MAX_ANGLE_UNDER_STAGE = Rotation2d.fromDegrees(-40.0);
   }
 
   public static final class TRANSFER {

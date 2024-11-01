@@ -333,13 +333,13 @@ public final class Constants {
   }
 
   public static final class SHOOTER_PIVOT {
-    public static final double GEARING = 15.0 * (78.0 / 20.0) * (200.0 / 18.0);
+    public static final double GEARING = 15.0 * (78.0 / 20.0) * (200.0 / 19.0);
     public static final double ROTATION_DELAY = 0.3; // seconds
     public static final Rotation2d ANGLE_TOLERANCE = Rotation2d.fromDegrees(0.25);
     public static final Rotation2d ANGLE_PRECISION = Rotation2d.fromDegrees(0.25);
     public static final Rotation2d HEADING_PRECISION = Rotation2d.fromDegrees(0.25);
     public static final Translation3d POSITION = new Translation3d(Units.inchesToMeters(3.33), 0.0, Units.inchesToMeters(12.1));
-    public static final double ABSOLUTE_POSITION_OFFSET = Units.degreesToRotations(-141.5 - 93.15 + 27); //  - [ rawAbsolutePosition from logs ] - 93.15 + [ the angle measured from the front plate of shooter ]
+    public static final double ABSOLUTE_POSITION_OFFSET = Units.degreesToRotations(-140.375 - 93.15 + 27); //  - [ rawAbsolutePosition from logs ] - 93.15 + [ the angle measured from the front plate of shooter ]
     public static final Rotation2d NOTE_ROTATION_OFFSET = Rotation2d.fromDegrees(-1.25); // Theoretically 3.1480961
     public static final double SHOOTER_LENGTH = Units.inchesToMeters(15.023);
     
