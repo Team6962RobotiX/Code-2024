@@ -15,7 +15,7 @@ public class LEDs extends SubsystemBase {
   private static AddressableLED strip;
   private static AddressableLEDBuffer buffer;
   private RobotStateController stateController;
-  private static int length = 170;
+  private static int length = 60;
   private static State state = State.OFF;
   private static double time = 0;
   private static double centerFillTimer = 0;

@@ -96,6 +96,13 @@ public class Shooter extends SubsystemBase {
     //         ));
 
     // System.out.println(ShooterMath.calcProjectileVelocity(getWheels().getVelocity()));
+
+    try {
+      shooterWheels.setFeedMax(shooterPivot.getTargetAngle().getDegrees() >= 50);
+    } catch (Exception e) {
+      System.out.println("womp womp");
+    }   
+    
   }
 
   public Command setState(State state) {
